@@ -151,7 +151,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Pick a file &mdash; or type a message.</strong> Either one gets the same treatment.</p>
+                            <p class="flow-cap"><strong>Pick a file, or write a note.</strong> Either one gets the same treatment.</p>
                         </li>
 
                         <li class="flow-step">
@@ -162,7 +162,7 @@
                                 </div>
                                 <span class="flow-tag">AES-GCM &middot; PBKDF2 600k</span>
                             </div>
-                            <p class="flow-cap"><strong>Set a password.</strong> Encryption happens in your browser, before anything is uploaded.</p>
+                            <p class="flow-cap"><strong>Set a password.</strong> Your browser encrypts the drop before anything is uploaded.</p>
                         </li>
 
                         <li class="flow-step">
@@ -176,7 +176,7 @@
                                 </div>
                                 <span class="flow-tag">Expires 12 Oct, 18:00</span>
                             </div>
-                            <p class="flow-cap"><strong>Add an expiry.</strong> Optional deadline &mdash; the drop can vanish before anyone opens it.</p>
+                            <p class="flow-cap"><strong>Add an expiry.</strong> Optional. When it passes, the drop is deleted, opened or not.</p>
                         </li>
 
                         <li class="flow-step">
@@ -190,7 +190,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Get one link.</strong> It hands over the drop exactly once, then it is spent.</p>
+                            <p class="flow-cap"><strong>Get one link.</strong> It names the drop. On its own, it opens nothing.</p>
                         </li>
 
                         <li class="flow-step">
@@ -205,7 +205,7 @@
                                     <span class="flow-node flow-node--to">Them</span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Send the link.</strong> Send the password through a different channel.</p>
+                            <p class="flow-cap"><strong>Send the link.</strong> Send the password another way: a different app, a call.</p>
                         </li>
 
                         <li class="flow-step">
@@ -221,7 +221,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>They open it once.</strong> The file decrypts on their device, and the drop is gone for good.</p>
+                            <p class="flow-cap"><strong>They prove the password, once.</strong> Then the drop downloads once, decrypts on their device, and is deleted from the server.</p>
                         </li>
                     </ol>
 
@@ -235,43 +235,8 @@
     <span data-icon="pause" class="relative" aria-hidden="true"><svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><rect x="4.5" y="3" width="4" height="14" rx="1.2"/><rect x="11.5" y="3" width="4" height="14" rx="1.2"/></svg></span>
 </button>
                 </div>
+                <a href="/how-it-works" class="flow-more">See every step<span aria-hidden="true"> &rarr;</span></a>
             </div>
-        </div>
-    </section>
-
-    <section class="space-y-8">
-        <div class="max-w-2xl space-y-3">
-            <h2 class="section-title">How it works</h2>
-            <p class="section-lead">Three steps, and nothing left behind.</p>
-        </div>
-        <div class="grid gap-5 md:grid-cols-3">
-            <article class="feature-card animate-fade-up">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">1</span>
-                    <h3 class="text-base font-semibold text-white">Encrypt before upload</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Pick a file or write a note, set a password, and the browser seals it with AES-GCM locally.
-                </p>
-            </article>
-            <article class="feature-card animate-fade-up delay-2">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">2</span>
-                    <h3 class="text-base font-semibold text-white">Share the one-time link</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Send the link, and send the password somewhere else. Two channels, one drop.
-                </p>
-            </article>
-            <article class="feature-card animate-fade-up delay-4">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">3</span>
-                    <h3 class="text-base font-semibold text-white">Watch it self-destruct</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Once the recipient proves the password, the file downloads once, then it&rsquo;s deleted.
-                </p>
-            </article>
         </div>
     </section>
 

@@ -5,6 +5,7 @@ and renders the view its address names (?sender=…&content=…), so a linked
 view reads right before the page script runs.
 """
 import re
+from html import unescape
 from pathlib import Path
 
 import pytest
@@ -180,3 +181,53 @@ def test_follows_the_configured_lockout(app, client, monkeypatch):
     assert 'A wrong guess can lock a drop.' in html
     assert 'spend the 3 attempts and lock it' in html
     assert 'destroy a drop' not in html
+
+
+# The landing page tells the flow once, in its walkthrough (#271): in the
+# words of the doc's "In brief", and with a way on to every step.
+
+def _landing(client):
+    response = client.get(url_for('index'))
+    assert response.status_code == 200
+    return response.get_data(as_text=True)
+
+
+def _walkthrough(html):
+    """The landing page's walkthrough, up to the end of its hero section."""
+    match = re.search(r'<div id="flow-stage".*?</section>', html, re.S)
+    assert match, 'no walkthrough on the landing page'
+    return match.group(0)
+
+
+def _plain(fragment):
+    return ' '.join(unescape(re.sub(r'<[^>]+>', '', fragment)).split())
+
+
+def _doc_in_brief():
+    """The numbered items of the doc's "In brief" section, as plain text."""
+    section = re.search(r'^## In brief\n(.*?)^## ', DOC.read_text(encoding='utf-8'), re.S | re.M)
+    assert section, 'no "In brief" section in the doc'
+    items = re.findall(r'^\d+\. (.+)$', section.group(1), re.M)
+    return [' '.join(item.replace('**', '').replace('`', '').split()) for item in items]
+
+
+def test_landing_walkthrough_links_to_it(client):
+    links = re.findall(r'<a\b[^>]*href="([^"]*)"', _walkthrough(_landing(client)))
+
+    assert url_for('how_it_works') in links
+
+
+def test_landing_walkthrough_says_what_the_doc_says_in_brief(client):
+    captions = re.findall(r'<p class="flow-cap">(.*?)</p>', _walkthrough(_landing(client)), re.S)
+
+    assert len(captions) == 6
+    assert [_plain(caption) for caption in captions] == _doc_in_brief()
+
+
+def test_landing_tells_the_flow_once(client):
+    # The walkthrough is the landing page's one account of the flow; the
+    # three "How it works" cards it used to repeat it in are gone.
+    html = _landing(client)
+
+    assert not re.search(r'<h2\b[^>]*>\s*How it works\s*</h2>', html)
+    assert 'hex-step' not in html

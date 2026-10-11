@@ -13,6 +13,18 @@
 data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else content) != value %} hidden{% endif %}
 {%- endmacro %}
 
+{# The flow in brief, as the landing page's walkthrough tells it, from the
+   sender's side: title, body. The doc's "In brief" says the same, word for
+   word. #}
+{% set brief = [
+    ('Pick a file, or write a note.', 'Either one gets the same treatment.'),
+    ('Set a password.', 'Your browser encrypts the drop before anything is uploaded.'),
+    ('Add an expiry.', 'Optional. When it passes, the drop is deleted, opened or not.'),
+    ('Get one link.', 'It names the drop. On its own, it opens nothing.'),
+    ('Send the link.', 'Send the password another way: a different app, a call.'),
+    ('They prove the password, once.', 'Then the drop downloads once, decrypts on their device, and is deleted from the server.'),
+] %}
+
 {# id, title #}
 {% set steps = [
     ('upload-begin', 'Upload, phase 1'),

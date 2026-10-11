@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { within } from '@testing-library/dom';
 import { WALKTHROUGH_HOLD_MS, openLandingPage, screen } from '../support/pages/upload.js';
 
 // Longer than any stage's hold time, so an autoplaying flow must have advanced.
@@ -24,6 +25,17 @@ describe('hero flow', () => {
         vi.advanceTimersByTime(LONGEST_HOLD_MS);
 
         expect(currentStage()).toHaveTextContent(SECOND_STAGE);
+    });
+
+    // The walkthrough is the landing page's one account of the flow, so it
+    // leads on to the full one.
+    it('links on to every step of the flow', () => {
+        openLandingPage();
+
+        const walkthrough = screen.getByRole('region', { name: 'How a drop works' });
+
+        expect(within(walkthrough).getByRole('link', { name: 'See every step' }))
+            .toHaveAttribute('href', '/how-it-works');
     });
 
     it('does not autoplay when reduced motion is preferred', () => {

@@ -675,6 +675,11 @@
     @apply absolute bottom-4 right-4 z-20;
   }
 
+  /* The way on from the walkthrough to every step, under the mock window. */
+  .flow-more {
+    @apply mt-4 inline-flex items-center gap-1 text-sm font-semibold text-honey-300 underline decoration-honey-400/30 underline-offset-4 transition hover:text-honey-200 hover:decoration-honey-300;
+  }
+
   /* Only opacity is transitioned. The lift is a one-shot animation on entry,
      so an outgoing stage fades in place instead of sliding back down and
      fighting the incoming one. */

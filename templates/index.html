@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 {% from '_play_toggle.html' import play_toggle %}
+{% from '_how_it_works_content.html' import brief %}
+
+{# A walkthrough caption, in the words /how-it-works and its doc keep true. #}
+{% macro flow_cap(index) -%}
+<p class="flow-cap"><strong>{{ brief[index][0] }}</strong> {{ brief[index][1] }}</p>
+{%- endmacro %}
 
 {# The landing page uses the full shell; the composer and drop list a narrower column. #}
 {% block content_width %}{{ 'max-w-5xl' if session.get('username') }}{% endblock %}
@@ -243,7 +249,8 @@ Send the link and the password through different channels.
             </div>
         </div>
 
-        {# Hero walkthrough: the six stages a drop goes through, cycled by hero-flow.js.
+        {# Hero walkthrough: the landing page's one account of the flow (#271), in six
+           stages cycled by pages/hero-flow/, with a link on to every step.
            Artwork is aria-hidden; the captions stay readable as an ordered list. #}
         <div class="animate-zoom-in delay-2 flex justify-center lg:justify-end">
             <div id="flow-stage" class="flow-stage" data-step="0" role="region" aria-label="How a drop works">
@@ -279,7 +286,7 @@ Send the link and the password through different channels.
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Pick a file &mdash; or type a message.</strong> Either one gets the same treatment.</p>
+                            {{ flow_cap(0) }}
                         </li>
 
                         <li class="flow-step">
@@ -290,7 +297,7 @@ Send the link and the password through different channels.
                                 </div>
                                 <span class="flow-tag">AES-GCM &middot; PBKDF2 600k</span>
                             </div>
-                            <p class="flow-cap"><strong>Set a password.</strong> Encryption happens in your browser, before anything is uploaded.</p>
+                            {{ flow_cap(1) }}
                         </li>
 
                         <li class="flow-step">
@@ -304,7 +311,7 @@ Send the link and the password through different channels.
                                 </div>
                                 <span class="flow-tag">Expires 12 Oct, 18:00</span>
                             </div>
-                            <p class="flow-cap"><strong>Add an expiry.</strong> Optional deadline &mdash; the drop can vanish before anyone opens it.</p>
+                            {{ flow_cap(2) }}
                         </li>
 
                         <li class="flow-step">
@@ -318,7 +325,7 @@ Send the link and the password through different channels.
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Get one link.</strong> It hands over the drop exactly once, then it is spent.</p>
+                            {{ flow_cap(3) }}
                         </li>
 
                         <li class="flow-step">
@@ -333,7 +340,7 @@ Send the link and the password through different channels.
                                     <span class="flow-node flow-node--to">Them</span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Send the link.</strong> Send the password through a different channel.</p>
+                            {{ flow_cap(4) }}
                         </li>
 
                         <li class="flow-step">
@@ -349,49 +356,14 @@ Send the link and the password through different channels.
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>They open it once.</strong> The file decrypts on their device, and the drop is gone for good.</p>
+                            {{ flow_cap(5) }}
                         </li>
                     </ol>
 
                     {{ play_toggle('flow-toggle', 'Pause walkthrough', playing=true, extra_class='flow-toggle') }}
                 </div>
+                <a href="{{ url_for('how_it_works') }}" class="flow-more">See every step<span aria-hidden="true"> &rarr;</span></a>
             </div>
-        </div>
-    </section>
-
-    <section class="space-y-8">
-        <div class="max-w-2xl space-y-3">
-            <h2 class="section-title">How it works</h2>
-            <p class="section-lead">Three steps, and nothing left behind.</p>
-        </div>
-        <div class="grid gap-5 md:grid-cols-3">
-            <article class="feature-card animate-fade-up">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">1</span>
-                    <h3 class="text-base font-semibold text-white">Encrypt before upload</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Pick a file or write a note, set a password, and the browser seals it with AES-GCM locally.
-                </p>
-            </article>
-            <article class="feature-card animate-fade-up delay-2">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">2</span>
-                    <h3 class="text-base font-semibold text-white">Share the one-time link</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Send the link, and send the password somewhere else. Two channels, one drop.
-                </p>
-            </article>
-            <article class="feature-card animate-fade-up delay-4">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">3</span>
-                    <h3 class="text-base font-semibold text-white">Watch it self-destruct</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Once the recipient proves the password, the file downloads once, then it&rsquo;s deleted.
-                </p>
-            </article>
         </div>
     </section>
 
