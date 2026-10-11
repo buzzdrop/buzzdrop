@@ -230,7 +230,7 @@
     <section class="space-y-8">
         <div class="max-w-2xl space-y-3">
             <h2 class="section-title">What&rsquo;s guaranteed</h2>
-            <p class="section-lead">Four things you can rely on. Each links to the step of the flow that makes it true.</p>
+            <p class="section-lead">Four things you can rely on, each with a link to how it works.</p>
         </div>
         <div class="grid gap-5 md:grid-cols-2">
         <article class="feature-card">
@@ -242,7 +242,7 @@
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The server never sees your key</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Your password derives half the key in the browser via PBKDF2 — 600,000 iterations — and never leaves the device. The other half is a server-held share released exactly once, so a stolen ciphertext alone is dead bytes. Buzzdrop stores ciphertext and metadata; it cannot read the drop.</p>
-                    <a href="/how-it-works#step-encrypt" class="more-link mt-3 inline-block">Step 2: Encrypt where you are<span aria-hidden="true"> &rarr;</span></a>
+                    <a href="/how-it-works#step-encrypt" class="more-link mt-3 inline-block">How the key is split<span aria-hidden="true"> &rarr;</span></a>
                 </div>
             </div>
         </article>
@@ -255,7 +255,7 @@
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The password opens it once</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">The recipient needs no account, only the link and the password, which they prove before anything downloads. A wrong guess gets no second attempt, and once the drop is open, nobody who finds the link later gets in.</p>
-                    <a href="/how-it-works#step-release" class="more-link mt-3 inline-block">Step 5: The recipient proves the password<span aria-hidden="true"> &rarr;</span></a>
+                    <a href="/how-it-works#step-release" class="more-link mt-3 inline-block">How the password is checked<span aria-hidden="true"> &rarr;</span></a>
                 </div>
             </div>
         </article>
@@ -268,7 +268,7 @@
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">An expiry is a hard cut-off</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Give a drop a deadline and the link stops working once it passes. The attempt is refused and the copy swept away — whether or not anyone ever opened it.</p>
-                    <a href="/how-it-works#step-expiry" class="more-link mt-3 inline-block">Step 8: Expiry and manual delete<span aria-hidden="true"> &rarr;</span></a>
+                    <a href="/how-it-works#step-expiry" class="more-link mt-3 inline-block">How expiry deletes a drop<span aria-hidden="true"> &rarr;</span></a>
                 </div>
             </div>
         </article>
@@ -281,7 +281,7 @@
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">You find out it happened</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Buzzdrop records when the drop was fetched and from which IP, and can email you once, the moment the recipient decrypts it.</p>
-                    <a href="/how-it-works#step-decrypt" class="more-link mt-3 inline-block">Step 7: Decrypt in the browser<span aria-hidden="true"> &rarr;</span></a>
+                    <a href="/how-it-works#step-decrypt" class="more-link mt-3 inline-block">How decryption is reported<span aria-hidden="true"> &rarr;</span></a>
                 </div>
             </div>
         </article>

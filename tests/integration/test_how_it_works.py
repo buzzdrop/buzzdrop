@@ -288,8 +288,11 @@ def test_landing_guarantees_link_to_the_doc_steps_behind_them(client):
 
     assert len(targets) == 4
     assert set(targets) <= doc_steps
-    # Named by the step's own number and title on the page.
-    assert 'Step 5: The recipient proves the password' in _plain(_guarantees(_landing(client)))
+    # Named by what they explain, not by step number: four numbers out of
+    # eight read as a sequence with gaps.
+    labels = re.findall(r'#step-[a-z-]+"[^>]*>(.*?)</a>', _guarantees(_landing(client)), re.S)
+    assert all(_plain(label).startswith('How ') for label in labels)
+    assert 'Step ' not in _plain(_guarantees(_landing(client)))
 
 
 def test_landing_says_recipients_need_no_account(client):

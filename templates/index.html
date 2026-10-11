@@ -1,19 +1,17 @@
 {% extends "base.html" %}
 {% from '_play_toggle.html' import play_toggle %}
-{% from '_how_it_works_content.html' import brief, steps %}
+{% from '_how_it_works_content.html' import brief %}
 
 {# A walkthrough caption, in the words /how-it-works and its doc keep true. #}
 {% macro flow_cap(index) -%}
 <p class="flow-cap"><strong>{{ brief[index][0] }}</strong> {{ brief[index][1] }}</p>
 {%- endmacro %}
 
-{# A link to the step of /how-it-works that makes a guarantee true, by the
-   step's own number and title. #}
-{% macro step_link(id) -%}
-{#- Filter inside the loop: a `for … if` would number the matches, not the steps. -#}
-{%- for step_id, title in steps -%}{%- if step_id == id -%}
-<a href="{{ url_for('how_it_works') }}#step-{{ id }}" class="more-link mt-3 inline-block">Step {{ loop.index }}: {{ title }}<span aria-hidden="true"> &rarr;</span></a>
-{%- endif -%}{%- endfor -%}
+{# A link to the step of /how-it-works that makes a guarantee true, named by
+   what it explains: step numbers, four out of eight, would read as a
+   sequence with gaps. #}
+{% macro step_link(id, label) -%}
+<a href="{{ url_for('how_it_works') }}#step-{{ id }}" class="more-link mt-3 inline-block">{{ label }}<span aria-hidden="true"> &rarr;</span></a>
 {%- endmacro %}
 
 {# The landing page uses the full shell; the composer and drop list a narrower column. #}
@@ -377,7 +375,7 @@ Send the link and the password through different channels.
     <section class="space-y-8">
         <div class="max-w-2xl space-y-3">
             <h2 class="section-title">What&rsquo;s guaranteed</h2>
-            <p class="section-lead">Four things you can rely on. Each links to the step of the flow that makes it true.</p>
+            <p class="section-lead">Four things you can rely on, each with a link to how it works.</p>
         </div>
         <div class="grid gap-5 md:grid-cols-2">
         <article class="feature-card">
@@ -389,7 +387,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The server never sees your key</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Your password derives half the key in the browser via PBKDF2 — 600,000 iterations — and never leaves the device. The other half is a server-held share released exactly once, so a stolen ciphertext alone is dead bytes. Buzzdrop stores ciphertext and metadata; it cannot read the drop.</p>
-                    {{ step_link('encrypt') }}
+                    {{ step_link('encrypt', 'How the key is split') }}
                 </div>
             </div>
         </article>
@@ -402,7 +400,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The password opens it once</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">The recipient needs no account, only the link and the password, which they prove before anything downloads. {% if config.KEY_RELEASE_MAX_ATTEMPTS == 1 %}A wrong guess gets no second attempt{% else %}After {{ config.KEY_RELEASE_MAX_ATTEMPTS }} wrong guesses the drop locks{% endif %}, and once the drop is open, nobody who finds the link later gets in.</p>
-                    {{ step_link('release') }}
+                    {{ step_link('release', 'How the password is checked') }}
                 </div>
             </div>
         </article>
@@ -415,7 +413,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">An expiry is a hard cut-off</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Give a drop a deadline and the link stops working once it passes. The attempt is refused and the copy swept away — whether or not anyone ever opened it.</p>
-                    {{ step_link('expiry') }}
+                    {{ step_link('expiry', 'How expiry deletes a drop') }}
                 </div>
             </div>
         </article>
@@ -428,7 +426,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">You find out it happened</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Buzzdrop records when the drop was fetched and from which IP, and can email you once, the moment the recipient decrypts it.</p>
-                    {{ step_link('decrypt') }}
+                    {{ step_link('decrypt', 'How decryption is reported') }}
                 </div>
             </div>
         </article>
