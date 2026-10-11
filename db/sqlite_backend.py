@@ -244,7 +244,7 @@ _MIGRATABLE_COLUMNS = (
     ('file_keys', 'ticket_hash', 'TEXT'),
 )
 
-# Every timestamp column. Versions before #250 wrote them naive, in the
+# Every timestamp column. Older versions wrote them naive, in the
 # host's wall-clock time; _migrate_legacy_timestamps rewrites those in
 # the stored UTC form (timestamps.to_utc_iso).
 _TIMESTAMP_COLUMNS = (
@@ -294,7 +294,7 @@ def _migrate_legacy_timestamps(conn: sqlite3.Connection,
 
 
 def _legacy_zone(name: Optional[str], setting: str) -> Optional[ZoneInfo]:
-    """A zone naive pre-#250 timestamps are read in; None (unset) is the
+    """A zone naive timestamps from older versions are read in; None (unset) is the
     host's zone. ``setting`` names the config key in the error."""
     if not name:
         return None
@@ -975,7 +975,7 @@ class SQLiteBackend(Backend):
 
     def __init__(self, path: str, legacy_timezone: Optional[str] = None,
                  legacy_expiry_timezone: Optional[str] = None):
-        """Naive timestamps a version before #250 wrote are rewritten in
+        """Naive timestamps an older version wrote are rewritten in
         UTC when the database opens: ``legacy_timezone`` is the zone the
         host was on, ``legacy_expiry_timezone`` the uploaders' zone their
         typed expiries are read in (IANA names; unset: the host's zone

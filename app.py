@@ -325,9 +325,9 @@ if app.config['STORAGE_BACKEND'] == 'local':
 
 # Initialize the storage backend (sqlite:// today, swappable via DATABASE_URL)
 def _open_backend(url, config):
-    """create_backend with the zones naive pre-#250 timestamps are
-    migrated from: the host's for what the server wrote, DEFAULT_TIMEZONE
-    for the expiries uploaders typed."""
+    """create_backend with the zones that naive timestamps from older
+    versions are migrated from: the host's for what the server wrote,
+    DEFAULT_TIMEZONE for the expiries uploaders typed."""
     return create_backend(url, config['LEGACY_TIMESTAMP_TIMEZONE'],
                           config['DEFAULT_TIMEZONE'])
 

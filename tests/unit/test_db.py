@@ -310,8 +310,8 @@ def test_incompatible_not_null_column_fails_fast(tmp_path):
         SQLiteBackend(str(path))
 
 
-def _pre_250_db(path):
-    """A database written before #250: every time naive, in the host's
+def _zoneless_timestamps_db(path):
+    """A database as older versions left it: every time naive, in the host's
     wall-clock time, and an expiry kept with the uploader's offset."""
     from db.sqlite_backend import SQLiteBackend
 
@@ -338,8 +338,8 @@ def test_naive_timestamps_are_migrated_to_utc_in_the_legacy_zone(tmp_path):
     import sqlite3
     from db.sqlite_backend import SQLiteBackend
 
-    path = str(tmp_path / 'pre-250.db')
-    _pre_250_db(path)
+    path = str(tmp_path / 'zoneless.db')
+    _zoneless_timestamps_db(path)
 
     backend = SQLiteBackend(path, legacy_timezone='Europe/Warsaw')
     try:
@@ -374,8 +374,8 @@ def test_naive_timestamps_default_to_the_host_zone(tmp_path):
     which is right for a host whose zone never changed."""
     from db.sqlite_backend import SQLiteBackend
 
-    path = str(tmp_path / 'pre-250.db')
-    _pre_250_db(path)
+    path = str(tmp_path / 'zoneless.db')
+    _zoneless_timestamps_db(path)
 
     backend = SQLiteBackend(path)
     try:
@@ -393,13 +393,13 @@ def test_an_unknown_legacy_zone_stops_the_app(tmp_path):
 
 
 def test_a_naive_expiry_is_read_in_the_uploaders_zone_not_the_hosts(tmp_path):
-    """Before #250 the expiry field stored what the uploader typed, in
+    """Older versions stored the expiry field as the uploader typed it, in
     their own zone: on a UTC Docker host that is not the host's zone. It is
     read in legacy_expiry_timezone (the app passes DEFAULT_TIMEZONE)."""
     from db.sqlite_backend import SQLiteBackend
 
-    path = str(tmp_path / 'pre-250.db')
-    _pre_250_db(path)
+    path = str(tmp_path / 'zoneless.db')
+    _zoneless_timestamps_db(path)
 
     backend = SQLiteBackend(path, legacy_timezone='UTC',
                             legacy_expiry_timezone='Europe/Warsaw')

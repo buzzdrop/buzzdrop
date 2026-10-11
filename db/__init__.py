@@ -33,11 +33,12 @@ def create_backend(database_url: str,
     Args:
         database_url: e.g. ``sqlite:///buzzdrop.db``. A bare path with no
             scheme is treated as a SQLite file path for convenience.
-        legacy_timezone: the zone naive timestamps written before #250 are
-            read in when they are migrated to UTC (IANA name; unset: the
-            host's zone). ``LEGACY_TIMESTAMP_TIMEZONE`` in the app config.
-        legacy_expiry_timezone: the zone naive expiries typed by uploaders
-            before #250 are read in. The app passes ``DEFAULT_TIMEZONE``.
+        legacy_timezone: the zone naive timestamps written by older
+            versions are read in when they are migrated to UTC (IANA name;
+            unset: the host's zone). ``LEGACY_TIMESTAMP_TIMEZONE`` in the app config.
+        legacy_expiry_timezone: the zone naive expiries that uploaders
+            typed into older versions are read in. The app passes
+            ``DEFAULT_TIMEZONE``.
 
     Returns:
         Backend with ``.files`` and ``.tokens`` stores.

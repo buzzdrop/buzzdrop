@@ -56,7 +56,7 @@ def parse_expiry(raw: str) -> str:
 
 
 def legacy_to_stored(value: object, legacy_zone: Optional[tzinfo]) -> Optional[str]:
-    """The stored form of a value left by a version before #250, or None
+    """The stored form of a value an older version left, or None
     when it needs no change (already stored form, unset, or not a
     timestamp at all). Those versions wrote the host's wall-clock time with
     no zone, so a naive value is read in ``legacy_zone``, the zone the host

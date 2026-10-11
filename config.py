@@ -72,9 +72,10 @@ class Config:
     
     # Times are stored and compared in UTC (#250). DEFAULT_TIMEZONE is for
     # text with no browser to localize it (notification emails), and the
-    # uploaders' zone pre-#250 typed expiries are migrated from.
+    # uploaders' zone that expiries typed into older versions are migrated
+    # from.
     DEFAULT_TIMEZONE = os.getenv('DEFAULT_TIMEZONE', 'Europe/Warsaw')
-    # The zone the host was on when a version before #250 wrote naive
+    # The zone the host was on when an older version wrote naive
     # timestamps; they are rewritten in UTC when the database opens.
     # Unset: the host's zone now (UTC in the Docker image).
     LEGACY_TIMESTAMP_TIMEZONE = os.getenv('LEGACY_TIMESTAMP_TIMEZONE', '').strip() or None
