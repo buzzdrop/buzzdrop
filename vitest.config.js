@@ -8,6 +8,9 @@ export default defineConfig({
         include: ['tests/js/dom/**/*.test.js', 'tests/js/integration/**/*.test.js'],
         // jest-dom's matchers, and closing every page a driver opened.
         setupFiles: ['tests/js/support/setup.js'],
+        // A viewer zone that is neither UTC nor the server's (#250), so
+        // a time shown or sent in the wrong zone fails a test.
+        env: { TZ: 'America/New_York' },
         coverage: {
             provider: 'v8',
             include: ['static/js/**'],

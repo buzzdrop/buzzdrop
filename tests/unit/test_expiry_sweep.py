@@ -9,6 +9,7 @@ import os
 import secrets
 import time
 from datetime import datetime, timedelta
+from timestamps import utcnow
 
 from app import (
     sweep_expired_files,
@@ -20,7 +21,7 @@ from app import (
 def test_sweep_expires_past_due_drop(files_store, file_record):
     """An expired drop nobody opened is destroyed: blob + share + status."""
     file_id = file_record(
-        expiry_at=(datetime.now() - timedelta(minutes=1)).isoformat(),
+        expiry_at=(utcnow() - timedelta(minutes=1)).isoformat(),
     )
     path = storage.save(file_id, b'ciphertext')
     files_store.update_fields(file_id, {'path': path})
@@ -40,7 +41,7 @@ def test_sweep_expires_past_due_drop(files_store, file_record):
 
 def test_sweep_leaves_unexpired_drop_alone(files_store, file_record):
     file_id = file_record(
-        expiry_at=(datetime.now() + timedelta(hours=1)).isoformat(),
+        expiry_at=(utcnow() + timedelta(hours=1)).isoformat(),
     )
     path = storage.save(file_id, b'ciphertext')
     files_store.update_fields(file_id, {'path': path})
@@ -63,7 +64,7 @@ def test_sweep_ignores_drop_without_expiry(files_store, file_record):
 
 def test_sweep_does_not_recount_already_expired(file_record):
     file_record(
-        expiry_at=(datetime.now() - timedelta(minutes=1)).isoformat(),
+        expiry_at=(utcnow() - timedelta(minutes=1)).isoformat(),
         status='expired',
     )
 
@@ -71,7 +72,7 @@ def test_sweep_does_not_recount_already_expired(file_record):
 
 
 def test_sweep_counts_each_expired_drop_once(file_record):
-    past = (datetime.now() - timedelta(minutes=1)).isoformat()
+    past = (utcnow() - timedelta(minutes=1)).isoformat()
     file_record(expiry_at=past)
     file_record(expiry_at=past)
 
@@ -83,10 +84,10 @@ def test_sweep_counts_each_expired_drop_once(file_record):
 def test_sweep_survives_one_bad_row(files_store, file_record):
     """A row whose expiry handling explodes must not stop the sweep."""
     good_id = file_record(
-        expiry_at=(datetime.now() - timedelta(minutes=1)).isoformat(),
+        expiry_at=(utcnow() - timedelta(minutes=1)).isoformat(),
     )
     bad_id = file_record(
-        expiry_at=(datetime.now() - timedelta(minutes=1)).isoformat(),
+        expiry_at=(utcnow() - timedelta(minutes=1)).isoformat(),
     )
     files_store.update_fields(bad_id, {'path': None})
 
@@ -140,7 +141,7 @@ def test_sweep_thread_disabled_returns_none():
 def test_sweep_thread_expires_drop_on_interval(files_store, file_record):
     """The daemon thread actually re-sweeps while the app is running."""
     file_id = file_record(
-        expiry_at=(datetime.now() - timedelta(minutes=1)).isoformat(),
+        expiry_at=(utcnow() - timedelta(minutes=1)).isoformat(),
     )
     thread = start_expiry_sweep_thread(0.05)
     assert thread is not None and thread.daemon

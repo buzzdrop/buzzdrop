@@ -20,10 +20,13 @@ import secrets
 import sqlite3
 import threading
 from contextlib import contextmanager
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from datetime import datetime, timedelta
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 from db.base import Backend, FileStore, TokenStore
+from timestamps import (legacy_to_stored, now_iso, parse_timestamp,
+                        to_utc_iso, utcnow)
 
 _SQLITE_MAGIC = b'SQLite format 3\x00'
 
@@ -240,6 +243,62 @@ _MIGRATABLE_COLUMNS = (
     ('file_keys', 'salt', 'TEXT'),
     ('file_keys', 'ticket_hash', 'TEXT'),
 )
+
+# Every timestamp column. Versions before #250 wrote them naive, in the
+# host's wall-clock time; _migrate_legacy_timestamps rewrites those in
+# the stored UTC form (timestamps.to_utc_iso).
+_TIMESTAMP_COLUMNS = (
+    ('files', ('created_at', 'downloaded_at', 'expiry_at',
+               'notification_sent_at', 'notification_claimed_at')),
+    ('api_tokens', ('created_at', 'last_used_at', 'expires_at')),
+    ('file_keys', ('created_at', 'released_at')),
+)
+
+
+def _migrate_legacy_timestamps(conn: sqlite3.Connection,
+                               legacy_zone: Optional[ZoneInfo]) -> None:
+    """Rewrite every timestamp not yet in the stored UTC form (#250), in
+    one transaction. Idempotent: a migrated value is left alone, so this
+    runs on every start and a second run changes nothing."""
+    conn.execute('BEGIN IMMEDIATE')
+    try:
+        changed = 0
+        for table, columns in _TIMESTAMP_COLUMNS:
+            names = ', '.join(f'"{c}"' for c in columns)
+            for row in conn.execute(
+                    f'SELECT doc_id, {names} FROM "{table}"').fetchall():
+                updates = {}
+                for column in columns:
+                    stored = legacy_to_stored(row[column], legacy_zone)
+                    if stored is not None:
+                        updates[column] = stored
+                if updates:
+                    assignments = ', '.join(f'"{c}" = ?' for c in updates)
+                    conn.execute(
+                        f'UPDATE "{table}" SET {assignments} WHERE doc_id = ?',
+                        (*updates.values(), row['doc_id']))
+                    changed += 1
+    except Exception:
+        conn.execute('ROLLBACK')
+        raise
+    else:
+        conn.execute('COMMIT')
+    if changed:
+        logging.info('Rewrote timestamps of %d row(s) in UTC', changed)
+
+
+def _legacy_zone(name: Optional[str]) -> Optional[ZoneInfo]:
+    """The zone naive pre-#250 timestamps are read in; None (unset) is
+    the host's zone."""
+    if not name:
+        return None
+    try:
+        return ZoneInfo(name)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise ValueError(
+            f'LEGACY_TIMESTAMP_TIMEZONE {name!r} is not a known time zone '
+            '(use an IANA name such as Europe/Warsaw or UTC)') from exc
+
 
 # Domain label for the bearer ticket a released share downloads with. The
 # ticket is deterministic — HKDF-SHA256(ikm=H) — so the winner recomputes
@@ -461,7 +520,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         # Expired shares are excluded too: a claim raced against
         # check_and_handle_expiry() must not resurrect an expired drop.
         # NULL status is tolerated for partial/legacy rows.
-        now = datetime.now().isoformat()
+        now = now_iso()
         cursor = self._conn().execute(
             f'UPDATE "{self.table}" '
             'SET downloaded_at = ?, downloaded_by_ip = ? '
@@ -479,7 +538,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             'WHERE id = ? '
             'AND notification_sent_at IS NULL '
             'AND notification_claimed_at IS NULL',
-            (datetime.now().isoformat(), file_id),
+            (now_iso(), file_id),
         )
         return cursor.rowcount > 0
 
@@ -501,7 +560,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                 ' created_by) '
                 'VALUES (?, ?, NULL, 0, NULL, ?, ?)',
                 (file_id, h_hex,
-                 created_at or datetime.now().isoformat(), created_by),
+                 created_at or now_iso(), created_by),
             )
             return True
         except sqlite3.IntegrityError:
@@ -599,7 +658,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                 conn.execute(
                     'UPDATE file_keys SET released_at = ?, '
                     'h = NULL, v = NULL, ticket_hash = ? WHERE file_id = ?',
-                    (datetime.now().isoformat(), ticket_hash, file_id),
+                    (now_iso(), ticket_hash, file_id),
                 )
                 # H and V are wiped with the claim: post-release the row
                 # keeps only bookkeeping plus the ticket digest, so a
@@ -654,10 +713,10 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         if released_at is None or ttl_seconds is None:
             return False
         try:
-            released = datetime.fromisoformat(released_at)
+            released = parse_timestamp(released_at)
         except (TypeError, ValueError):
             return True
-        return datetime.now() >= released + timedelta(seconds=ttl_seconds)
+        return utcnow() >= released + timedelta(seconds=ttl_seconds)
 
     @staticmethod
     def _share_file_expired(joined_row) -> bool:
@@ -668,7 +727,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         if not expiry_at:
             return False
         try:
-            return datetime.now() >= datetime.fromisoformat(expiry_at)
+            return utcnow() >= parse_timestamp(expiry_at)
         except ValueError:
             return False
 
@@ -747,7 +806,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                             row['ticket_hash'], presented)):
                     result = {'status': 'bad_ticket'}
                 else:
-                    now = datetime.now().isoformat()
+                    now = now_iso()
                     cursor = conn.execute(
                         'UPDATE files SET downloaded_at = ?, '
                         'downloaded_by_ip = ? '
@@ -772,9 +831,8 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
 
     def expire_unclaimed_releases(self, older_than_seconds: int
                                   ) -> List[Dict[str, Any]]:
-        cutoff_iso = (
-            datetime.now() - timedelta(seconds=older_than_seconds)
-        ).isoformat()
+        cutoff_iso = to_utc_iso(
+            utcnow() - timedelta(seconds=older_than_seconds))
         conn = self._conn()
         conn.execute('BEGIN IMMEDIATE')
         try:
@@ -806,10 +864,8 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         return [{'id': row['id'], 'path': row['path']} for row in rows]
 
     def purge_stale_key_shares(self, older_than_seconds: int) -> int:
-        cutoff = (
-            datetime.now().timestamp() - older_than_seconds
-        )
-        cutoff_iso = datetime.fromtimestamp(cutoff).isoformat()
+        cutoff_iso = to_utc_iso(
+            utcnow() - timedelta(seconds=older_than_seconds))
         # A pending share that never finished is dead weight: its H can
         # never be legitimately bound again, so failing closed is correct.
         cursor = self._conn().execute(
@@ -894,8 +950,8 @@ class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
         return cursor.rowcount > 0
 
     def purge_expired(self, now_iso: str) -> int:
-        # expires_at and now_iso are both naive ISO-8601 strings produced by
-        # datetime.now().isoformat(), so a plain text comparison is correct.
+        # expires_at and now_iso are both UTC in the fixed-width stored form
+        # (timestamps.to_utc_iso), so a plain text comparison is correct.
         # Malformed expires_at values are deleted too — treating a garbage
         # expiry as expired is the desired fail-closed semantics for a
         # credential store (a token must never survive on corrupt data).
@@ -911,7 +967,11 @@ class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
 class SQLiteBackend(Backend):
     """SQLite Backend: one file, per-thread connections, WAL mode."""
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, legacy_timezone: Optional[str] = None):
+        """``legacy_timezone`` is the zone the host was on when a version
+        before #250 wrote naive timestamps (IANA name; unset: the host's
+        zone now). They are rewritten in UTC when the database opens."""
+        legacy_zone = _legacy_zone(legacy_timezone)
         if not path:
             raise ValueError(
                 'SQLite path must not be empty — "sqlite:///" alone would '
@@ -945,6 +1005,7 @@ class SQLiteBackend(Backend):
         self.files: FileStore = SQLiteFileStore(self)
         self.tokens: TokenStore = SQLiteTokenStore(self)
         self._ensure_schema()
+        _migrate_legacy_timestamps(self._connection(), legacy_zone)
 
     def _connection(self) -> sqlite3.Connection:
         if self.closed:

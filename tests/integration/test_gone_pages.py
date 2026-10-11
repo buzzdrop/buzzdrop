@@ -4,6 +4,7 @@ opened, expired or never existed gets one uniform "gone" page, and unknown
 URLs get a themed 404 instead of Werkzeug's default.
 """
 from datetime import datetime, timedelta
+from timestamps import utcnow
 
 import pytest
 from flask import url_for
@@ -16,10 +17,10 @@ GONE_HEADING = 'This drop is gone'
 
 def _gone_drops(file_record):
     """One id per way a drop can be gone, plus one that never existed."""
-    file_record('opened-file', downloaded_at=datetime.now().isoformat())
-    file_record('opened-note', type='text', downloaded_at=datetime.now().isoformat())
+    file_record('opened-file', downloaded_at=utcnow().isoformat())
+    file_record('opened-note', type='text', downloaded_at=utcnow().isoformat())
     file_record('expired-file',
-                expiry_at=(datetime.now() - timedelta(minutes=1)).isoformat())
+                expiry_at=(utcnow() - timedelta(minutes=1)).isoformat())
     return ['opened-file', 'opened-note', 'expired-file', 'never-existed']
 
 

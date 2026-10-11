@@ -4,10 +4,15 @@ import os
 import secrets
 import sys
 import tempfile
+import time
 import uuid
-from datetime import datetime
 import pytest
 from dotenv import load_dotenv
+
+# Run on a host clock that is neither UTC nor Warsaw time, so a timestamp
+# written or compared in the host's zone shows up as a failure (#250).
+os.environ['TZ'] = 'America/New_York'
+time.tzset()
 
 # Set required environment variables before loading app
 os.environ['FLASK_SECRET_KEY'] = 'test-secret-key-for-testing-only'
@@ -23,6 +28,7 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),
 # Add parent directory to sys.path to allow direct import of 'app'
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from timestamps import now_iso
 from app import app as flask_app, get_backend, get_files_store, limiter # Import necessary items from your app
 from auth import get_users
 
@@ -202,7 +208,7 @@ def file_record(files_store):
             'id': file_id,
             'original_name': 'secret.txt',
             'path': f'nonexistent/{file_id}',
-            'created_at': datetime.now().isoformat(),
+            'created_at': now_iso(),
             'downloaded_at': None,
             'uploaded_by': 'testuser',
             'expiry_at': None,

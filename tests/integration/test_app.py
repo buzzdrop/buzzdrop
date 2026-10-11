@@ -136,7 +136,7 @@ def test_user_file_status_endpoint_returns_only_owned_file_statuses(client, app,
             'status': 'active',
         })
 
-    files_store.update_fields('file-5', {'downloaded_at': '2025-01-02T12:00:00'})
+    files_store.update_fields('file-5', {'downloaded_at': '2025-01-02T11:00:00.000000+00:00'})
     files_store.insert({
         'id': 'another-users-file',
         'uploaded_by': 'adminuser',
@@ -153,8 +153,8 @@ def test_user_file_status_endpoint_returns_only_owned_file_statuses(client, app,
         'status': 'active',
         'status_key': 'downloaded',
         'status_display': 'Downloaded',
-        'downloaded_at': '2025-01-02 12:00:00 CET',
-        'downloaded_at_iso': '2025-01-02T12:00:00+01:00',
+        'downloaded_at': '2025-01-02 11:00:00 UTC',
+        'downloaded_at_iso': '2025-01-02T11:00:00+00:00',
         'downloaded_by_ip': None,
     }
 

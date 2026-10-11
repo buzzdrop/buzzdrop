@@ -84,7 +84,7 @@ def test_upload_text_note_with_expiry(client, app, files_store):
     login_user(client, 'testuser', 'password')
 
     mock_encrypted = base64.b64encode(b"Expiring note").decode('utf-8')
-    expiry_date = '2025-12-31T23:59'
+    expiry_date = '2025-12-31T23:59+01:00'
 
     response = upload_note(
         client, files_store,

@@ -8,6 +8,10 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /app
 
+# Zone data, so TZ works (the E2E profile sets one). The app stores and
+# compares UTC and doesn't depend on it.
+RUN apk add --no-cache tzdata
+
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

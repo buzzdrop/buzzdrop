@@ -16,6 +16,7 @@ import hmac
 import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
+from timestamps import utcnow
 
 import pytest
 
@@ -61,7 +62,7 @@ def _file_doc(file_id='file-1', **overrides):
         'id': file_id,
         'original_name': 'secret.txt',
         'path': f'uploads/{file_id}',
-        'created_at': datetime.now().isoformat(),
+        'created_at': utcnow().isoformat(),
         'downloaded_at': None,
         'uploaded_by': 'testuser',
         'expiry_at': None,
@@ -186,7 +187,7 @@ def test_claim_notification_send_once(backend):
 def test_claim_notification_send_rejects_sent(backend):
     backend.files.insert(_file_doc())
     backend.files.update_fields(
-        'file-1', {'notification_sent_at': datetime.now().isoformat()}
+        'file-1', {'notification_sent_at': utcnow().isoformat()}
     )
     assert backend.files.claim_notification_send('file-1') is False
 
@@ -459,7 +460,7 @@ def test_attempt_key_release_burn_on_lockout(backend):
 
 def test_attempt_key_release_expired(backend):
     """Expiry is decided inside the same transaction — and destroys H."""
-    past = (datetime.now() - timedelta(minutes=5)).isoformat()
+    past = (utcnow() - timedelta(minutes=5)).isoformat()
     _bound_share(backend, expiry_at=past)
 
     result = backend.files.attempt_key_release('f1', _V, 3, False)
@@ -528,7 +529,7 @@ def test_attempt_key_release_race_never_exceeds_max(backend):
 
 def test_purge_stale_key_shares(backend):
     """Pending shares past the TTL are swept; bound shares are not."""
-    old = (datetime.now() - timedelta(hours=2)).isoformat()
+    old = (utcnow() - timedelta(hours=2)).isoformat()
     backend.files.create_key_share('old-pending', _H, created_at=old)
     backend.files.create_key_share('fresh-pending', 'cc' * 32)
     # A bound share is not pending even if its row is old.
@@ -578,9 +579,9 @@ def _token_doc(**overrides):
         'token_hash': 'hash-' + os.urandom(4).hex(),
         'token_hash_version': 'pbkdf2-sha256-v1',
         'username': 'testuser',
-        'created_at': datetime.now().isoformat(),
+        'created_at': utcnow().isoformat(),
         'last_used_at': None,
-        'expires_at': (datetime.now() + timedelta(days=30)).isoformat(),
+        'expires_at': (utcnow() + timedelta(days=30)).isoformat(),
     }
     doc.update(overrides)
     return doc
@@ -611,7 +612,7 @@ def test_token_get_by_and_list_by(backend):
 
 def test_token_update_fields(backend):
     doc_id = backend.tokens.insert(_token_doc())
-    now = datetime.now().isoformat()
+    now = utcnow().isoformat()
     assert backend.tokens.update_fields(doc_id, {
         'last_used_at': now,
         'token_hash_version': 'v2',
@@ -643,15 +644,15 @@ def test_token_remove_by_hash(backend):
 
 
 def test_token_purge_expired(backend):
-    past = (datetime.now() - timedelta(hours=1)).isoformat()
-    future = (datetime.now() + timedelta(hours=1)).isoformat()
+    past = (utcnow() - timedelta(hours=1)).isoformat()
+    future = (utcnow() + timedelta(hours=1)).isoformat()
     backend.tokens.insert(_token_doc(expires_at=past))
     backend.tokens.insert(_token_doc(expires_at=future))
     backend.tokens.insert(_token_doc(expires_at=None))  # legacy: no stored expiry
     # malformed expiry is fail-closed: treated as expired, not kept valid
     backend.tokens.insert(_token_doc(expires_at='not-a-timestamp'))
 
-    assert backend.tokens.purge_expired(datetime.now().isoformat()) == 2
+    assert backend.tokens.purge_expired(utcnow().isoformat()) == 2
     remaining = backend.tokens.all()
     assert len(remaining) == 2
     assert all(t['expires_at'] in (future, None) for t in remaining)

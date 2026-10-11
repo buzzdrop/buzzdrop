@@ -25,6 +25,9 @@ export default defineConfig({
         // elements while tests click them. The app collapses every animation
         // under prefers-reduced-motion.
         contextOptions: { reducedMotion: 'reduce' },
+        // The viewer's zone, far from the server's (TZ in tests/e2e/e2e.env),
+        // so a time shown or sent in the wrong zone fails a journey (#250).
+        timezoneId: 'Asia/Tokyo',
     },
     projects: [
         // Chrome grants clipboard-write to a page on a click; Playwright's

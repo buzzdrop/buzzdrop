@@ -5,49 +5,44 @@ from datetime import datetime, timezone
 from typing import Optional
 from flask import current_app, has_app_context
 
+from timestamps import parse_timestamp
 
-DEFAULT_TIMEZONE = 'Europe/Warsaw'
+# The zone of the server's own text in the web page: UTC, a fallback until
+# the page script shows each time in the viewer's zone from its _iso twin.
+# Notification emails, which have no browser, pass DEFAULT_TIMEZONE.
+WEB_TIMEZONE = 'UTC'
 
 
-def _localize(iso_timestamp: str, tz_name: str = DEFAULT_TIMEZONE) -> datetime:
-    """Parse an ISO timestamp as an aware datetime in ``tz_name``.
+def _localize(iso_timestamp: str, tz_name: str = WEB_TIMEZONE) -> datetime:
+    """Parse a stored timestamp as an aware datetime in ``tz_name``.
 
-    Naive timestamps (what the app stores) are read as ``tz_name`` local
-    time. Falls back to UTC if the timezone can't be loaded. Raises
-    ValueError on an unparseable timestamp.
+    Stored timestamps are UTC (one without an offset is read as UTC, see
+    timestamps.parse_timestamp). Stays in UTC if ``tz_name`` can't be
+    loaded. Raises ValueError on an unparseable timestamp.
     """
-    dt = datetime.fromisoformat(iso_timestamp)
+    dt = parse_timestamp(iso_timestamp)
     try:
         from zoneinfo import ZoneInfo
-        local_tz = ZoneInfo(tz_name)
-
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=local_tz)
-        else:
-            dt = dt.astimezone(local_tz)
-
+        return dt.astimezone(ZoneInfo(tz_name))
     except Exception:
-        # Fallback to UTC if zoneinfo is not available or timezone is invalid
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-    return dt
+        return dt.astimezone(timezone.utc)
 
 
-def format_timestamp(iso_timestamp: str, tz_name: str = DEFAULT_TIMEZONE) -> str:
+def format_timestamp(iso_timestamp: str, tz_name: str = WEB_TIMEZONE) -> str:
     """
-    Convert ISO timestamp to localized formatted string.
-    Falls back to UTC if timezone conversion fails.
-    
+    Convert a stored timestamp to a formatted string in ``tz_name``.
+    Falls back to UTC if the zone can't be loaded.
+
     Args:
         iso_timestamp: ISO 8601 timestamp string
-        tz_name: Timezone name (default: Europe/Warsaw)
-    
+        tz_name: Timezone name (default: UTC)
+
     Returns:
         Formatted timestamp string in format: YYYY-MM-DD HH:MM:SS TZ
         If parsing fails, returns original timestamp
-    
+
     Example:
-        >>> format_timestamp('2024-01-15T10:30:00')
+        >>> format_timestamp('2024-01-15T09:30:00+00:00', 'Europe/Warsaw')
         '2024-01-15 10:30:00 CET'
     """
     try:
@@ -57,36 +52,42 @@ def format_timestamp(iso_timestamp: str, tz_name: str = DEFAULT_TIMEZONE) -> str
         return iso_timestamp
 
 
-def format_file_timestamps(file_dict: dict, tz_name: str = DEFAULT_TIMEZONE) -> dict:
+def _iso_twin(iso_timestamp: str, tz_name: str) -> Optional[str]:
+    """An offset-aware ISO value to the second, which every browser's
+    Date.parse reads (more than three fraction digits isn't portable)."""
+    try:
+        return _localize(iso_timestamp, tz_name).isoformat(timespec='seconds')
+    except Exception:
+        return None
+
+
+def format_file_timestamps(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict:
     """
     Format all timestamp fields in a file dictionary.
     Modifies the dictionary in place.
-    
+
     Args:
         file_dict: File information dictionary
         tz_name: Timezone name for formatting
-    
+
     Returns:
         Modified file_dict with formatted timestamps
-    
+
     Example:
-        >>> file_data = {'created_at': '2024-01-15T10:30:00', 'name': 'test.txt'}
+        >>> file_data = {'created_at': '2024-01-15T09:30:00+00:00', 'name': 'test.txt'}
         >>> format_file_timestamps(file_data)
-        {'created_at': '2024-01-15 10:30:00 CET', 'name': 'test.txt'}
+        {'created_at': '2024-01-15 09:30:00 UTC', 'created_at_iso': '2024-01-15T09:30:00+00:00', ...}
     """
     timestamp_fields = ['created_at', 'downloaded_at', 'expiry_at']
-    
+
     for field in timestamp_fields:
         # The <field>_iso twin keeps an offset-aware ISO value for
-        # <time datetime>, sorting and relative times in the browser.
+        # <time datetime>, sorting and the viewer's-zone text in the browser.
         file_dict[f'{field}_iso'] = None
         if file_dict.get(field):
-            try:
-                file_dict[f'{field}_iso'] = _localize(file_dict[field], tz_name).isoformat()
-            except Exception:
-                pass
+            file_dict[f'{field}_iso'] = _iso_twin(file_dict[field], tz_name)
             file_dict[field] = format_timestamp(file_dict[field], tz_name)
-    
+
     return file_dict
 
 
@@ -114,7 +115,17 @@ def _display_name(file_dict: dict, tz_name: str) -> str:
         return 'Text note'
 
 
-def enhance_file_display(file_dict: dict, tz_name: str = DEFAULT_TIMEZONE) -> dict:
+def _display_time_iso(file_dict: dict, tz_name: str) -> Optional[str]:
+    """The time in a "Text note · HH:MM" title, for the page script to put
+    in the viewer's zone; None when the title has no time."""
+    if file_dict.get('type') != 'text' or (file_dict.get('private_note') or '').strip():
+        return None
+    if not file_dict.get('created_at'):
+        return None
+    return _iso_twin(file_dict['created_at'], tz_name)
+
+
+def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict:
     """
     Enhance file dictionary with formatted timestamps and status display.
     Modifies the dictionary in place.
@@ -131,10 +142,12 @@ def enhance_file_display(file_dict: dict, tz_name: str = DEFAULT_TIMEZONE) -> di
           and status_display, its label
         - display_name: the file name, or for a text note its private note,
           else "Text note · HH:MM"
+        - display_time_iso: that HH:MM as an ISO value, else None
     """
     # A text note has no file name; read the note's creation time before
     # the timestamps are formatted for display.
     file_dict['display_name'] = _display_name(file_dict, tz_name)
+    file_dict['display_time_iso'] = _display_time_iso(file_dict, tz_name)
 
     # Format timestamps
     format_file_timestamps(file_dict, tz_name)

@@ -31,7 +31,7 @@ Buzzdrop is a one-time self-destructing file-sharing app where files are encrypt
 - `auth.py` — user loading from env vars, `@login_required`/`@admin_required` decorators
 - `config.py` — `Config`/`DevelopmentConfig`/`TestingConfig`/`ProductionConfig`; selected via `FLASK_ENV`
 - `tokens.py` — `generate_api_token`, `validate_api_token`, `revoke_api_token`; token hashes stored via `TokenStore` (`api_tokens` table)
-- `utils.py` — shared helpers: `enhance_file_display()` (formats timestamps with `<field>_iso` twins, adds `status_key`/`status_display` from `STATUS_LABELS` and the list's `display_name`), `allowed_file()`, `get_client_ip()` (proxy-aware), `cleanup_orphaned_files()`. `DEFAULT_TIMEZONE = 'Europe/Warsaw'`.
+- `utils.py` — shared helpers: `enhance_file_display()` (formats timestamps with `<field>_iso` twins, adds `status_key`/`status_display` from `STATUS_LABELS` and the list's `display_name`), `allowed_file()`, `get_client_ip()` (proxy-aware), `cleanup_orphaned_files()`. Server text is UTC (`WEB_TIMEZONE`); the page script shows times in the viewer's zone. `timestamps.py` — every stored time is UTC (`utcnow()`, `now_iso()`, `to_utc_iso()`, `parse_expiry()`); never use a naive `datetime.now()`.
 - `cli/buzz` — standalone CLI script (install to `$PATH`; deps in `requirements-cli.txt`)
 - `static/js/` — browser code in `lib/` / `features/` / `pages/` with enforced import rules (see `static/js/CLAUDE.md`); `lib/crypto.js` is the BKV3 format, `features/share-protocol/` the upload and key-release handshake, `pages/<page>/entry.js` what each template loads
 

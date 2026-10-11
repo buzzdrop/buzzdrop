@@ -22,7 +22,7 @@ export { screen } from './page.js';
 
 /** The rows of the with-shares fixture, by name, newest upload first. */
 const SHARE_IDS = {
-    'Text note · 21:35': '00000000-0000-4000-8000-000000000006',
+    'Text note · 15:35': '00000000-0000-4000-8000-000000000006',
     'report.pdf': '00000000-0000-4000-8000-000000000001',
     'For the auditor': '00000000-0000-4000-8000-000000000002',
     'photo.png': '00000000-0000-4000-8000-000000000003',

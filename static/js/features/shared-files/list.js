@@ -2,7 +2,7 @@
 // address), relative times, and a status refresh for the rows on screen.
 
 import { required, requiredWindow } from '../../lib/required.js';
-import { buildSharedFilesUrl, compareRows, getSharedFilesPage, relativeTime, rowSearchText } from './shared-files.js';
+import { buildSharedFilesUrl, clockTime, compareRows, fullTime, getSharedFilesPage, relativeTime, rowSearchText } from './shared-files.js';
 
 /**
  * What the shared-files status endpoint answers.
@@ -46,19 +46,44 @@ export function initSharedFilesList(root, deps) {
         return;
     }
 
+    // In the page's language and the viewer's zone: the server writes UTC.
+    /** @type {import('./shared-files.js').TimeFormat} */
+    const format = { locale: root.documentElement.lang || 'en' };
+
     /**
-     * Swap each full timestamp for one relative to now; the full one stays
-     * in the element's title (the template sets it).
+     * Swap each full timestamp for one relative to now, and put the full one,
+     * in the viewer's zone, in the element's title.
      * @param {ParentNode} container
      */
     const showRelativeTimes = (container) => {
         const now = deps.now();
         /** @type {NodeListOf<HTMLTimeElement>} */ (container.querySelectorAll('time[datetime]')).forEach((time) => {
-            const relative = relativeTime(Date.parse(time.dateTime), now);
+            const then = Date.parse(time.dateTime);
+            const relative = relativeTime(then, now, format);
             if (relative) time.textContent = relative;
+            time.title = fullTime(then, format) ?? time.title;
         });
     };
     showRelativeTimes(list);
+
+    // A note without a private note is titled by its time: put that in the
+    // viewer's zone too, wherever the title appears. The search then finds
+    // a row by the title and the times as shown.
+    rows.forEach((row) => {
+        const heading = /** @type {HTMLElement | null} */ (row.querySelector('[data-note-time]'));
+        const clock = heading && clockTime(Date.parse(heading.dataset.noteTime || ''), format);
+        const shown = Array.from(row.querySelectorAll('time[datetime]'), (time) => /** @type {HTMLElement} */ (time).title);
+        if (heading && clock) {
+            const name = `Text note \u00b7 ${clock}`;
+            heading.textContent = name;
+            heading.title = name;
+            required(row, '.copy-url', 'button').setAttribute('aria-label', `Copy link for ${name}`);
+            shown.push(name);
+        }
+        const extra = ` ${shown.join(' ')}`.toLowerCase();
+        row.dataset.searchBase += extra;
+        row.dataset.searchText += extra;
+    });
 
     const pageSize = Math.max(parseInt(list.dataset.pageSize || '5', 10), 1);
     const params = new URLSearchParams(window.location.search);
@@ -135,6 +160,7 @@ export function initSharedFilesList(root, deps) {
                     time.dateTime = file.downloaded_at_iso || '';
                     time.title = file.downloaded_at;
                     time.textContent = file.downloaded_at;
+                    // showRelativeTimes puts the title in the viewer's zone.
                     downloadedAt.replaceChildren(time);
                     showRelativeTimes(downloadedAt);
                 } else {

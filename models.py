@@ -7,6 +7,8 @@ stable while the actual storage lives behind the FileStore interface
 import secrets
 import uuid
 from datetime import datetime
+
+from timestamps import now_iso, to_utc_iso
 from typing import Optional, List, Iterable, Tuple
 
 from db import FileStore
@@ -62,7 +64,7 @@ class FileRepository:
             'id': file_id,
             'original_name': file_data['original_name'],
             'path': file_data['path'],
-            'created_at': datetime.now().isoformat(),
+            'created_at': now_iso(),
             'downloaded_at': None,
             'uploaded_by': file_data['uploaded_by'],
             'expiry_at': file_data.get('expiry_at'),
@@ -270,7 +272,7 @@ class FileRepository:
     def mark_notification_sent(self, file_id: str):
         """Mark uploader notification as sent."""
         self.store.update_fields(file_id, {
-            'notification_sent_at': datetime.now().isoformat(),
+            'notification_sent_at': now_iso(),
             'notification_claimed_at': None,
         })
 
@@ -292,7 +294,7 @@ class FileRepository:
         Returns:
             List of file dictionaries
         """
-        cutoff_iso = cutoff_datetime.isoformat()
+        cutoff_iso = to_utc_iso(cutoff_datetime)
         return [
             file_info for file_info in self.store.all()
             if file_info.get('downloaded_at')

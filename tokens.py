@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional
 
 from flask import current_app, has_app_context
 
+from timestamps import now_iso, parse_timestamp, to_utc_iso, utcnow
+
 DEFAULT_TOKEN_EXPIRY_DAYS = 30
 TOKEN_HASH_ITERATIONS = 310_000
 TOKEN_HASH_BYTES = 32
@@ -26,7 +28,7 @@ def _parse_timestamp(value: Optional[str]) -> Optional[datetime]:
     if not value:
         return None
     try:
-        return datetime.fromisoformat(value)
+        return parse_timestamp(value)
     except ValueError:
         return None
 
@@ -44,7 +46,7 @@ def _get_token_expiry(entry: Dict[str, Any]) -> Optional[datetime]:
 
 def _is_token_expired(entry: Dict[str, Any]) -> bool:
     expires_at = _get_token_expiry(entry)
-    return expires_at is not None and datetime.now() >= expires_at
+    return expires_at is not None and utcnow() >= expires_at
 
 
 def _serialize_token(entry: Dict[str, Any]) -> Dict[str, Any]:
@@ -54,7 +56,7 @@ def _serialize_token(entry: Dict[str, Any]) -> Dict[str, Any]:
         'username': entry['username'],
         'created_at': entry.get('created_at'),
         'last_used_at': entry.get('last_used_at'),
-        'expires_at': expires_at.isoformat() if expires_at is not None else None,
+        'expires_at': to_utc_iso(expires_at) if expires_at is not None else None,
     }
 
 
@@ -110,7 +112,7 @@ def generate_api_token(username: str, expires_at: Optional[datetime] = None) -> 
     Returns:
         Raw 64-character hex token (show to user once)
     """
-    now = datetime.now()
+    now = utcnow()
     raw_token = secrets.token_hex(32)
     token_hash = _hash_token(raw_token)
     expires_at = expires_at or (now + timedelta(days=DEFAULT_TOKEN_EXPIRY_DAYS))
@@ -118,9 +120,9 @@ def generate_api_token(username: str, expires_at: Optional[datetime] = None) -> 
         'token_hash': token_hash,
         'token_hash_version': TOKEN_HASH_VERSION,
         'username': username,
-        'created_at': now.isoformat(),
+        'created_at': to_utc_iso(now),
         'last_used_at': None,
-        'expires_at': expires_at.isoformat(),
+        'expires_at': to_utc_iso(expires_at),
     })
     return raw_token
 
@@ -153,10 +155,10 @@ def validate_api_token(raw_token: str) -> Optional[str]:
         store.remove_by_id(entry['doc_id'])
         return None
 
-    updates = {'last_used_at': datetime.now().isoformat()}
+    updates = {'last_used_at': now_iso()}
     expires_at = _get_token_expiry(entry)
     if expires_at is not None and not entry.get('expires_at'):
-        updates['expires_at'] = expires_at.isoformat()
+        updates['expires_at'] = to_utc_iso(expires_at)
 
     if not entry.get('token_hash_version'):
         updates['token_hash_version'] = TOKEN_HASH_VERSION
@@ -176,7 +178,7 @@ def list_api_tokens(username: Optional[str] = None) -> List[Dict[str, Any]]:
     expired_token_ids = []
 
     # Cheap first pass: rows with an explicit expires_at already past due.
-    store.purge_expired(datetime.now().isoformat())
+    store.purge_expired(now_iso())
 
     for entry in store.all():
         if _is_token_expired(entry):

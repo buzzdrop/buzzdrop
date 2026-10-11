@@ -190,6 +190,12 @@ Buzzdrop now stores its data in SQLite via `DATABASE_URL` (default `sqlite:///bu
 2. Set `DATABASE_URL=sqlite:///buzzdrop.db` in `.env` (a stale `DATABASE_PATH=db.json` now refuses to start instead of silently corrupting).
 3. Under Docker, the database and its WAL sidecars live in the mounted `./data` directory (`DATABASE_URL=sqlite:///data/buzzdrop.db`).
 
+## Upgrading: times in UTC
+
+Every timestamp is now stored and compared in UTC, so expiry fires at the moment the uploader picked whatever zone the server runs in (#250). Earlier releases stored the server's local time with no zone. On first start the app rewrites those values in UTC, reading them in `LEGACY_TIMESTAMP_TIMEZONE`, the zone the server was on when it wrote them. Left unset, that is the server's zone now, which is right unless it has changed: UTC in the Docker image, your local zone on a Passenger host. Set it (e.g. `LEGACY_TIMESTAMP_TIMEZONE=Europe/Warsaw`) before the first start if the zone changed. The rewrite runs once per value; later starts change nothing.
+
+The page shows times in the viewer's own zone. `DEFAULT_TIMEZONE` (default `Europe/Warsaw`) is now used only for the time in notification emails. API clients must send `expiry` as an ISO time with its zone (`2025-12-31T23:59+01:00`, or `Z` for UTC). A time without a zone gets a 400.
+
 ---
 
 Ready to buzz? Drop a file and watch it fly—then disappear!  
@@ -239,7 +245,7 @@ ln -s $(pwd)/cli/buzz ~/.local/bin/buzz
 ```bash
 buzz file.pdf                        # auto-generates a 6-word passphrase
 buzz file.pdf -p my-secret-pass      # use your own password
-buzz file.pdf --expiry 2025-12-31T23:59
+buzz file.pdf --expiry 2025-12-31T23:59+01:00
 ```
 
 Output:

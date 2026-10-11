@@ -61,6 +61,17 @@ export function browserDeps() {
 }
 
 /**
+ * The expiry field's wall-clock time, in the viewer's zone, as the exact
+ * moment the server stores (#250); empty when there is none.
+ * @param {string} localValue - a `datetime-local` value, e.g. '2099-01-31T12:00'
+ * @returns {string}
+ */
+function expiryInstant(localValue) {
+    const moment = new Date(localValue);
+    return localValue && !Number.isNaN(moment.getTime()) ? moment.toISOString() : '';
+}
+
+/**
  * @param {Document} root - the index.html document
  * @param {IndexDeps} deps
  */
@@ -241,7 +252,7 @@ export function initIndex(root, deps) {
      */
     function readShareOptions() {
         return {
-            expiry: required(root, '#shared-expiry', 'input').value,
+            expiry: expiryInstant(required(root, '#shared-expiry', 'input').value),
             privateNote: required(root, '#shared-private-note', 'textarea').value.trim(),
             notifyOnOpen: required(root, '#notify-on-open', 'input').checked,
             // Rendered only for an account with an email to notify.

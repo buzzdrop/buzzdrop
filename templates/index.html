@@ -497,14 +497,16 @@ Send the link and the password through different channels.
         </div>
 
         <div id="shared-files-list" class="mt-5 space-y-3" data-page-size="5" data-status-url="{{ url_for('user_file_statuses') }}">
-            {# Times render in full; the page script swaps in a relative time and keeps
-               the full one in the title. Only an active drop's link still works. #}
+            {# Times render in full, in UTC; the page script swaps in a relative time
+               and puts the full one, in the viewer's zone, in the title. It also
+               puts a "Text note · HH:MM" title's time in the viewer's zone
+               (data-note-time). Only an active drop's link still works. #}
             {% macro timestamp(shown, iso) %}<time datetime="{{ iso or '' }}" title="{{ shown }}">{{ shown }}</time>{% endmacro %}
             {% for file in user_files %}
             <article class="dashboard-item shared-file-row" aria-labelledby="shared-file-name-{{ file.id }}" data-file-id="{{ file.id }}" data-search-base="{{ (file.display_name ~ ' ' ~ (file.private_note or '') ~ ' ' ~ file.created_at ~ ' ' ~ (file.expiry_at or ''))|lower }}" data-uploaded-at="{{ file.created_at_iso or '' }}" data-expiry-at="{{ file.expiry_at_iso or '' }}" data-downloaded-at="{{ file.downloaded_at_iso or '' }}" data-search-text="{{ (file.display_name ~ ' ' ~ (file.private_note or '') ~ ' ' ~ file.status ~ ' ' ~ file.status_display ~ ' ' ~ file.created_at ~ ' ' ~ (file.expiry_at or '') ~ ' ' ~ (file.downloaded_by_ip or ''))|lower }}">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div class="min-w-0 flex-1">
-                        <h3 id="shared-file-name-{{ file.id }}" class="truncate text-base font-semibold text-white" title="{{ file.display_name }}">{{ file.display_name }}</h3>
+                        <h3 id="shared-file-name-{{ file.id }}" class="truncate text-base font-semibold text-white" title="{{ file.display_name }}"{% if file.display_time_iso %} data-note-time="{{ file.display_time_iso }}"{% endif %}>{{ file.display_name }}</h3>
                         {% if file.private_note and file.type != 'text' %}
                             <p class="mt-2 text-sm text-slate-500">{{ file.private_note }}</p>
                         {% endif %}
