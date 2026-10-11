@@ -35,15 +35,27 @@ def _footer(client, endpoint, **values):
     return _region(client, endpoint, 'footer', **values)
 
 
+# An icon assistive tech skips, in front of a control's text.
+_HIDDEN_ICON = r'(?:<svg\b[^>]*aria-hidden="true".*?</svg>\s*)?'
+
+
 def _tag_with_text(html, text):
     """The opening tag of the element whose own text is ``text``."""
-    match = re.search(rf'(<(a|button)\b[^>]*>)\s*{re.escape(text)}\s*</\2>', html)
+    match = re.search(rf'(<(a|button)\b[^>]*>)\s*{_HIDDEN_ICON}{re.escape(text)}\s*</\2>', html, re.S)
     assert match, f'no <a>/<button> labelled {text!r}'
     return match.group(1)
 
 
 def test_header_offers_login_on_the_landing_page(client):
     assert f'href="{url_for("login")}"' in _header(client, 'index')
+
+
+def test_header_login_leaves_the_primary_action_to_the_page(client):
+    # The landing page's "Enter the hive" is the one primary action, and a
+    # recipient, who usually has no account, shouldn't be pulled to Login.
+    login = _tag_with_text(_header(client, 'index'), 'Login')
+    assert 'btn-primary' not in login
+    assert 'btn-secondary' in login
 
 
 def test_header_does_not_offer_login_on_the_login_page(client):
@@ -95,7 +107,26 @@ def test_success_page_footer_tells_the_uploader_to_split_link_and_password(clien
 def test_landing_page_footer_does_not_address_an_uploader(client):
     footer = _footer(client, 'index')
     assert 'different channels' not in footer
-    assert 'Each drop opens once' in footer
+
+
+def test_landing_page_footer_does_not_repeat_the_hero(client):
+    # "It opens once, then it's gone" is the hero's lead.
+    assert 'opens once' not in _footer(client, 'index')
+
+
+def test_other_pages_keep_the_footer_note(client):
+    assert 'Each drop opens once' in _footer(client, 'login')
+
+
+@pytest.mark.parametrize('endpoint, values', [
+    ('index', {}),
+    ('login', {}),
+    ('how_it_works', {}),
+])
+def test_footer_says_how_it_is_built(client, endpoint, values):
+    footer = _footer(client, endpoint, **values)
+    assert 'Built in the open.' in footer
+    assert 'vibe coding' not in footer
 
 
 @pytest.mark.parametrize('endpoint, values', [
@@ -107,6 +138,14 @@ def test_footer_links_to_the_source_code(client, endpoint, values):
     footer = _footer(client, endpoint, **values)
     assert 'href="https://github.com/luprzybyl/buzzdrop"' in _tag_with_text(footer, 'Source code')
     assert 'href="https://www.gnu.org/licenses/agpl-3.0.html"' in _tag_with_text(footer, 'AGPL-3.0')
+
+
+def test_footer_source_link_shows_the_github_icon(client):
+    # The same mark as the hero's "View source", hidden from assistive tech:
+    # the link's label already says where it goes.
+    link = re.search(r'<a\b[^>]*>(?:(?!</a>).)*?Source code\s*</a>', _footer(client, 'index'), re.S).group(0)
+
+    assert re.search(r'<svg\b[^>]*aria-hidden="true"', link)
 
 
 def test_footer_source_link_follows_the_configured_url(app, client, monkeypatch):
@@ -121,4 +160,10 @@ def test_every_repository_link_follows_the_configured_url(app, client, monkeypat
     monkeypatch.setitem(app.config, 'SOURCE_CODE_URL', 'https://git.example.org/fork')
     page = client.get(url_for('index')).get_data(as_text=True)
     assert 'github.com/luprzybyl' not in page
-    assert 'href="https://git.example.org/fork"' in _header(client, 'index')
+    assert 'href="https://git.example.org/fork"' in page
+
+
+def test_the_header_leaves_the_source_link_to_the_page(client):
+    # The landing page's hero and every footer already link to the source,
+    # so the header doesn't repeat it.
+    assert 'Source code' not in _header(client, 'index')

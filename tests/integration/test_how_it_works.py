@@ -2,9 +2,12 @@
 The public "How it works" page (#245): it renders without a login, loads its
 script under SRI, is linked from every footer and from the recipient's pages,
 and renders the view its address names (?sender=…&content=…), so a linked
-view reads right before the page script runs.
+view reads right before the page script runs. And the landing page's short
+account of the same flow (#271): its walkthrough, in the doc's words, leading
+on to the page, and its guarantees, following the configured policy.
 """
 import re
+from html import unescape
 from pathlib import Path
 
 import pytest
@@ -180,3 +183,134 @@ def test_follows_the_configured_lockout(app, client, monkeypatch):
     assert 'A wrong guess can lock a drop.' in html
     assert 'spend the 3 attempts and lock it' in html
     assert 'destroy a drop' not in html
+
+
+# The landing page tells the flow once, in its walkthrough (#271): in the
+# words of the doc's "In brief", and with a way on to every step.
+
+def _landing(client):
+    response = client.get(url_for('index'))
+    assert response.status_code == 200
+    return response.get_data(as_text=True)
+
+
+def _walkthrough(html):
+    """The landing page's walkthrough, up to the end of its hero section."""
+    match = re.search(r'<div id="flow-stage".*?</section>', html, re.S)
+    assert match, 'no walkthrough on the landing page'
+    return match.group(0)
+
+
+def _plain(fragment):
+    return ' '.join(unescape(re.sub(r'<[^>]+>', '', fragment)).split())
+
+
+def _doc_in_brief():
+    """The numbered items of the doc's "In brief" section, as plain text."""
+    section = re.search(r'^## In brief\n(.*?)^## ', DOC.read_text(encoding='utf-8'), re.S | re.M)
+    assert section, 'no "In brief" section in the doc'
+    items = re.findall(r'^\d+\. (.+)$', section.group(1), re.M)
+    return [' '.join(item.replace('**', '').replace('`', '').split()) for item in items]
+
+
+def test_landing_walkthrough_links_to_it(client):
+    links = re.findall(r'<a\b[^>]*href="([^"]*)"', _walkthrough(_landing(client)))
+
+    assert url_for('how_it_works') in links
+
+
+def test_landing_walkthrough_says_what_the_doc_says_in_brief(client):
+    captions = re.findall(r'<p class="flow-cap">(.*?)</p>', _walkthrough(_landing(client)), re.S)
+
+    assert len(captions) == 6
+    assert [_plain(caption) for caption in captions] == _doc_in_brief()
+
+
+def test_landing_tells_the_flow_once(client):
+    # The walkthrough is the landing page's one account of the flow; the
+    # three "How it works" cards it used to repeat it in are gone.
+    html = _landing(client)
+
+    assert not re.search(r'<h2\b[^>]*>\s*How it works\s*</h2>', html)
+    assert 'hex-step' not in html
+
+
+def test_landing_guarantees_follow_the_configured_lockout(app, client, monkeypatch):
+    # Its guarantees are claims about the flow too, so they can't assume
+    # the default key-release policy any more than /how-it-works does.
+    assert 'A wrong guess gets no second attempt' in _landing(client)
+
+    monkeypatch.setitem(app.config, 'KEY_RELEASE_MAX_ATTEMPTS', 3)
+    html = _landing(client)
+
+    assert 'no second attempt' not in html
+    assert 'After 3 wrong guesses the drop locks' in html
+
+
+def test_landing_promises_the_email_on_decryption(client):
+    # The email goes out on a valid receipt, which only a decryption yields.
+    html = _landing(client)
+
+    assert 'attempts decryption' not in html
+    assert 'the moment the recipient decrypts it' in html
+
+
+def test_landing_hero_promises_what_the_doc_takes_away(client):
+    # The hero's privacy promise is the doc's first takeaway, scoped to
+    # files and notes: a file's name still reaches the server (#246).
+    hero = re.search(r'<h1\b.*?</section>', _landing(client), re.S).group(0)
+
+    assert "We can’t read your files or notes: they’re encrypted before they leave your device." in _plain(hero)
+    assert 'never reach the server unencrypted' not in hero
+
+
+
+def _guarantees(html):
+    match = re.search(r'What&rsquo;s guaranteed.*?</section>', html, re.S)
+    assert match, 'no guarantees on the landing page'
+    return match.group(0)
+
+
+def test_landing_has_one_primary_action(client):
+    # "Enter the hive"; the header, the walkthrough and the open-source
+    # section stay secondary.
+    html = _landing(client)
+
+    assert len(re.findall(r'class="btn-primary\b', html)) == 1
+    assert re.search(r'class="btn-primary[^"]*"[^>]*>\s*<span[^>]*>Enter the hive<', html)
+
+
+def test_landing_guarantees_link_to_the_doc_steps_behind_them(client):
+    # Each guarantee is a claim about the flow, so it points at the step of
+    # docs/how-it-works.md (and the page) that makes it true.
+    doc_steps = set(re.findall(r'<a id="(step-[a-z-]+)"></a>', DOC.read_text(encoding='utf-8')))
+    targets = re.findall(rf'href="{url_for("how_it_works")}#(step-[a-z-]+)"', _guarantees(_landing(client)))
+
+    assert len(targets) == 4
+    assert set(targets) <= doc_steps
+    # Named by what they explain, not by step number: four numbers out of
+    # eight read as a sequence with gaps.
+    labels = re.findall(r'#step-[a-z-]+"[^>]*>(.*?)</a>', _guarantees(_landing(client)), re.S)
+    assert all(_plain(label).startswith('How ') for label in labels)
+    assert 'Step ' not in _plain(_guarantees(_landing(client)))
+
+
+def test_landing_says_recipients_need_no_account(client):
+    # Doc first: the release step says it, then the page and the landing.
+    doc = DOC.read_text(encoding='utf-8')
+    release = re.search(r'<a id="step-release"></a>(.*?)<a id=', doc, re.S).group(1)
+
+    assert 'needs no account' in release
+    assert 'needs no account' in _page(client)
+    assert 'needs no account' in _guarantees(_landing(client))
+
+
+def test_landing_drops_what_it_says_twice(client):
+    html = _landing(client)
+
+    # The badge-shaped eyebrow, filler under the source buttons and a
+    # second "PBKDF2" in the walkthrough.
+    assert 'class="eyebrow"' not in html
+    assert 'Both links open in a new tab' not in html
+    assert 'Track build status' not in html
+    assert 'PBKDF2' not in _walkthrough(html)

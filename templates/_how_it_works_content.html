@@ -1,7 +1,8 @@
 {# The words of the "How it works" page (#245), kept apart from its layout
    (how_it_works.html) so they can be read against docs/how-it-works.md, their
    source of truth: every claim here is made there first, under the same step
-   ids.
+   ids. `brief` is the landing page's walkthrough (#271), the doc's "In brief";
+   index.html imports it alone, without context, so it must not depend on any.
 
    Import it with context: the variants depend on the page's sender and
    content, and the release step on the configured key-release policy.
@@ -12,6 +13,18 @@
 {% macro show(switch, value) -%}
 data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else content) != value %} hidden{% endif %}
 {%- endmacro %}
+
+{# The flow in brief, as the landing page's walkthrough tells it, from the
+   sender's side: title, body. The doc's "In brief" says the same, word for
+   word. #}
+{% set brief = [
+    ('Pick a file, or write a note.', 'Either one gets the same treatment.'),
+    ('Set a password.', 'Your browser encrypts the drop before anything is uploaded.'),
+    ('Add an expiry.', 'Optional. When it passes, the drop is deleted, opened or not.'),
+    ('Get one link.', 'It names the drop. On its own, it opens nothing.'),
+    ('Send the link.', 'Send the password another way: a different app, a call.'),
+    ('They prove the password, once.', 'Then the drop downloads once and is deleted from the server. It decrypts on their device.'),
+] %}
 
 {# id, title #}
 {% set steps = [
@@ -123,7 +136,7 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 <dd><span {{ show('sender', 'web') }}>The success page</span><span {{ show('sender', 'cli') }}><code>buzz</code></span> also offers a link with the password after the <code>#</code>. Browsers never send that part to a server, so we still don&rsquo;t see the password. But <strong class="hiw-caveat">anyone who has that link can open the drop</strong>, and chat history, link previews and exports keep a copy. It&rsquo;s convenient; sending link and password separately is stronger.</dd>
 {% elif id == 'release' %}
 <dt>Who acts</dt>
-<dd>The recipient&rsquo;s browser, then the server.</dd>
+<dd>The recipient&rsquo;s browser, then the server. The recipient needs no account, only the link and the password.</dd>
 <dt>What crosses the wire</dt>
 <dd>The browser derives <code>V</code> from the typed password and posts it to <code>POST /release</code>. Never the password.</dd>
 <dt>What the server sees</dt>

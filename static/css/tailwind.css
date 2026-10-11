@@ -223,6 +223,11 @@
     @apply relative z-10 mt-16 border-t border-white/5 bg-hive-950/60 backdrop-blur-sm;
   }
 
+  /* A text link that leads on to more (the explainer, one of its steps). */
+  .more-link {
+    @apply text-sm font-semibold text-honey-300 underline decoration-honey-400/30 underline-offset-4 transition hover:text-honey-200 hover:decoration-honey-300;
+  }
+
   .footer-link {
     @apply underline decoration-slate-700 underline-offset-4 transition hover:text-slate-300;
   }
@@ -675,6 +680,11 @@
     @apply absolute bottom-4 right-4 z-20;
   }
 
+  /* The way on from the walkthrough to the full explainer, centred under the mock window. */
+  .flow-more {
+    @apply mx-auto mt-4 block w-fit;
+  }
+
   /* Only opacity is transitioned. The lift is a one-shot animation on entry,
      so an outgoing stage fades in place instead of sliding back down and
      fighting the incoming one. */
@@ -704,6 +714,14 @@
   }
 
   /* Stage 1 — file or message */
+
+  /* The mock UI's controls (the switch, the file tile, the password field,
+     the link and its Copy) are pictures of controls, not ones to press, so
+     they are drawn faded. Set on their wrappers: the keyframes animate the
+     children's own opacity. */
+  .flow-mock {
+    @apply opacity-55;
+  }
 
   .flow-seg {
     @apply relative inline-flex rounded-full border border-white/10 bg-hive-850/80 p-1;
@@ -867,8 +885,12 @@
     background-repeat: repeat-x;
   }
 
+  /* Centred on the track by `transform` alone, the property flow-travel
+     animates: Tailwind's translate utilities set `translate`, which would
+     stack on top of it and lift the parcel off the line. */
   .flow-parcel {
-    @apply absolute top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-linear-to-br from-honey-300 to-honey-500 text-hive-950 shadow-honey;
+    @apply absolute top-1/2 grid h-7 w-7 place-items-center rounded-full bg-linear-to-br from-honey-300 to-honey-500 text-hive-950 shadow-honey;
+    transform: translate(-50%, -50%);
   }
 
   .flow-parcel svg {

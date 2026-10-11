@@ -1,5 +1,18 @@
 {% extends "base.html" %}
 {% from '_play_toggle.html' import play_toggle %}
+{% from '_how_it_works_content.html' import brief %}
+
+{# A walkthrough caption, in the words /how-it-works and its doc keep true. #}
+{% macro flow_cap(index) -%}
+<p class="flow-cap"><strong>{{ brief[index][0] }}</strong> {{ brief[index][1] }}</p>
+{%- endmacro %}
+
+{# A link to the step of /how-it-works that makes a guarantee true, named by
+   what it explains: step numbers, four out of eight, would read as a
+   sequence with gaps. #}
+{% macro step_link(id, label) -%}
+<a href="{{ url_for('how_it_works') }}#step-{{ id }}" class="more-link mt-3 inline-block">{{ label }}<span aria-hidden="true"> &rarr;</span></a>
+{%- endmacro %}
 
 {# The landing page uses the full shell; the composer and drop list a narrower column. #}
 {% block content_width %}{{ 'max-w-5xl' if session.get('username') }}{% endblock %}
@@ -7,9 +20,8 @@
 {% block footer_note %}
 {%- if session.get('username') -%}
 Send the link and the password through different channels.
-{%- else -%}
-{{ super() }}
 {%- endif -%}
+{# The landing page's hero already says each drop opens once. #}
 {% endblock %}
 
 {% block content %}
@@ -158,7 +170,7 @@ Send the link and the password through different channels.
                         {%- if not configured_notification_email %} disabled aria-describedby="notify-unavailable"{% endif %}>
                     <span>
                         <span class="block font-semibold text-white">Notify me when this is opened</span>
-                        <span class="mt-1 block text-slate-500">One email after the recipient attempts decryption. Delivery failures are logged only.</span>
+                        <span class="mt-1 block text-slate-500">One email once the recipient decrypts it. Delivery failures are logged only.</span>
                     </span>
                 </label>
                 {% if configured_notification_email %}
@@ -209,17 +221,22 @@ Send the link and the password through different channels.
 <div class="space-y-20">
     <section class="grid items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
         <div class="animate-fade-up space-y-7">
-            <span class="eyebrow">
-                <span class="h-1.5 w-1.5 rounded-full bg-honey-400" aria-hidden="true"></span>
-                Zero-knowledge sharing
-            </span>
             <h1 class="text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
                 File sharing that stings&nbsp;— <span class="honey-text">just once.</span>
             </h1>
-            <p class="max-w-xl text-lg leading-relaxed text-slate-400">
-                <strong class="text-honey-400">Encrypt files and secret notes in your browser</strong>, send a single link, and watch the drop
-                disappear the moment it is downloaded.<br />
-                The contents never reach the server unencrypted.
+            {# Read top to bottom, each line a step quieter than the one before:
+               headline, lead, promise, actions, fine print. Honey marks only the
+               headline's payoff and the one action, and nothing that isn't a
+               control is drawn like one. #}
+            <p class="max-w-xl text-pretty text-xl leading-relaxed text-slate-200">
+                Send a file or a secret note as a single link.<br>
+                It opens once, then it&rsquo;s&nbsp;gone.
+            </p>
+            {# The privacy promise: /how-it-works' first takeaway, scoped to files and
+               notes, since a file's name still reaches the server (#246). #}
+            <p class="flex max-w-xl items-start gap-2.5 text-pretty text-base leading-relaxed text-slate-400">
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="mt-[0.3rem] h-4 w-4 shrink-0 text-slate-400"><path fill-rule="evenodd" d="M10 1a4 4 0 0 0-4 4v3H5.5A1.5 1.5 0 0 0 4 9.5v7A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 14.5 8H14V5a4 4 0 0 0-4-4Zm2 7V5a2 2 0 1 0-4 0v3h4Z" clip-rule="evenodd"/></svg>
+                <span><strong class="font-semibold text-slate-200">We can&rsquo;t read your files or notes:</strong> they&rsquo;re encrypted before they leave your device.</span>
             </p>
             <div class="flex flex-wrap items-center gap-3">
                 <a href="{{ url_for('login') }}" class="btn-primary">
@@ -235,15 +252,11 @@ Send the link and the password through different channels.
                     View source
                 </a>
             </div>
-            <div class="flex flex-wrap gap-2 pt-2">
-                <span class="stat-chip">AES-GCM</span>
-                <span class="stat-chip">PBKDF2 · 600k</span>
-                <span class="stat-chip">Local or S3</span>
-                <span class="stat-chip">CLI included</span>
-            </div>
+            <p class="text-sm text-slate-500">AES-GCM &middot; PBKDF2, 600k iterations &middot; Local or S3 storage &middot; CLI included</p>
         </div>
 
-        {# Hero walkthrough: the six stages a drop goes through, cycled by hero-flow.js.
+        {# Hero walkthrough: the landing page's one account of the flow (#271), in six
+           stages cycled by pages/hero-flow/, with a link on to every step.
            Artwork is aria-hidden; the captions stay readable as an ordered list. #}
         <div class="animate-zoom-in delay-2 flex justify-center lg:justify-end">
             <div id="flow-stage" class="flow-stage" data-step="0" role="region" aria-label="How a drop works">
@@ -263,12 +276,12 @@ Send the link and the password through different channels.
                     <ol class="flow-body">
                         <li class="flow-step is-active" aria-current="step">
                             <div class="flow-art" aria-hidden="true">
-                                <div class="flow-seg">
+                                <div class="flow-seg flow-mock">
                                     <span class="flow-seg-thumb"></span>
                                     <span class="flow-seg-item flow-seg-item--a">File</span>
                                     <span class="flow-seg-item flow-seg-item--b">Message</span>
                                 </div>
-                                <div class="flow-swap">
+                                <div class="flow-swap flow-mock">
                                     <span class="flow-tile flow-tile--a">
                                         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 0 1 2-2h4.586A2 2 0 0 1 12 2.586L15.414 6A2 2 0 0 1 16 7.414V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4Zm6 0v3a1 1 0 0 0 1 1h3l-4-4Z" clip-rule="evenodd"/></svg>
                                         contract.pdf
@@ -279,18 +292,17 @@ Send the link and the password through different channels.
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Pick a file &mdash; or type a message.</strong> Either one gets the same treatment.</p>
+                            {{ flow_cap(0) }}
                         </li>
 
                         <li class="flow-step">
                             <div class="flow-art" aria-hidden="true">
-                                <div class="flow-field">
+                                <div class="flow-field flow-mock">
                                     <span class="flow-secret">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
                                     <svg class="flow-lock" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1a4 4 0 0 0-4 4v3H5.5A1.5 1.5 0 0 0 4 9.5v7A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 14.5 8H14V5a4 4 0 0 0-4-4Zm2 7V5a2 2 0 1 0-4 0v3h4Z" clip-rule="evenodd"/></svg>
                                 </div>
-                                <span class="flow-tag">AES-GCM &middot; PBKDF2 600k</span>
-                            </div>
-                            <p class="flow-cap"><strong>Set a password.</strong> Encryption happens in your browser, before anything is uploaded.</p>
+                                                            </div>
+                            {{ flow_cap(1) }}
                         </li>
 
                         <li class="flow-step">
@@ -304,12 +316,12 @@ Send the link and the password through different channels.
                                 </div>
                                 <span class="flow-tag">Expires 12 Oct, 18:00</span>
                             </div>
-                            <p class="flow-cap"><strong>Add an expiry.</strong> Optional deadline &mdash; the drop can vanish before anyone opens it.</p>
+                            {{ flow_cap(2) }}
                         </li>
 
                         <li class="flow-step">
                             <div class="flow-art" aria-hidden="true">
-                                <div class="flow-link">
+                                <div class="flow-link flow-mock">
                                     <svg viewBox="0 0 20 20" fill="currentColor"><path d="M12.586 4.586a2 2 0 1 1 2.828 2.828l-3 3a2 2 0 0 1-2.828 0 1 1 0 0 0-1.414 1.414 4 4 0 0 0 5.656 0l3-3a4 4 0 0 0-5.656-5.656l-1.5 1.5a1 1 0 1 0 1.414 1.414l1.5-1.5Z"/><path d="M7.414 15.414a2 2 0 1 1-2.828-2.828l3-3a2 2 0 0 1 2.828 0 1 1 0 0 0 1.414-1.414 4 4 0 0 0-5.656 0l-3 3a4 4 0 1 0 5.656 5.656l1.5-1.5a1 1 0 1 0-1.414-1.414l-1.5 1.5Z"/></svg>
                                     <span class="flow-url">&hellip;/view/7f3ac9d2</span>
                                     <span class="flow-copy">
@@ -318,7 +330,7 @@ Send the link and the password through different channels.
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Get one link.</strong> It hands over the drop exactly once, then it is spent.</p>
+                            {{ flow_cap(3) }}
                         </li>
 
                         <li class="flow-step">
@@ -333,7 +345,7 @@ Send the link and the password through different channels.
                                     <span class="flow-node flow-node--to">Them</span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>Send the link.</strong> Send the password through a different channel.</p>
+                            {{ flow_cap(4) }}
                         </li>
 
                         <li class="flow-step">
@@ -349,56 +361,21 @@ Send the link and the password through different channels.
                                     </span>
                                 </div>
                             </div>
-                            <p class="flow-cap"><strong>They open it once.</strong> The file decrypts on their device, and the drop is gone for good.</p>
+                            {{ flow_cap(5) }}
                         </li>
                     </ol>
 
                     {{ play_toggle('flow-toggle', 'Pause walkthrough', playing=true, extra_class='flow-toggle') }}
                 </div>
+                <a href="{{ url_for('how_it_works') }}" class="more-link flow-more">How Buzzdrop works, in detail<span aria-hidden="true"> &rarr;</span></a>
             </div>
         </div>
     </section>
 
     <section class="space-y-8">
         <div class="max-w-2xl space-y-3">
-            <h2 class="section-title">How it works</h2>
-            <p class="section-lead">Three steps, and nothing left behind.</p>
-        </div>
-        <div class="grid gap-5 md:grid-cols-3">
-            <article class="feature-card animate-fade-up">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">1</span>
-                    <h3 class="text-base font-semibold text-white">Encrypt before upload</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Pick a file or write a note, set a password, and the browser seals it with AES-GCM locally.
-                </p>
-            </article>
-            <article class="feature-card animate-fade-up delay-2">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">2</span>
-                    <h3 class="text-base font-semibold text-white">Share the one-time link</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Send the link, and send the password somewhere else. Two channels, one drop.
-                </p>
-            </article>
-            <article class="feature-card animate-fade-up delay-4">
-                <div class="flex items-center gap-4">
-                    <span class="hex-step">3</span>
-                    <h3 class="text-base font-semibold text-white">Watch it self-destruct</h3>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-slate-400">
-                    Once the recipient proves the password, the file downloads once, then it&rsquo;s deleted.
-                </p>
-            </article>
-        </div>
-    </section>
-
-    <section class="space-y-8">
-        <div class="max-w-2xl space-y-3">
             <h2 class="section-title">What&rsquo;s guaranteed</h2>
-            <p class="section-lead">Four things you can rely on &mdash; each of them checkable in the source.</p>
+            <p class="section-lead">Four things you can rely on, each with a link to how it works.</p>
         </div>
         <div class="grid gap-5 md:grid-cols-2">
         <article class="feature-card">
@@ -410,6 +387,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The server never sees your key</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Your password derives half the key in the browser via PBKDF2 — 600,000 iterations — and never leaves the device. The other half is a server-held share released exactly once, so a stolen ciphertext alone is dead bytes. Buzzdrop stores ciphertext and metadata; it cannot read the drop.</p>
+                    {{ step_link('encrypt', 'How the key is split') }}
                 </div>
             </div>
         </article>
@@ -421,7 +399,8 @@ Send the link and the password through different channels.
                 </svg>
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The password opens it once</h3>
-                    <p class="mt-2 text-sm leading-relaxed text-slate-400">The recipient proves the password before anything downloads. A wrong guess gets no second attempt, and once the drop is open, neither does anyone who finds the link later.</p>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">The recipient needs no account, only the link and the password, which they prove before anything downloads. {% if config.KEY_RELEASE_MAX_ATTEMPTS == 1 %}A wrong guess gets no second attempt{% else %}After {{ config.KEY_RELEASE_MAX_ATTEMPTS }} wrong guesses the drop locks{% endif %}, and once the drop is open, nobody who finds the link later gets in.</p>
+                    {{ step_link('release', 'How the password is checked') }}
                 </div>
             </div>
         </article>
@@ -434,6 +413,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">An expiry is a hard cut-off</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Give a drop a deadline and the link stops working once it passes. The attempt is refused and the copy swept away — whether or not anyone ever opened it.</p>
+                    {{ step_link('expiry', 'How expiry deletes a drop') }}
                 </div>
             </div>
         </article>
@@ -445,7 +425,8 @@ Send the link and the password through different channels.
                 </svg>
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">You find out it happened</h3>
-                    <p class="mt-2 text-sm leading-relaxed text-slate-400">Buzzdrop records when the drop was fetched and from which IP, and can email you once, the moment the recipient attempts decryption.</p>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">Buzzdrop records when the drop was fetched and from which IP, and can email you once, the moment the recipient decrypts it.</p>
+                    {{ step_link('decrypt', 'How decryption is reported') }}
                 </div>
             </div>
         </article>
@@ -455,7 +436,6 @@ Send the link and the password through different channels.
     <section class="surface-card p-8 sm:p-12">
         <div class="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center">
             <div class="space-y-5">
-                <span class="eyebrow">Open source</span>
                 <h2 class="section-title">Read the code. Then trust it.</h2>
                 <p class="section-lead max-w-xl">
                     Buzzdrop is small enough to audit in an afternoon. Explore it, run it on your own box,
@@ -470,20 +450,15 @@ Send the link and the password through different channels.
                         <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
                         <span>Grab the <code class="rounded-md border border-white/10 bg-hive-850 px-1.5 py-0.5 text-xs text-honey-200">buzz</code> CLI for encrypted uploads from your terminal.</span>
                     </li>
-                    <li class="flex gap-3">
-                        <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
-                        <span>Track build status and ongoing work in the repository.</span>
-                    </li>
                 </ul>
             </div>
             <div class="flex flex-col gap-3">
-                <a href="{{ config.SOURCE_CODE_URL }}" target="_blank" rel="noopener noreferrer" class="btn-primary">
-                    <span class="relative z-10">Browse the source code</span>
+                <a href="{{ config.SOURCE_CODE_URL }}" target="_blank" rel="noopener noreferrer" aria-label="Browse the source code (opens in new tab)" class="btn-secondary">
+                    Browse the source code
                 </a>
                 <a href="{{ config.SOURCE_CODE_URL }}#readme" target="_blank" rel="noopener noreferrer" aria-label="Read the README (opens in new tab)" class="btn-secondary">
                     Read the README
                 </a>
-                <p class="text-center text-xs text-slate-600">Both links open in a new tab.</p>
             </div>
         </div>
     </section>
