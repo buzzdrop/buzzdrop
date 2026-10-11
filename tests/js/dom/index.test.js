@@ -246,6 +246,28 @@ describe('index page', () => {
         });
     });
 
+    describe('upload progress', () => {
+        it('the bar stands in for the share button and counts the upload up', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+            expect(screen.queryByRole('progressbar', { name: 'Upload progress' })).toBeNull();
+
+            await upload.shareMessage('the gate code', SIX_WORDS);
+
+            expect(upload.progressShown()).toEqual(['0%', '50%', '100%']);
+            expect(screen.getByRole('progressbar', { name: 'Upload progress' })).toHaveTextContent('100%');
+            expect(screen.queryByRole('button', { name: 'Share note' })).toBeNull();
+        });
+
+        it('a failed upload hides the bar and brings the button back', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+
+            await upload.shareMessage('the gate code', SIX_WORDS, { server: 'failing' });
+
+            expect(screen.queryByRole('progressbar', { name: 'Upload progress' })).toBeNull();
+            expect(screen.getByRole('button', { name: 'Share note' })).toBeEnabled();
+        });
+    });
+
     describe('open notifications', () => {
         it('an account without an email cannot ask for them and is told why', () => {
             openUploadPage({ account: 'no-shares' });

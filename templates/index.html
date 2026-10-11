@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from '_play_toggle.html' import play_toggle %}
+{% from '_progress_bar.html' import progress_bar %}
 {% from '_how_it_works_content.html' import brief %}
 
 {# A walkthrough caption, in the words /how-it-works and its doc keep true. #}
@@ -206,12 +207,7 @@ Send the link and the password through different channels.
                         </svg>
                     </button>
                 </div>
-                <div id="share-progress-container" class="mt-4 w-full items-center gap-3" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="display:none;">
-                    <div class="honey-track">
-                        <div id="share-progress-bar" class="honey-bar" style="width: 0%"></div>
-                    </div>
-                    <span id="share-progress-text" class="shrink-0 text-sm font-semibold tabular-nums text-honey-300">0%</span>
-                </div>
+                {{ progress_bar('share-progress', 'Upload progress', extra_class='mt-4') }}
             </div>
         </div>
     </div>

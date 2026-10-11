@@ -7,7 +7,7 @@ import { expect, vi } from 'vitest';
 import { bytesToHex } from '../../../../static/js/lib/hex.js';
 import { initView } from '../../../../static/js/pages/view/view-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
-import { DEFAULT_PASSWORD, addressOf, cryptoFor, openPage, replaceInFixture, typeable, waitUntil } from './page.js';
+import { DEFAULT_PASSWORD, addressOf, cryptoFor, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { DEFAULT_PASSWORD, screen } from './page.js';
 
@@ -76,6 +76,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
  * @property {() => Array<{ success: boolean, receipt: string | null }>} reportsSent - decryption reports, as sent
  * @property {() => Promise<boolean | null>} decryptionRecorded - what the server recorded, once the report lands
  * @property {() => LoggedRequest[]} requestsSent - what the page sent, in order
+ * @property {() => string[]} progressShown - every step and percentage the bar showed, in order
  * @property {Fake} backend - the server, for checks on its state
  * @property {string} fileId
  */
@@ -152,6 +153,10 @@ export async function openShare({
         saved.push({ name: this.download, blob: blobs.get(this.href) });
     });
 
+    // A hidden element has no accessible name, so the page's one bar is
+    // found by its role alone.
+    const progressShown = recordProgress(window, screen.getByRole('progressbar', { hidden: true }));
+
     const ready = initView(window.document, { fetch, crypto: cryptoService });
     await ready;
 
@@ -211,6 +216,7 @@ export async function openShare({
             return backend.state.files.get(fileId)?.decryptionSuccess ?? null;
         },
         requestsSent: () => backend.log.slice(logStart),
+        progressShown,
         backend,
         fileId,
     };

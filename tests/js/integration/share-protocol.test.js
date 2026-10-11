@@ -72,6 +72,23 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
         expect(fake.log.filter((request) => request.url.includes('/release/'))).toHaveLength(1);
     });
 
+    it('names each step of a claim as it starts; a retry skips to the download', async () => {
+        const fake = makeProtocolFake();
+        const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });
+        const sealed = saltedShare(fake, fileId);
+        fake.failNext('/download', 'network');
+        /** @type {string[]} */
+        const steps = [];
+        const deps = { ...claimDeps(fake, fileId), onStep: (/** @type {string} */ step) => { steps.push(step); } };
+
+        await claimShare(sealed, PASSWORD, deps);
+        expect(steps).toEqual(['unlocking', 'releasing', 'downloading']);
+        steps.length = 0;
+
+        await claimShare(sealed, PASSWORD, deps);
+        expect(steps).toEqual(['downloading', 'decrypting']);
+    });
+
     // Spreading a blob this size into String.fromCharCode overruns the
     // engine's argument limit.
     it('a large note uploads and arrives whole', async () => {

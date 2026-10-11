@@ -55,9 +55,17 @@ const SERVER_SHARE_BYTES = 32;
  */
 
 /**
+ * The steps of a claim, in order: deriving the verifier from the password
+ * (PBKDF2), proving it to /release, fetching the ciphertext, decrypting it.
+ * A retry after a failed download starts at 'downloading'.
+ * @typedef {'unlocking' | 'releasing' | 'downloading' | 'decrypting'} ClaimStep
+ */
+
+/**
  * @typedef {object} ClaimDeps
  * @property {typeof fetch} fetch
  * @property {{ release: string, download: string, report: string }} urls
+ * @property {(step: ClaimStep) => void} [onStep] - as each step starts
  * @property {(percent: number) => void} [onProgress] - download progress, when Content-Length is known
  */
 
@@ -178,7 +186,9 @@ export async function claimShare(sealed, password, deps) {
 async function claim(sealed, password, deps) {
     let claim = sealed.claim;
     if (!claim) {
+        deps.onStep?.('unlocking');
         const attempt = await sealed.unlock(password);
+        deps.onStep?.('releasing');
         const released = await release(attempt.verifier, deps);
         if (released.kind !== 'released') return released;
         // The ticket is a pure function of H — keep only that.
@@ -187,9 +197,11 @@ async function claim(sealed, password, deps) {
     }
     const ticket = await downloadTicket(claim.h);
 
+    deps.onStep?.('downloading');
     const download = await fetchBlob(deps.urls.download, ticket, deps);
     if (download.kind !== 'blob') return download;
 
+    deps.onStep?.('decrypting');
     try {
         const { data, receipt } = await claim.finish(claim.h, download.blob);
         return { kind: 'opened', data, receipt };

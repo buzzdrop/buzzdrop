@@ -4,13 +4,13 @@
 // DOM layer runs the page with the stub crypto, the JS-integration layer with
 // the real crypto.js. The shared-files status refresh is not one of the
 // fake's routes, so the driver answers it itself.
-import { isInaccessible, within } from '@testing-library/dom';
+import { within } from '@testing-library/dom';
 import { computeAccessibleName } from 'dom-accessibility-api';
 import { expect, vi } from 'vitest';
 import { HOLD_MS, initHeroFlow } from '../../../../static/js/pages/hero-flow/hero-flow-page.js';
 import { initIndex } from '../../../../static/js/pages/index/index-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
-import { DEFAULT_PASSWORD, cryptoFor, openPage, replaceInFixture, typeable, waitUntil } from './page.js';
+import { DEFAULT_PASSWORD, cryptoFor, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { screen } from './page.js';
 
@@ -193,20 +193,11 @@ export function openUploadPage({
     initIndex(window.document, deps);
     initHeroFlow(window.document, {});
 
-    // Every value the progress bar shows, in order, and whether it was on
-    // screen when it did.
-    /** @type {Array<{ shown: string, visible: boolean }>} */
-    const progress = [];
-    const progressBar = screen.queryByRole('progressbar', { hidden: true });
-    if (progressBar) {
-        new window.MutationObserver((records) => {
-            for (const record of records) {
-                record.addedNodes.forEach((node) => {
-                    progress.push({ shown: node.textContent ?? '', visible: !isInaccessible(progressBar) });
-                });
-            }
-        }).observe(screen.getByText(/^\d+%$/), { childList: true });
-    }
+    // Every value the upload bar shows while it is on screen; an anonymous
+    // visitor's page has none. A hidden element has no accessible name, so
+    // the page's one bar is found by its role alone.
+    const uploadBar = screen.queryByRole('progressbar', { hidden: true });
+    const progressShown = uploadBar ? recordProgress(window, uploadBar) : () => [];
 
     const passwordField = () => screen.getByLabelText('Password');
     const fileField = () => screen.getByLabelText('Drop a file here, or browse');
@@ -381,7 +372,7 @@ export function openUploadPage({
         alerts: () => [...alerts],
         /** The shares /upload/begin issued, in order. */
         sharesIssued: () => [...issued],
-        progressShown: () => [...progress],
+        progressShown,
         storage: page.storage,
     };
     return driver;
