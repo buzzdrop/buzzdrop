@@ -710,6 +710,14 @@
 
   /* Stage 1 — file or message */
 
+  /* The mock UI's controls (the switch, the file tile, the password field,
+     the link and its Copy) are pictures of controls, not ones to press, so
+     they are drawn faded. Set on their wrappers: the keyframes animate the
+     children's own opacity. */
+  .flow-mock {
+    @apply opacity-55;
+  }
+
   .flow-seg {
     @apply relative inline-flex rounded-full border border-white/10 bg-hive-850/80 p-1;
   }
