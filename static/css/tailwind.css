@@ -677,7 +677,7 @@
 
   /* The way on from the walkthrough to the full explainer, centred under the mock window. */
   .flow-more {
-    @apply mx-auto mt-4 flex w-fit items-center gap-1 text-sm font-semibold text-honey-300 underline decoration-honey-400/30 underline-offset-4 transition hover:text-honey-200 hover:decoration-honey-300;
+    @apply mx-auto mt-4 block w-fit text-sm font-semibold text-honey-300 underline decoration-honey-400/30 underline-offset-4 transition hover:text-honey-200 hover:decoration-honey-300;
   }
 
   /* Only opacity is transitioned. The lift is a one-shot animation on entry,
