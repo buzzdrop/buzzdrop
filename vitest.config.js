@@ -8,8 +8,10 @@ export default defineConfig({
         include: ['tests/js/dom/**/*.test.js', 'tests/js/integration/**/*.test.js'],
         // jest-dom's matchers, and closing every page a driver opened.
         setupFiles: ['tests/js/support/setup.js'],
-        // A viewer zone that is neither UTC nor the server's (#250), so
-        // a time shown or sent in the wrong zone fails a test.
+        // A viewer zone that is neither UTC nor Warsaw (#250), so a time
+        // shown or sent in the wrong zone fails a test. The pytest and E2E
+        // servers run in this zone too; the E2E browser runs in Tokyo, so a
+        // viewer and server in different zones are covered there.
         env: { TZ: 'America/New_York' },
         coverage: {
             provider: 'v8',

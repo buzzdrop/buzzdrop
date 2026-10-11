@@ -9,7 +9,7 @@ binding, and expiry destroying the share.
 import io
 import os
 from datetime import datetime, timedelta
-from timestamps import utcnow
+from timestamps import to_utc_iso, utcnow
 
 import pytest
 from flask import url_for
@@ -437,7 +437,7 @@ def test_release_requires_valid_verifier(client, files_store, file_record, body)
 
 
 def test_release_expired_file_is_410(client, files_store, file_record):
-    past = (utcnow() - timedelta(minutes=5)).isoformat()
+    past = to_utc_iso(utcnow() - timedelta(minutes=5))
     _bound_share(files_store, file_record, file_id='exp-1', v='bb' * 32)
     files_store.update_fields('exp-1', {'expiry_at': past})
 

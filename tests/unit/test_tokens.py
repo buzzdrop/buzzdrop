@@ -1,7 +1,7 @@
 """Unit tests for API token generation and validation."""
 import hashlib
 from datetime import datetime, timedelta
-from timestamps import utcnow
+from timestamps import now_iso, to_utc_iso, utcnow
 
 import pytest
 
@@ -139,7 +139,7 @@ def test_validate_api_token_rejects_legacy_hash(app, db_instance):
             'token_hash': legacy_hash,
             'token_hash_version': 'legacy-pbkdf2-sha256-v1',
             'username': 'testuser',
-            'created_at': utcnow().isoformat(),
+            'created_at': now_iso(),
             'last_used_at': None,
         })
 
@@ -162,7 +162,7 @@ def test_validate_api_token_sets_missing_hash_version(app, db_instance):
         table.insert({
             'token_hash': token_hash,
             'username': 'testuser',
-            'created_at': utcnow().isoformat(),
+            'created_at': now_iso(),
             'last_used_at': None,
         })
 
@@ -212,7 +212,7 @@ def test_revoke_api_token_does_not_remove_legacy_hash(app, db_instance):
             'token_hash': legacy_hash,
             'token_hash_version': 'legacy-pbkdf2-sha256-v1',
             'username': 'testuser',
-            'created_at': utcnow().isoformat(),
+            'created_at': now_iso(),
             'last_used_at': None,
         })
 
@@ -235,13 +235,13 @@ def test_list_api_tokens_filters_expired_and_legacy_tokens(app, db_instance):
         table.insert({
             'token_hash': 'legacy-active',
             'username': 'testuser',
-            'created_at': utcnow().isoformat(),
+            'created_at': now_iso(),
             'last_used_at': None,
         })
         table.insert({
             'token_hash': 'legacy-expired',
             'username': 'testuser',
-            'created_at': (utcnow() - timedelta(days=31)).isoformat(),
+            'created_at': to_utc_iso(utcnow() - timedelta(days=31)),
             'last_used_at': None,
         })
 
