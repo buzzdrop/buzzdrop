@@ -193,11 +193,8 @@ export function openUploadPage({
     initIndex(window.document, deps);
     initHeroFlow(window.document, {});
 
-    // Every value the upload bar shows while it is on screen; an anonymous
-    // visitor's page has none. A hidden element has no accessible name, so
-    // the page's one bar is found by its role alone.
-    const uploadBar = screen.queryByRole('progressbar', { hidden: true });
-    const progressShown = uploadBar ? recordProgress(window, uploadBar) : () => [];
+    // Every value the upload bar shows while it is on screen.
+    const progressShown = recordProgress(page);
 
     const passwordField = () => screen.getByLabelText('Password');
     const fileField = () => screen.getByLabelText('Drop a file here, or browse');

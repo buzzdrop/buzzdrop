@@ -77,9 +77,10 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
         const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });
         const sealed = saltedShare(fake, fileId);
         fake.failNext('/download', 'network');
-        /** @type {string[]} */
+        /** @type {import('../../../static/js/features/share-protocol/index.js').ClaimStep[]} */
         const steps = [];
-        const deps = { ...claimDeps(fake, fileId), onStep: (/** @type {string} */ step) => { steps.push(step); } };
+        /** @type {import('../../../static/js/features/share-protocol/index.js').ClaimDeps} */
+        const deps = { ...claimDeps(fake, fileId), onStep: (step) => { steps.push(step); } };
 
         await claimShare(sealed, PASSWORD, deps);
         expect(steps).toEqual(['unlocking', 'releasing', 'downloading']);

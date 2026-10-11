@@ -153,9 +153,7 @@ export async function openShare({
         saved.push({ name: this.download, blob: blobs.get(this.href) });
     });
 
-    // A hidden element has no accessible name, so the page's one bar is
-    // found by its role alone.
-    const progressShown = recordProgress(window, screen.getByRole('progressbar', { hidden: true }));
+    const progressShown = recordProgress(page);
 
     const ready = initView(window.document, { fetch, crypto: cryptoService });
     await ready;

@@ -260,13 +260,16 @@ export function replaceInFixture(html, search, replacement) {
  * repeated back to back is recorded once. A step whose text doesn't end in
  * the bar's aria-valuenow is recorded with that number in brackets, so a
  * busy step that kept a stale percentage shows as 'Decrypting… [100%]'.
- * @param {Window & typeof globalThis} window
- * @param {HTMLElement} bar - the element with role="progressbar"
+ * A page has at most one bar; without one, nothing is recorded. It is found
+ * by its role alone, since a hidden element has no accessible name.
+ * @param {Page} page
  * @returns {() => string[]}
  */
-export function recordProgress(window, bar) {
+export function recordProgress({ window, screen }) {
     /** @type {string[]} */
     const shown = [];
+    const bar = screen.queryByRole('progressbar', { hidden: true });
+    if (!bar) return () => [];
     new window.MutationObserver(() => {
         if (isInaccessible(bar)) return;
         const text = bar.getAttribute('aria-valuetext');

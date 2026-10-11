@@ -29,9 +29,15 @@ export function createProgressBar(container) {
 
     return {
         show(percent, step) {
-            delete container.dataset.busy;
             nameStep(step);
             fill.style.width = `${percent}%`;
+            if ('busy' in container.dataset) {
+                // Leaving busy, the full track would otherwise slide back
+                // down to the percentage, which reads as progress lost: lay
+                // out the new width while the transition is still off.
+                void fill.offsetWidth;
+                delete container.dataset.busy;
+            }
             percentLabel.textContent = `${percent}%`;
             container.setAttribute('aria-valuenow', String(percent));
             if (step) container.setAttribute('aria-valuetext', `${step} ${percent}%`);
