@@ -150,34 +150,6 @@ def test_update_fields_missing_id(backend):
     assert backend.files.update_fields('nope', {'status': 'x'}) is False
 
 
-def test_claim_download_once(backend):
-    backend.files.insert(_file_doc())
-    assert backend.files.claim_download('file-1', '1.2.3.4') is True
-    assert backend.files.claim_download('file-1', '5.6.7.8') is False
-
-    stored = backend.files.get_by_id('file-1')
-    assert stored['downloaded_at'] is not None
-    assert stored['downloaded_by_ip'] == '1.2.3.4'
-
-
-def test_claim_download_concurrent_single_winner(backend):
-    """≥8 racing claims must produce exactly one winner — the one-time guarantee."""
-    backend.files.insert(_file_doc())
-
-    workers = 8
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        results = list(pool.map(
-            lambda index: backend.files.claim_download('file-1', f'10.0.0.{index}'),
-            range(workers),
-        ))
-
-    assert results.count(True) == 1
-
-    stored = backend.files.get_by_id('file-1')
-    assert stored['downloaded_at'] is not None
-    assert stored['downloaded_by_ip'] in {f'10.0.0.{i}' for i in range(workers)}
-
-
 def test_claim_notification_send_once(backend):
     backend.files.insert(_file_doc())
     assert backend.files.claim_notification_send('file-1') is True

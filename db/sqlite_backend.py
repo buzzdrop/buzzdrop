@@ -458,21 +458,6 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
     def update_fields(self, file_id: str, fields: Mapping[str, Any]) -> bool:
         return self._update_by_clause(fields, 'id = ?', (file_id,))
 
-    def claim_download(self, file_id: str, ip_address: str) -> bool:
-        # Expired shares are excluded too: a claim raced against
-        # check_and_handle_expiry() must not resurrect an expired drop.
-        # NULL status is tolerated for partial/legacy rows.
-        now = now_iso()
-        cursor = self._conn().execute(
-            f'UPDATE "{self.table}" '
-            'SET downloaded_at = ?, downloaded_by_ip = ? '
-            'WHERE id = ? AND downloaded_at IS NULL '
-            'AND (status IS NULL OR status != \'expired\') '
-            'AND (expiry_at IS NULL OR expiry_at > ?)',
-            (now, ip_address, file_id, now),
-        )
-        return cursor.rowcount > 0
-
     def claim_notification_send(self, file_id: str) -> bool:
         cursor = self._conn().execute(
             f'UPDATE "{self.table}" '

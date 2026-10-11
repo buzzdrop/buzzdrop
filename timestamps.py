@@ -4,7 +4,7 @@ Timestamps for Buzzdrop: every stored time is a UTC instant (#250).
 Values are written as ISO 8601 with a ``+00:00`` offset and always with
 microseconds, so they are the same width and their text order is their
 time order: the SQL comparisons on them (``purge_expired``,
-``purge_stale_key_shares``, ``claim_download``) work on the strings.
+``purge_stale_key_shares``) work on the strings.
 Nothing here depends on the host's zone. Text for a reader is formatted
 elsewhere: in the viewer's zone by the browser, in ``DEFAULT_TIMEZONE``
 for notification emails.

@@ -164,23 +164,6 @@ class FileRepository:
         """
         return self.store.all()
 
-    def mark_downloaded(self, file_id: str, ip_address: str) -> bool:
-        """
-        Atomically claim the file as downloaded.
-
-        Runs as a single conditional UPDATE (``WHERE id = ? AND
-        downloaded_at IS NULL``), so only the first of any concurrent
-        requests wins the claim.
-
-        Args:
-            file_id: File UUID
-            ip_address: IP address of downloader
-
-        Returns:
-            True when this call won the download claim, False otherwise
-        """
-        return self.store.claim_download(file_id, ip_address)
-
     def mark_expired(self, file_id: str):
         """
         Mark file as expired.

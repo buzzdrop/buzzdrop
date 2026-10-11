@@ -49,21 +49,6 @@ class FileStore(ABC):
         """Set the given fields on one record; True when a row was updated."""
 
     @abstractmethod
-    def claim_download(self, file_id: str, ip_address: str) -> bool:
-        """
-        Atomically mark the record downloaded.
-
-        MUST be a single conditional statement (e.g.
-        ``UPDATE ... SET downloaded_at=..., downloaded_by_ip=...
-        WHERE id=? AND downloaded_at IS NULL AND <not expired>``) so
-        exactly one of any number of concurrent callers wins the claim.
-        Expired records must not be claimable.
-
-        Returns:
-            True when this call won the download claim, False otherwise.
-        """
-
-    @abstractmethod
     def claim_notification_send(self, file_id: str) -> bool:
         """
         Atomically claim the pending uploader-notification slot.

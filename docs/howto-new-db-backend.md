@@ -47,7 +47,6 @@ Full signatures: `db/base.py`. The semantics the contract suite enforces:
 | `insert(doc, doc_id=None) -> int` | returns `doc_id`; records are plain dicts, `doc_id` is attached to the dict on read |
 | `get_by_id(file_id)` / `get_by(**filters)` / `list_by(**filters)` / `all()` | return dict or `None`/list; filters = column equality |
 | `update_fields(file_id, fields) -> bool` | `False` when the record doesn't exist |
-| `claim_download(file_id, ip) -> bool` | **ATOMIC** — a single conditional `UPDATE ... WHERE id=? AND downloaded_at IS NULL AND (status IS NULL OR status != 'expired') AND expiry_at > now` (or equivalent); `True` for the race winner only |
 | `claim_notification_send(file_id) -> bool` | ditto, for the `notification_sent_at` field |
 | `record_decryption_result(file_id, success) -> bool` | **ATOMIC** — conditional write `WHERE decryption_success IS NULL`; `True` only for the first valid report |
 | `create_key_share(file_id, h, created_by=None, created_at=None) -> bool` | `False` when a share for `file_id` already exists; `created_by` records the uploading account for owner binding |
@@ -68,9 +67,9 @@ Analogous: `insert`, `get_by_id`, `get_by_token_hash`, `get_by`/`list_by`/`all`,
 
 ### Hard requirements beyond signatures
 
-- **`claim_download` must be engine-atomic** — not "SELECT then UPDATE".
-  An 8-thread race must produce exactly 1 winner
-  (test `test_claim_download_concurrent_single_winner`).
+- **`claim_download_with_ticket` must be engine-atomic** — not "SELECT
+  then UPDATE". An 8-thread race must produce exactly 1 winner
+  (test `test_claim_download_with_ticket_concurrent_single_winner`).
 - **`attempt_key_release` must be one transaction** — the read, expiry
   check, verifier compare, attempt count and release are all inside a
   single write transaction (SQLite: `BEGIN IMMEDIATE`; Postgres: a
@@ -225,7 +224,7 @@ entry `('my_engine', 'BUZZDROP_TEST_X_DSN')`.
 - Don't extend `base.py` with methods "because they might be useful" —
   the interface grows only when a call site requires it. Every method
   is an implementation cost on EVERY backend.
-- Don't implement `claim_download` as read-modify-write — you'd break
+- Don't implement `claim_download_with_ticket` as read-modify-write — you'd break
   the only real security control here.
 - Don't read `.env`/config inside a backend — the DSN arrives via the
   factory.
