@@ -253,3 +253,12 @@ def test_landing_promises_the_email_on_decryption(client):
 
     assert 'attempts decryption' not in html
     assert 'the moment the recipient decrypts it' in html
+
+
+def test_landing_hero_promises_what_the_doc_takes_away(client):
+    # The hero's privacy promise is the doc's first takeaway, scoped to
+    # files and notes: a file's name still reaches the server (#246).
+    hero = re.search(r'<h1\b.*?</section>', _landing(client), re.S).group(0)
+
+    assert "We can’t read your files or notes: they’re encrypted before they leave your device." in _plain(hero)
+    assert 'never reach the server unencrypted' not in hero
