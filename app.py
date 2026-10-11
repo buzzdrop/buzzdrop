@@ -324,15 +324,7 @@ if app.config['STORAGE_BACKEND'] == 'local':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize the storage backend (sqlite:// today, swappable via DATABASE_URL)
-def _open_backend(url, config):
-    """create_backend with the zones that naive timestamps from older
-    versions are migrated from: the host's for what the server wrote,
-    DEFAULT_TIMEZONE for the expiries uploaders typed."""
-    return create_backend(url, config['LEGACY_TIMESTAMP_TIMEZONE'],
-                          config['DEFAULT_TIMEZONE'])
-
-
-backend = _open_backend(config_class.get_database_url(), app.config)
+backend = create_backend(config_class.get_database_url())
 app.backend = backend
 
 # Initialize storage backend
@@ -385,14 +377,14 @@ def get_backend():
         if backend is None or backend.url != url or getattr(backend, 'closed', False):
             if backend is not None:
                 backend.close()
-            backend = _open_backend(url, current_app.config)
+            backend = create_backend(url)
             current_app.backend = backend
     else:
         backend = getattr(app, 'backend', None)
         if backend is None or backend.url != url or getattr(backend, 'closed', False):
             if backend is not None:
                 backend.close()
-            backend = _open_backend(url, app.config)
+            backend = create_backend(url)
             app.backend = backend
     return backend
 

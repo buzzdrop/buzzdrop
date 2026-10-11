@@ -1,12 +1,10 @@
 """Timestamps are UTC instants, whatever zone the host runs in (#250)."""
 import time
 from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 
 import pytest
 
 from timestamps import (
-    legacy_to_stored,
     now_iso,
     parse_expiry,
     parse_timestamp,
@@ -73,33 +71,6 @@ def test_parse_expiry_refuses_a_time_without_an_offset(raw):
     # A wall-clock time without a zone can't be pinned to an instant.
     with pytest.raises(ValueError):
         parse_expiry(raw)
-
-
-def test_legacy_to_stored_reads_a_value_without_a_zone_in_the_zone_it_was_written_in():
-    # A Passenger host on Warsaw time wrote 21:00 local, i.e. 19:00 UTC.
-    assert legacy_to_stored('2026-10-08T21:00:00.123456', ZoneInfo('Europe/Warsaw')) \
-        == '2026-10-08T19:00:00.123456+00:00'
-    assert legacy_to_stored('2026-10-08T21:00:00', ZoneInfo('UTC')) \
-        == '2026-10-08T21:00:00.000000+00:00'
-
-
-def test_legacy_to_stored_defaults_to_the_host_zone():
-    # conftest's host clock is New York: EDT, UTC-4, in October.
-    assert legacy_to_stored('2026-10-08T21:00:00', None) == '2026-10-09T01:00:00.000000+00:00'
-
-
-def test_legacy_to_stored_brings_an_offset_value_to_the_stored_form():
-    # An expiry kept with the offset the uploader sent sorts wrongly as text
-    # next to UTC values.
-    assert legacy_to_stored('2026-10-08T21:00:00+02:00', None) == '2026-10-08T19:00:00.000000+00:00'
-
-
-def test_legacy_to_stored_leaves_stored_and_unreadable_values_alone():
-    assert legacy_to_stored('2026-10-08T19:00:00.000000+00:00', None) is None
-    # Not a timestamp: the fail-closed checks treat it as expired, so it
-    # keeps its value.
-    assert legacy_to_stored('garbage', None) is None
-    assert legacy_to_stored(None, None) is None
 
 
 def test_parse_expiry_reads_z_without_relying_on_python_3_11(monkeypatch):

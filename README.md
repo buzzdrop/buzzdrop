@@ -190,11 +190,11 @@ Buzzdrop now stores its data in SQLite via `DATABASE_URL` (default `sqlite:///bu
 2. Set `DATABASE_URL=sqlite:///buzzdrop.db` in `.env` (a stale `DATABASE_PATH=db.json` now refuses to start instead of silently corrupting).
 3. Under Docker, the database and its WAL sidecars live in the mounted `./data` directory (`DATABASE_URL=sqlite:///data/buzzdrop.db`).
 
-## Upgrading: times in UTC
+## Times are UTC
 
-Every timestamp is now stored and compared in UTC, so expiry fires at the moment the uploader picked whatever zone the server runs in (#250). Earlier releases stored the server's local time with no zone. On first start the app rewrites those values in UTC, reading them in `LEGACY_TIMESTAMP_TIMEZONE`, the zone the server was on when it wrote them. Left unset, that is the server's zone now, which is right unless it has changed: UTC in the Docker image, your local zone on a Passenger host. Set it (e.g. `LEGACY_TIMESTAMP_TIMEZONE=Europe/Warsaw`) before the first start if the zone changed. Expiries are the exception: they held what the uploader typed, in the uploader's own zone, so they are read in `DEFAULT_TIMEZONE`. The rewrite runs once per value; later starts change nothing.
+Every timestamp is stored and compared in UTC, so expiry fires at the moment the uploader picked, whatever zone the server runs in (#250). The page shows times in the viewer's own zone; `DEFAULT_TIMEZONE` (default `Europe/Warsaw`) is used only for the time in notification emails. API clients send `expiry` as an ISO time with its zone (`2025-12-31T23:59+01:00`, or `Z` for UTC); a time without a zone gets a 400.
 
-The page shows times in the viewer's own zone. `DEFAULT_TIMEZONE` (default `Europe/Warsaw`) is now used only for the time in notification emails and for reading old expiries. API clients must send `expiry` as an ISO time with its zone (`2025-12-31T23:59+01:00`, or `Z` for UTC). A time without a zone gets a 400.
+Times stored without a zone by earlier releases are not migrated (pre-production, like the BKV3 format break): they are read as UTC, so they can be off by the server's offset until those drops are gone. Start from an empty database to avoid it.
 
 ---
 

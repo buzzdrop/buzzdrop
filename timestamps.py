@@ -9,7 +9,7 @@ Nothing here depends on the host's zone. Text for a reader is formatted
 elsewhere: in the viewer's zone by the browser, in ``DEFAULT_TIMEZONE``
 for notification emails.
 """
-from datetime import datetime, timezone, tzinfo
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -33,8 +33,8 @@ def now_iso() -> str:
 
 def parse_timestamp(value: Optional[str]) -> Optional[datetime]:
     """A stored value as an aware datetime, None when unset. Every value is
-    written in UTC, so one without an offset (left by a version before
-    #250 and not migrated) is read as UTC too, never as the host's zone.
+    written in UTC, so one without an offset (left by an older version;
+    they are not migrated) is read as UTC too, never as the host's zone.
     Raises ValueError on a value that isn't a timestamp."""
     if not value:
         return None
@@ -53,24 +53,3 @@ def parse_expiry(raw: str) -> str:
     if raw[-1:] in ('Z', 'z'):
         raw = raw[:-1] + '+00:00'
     return to_utc_iso(datetime.fromisoformat(raw))
-
-
-def legacy_to_stored(value: object, legacy_zone: Optional[tzinfo]) -> Optional[str]:
-    """The stored form of a value an older version left, or None
-    when it needs no change (already stored form, unset, or not a
-    timestamp at all). Those versions wrote the host's wall-clock time with
-    no zone, so a naive value is read in ``legacy_zone``, the zone the host
-    was on, which the code can't tell; None means the host's zone now. A
-    value with an offset (an expiry kept as the uploader sent it) is only
-    converted to UTC."""
-    if not isinstance(value, str):
-        return None
-    try:
-        moment = datetime.fromisoformat(value)
-    except ValueError:
-        return None
-    if moment.tzinfo is None:
-        moment = (moment.astimezone() if legacy_zone is None
-                  else moment.replace(tzinfo=legacy_zone))
-    stored = to_utc_iso(moment)
-    return None if stored == value else stored

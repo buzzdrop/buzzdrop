@@ -22,11 +22,9 @@ import threading
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from db.base import Backend, FileStore, TokenStore
-from timestamps import (legacy_to_stored, now_iso, parse_timestamp,
-                        to_utc_iso, utcnow)
+from timestamps import now_iso, parse_timestamp, to_utc_iso, utcnow
 
 _SQLITE_MAGIC = b'SQLite format 3\x00'
 
@@ -243,68 +241,6 @@ _MIGRATABLE_COLUMNS = (
     ('file_keys', 'salt', 'TEXT'),
     ('file_keys', 'ticket_hash', 'TEXT'),
 )
-
-# Every timestamp column. Older versions wrote them naive, in the
-# host's wall-clock time; _migrate_legacy_timestamps rewrites those in
-# the stored UTC form (timestamps.to_utc_iso).
-_TIMESTAMP_COLUMNS = (
-    ('files', ('created_at', 'downloaded_at', 'expiry_at',
-               'notification_sent_at', 'notification_claimed_at')),
-    ('api_tokens', ('created_at', 'last_used_at', 'expires_at')),
-    ('file_keys', ('created_at', 'released_at')),
-)
-
-
-def _migrate_legacy_timestamps(conn: sqlite3.Connection,
-                               legacy_zone: Optional[ZoneInfo],
-                               expiry_zone: Optional[ZoneInfo]) -> None:
-    """Rewrite every timestamp not yet in the stored UTC form (#250), in
-    one transaction. The server wrote every naive value in the host's
-    zone (``legacy_zone``) except ``files.expiry_at``, which is what the
-    uploader typed, in their own zone (``expiry_zone``). Idempotent: a
-    migrated value is left alone, so this runs on every start and a second
-    run changes nothing."""
-    conn.execute('BEGIN IMMEDIATE')
-    try:
-        changed = 0
-        for table, columns in _TIMESTAMP_COLUMNS:
-            names = ', '.join(f'"{c}"' for c in columns)
-            for row in conn.execute(
-                    f'SELECT doc_id, {names} FROM "{table}"').fetchall():
-                updates = {}
-                for column in columns:
-                    zone = (expiry_zone if (table, column) == ('files', 'expiry_at')
-                            else legacy_zone)
-                    stored = legacy_to_stored(row[column], zone)
-                    if stored is not None:
-                        updates[column] = stored
-                if updates:
-                    assignments = ', '.join(f'"{c}" = ?' for c in updates)
-                    conn.execute(
-                        f'UPDATE "{table}" SET {assignments} WHERE doc_id = ?',
-                        (*updates.values(), row['doc_id']))
-                    changed += 1
-    except Exception:
-        conn.execute('ROLLBACK')
-        raise
-    else:
-        conn.execute('COMMIT')
-    if changed:
-        logging.info('Rewrote timestamps of %d row(s) in UTC', changed)
-
-
-def _legacy_zone(name: Optional[str], setting: str) -> Optional[ZoneInfo]:
-    """A zone naive timestamps from older versions are read in; None (unset) is the
-    host's zone. ``setting`` names the config key in the error."""
-    if not name:
-        return None
-    try:
-        return ZoneInfo(name)
-    except (ZoneInfoNotFoundError, ValueError) as exc:
-        raise ValueError(
-            f'{setting} {name!r} is not a known time zone '
-            '(use an IANA name such as Europe/Warsaw or UTC)') from exc
-
 
 # Domain label for the bearer ticket a released share downloads with. The
 # ticket is deterministic — HKDF-SHA256(ikm=H) — so the winner recomputes
@@ -973,15 +909,7 @@ class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
 class SQLiteBackend(Backend):
     """SQLite Backend: one file, per-thread connections, WAL mode."""
 
-    def __init__(self, path: str, legacy_timezone: Optional[str] = None,
-                 legacy_expiry_timezone: Optional[str] = None):
-        """Naive timestamps an older version wrote are rewritten in
-        UTC when the database opens: ``legacy_timezone`` is the zone the
-        host was on, ``legacy_expiry_timezone`` the uploaders' zone their
-        typed expiries are read in (IANA names; unset: the host's zone
-        now)."""
-        legacy_zone = _legacy_zone(legacy_timezone, 'LEGACY_TIMESTAMP_TIMEZONE')
-        expiry_zone = _legacy_zone(legacy_expiry_timezone, 'DEFAULT_TIMEZONE')
+    def __init__(self, path: str):
         if not path:
             raise ValueError(
                 'SQLite path must not be empty — "sqlite:///" alone would '
@@ -1015,7 +943,6 @@ class SQLiteBackend(Backend):
         self.files: FileStore = SQLiteFileStore(self)
         self.tokens: TokenStore = SQLiteTokenStore(self)
         self._ensure_schema()
-        _migrate_legacy_timestamps(self._connection(), legacy_zone, expiry_zone)
 
     def _connection(self) -> sqlite3.Connection:
         if self.closed:
