@@ -872,8 +872,12 @@
     background-repeat: repeat-x;
   }
 
+  /* Centred on the track by `transform` alone, the property flow-travel
+     animates: Tailwind's translate utilities set `translate`, which would
+     stack on top of it and lift the parcel off the line. */
   .flow-parcel {
-    @apply absolute top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-linear-to-br from-honey-300 to-honey-500 text-hive-950 shadow-honey;
+    @apply absolute top-1/2 grid h-7 w-7 place-items-center rounded-full bg-linear-to-br from-honey-300 to-honey-500 text-hive-950 shadow-honey;
+    transform: translate(-50%, -50%);
   }
 
   .flow-parcel svg {
