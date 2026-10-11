@@ -97,7 +97,7 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 
 ### 5. The recipient proves the password
 
-- **Who acts:** the recipient's browser, then the server.
+- **Who acts:** the recipient's browser, then the server. The recipient needs no account, only the link and the password.
 - **What crosses the wire:** the browser derives `V` from the typed password and posts it to `POST /release/<id>`. Never the password.
 - **What the server sees:** `V`, and the recipient's IP address, which it logs with a successful or wrong attempt. It compares `V` with the stored one in constant time, in one database transaction.
 - **Never sees:** the password.

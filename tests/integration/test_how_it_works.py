@@ -262,3 +262,52 @@ def test_landing_hero_promises_what_the_doc_takes_away(client):
 
     assert "We can’t read your files or notes: they’re encrypted before they leave your device." in _plain(hero)
     assert 'never reach the server unencrypted' not in hero
+
+
+
+def _guarantees(html):
+    match = re.search(r'What&rsquo;s guaranteed.*?</section>', html, re.S)
+    assert match, 'no guarantees on the landing page'
+    return match.group(0)
+
+
+def test_landing_has_one_primary_action(client):
+    # "Enter the hive"; the header, the walkthrough and the open-source
+    # section stay secondary.
+    html = _landing(client)
+
+    assert len(re.findall(r'class="btn-primary\b', html)) == 1
+    assert re.search(r'class="btn-primary[^"]*"[^>]*>\s*<span[^>]*>Enter the hive<', html)
+
+
+def test_landing_guarantees_link_to_the_doc_steps_behind_them(client):
+    # Each guarantee is a claim about the flow, so it points at the step of
+    # docs/how-it-works.md (and the page) that makes it true.
+    doc_steps = set(re.findall(r'<a id="(step-[a-z-]+)"></a>', DOC.read_text(encoding='utf-8')))
+    targets = re.findall(rf'href="{url_for("how_it_works")}#(step-[a-z-]+)"', _guarantees(_landing(client)))
+
+    assert len(targets) == 4
+    assert set(targets) <= doc_steps
+    # Named by the step's own number and title on the page.
+    assert 'Step 5: The recipient proves the password' in _plain(_guarantees(_landing(client)))
+
+
+def test_landing_says_recipients_need_no_account(client):
+    # Doc first: the release step says it, then the page and the landing.
+    doc = DOC.read_text(encoding='utf-8')
+    release = re.search(r'<a id="step-release"></a>(.*?)<a id=', doc, re.S).group(1)
+
+    assert 'needs no account' in release
+    assert 'needs no account' in _page(client)
+    assert 'needs no account' in _guarantees(_landing(client))
+
+
+def test_landing_drops_what_it_says_twice(client):
+    html = _landing(client)
+
+    # The badge-shaped eyebrow, filler under the source buttons and a
+    # second "PBKDF2" in the walkthrough.
+    assert 'class="eyebrow"' not in html
+    assert 'Both links open in a new tab' not in html
+    assert 'Track build status' not in html
+    assert 'PBKDF2' not in _walkthrough(html)

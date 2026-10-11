@@ -107,7 +107,26 @@ def test_success_page_footer_tells_the_uploader_to_split_link_and_password(clien
 def test_landing_page_footer_does_not_address_an_uploader(client):
     footer = _footer(client, 'index')
     assert 'different channels' not in footer
-    assert 'Each drop opens once' in footer
+
+
+def test_landing_page_footer_does_not_repeat_the_hero(client):
+    # "It opens once, then it's gone" is the hero's lead.
+    assert 'opens once' not in _footer(client, 'index')
+
+
+def test_other_pages_keep_the_footer_note(client):
+    assert 'Each drop opens once' in _footer(client, 'login')
+
+
+@pytest.mark.parametrize('endpoint, values', [
+    ('index', {}),
+    ('login', {}),
+    ('how_it_works', {}),
+])
+def test_footer_says_how_it_is_built(client, endpoint, values):
+    footer = _footer(client, endpoint, **values)
+    assert 'Built in the open.' in footer
+    assert 'vibe coding' not in footer
 
 
 @pytest.mark.parametrize('endpoint, values', [

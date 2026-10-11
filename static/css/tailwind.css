@@ -223,6 +223,11 @@
     @apply relative z-10 mt-16 border-t border-white/5 bg-hive-950/60 backdrop-blur-sm;
   }
 
+  /* A text link that leads on to more (the explainer, one of its steps). */
+  .more-link {
+    @apply text-sm font-semibold text-honey-300 underline decoration-honey-400/30 underline-offset-4 transition hover:text-honey-200 hover:decoration-honey-300;
+  }
+
   .footer-link {
     @apply underline decoration-slate-700 underline-offset-4 transition hover:text-slate-300;
   }
@@ -677,7 +682,7 @@
 
   /* The way on from the walkthrough to the full explainer, centred under the mock window. */
   .flow-more {
-    @apply mx-auto mt-4 block w-fit text-sm font-semibold text-honey-300 underline decoration-honey-400/30 underline-offset-4 transition hover:text-honey-200 hover:decoration-honey-300;
+    @apply mx-auto mt-4 block w-fit;
   }
 
   /* Only opacity is transitioned. The lift is a one-shot animation on entry,

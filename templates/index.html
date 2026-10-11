@@ -1,10 +1,19 @@
 {% extends "base.html" %}
 {% from '_play_toggle.html' import play_toggle %}
-{% from '_how_it_works_content.html' import brief %}
+{% from '_how_it_works_content.html' import brief, steps %}
 
 {# A walkthrough caption, in the words /how-it-works and its doc keep true. #}
 {% macro flow_cap(index) -%}
 <p class="flow-cap"><strong>{{ brief[index][0] }}</strong> {{ brief[index][1] }}</p>
+{%- endmacro %}
+
+{# A link to the step of /how-it-works that makes a guarantee true, by the
+   step's own number and title. #}
+{% macro step_link(id) -%}
+{#- Filter inside the loop: a `for … if` would number the matches, not the steps. -#}
+{%- for step_id, title in steps -%}{%- if step_id == id -%}
+<a href="{{ url_for('how_it_works') }}#step-{{ id }}" class="more-link mt-3 inline-block">Step {{ loop.index }}: {{ title }}<span aria-hidden="true"> &rarr;</span></a>
+{%- endif -%}{%- endfor -%}
 {%- endmacro %}
 
 {# The landing page uses the full shell; the composer and drop list a narrower column. #}
@@ -13,9 +22,8 @@
 {% block footer_note %}
 {%- if session.get('username') -%}
 Send the link and the password through different channels.
-{%- else -%}
-{{ super() }}
 {%- endif -%}
+{# The landing page's hero already says each drop opens once. #}
 {% endblock %}
 
 {% block content %}
@@ -295,8 +303,7 @@ Send the link and the password through different channels.
                                     <span class="flow-secret">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
                                     <svg class="flow-lock" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1a4 4 0 0 0-4 4v3H5.5A1.5 1.5 0 0 0 4 9.5v7A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 14.5 8H14V5a4 4 0 0 0-4-4Zm2 7V5a2 2 0 1 0-4 0v3h4Z" clip-rule="evenodd"/></svg>
                                 </div>
-                                <span class="flow-tag">AES-GCM &middot; PBKDF2 600k</span>
-                            </div>
+                                                            </div>
                             {{ flow_cap(1) }}
                         </li>
 
@@ -362,7 +369,7 @@ Send the link and the password through different channels.
 
                     {{ play_toggle('flow-toggle', 'Pause walkthrough', playing=true, extra_class='flow-toggle') }}
                 </div>
-                <a href="{{ url_for('how_it_works') }}" class="flow-more">How Buzzdrop works, in detail<span aria-hidden="true"> &rarr;</span></a>
+                <a href="{{ url_for('how_it_works') }}" class="more-link flow-more">How Buzzdrop works, in detail<span aria-hidden="true"> &rarr;</span></a>
             </div>
         </div>
     </section>
@@ -370,7 +377,7 @@ Send the link and the password through different channels.
     <section class="space-y-8">
         <div class="max-w-2xl space-y-3">
             <h2 class="section-title">What&rsquo;s guaranteed</h2>
-            <p class="section-lead">Four things you can rely on &mdash; each of them checkable in the source.</p>
+            <p class="section-lead">Four things you can rely on. Each links to the step of the flow that makes it true.</p>
         </div>
         <div class="grid gap-5 md:grid-cols-2">
         <article class="feature-card">
@@ -382,6 +389,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The server never sees your key</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Your password derives half the key in the browser via PBKDF2 — 600,000 iterations — and never leaves the device. The other half is a server-held share released exactly once, so a stolen ciphertext alone is dead bytes. Buzzdrop stores ciphertext and metadata; it cannot read the drop.</p>
+                    {{ step_link('encrypt') }}
                 </div>
             </div>
         </article>
@@ -393,7 +401,8 @@ Send the link and the password through different channels.
                 </svg>
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The password opens it once</h3>
-                    <p class="mt-2 text-sm leading-relaxed text-slate-400">The recipient proves the password before anything downloads. {% if config.KEY_RELEASE_MAX_ATTEMPTS == 1 %}A wrong guess gets no second attempt{% else %}After {{ config.KEY_RELEASE_MAX_ATTEMPTS }} wrong guesses the drop locks{% endif %}, and once the drop is open, nobody who finds the link later gets in.</p>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">The recipient needs no account, only the link and the password, which they prove before anything downloads. {% if config.KEY_RELEASE_MAX_ATTEMPTS == 1 %}A wrong guess gets no second attempt{% else %}After {{ config.KEY_RELEASE_MAX_ATTEMPTS }} wrong guesses the drop locks{% endif %}, and once the drop is open, nobody who finds the link later gets in.</p>
+                    {{ step_link('release') }}
                 </div>
             </div>
         </article>
@@ -406,6 +415,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">An expiry is a hard cut-off</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Give a drop a deadline and the link stops working once it passes. The attempt is refused and the copy swept away — whether or not anyone ever opened it.</p>
+                    {{ step_link('expiry') }}
                 </div>
             </div>
         </article>
@@ -418,6 +428,7 @@ Send the link and the password through different channels.
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">You find out it happened</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Buzzdrop records when the drop was fetched and from which IP, and can email you once, the moment the recipient decrypts it.</p>
+                    {{ step_link('decrypt') }}
                 </div>
             </div>
         </article>
@@ -427,7 +438,6 @@ Send the link and the password through different channels.
     <section class="surface-card p-8 sm:p-12">
         <div class="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center">
             <div class="space-y-5">
-                <span class="eyebrow">Open source</span>
                 <h2 class="section-title">Read the code. Then trust it.</h2>
                 <p class="section-lead max-w-xl">
                     Buzzdrop is small enough to audit in an afternoon. Explore it, run it on your own box,
@@ -442,20 +452,15 @@ Send the link and the password through different channels.
                         <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
                         <span>Grab the <code class="rounded-md border border-white/10 bg-hive-850 px-1.5 py-0.5 text-xs text-honey-200">buzz</code> CLI for encrypted uploads from your terminal.</span>
                     </li>
-                    <li class="flex gap-3">
-                        <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
-                        <span>Track build status and ongoing work in the repository.</span>
-                    </li>
                 </ul>
             </div>
             <div class="flex flex-col gap-3">
-                <a href="{{ config.SOURCE_CODE_URL }}" target="_blank" rel="noopener noreferrer" class="btn-primary">
-                    <span class="relative z-10">Browse the source code</span>
+                <a href="{{ config.SOURCE_CODE_URL }}" target="_blank" rel="noopener noreferrer" aria-label="Browse the source code (opens in new tab)" class="btn-secondary">
+                    Browse the source code
                 </a>
                 <a href="{{ config.SOURCE_CODE_URL }}#readme" target="_blank" rel="noopener noreferrer" aria-label="Read the README (opens in new tab)" class="btn-secondary">
                     Read the README
                 </a>
-                <p class="text-center text-xs text-slate-600">Both links open in a new tab.</p>
             </div>
         </div>
     </section>

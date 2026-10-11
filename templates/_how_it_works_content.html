@@ -136,7 +136,7 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 <dd><span {{ show('sender', 'web') }}>The success page</span><span {{ show('sender', 'cli') }}><code>buzz</code></span> also offers a link with the password after the <code>#</code>. Browsers never send that part to a server, so we still don&rsquo;t see the password. But <strong class="hiw-caveat">anyone who has that link can open the drop</strong>, and chat history, link previews and exports keep a copy. It&rsquo;s convenient; sending link and password separately is stronger.</dd>
 {% elif id == 'release' %}
 <dt>Who acts</dt>
-<dd>The recipient&rsquo;s browser, then the server.</dd>
+<dd>The recipient&rsquo;s browser, then the server. The recipient needs no account, only the link and the password.</dd>
 <dt>What crosses the wire</dt>
 <dd>The browser derives <code>V</code> from the typed password and posts it to <code>POST /release</code>. Never the password.</dd>
 <dt>What the server sees</dt>

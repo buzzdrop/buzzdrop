@@ -148,8 +148,7 @@
                                     <span class="flow-secret">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
                                     <svg class="flow-lock" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1a4 4 0 0 0-4 4v3H5.5A1.5 1.5 0 0 0 4 9.5v7A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 14.5 8H14V5a4 4 0 0 0-4-4Zm2 7V5a2 2 0 1 0-4 0v3h4Z" clip-rule="evenodd"/></svg>
                                 </div>
-                                <span class="flow-tag">AES-GCM &middot; PBKDF2 600k</span>
-                            </div>
+                                                            </div>
                             <p class="flow-cap"><strong>Set a password.</strong> Your browser encrypts the drop before anything is uploaded.</p>
                         </li>
 
@@ -223,7 +222,7 @@
     <span data-icon="pause" class="relative" aria-hidden="true"><svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><rect x="4.5" y="3" width="4" height="14" rx="1.2"/><rect x="11.5" y="3" width="4" height="14" rx="1.2"/></svg></span>
 </button>
                 </div>
-                <a href="/how-it-works" class="flow-more">How Buzzdrop works, in detail<span aria-hidden="true"> &rarr;</span></a>
+                <a href="/how-it-works" class="more-link flow-more">How Buzzdrop works, in detail<span aria-hidden="true"> &rarr;</span></a>
             </div>
         </div>
     </section>
@@ -231,7 +230,7 @@
     <section class="space-y-8">
         <div class="max-w-2xl space-y-3">
             <h2 class="section-title">What&rsquo;s guaranteed</h2>
-            <p class="section-lead">Four things you can rely on &mdash; each of them checkable in the source.</p>
+            <p class="section-lead">Four things you can rely on. Each links to the step of the flow that makes it true.</p>
         </div>
         <div class="grid gap-5 md:grid-cols-2">
         <article class="feature-card">
@@ -243,6 +242,7 @@
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The server never sees your key</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Your password derives half the key in the browser via PBKDF2 — 600,000 iterations — and never leaves the device. The other half is a server-held share released exactly once, so a stolen ciphertext alone is dead bytes. Buzzdrop stores ciphertext and metadata; it cannot read the drop.</p>
+                    <a href="/how-it-works#step-encrypt" class="more-link mt-3 inline-block">Step 2: Encrypt where you are<span aria-hidden="true"> &rarr;</span></a>
                 </div>
             </div>
         </article>
@@ -254,7 +254,8 @@
                 </svg>
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">The password opens it once</h3>
-                    <p class="mt-2 text-sm leading-relaxed text-slate-400">The recipient proves the password before anything downloads. A wrong guess gets no second attempt, and once the drop is open, nobody who finds the link later gets in.</p>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">The recipient needs no account, only the link and the password, which they prove before anything downloads. A wrong guess gets no second attempt, and once the drop is open, nobody who finds the link later gets in.</p>
+                    <a href="/how-it-works#step-release" class="more-link mt-3 inline-block">Step 5: The recipient proves the password<span aria-hidden="true"> &rarr;</span></a>
                 </div>
             </div>
         </article>
@@ -267,6 +268,7 @@
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">An expiry is a hard cut-off</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Give a drop a deadline and the link stops working once it passes. The attempt is refused and the copy swept away — whether or not anyone ever opened it.</p>
+                    <a href="/how-it-works#step-expiry" class="more-link mt-3 inline-block">Step 8: Expiry and manual delete<span aria-hidden="true"> &rarr;</span></a>
                 </div>
             </div>
         </article>
@@ -279,6 +281,7 @@
                 <div>
                     <h3 class="text-base font-semibold leading-snug text-white">You find out it happened</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-400">Buzzdrop records when the drop was fetched and from which IP, and can email you once, the moment the recipient decrypts it.</p>
+                    <a href="/how-it-works#step-decrypt" class="more-link mt-3 inline-block">Step 7: Decrypt in the browser<span aria-hidden="true"> &rarr;</span></a>
                 </div>
             </div>
         </article>
@@ -288,7 +291,6 @@
     <section class="surface-card p-8 sm:p-12">
         <div class="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center">
             <div class="space-y-5">
-                <span class="eyebrow">Open source</span>
                 <h2 class="section-title">Read the code. Then trust it.</h2>
                 <p class="section-lead max-w-xl">
                     Buzzdrop is small enough to audit in an afternoon. Explore it, run it on your own box,
@@ -303,20 +305,15 @@
                         <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
                         <span>Grab the <code class="rounded-md border border-white/10 bg-hive-850 px-1.5 py-0.5 text-xs text-honey-200">buzz</code> CLI for encrypted uploads from your terminal.</span>
                     </li>
-                    <li class="flex gap-3">
-                        <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
-                        <span>Track build status and ongoing work in the repository.</span>
-                    </li>
                 </ul>
             </div>
             <div class="flex flex-col gap-3">
-                <a href="https://github.com/luprzybyl/buzzdrop" target="_blank" rel="noopener noreferrer" class="btn-primary">
-                    <span class="relative z-10">Browse the source code</span>
+                <a href="https://github.com/luprzybyl/buzzdrop" target="_blank" rel="noopener noreferrer" aria-label="Browse the source code (opens in new tab)" class="btn-secondary">
+                    Browse the source code
                 </a>
                 <a href="https://github.com/luprzybyl/buzzdrop#readme" target="_blank" rel="noopener noreferrer" aria-label="Read the README (opens in new tab)" class="btn-secondary">
                     Read the README
                 </a>
-                <p class="text-center text-xs text-slate-600">Both links open in a new tab.</p>
             </div>
         </div>
     </section>
@@ -332,18 +329,16 @@
 
         <footer class="footer-shell">
             <div class="container-shell flex flex-col gap-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-                <p class="flex items-start gap-2 sm:items-center">
-                    <span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400 sm:mt-0" aria-hidden="true"></span>
-                    
-                    <span>Each drop opens once, then it's gone.</span>
-                </p>
-                <p class="text-slate-600">
+                
+                
+                
+                <p class="text-slate-600 sm:ml-auto">
                     
                     
                     <a href="/how-it-works" class="footer-link">How it works</a>
                     
                     &middot;
-                    Proudly developed with vibe coding.
+                    Built in the open.
                     <a href="https://github.com/luprzybyl/buzzdrop" target="_blank" rel="noopener noreferrer" aria-label="Source code (opens in new tab)" class="footer-link"><svg aria-hidden="true" viewBox="0 0 24 24" class="mr-1 inline-block h-3.5 w-3.5 fill-current align-[-0.15em]"><path d="M12 1.5a10.5 10.5 0 0 0-3.32 20.46c.53.1.72-.23.72-.51v-1.78c-2.94.64-3.56-1.25-3.56-1.25-.48-1.2-1.16-1.52-1.16-1.52-.95-.65.07-.64.07-.64 1.05.08 1.6 1.08 1.6 1.08.94 1.6 2.46 1.14 3.06.87.09-.68.37-1.14.66-1.4-2.35-.27-4.82-1.17-4.82-5.23 0-1.16.42-2.1 1.09-2.84-.11-.27-.47-1.37.1-2.84 0 0 .89-.28 2.92 1.08a10.2 10.2 0 0 1 5.32 0c2.03-1.36 2.92-1.08 2.92-1.08.57 1.47.21 2.57.1 2.84.68.74 1.09 1.68 1.09 2.84 0 4.07-2.48 4.96-4.84 5.22.38.33.72.97.72 1.96v2.91c0 .28.19.62.73.51A10.5 10.5 0 0 0 12 1.5Z"/></svg>Source code</a>
                     (<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" aria-label="AGPL-3.0 licence text (opens in new tab)" class="footer-link">AGPL-3.0</a>)
                 </p>
