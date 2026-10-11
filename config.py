@@ -70,8 +70,9 @@ class Config:
     S3_SECRET_KEY = os.getenv('S3_SECRET_KEY')
     S3_REGION = os.getenv('S3_REGION', 'us-east-1')
     
-    # Times are stored and compared in UTC (#250). DEFAULT_TIMEZONE is
-    # only for text with no browser to localize it: notification emails.
+    # Times are stored and compared in UTC (#250). DEFAULT_TIMEZONE is for
+    # text with no browser to localize it (notification emails), and the
+    # uploaders' zone pre-#250 typed expiries are migrated from.
     DEFAULT_TIMEZONE = os.getenv('DEFAULT_TIMEZONE', 'Europe/Warsaw')
     # The zone the host was on when a version before #250 wrote naive
     # timestamps; they are rewritten in UTC when the database opens.

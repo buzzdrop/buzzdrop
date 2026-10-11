@@ -323,6 +323,9 @@ def _pre_250_db(path):
     })
     backend.files.create_key_share('old-drop', 'aa' * 32, created_at='2026-10-08T20:59:00')
     backend.files.insert({'id': 'new-drop', 'created_at': '2026-10-08T19:00:00.000000+00:00'})
+    # The expiry field sent the uploader's own wall-clock time, no zone.
+    backend.files.insert({'id': 'typed-expiry', 'created_at': '2026-10-08T21:00:00',
+                          'expiry_at': '2026-10-09T21:00'})
     backend.tokens.insert({
         'token_hash': 'th-old', 'created_at': '2026-10-01T09:00:00',
         'last_used_at': None, 'expires_at': '2026-10-31T09:00:00',
@@ -387,3 +390,22 @@ def test_an_unknown_legacy_zone_stops_the_app(tmp_path):
 
     with pytest.raises(ValueError, match='LEGACY_TIMESTAMP_TIMEZONE'):
         SQLiteBackend(str(tmp_path / 'x.db'), legacy_timezone='Mars/Olympus')
+
+
+def test_a_naive_expiry_is_read_in_the_uploaders_zone_not_the_hosts(tmp_path):
+    """Before #250 the expiry field stored what the uploader typed, in
+    their own zone: on a UTC Docker host that is not the host's zone. It is
+    read in legacy_expiry_timezone (the app passes DEFAULT_TIMEZONE)."""
+    from db.sqlite_backend import SQLiteBackend
+
+    path = str(tmp_path / 'pre-250.db')
+    _pre_250_db(path)
+
+    backend = SQLiteBackend(path, legacy_timezone='UTC',
+                            legacy_expiry_timezone='Europe/Warsaw')
+    try:
+        drop = backend.files.get_by_id('typed-expiry')
+        assert drop['created_at'] == '2026-10-08T21:00:00.000000+00:00'
+        assert drop['expiry_at'] == '2026-10-09T19:00:00.000000+00:00'
+    finally:
+        backend.close()

@@ -37,10 +37,10 @@ test('a drop uploaded now reads "now", and expires when the uploader said', asyn
     const link = await shareFile(page, file, sharePassword());
 
     const row = await listedRow(page, file.name);
-    const uploaded = row.getByRole('definition').filter({ has: page.locator('time') }).first();
     // Not "13 hours ago": the upload time is an instant, shown in Tokyo time.
-    await expect(uploaded).toHaveText(/^(now|1 minute ago)$/);
-    await expect(uploaded.locator('time')).toHaveAttribute('title', /GMT\+9$/);
+    const uploaded = row.getByText(/^(now|1 minute ago)$/);
+    await expect(uploaded).toBeVisible();
+    await expect(uploaded).toHaveAttribute('title', /GMT\+9$/);
     await expect(row.getByText(/^in (2|3) hours$/)).toBeVisible();
 
     const view = await recipient.goto(link);

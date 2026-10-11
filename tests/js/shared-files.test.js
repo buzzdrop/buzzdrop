@@ -47,6 +47,8 @@ test('rounds to the nearest unit, so a time just short of one reads as it', () =
 
 test('counts minutes, and hours within the day, in the past and the future', () => {
     assert.equal(ago('2026-10-06T21:36:00+02:00'), '1 minute ago');
+    // 59½ minutes rounds to an hour, never "60 minutes".
+    assert.equal(ago('2026-10-06T20:37:30+02:00'), '1 hour ago');
     assert.equal(ago('2026-10-06T21:42:00+02:00'), 'in 5 minutes');
     assert.equal(ago('2026-10-06T18:30:00+02:00'), '3 hours ago');
     assert.equal(ago('2026-10-06T23:37:00+02:00'), 'in 2 hours');

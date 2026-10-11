@@ -13,7 +13,7 @@ from timestamps import parse_timestamp
 WEB_TIMEZONE = 'UTC'
 
 
-def _localize(iso_timestamp: str, tz_name: str = WEB_TIMEZONE) -> datetime:
+def _in_zone(iso_timestamp: str, tz_name: str = WEB_TIMEZONE) -> datetime:
     """Parse a stored timestamp as an aware datetime in ``tz_name``.
 
     Stored timestamps are UTC (one without an offset is read as UTC, see
@@ -46,7 +46,7 @@ def format_timestamp(iso_timestamp: str, tz_name: str = WEB_TIMEZONE) -> str:
         '2024-01-15 10:30:00 CET'
     """
     try:
-        return _localize(iso_timestamp, tz_name).strftime('%Y-%m-%d %H:%M:%S %Z')
+        return _in_zone(iso_timestamp, tz_name).strftime('%Y-%m-%d %H:%M:%S %Z')
     except Exception:
         # If all else fails, return original timestamp
         return iso_timestamp
@@ -56,7 +56,7 @@ def _iso_twin(iso_timestamp: str, tz_name: str) -> Optional[str]:
     """An offset-aware ISO value to the second, which every browser's
     Date.parse reads (more than three fraction digits isn't portable)."""
     try:
-        return _localize(iso_timestamp, tz_name).isoformat(timespec='seconds')
+        return _in_zone(iso_timestamp, tz_name).isoformat(timespec='seconds')
     except Exception:
         return None
 
@@ -110,7 +110,7 @@ def _display_name(file_dict: dict, tz_name: str) -> str:
     if note:
         return note
     try:
-        return f"Text note \u00b7 {_localize(file_dict['created_at'], tz_name):%H:%M}"
+        return f"Text note \u00b7 {_in_zone(file_dict['created_at'], tz_name):%H:%M}"
     except Exception:
         return 'Text note'
 

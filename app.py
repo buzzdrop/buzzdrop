@@ -254,6 +254,9 @@ def send_open_notification_email(file_info: dict) -> bool:
     file_info['notification_sent_at'] = now_iso()
     return True
 
+# Stored times as text in UTC, for server-rendered text (the token table).
+app.add_template_filter(format_timestamp, 'timestamp')
+
 # --- SRI HASH HELPER ---
 @app.context_processor
 def csrf_token_processor():
@@ -321,8 +324,15 @@ if app.config['STORAGE_BACKEND'] == 'local':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize the storage backend (sqlite:// today, swappable via DATABASE_URL)
-backend = create_backend(config_class.get_database_url(),
-                         app.config['LEGACY_TIMESTAMP_TIMEZONE'])
+def _open_backend(url, config):
+    """create_backend with the zones naive pre-#250 timestamps are
+    migrated from: the host's for what the server wrote, DEFAULT_TIMEZONE
+    for the expiries uploaders typed."""
+    return create_backend(url, config['LEGACY_TIMESTAMP_TIMEZONE'],
+                          config['DEFAULT_TIMEZONE'])
+
+
+backend = _open_backend(config_class.get_database_url(), app.config)
 app.backend = backend
 
 # Initialize storage backend
@@ -375,16 +385,14 @@ def get_backend():
         if backend is None or backend.url != url or getattr(backend, 'closed', False):
             if backend is not None:
                 backend.close()
-            backend = create_backend(
-                url, current_app.config['LEGACY_TIMESTAMP_TIMEZONE'])
+            backend = _open_backend(url, current_app.config)
             current_app.backend = backend
     else:
         backend = getattr(app, 'backend', None)
         if backend is None or backend.url != url or getattr(backend, 'closed', False):
             if backend is not None:
                 backend.close()
-            backend = create_backend(
-                url, app.config['LEGACY_TIMESTAMP_TIMEZONE'])
+            backend = _open_backend(url, app.config)
             app.backend = backend
     return backend
 

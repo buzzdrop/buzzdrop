@@ -100,3 +100,18 @@ def test_legacy_to_stored_leaves_stored_and_unreadable_values_alone():
     # keeps its value.
     assert legacy_to_stored('garbage', None) is None
     assert legacy_to_stored(None, None) is None
+
+
+def test_parse_expiry_reads_z_without_relying_on_python_3_11(monkeypatch):
+    # A Passenger host may run a Python whose fromisoformat refuses 'Z'.
+    import timestamps
+
+    class OldDatetime(datetime):
+        @classmethod
+        def fromisoformat(cls, value):
+            if value.endswith('Z'):
+                raise ValueError('Invalid isoformat string')
+            return datetime.fromisoformat(value)
+
+    monkeypatch.setattr(timestamps, 'datetime', OldDatetime)
+    assert timestamps.parse_expiry('2026-10-08T19:00:00.000Z') == '2026-10-08T19:00:00.000000+00:00'

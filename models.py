@@ -7,9 +7,9 @@ stable while the actual storage lives behind the FileStore interface
 import secrets
 import uuid
 from datetime import datetime
+from typing import Optional, List, Iterable, Tuple
 
 from timestamps import now_iso, to_utc_iso
-from typing import Optional, List, Iterable, Tuple
 
 from db import FileStore
 

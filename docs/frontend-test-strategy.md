@@ -20,7 +20,7 @@ Each behaviour is tested **once**, at the **lowest layer that can show it**.
 From [Choose the runner and DOM environment for DOM + JS-integration tests](https://github.com/luprzybyl/buzzdrop/issues/155).
 
 - **Unit:** keep `node --test` for `tests/js/*.test.js`. These files don't run under Vitest.
-- **DOM + integration:** Vitest with happy-dom, pinned at **>= 20.8.9** (security advisories). Vitest's `include` covers only `tests/js/dom/**` and `tests/js/integration/**`.
+- **DOM + integration:** Vitest with happy-dom, pinned at **>= 20.8.9** (security advisories). Vitest's `include` covers only `tests/js/dom/**` and `tests/js/integration/**`. Its `env` pins `TZ=America/New_York`, so the viewer's zone is neither UTC nor Warsaw (#250); the pure-module unit tests pass a zone explicitly instead.
 - **jsdom is rejected.** It puts byte arrays in two realms, so `TextEncoder`/`subtle` output fails `instanceof Uint8Array`, which breaks `lib/crypto.js`. It also has no navigation, and `new Response(blob)` throws.
 - Real 600k-iteration PBKDF2 runs in happy-dom at acceptable cost. Tests don't stub the KDF.
 - **Node 24** via a committed `.nvmrc`.
@@ -281,14 +281,15 @@ From [Pin down E2E harness facts: Playwright against the Buzzdrop Docker image](
   | `STORAGE_BACKEND` | `local` | No mounts; state disappears with `--rm` |
   | `DATABASE_URL` | `sqlite:////tmp/e2e/buzzdrop.db` | |
   | `UPLOAD_FOLDER` | `/tmp/e2e/uploads` | |
-  | `EXPIRY_SWEEP_INTERVAL_SECONDS` | `0` | Expiry isn't tested in E2E |
+  | `EXPIRY_SWEEP_INTERVAL_SECONDS` | `0` | No background sweeps; expiry is checked when a link is opened |
+  | `TZ` | `America/New_York` | A server clock that is neither UTC, nor Warsaw, nor the browser's zone, so a time stored or compared in the host's zone fails a journey ([#250](https://github.com/luprzybyl/buzzdrop/issues/250)); the image carries `tzdata` |
   | `SMTP_*` | empty | No notification mail |
 
   Lockout keeps its defaults (`KEY_RELEASE_MAX_ATTEMPTS=1`, burn on), so journey 4 tests it for real.
 - **`.dockerignore`:** at least `.env`, `buzzdrop.db*`, `uploads/`, `node_modules/`, `.venv/`, `__pycache__/`; the file itself is the full list ([#163](https://github.com/luprzybyl/buzzdrop/issues/163)). Without it, `COPY . .` bakes a developer's `.env` and DB into the image, and `load_dotenv` fills in anything the profile leaves unset.
 - **Isolation:** one fresh container per `playwright test` run, shared by all browser projects and workers. **No test-only reset or seed hooks.** Each test uploads under a unique filename and finds its own row.
 - **Downloads:** `page.waitForEvent('download')` + `download.path()` captures the Blob save byte-exact. PBKDF2 costs about 40–90 ms per derivation, which is negligible.
-- **Config:** projects Chromium, Firefox and WebKit; `retries: 0`; `trace: 'retain-on-failure'`, `screenshot: 'only-on-failure'`, `video: 'off'`; `reducedMotion: 'reduce'`, because animations moved elements under clicks and lost some of them (the app collapses every animation under `prefers-reduced-motion`).
+- **Config:** projects Chromium, Firefox and WebKit; `retries: 0`; `trace: 'retain-on-failure'`, `screenshot: 'only-on-failure'`, `video: 'off'`; `reducedMotion: 'reduce'`, because animations moved elements under clicks and lost some of them (the app collapses every animation under `prefers-reduced-motion`); `timezoneId: 'Asia/Tokyo'`, a viewer zone far from the server's `TZ`, so a time shown or sent in the wrong zone fails a journey (#250).
 - **Browser matrix:** every journey runs in all three browsers. After the first failure in Firefox or WebKit that has no real bug behind it, Chromium keeps every journey and the other two run only journeys 1, 2 and 5.
 
 ## 9. CI

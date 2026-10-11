@@ -20,9 +20,9 @@ import secrets
 import sqlite3
 import threading
 from contextlib import contextmanager
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from datetime import datetime, timedelta
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from db.base import Backend, FileStore, TokenStore
 from timestamps import (legacy_to_stored, now_iso, parse_timestamp,
@@ -256,10 +256,14 @@ _TIMESTAMP_COLUMNS = (
 
 
 def _migrate_legacy_timestamps(conn: sqlite3.Connection,
-                               legacy_zone: Optional[ZoneInfo]) -> None:
+                               legacy_zone: Optional[ZoneInfo],
+                               expiry_zone: Optional[ZoneInfo]) -> None:
     """Rewrite every timestamp not yet in the stored UTC form (#250), in
-    one transaction. Idempotent: a migrated value is left alone, so this
-    runs on every start and a second run changes nothing."""
+    one transaction. The server wrote every naive value in the host's
+    zone (``legacy_zone``) except ``files.expiry_at``, which is what the
+    uploader typed, in their own zone (``expiry_zone``). Idempotent: a
+    migrated value is left alone, so this runs on every start and a second
+    run changes nothing."""
     conn.execute('BEGIN IMMEDIATE')
     try:
         changed = 0
@@ -269,7 +273,9 @@ def _migrate_legacy_timestamps(conn: sqlite3.Connection,
                     f'SELECT doc_id, {names} FROM "{table}"').fetchall():
                 updates = {}
                 for column in columns:
-                    stored = legacy_to_stored(row[column], legacy_zone)
+                    zone = (expiry_zone if (table, column) == ('files', 'expiry_at')
+                            else legacy_zone)
+                    stored = legacy_to_stored(row[column], zone)
                     if stored is not None:
                         updates[column] = stored
                 if updates:
@@ -287,16 +293,16 @@ def _migrate_legacy_timestamps(conn: sqlite3.Connection,
         logging.info('Rewrote timestamps of %d row(s) in UTC', changed)
 
 
-def _legacy_zone(name: Optional[str]) -> Optional[ZoneInfo]:
-    """The zone naive pre-#250 timestamps are read in; None (unset) is
-    the host's zone."""
+def _legacy_zone(name: Optional[str], setting: str) -> Optional[ZoneInfo]:
+    """A zone naive pre-#250 timestamps are read in; None (unset) is the
+    host's zone. ``setting`` names the config key in the error."""
     if not name:
         return None
     try:
         return ZoneInfo(name)
     except (ZoneInfoNotFoundError, ValueError) as exc:
         raise ValueError(
-            f'LEGACY_TIMESTAMP_TIMEZONE {name!r} is not a known time zone '
+            f'{setting} {name!r} is not a known time zone '
             '(use an IANA name such as Europe/Warsaw or UTC)') from exc
 
 
@@ -967,11 +973,15 @@ class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
 class SQLiteBackend(Backend):
     """SQLite Backend: one file, per-thread connections, WAL mode."""
 
-    def __init__(self, path: str, legacy_timezone: Optional[str] = None):
-        """``legacy_timezone`` is the zone the host was on when a version
-        before #250 wrote naive timestamps (IANA name; unset: the host's
-        zone now). They are rewritten in UTC when the database opens."""
-        legacy_zone = _legacy_zone(legacy_timezone)
+    def __init__(self, path: str, legacy_timezone: Optional[str] = None,
+                 legacy_expiry_timezone: Optional[str] = None):
+        """Naive timestamps a version before #250 wrote are rewritten in
+        UTC when the database opens: ``legacy_timezone`` is the zone the
+        host was on, ``legacy_expiry_timezone`` the uploaders' zone their
+        typed expiries are read in (IANA names; unset: the host's zone
+        now)."""
+        legacy_zone = _legacy_zone(legacy_timezone, 'LEGACY_TIMESTAMP_TIMEZONE')
+        expiry_zone = _legacy_zone(legacy_expiry_timezone, 'DEFAULT_TIMEZONE')
         if not path:
             raise ValueError(
                 'SQLite path must not be empty — "sqlite:///" alone would '
@@ -1005,7 +1015,7 @@ class SQLiteBackend(Backend):
         self.files: FileStore = SQLiteFileStore(self)
         self.tokens: TokenStore = SQLiteTokenStore(self)
         self._ensure_schema()
-        _migrate_legacy_timestamps(self._connection(), legacy_zone)
+        _migrate_legacy_timestamps(self._connection(), legacy_zone, expiry_zone)
 
     def _connection(self) -> sqlite3.Connection:
         if self.closed:

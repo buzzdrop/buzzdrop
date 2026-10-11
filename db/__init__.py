@@ -25,7 +25,8 @@ _SQLITE_PREFIX = 'sqlite:///'
 
 
 def create_backend(database_url: str,
-                   legacy_timezone: Optional[str] = None) -> Backend:
+                   legacy_timezone: Optional[str] = None,
+                   legacy_expiry_timezone: Optional[str] = None) -> Backend:
     """
     Create a storage backend for the given DATABASE_URL.
 
@@ -35,6 +36,8 @@ def create_backend(database_url: str,
         legacy_timezone: the zone naive timestamps written before #250 are
             read in when they are migrated to UTC (IANA name; unset: the
             host's zone). ``LEGACY_TIMESTAMP_TIMEZONE`` in the app config.
+        legacy_expiry_timezone: the zone naive expiries typed by uploaders
+            before #250 are read in. The app passes ``DEFAULT_TIMEZONE``.
 
     Returns:
         Backend with ``.files`` and ``.tokens`` stores.
@@ -46,14 +49,16 @@ def create_backend(database_url: str,
         raise ValueError('DATABASE_URL must not be empty')
 
     if database_url.startswith(_SQLITE_PREFIX):
-        return SQLiteBackend(database_url[len(_SQLITE_PREFIX):], legacy_timezone)
+        return SQLiteBackend(database_url[len(_SQLITE_PREFIX):], legacy_timezone,
+                             legacy_expiry_timezone)
     if database_url in ('sqlite://', 'sqlite:'):
         raise ValueError(f'Invalid SQLite DATABASE_URL: {database_url!r}')
 
     scheme = urlparse(database_url).scheme
     if not scheme:
         # Bare path — treat as a SQLite file for convenience/back-compat.
-        return SQLiteBackend(database_url, legacy_timezone)
+        return SQLiteBackend(database_url, legacy_timezone,
+                             legacy_expiry_timezone)
 
     raise NotImplementedError(
         f'DATABASE_URL scheme {scheme!r} is not supported yet. '

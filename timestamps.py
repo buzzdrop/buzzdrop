@@ -49,10 +49,13 @@ def parse_expiry(raw: str) -> str:
     moment, an ISO time with an offset (the browser sends
     ``Date.toISOString()``): a wall-clock time alone would be read in
     whatever zone the server runs in. Raises ValueError otherwise."""
+    # 'Z' by hand: fromisoformat takes it only from Python 3.11.
+    if raw[-1:] in ('Z', 'z'):
+        raw = raw[:-1] + '+00:00'
     return to_utc_iso(datetime.fromisoformat(raw))
 
 
-def legacy_to_stored(value, legacy_zone: Optional[tzinfo]) -> Optional[str]:
+def legacy_to_stored(value: object, legacy_zone: Optional[tzinfo]) -> Optional[str]:
     """The stored form of a value left by a version before #250, or None
     when it needs no change (already stored form, unset, or not a
     timestamp at all). Those versions wrote the host's wall-clock time with

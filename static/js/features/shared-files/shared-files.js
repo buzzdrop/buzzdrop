@@ -147,7 +147,8 @@ export function relativeTime(then, now, format) {
     const distance = Math.abs(elapsed);
 
     if (distance < MINUTE) return words.format(0, 'second');
-    if (distance < HOUR) return words.format(sign * Math.round(distance / MINUTE), 'minute');
+    const minutes = Math.round(distance / MINUTE);
+    if (minutes < 60) return words.format(sign * minutes, 'minute');
     const days = calendarDay(then, format) - calendarDay(now, format);
     if (days === 0) return words.format(sign * Math.round(distance / HOUR), 'hour');
     if (Math.abs(days) < 30) return words.format(days, 'day');
