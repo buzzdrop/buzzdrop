@@ -50,6 +50,14 @@ def test_header_offers_login_on_the_landing_page(client):
     assert f'href="{url_for("login")}"' in _header(client, 'index')
 
 
+def test_header_login_leaves_the_primary_action_to_the_page(client):
+    # The landing page's "Enter the hive" is the one primary action, and a
+    # recipient, who usually has no account, shouldn't be pulled to Login.
+    login = _tag_with_text(_header(client, 'index'), 'Login')
+    assert 'btn-primary' not in login
+    assert 'btn-secondary' in login
+
+
 def test_header_does_not_offer_login_on_the_login_page(client):
     assert f'href="{url_for("login")}"' not in _header(client, 'login')
 
