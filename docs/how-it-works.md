@@ -23,7 +23,7 @@ The landing page tells the flow in six steps, from the sender's side, in these w
 3. **Add an expiry.** Optional. When it passes, the drop is deleted, opened or not.
 4. **Get one link.** It names the drop. On its own, it opens nothing.
 5. **Send the link.** Send the password another way: a different app, a call.
-6. **They prove the password, once.** Then the drop downloads once, decrypts on their device, and is deleted from the server.
+6. **They prove the password, once.** Then the drop downloads once and is deleted from the server. It decrypts on their device.
 
 ## Two switches, one protocol
 

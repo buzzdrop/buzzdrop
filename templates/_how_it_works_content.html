@@ -1,7 +1,8 @@
 {# The words of the "How it works" page (#245), kept apart from its layout
    (how_it_works.html) so they can be read against docs/how-it-works.md, their
    source of truth: every claim here is made there first, under the same step
-   ids.
+   ids. `brief` is the landing page's walkthrough (#271), the doc's "In brief";
+   index.html imports it alone, without context, so it must not depend on any.
 
    Import it with context: the variants depend on the page's sender and
    content, and the release step on the configured key-release policy.
@@ -22,7 +23,7 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
     ('Add an expiry.', 'Optional. When it passes, the drop is deleted, opened or not.'),
     ('Get one link.', 'It names the drop. On its own, it opens nothing.'),
     ('Send the link.', 'Send the password another way: a different app, a call.'),
-    ('They prove the password, once.', 'Then the drop downloads once, decrypts on their device, and is deleted from the server.'),
+    ('They prove the password, once.', 'Then the drop downloads once and is deleted from the server. It decrypts on their device.'),
 ] %}
 
 {# id, title #}

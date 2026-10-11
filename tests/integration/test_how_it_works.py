@@ -2,7 +2,9 @@
 The public "How it works" page (#245): it renders without a login, loads its
 script under SRI, is linked from every footer and from the recipient's pages,
 and renders the view its address names (?sender=…&content=…), so a linked
-view reads right before the page script runs.
+view reads right before the page script runs. And the landing page's short
+account of the same flow (#271): its walkthrough, in the doc's words, leading
+on to the page, and its guarantees, following the configured policy.
 """
 import re
 from html import unescape
@@ -231,3 +233,23 @@ def test_landing_tells_the_flow_once(client):
 
     assert not re.search(r'<h2\b[^>]*>\s*How it works\s*</h2>', html)
     assert 'hex-step' not in html
+
+
+def test_landing_guarantees_follow_the_configured_lockout(app, client, monkeypatch):
+    # Its guarantees are claims about the flow too, so they can't assume
+    # the default key-release policy any more than /how-it-works does.
+    assert 'A wrong guess gets no second attempt' in _landing(client)
+
+    monkeypatch.setitem(app.config, 'KEY_RELEASE_MAX_ATTEMPTS', 3)
+    html = _landing(client)
+
+    assert 'no second attempt' not in html
+    assert 'After 3 wrong guesses the drop locks' in html
+
+
+def test_landing_promises_the_email_on_decryption(client):
+    # The email goes out on a valid receipt, which only a decryption yields.
+    html = _landing(client)
+
+    assert 'attempts decryption' not in html
+    assert 'the moment the recipient decrypts it' in html
