@@ -35,9 +35,13 @@ def _footer(client, endpoint, **values):
     return _region(client, endpoint, 'footer', **values)
 
 
+# An icon assistive tech skips, in front of a control's text.
+_HIDDEN_ICON = r'(?:<svg\b[^>]*aria-hidden="true".*?</svg>\s*)?'
+
+
 def _tag_with_text(html, text):
     """The opening tag of the element whose own text is ``text``."""
-    match = re.search(rf'(<(a|button)\b[^>]*>)\s*{re.escape(text)}\s*</\2>', html)
+    match = re.search(rf'(<(a|button)\b[^>]*>)\s*{_HIDDEN_ICON}{re.escape(text)}\s*</\2>', html, re.S)
     assert match, f'no <a>/<button> labelled {text!r}'
     return match.group(1)
 
@@ -109,6 +113,14 @@ def test_footer_links_to_the_source_code(client, endpoint, values):
     assert 'href="https://www.gnu.org/licenses/agpl-3.0.html"' in _tag_with_text(footer, 'AGPL-3.0')
 
 
+def test_footer_source_link_shows_the_github_icon(client):
+    # The same mark as the hero's "View source", hidden from assistive tech:
+    # the link's label already says where it goes.
+    link = re.search(r'<a\b[^>]*>(?:(?!</a>).)*?Source code\s*</a>', _footer(client, 'index'), re.S).group(0)
+
+    assert re.search(r'<svg\b[^>]*aria-hidden="true"', link)
+
+
 def test_footer_source_link_follows_the_configured_url(app, client, monkeypatch):
     monkeypatch.setitem(app.config, 'SOURCE_CODE_URL', 'https://git.example.org/fork')
     footer = _footer(client, 'index')
@@ -121,4 +133,10 @@ def test_every_repository_link_follows_the_configured_url(app, client, monkeypat
     monkeypatch.setitem(app.config, 'SOURCE_CODE_URL', 'https://git.example.org/fork')
     page = client.get(url_for('index')).get_data(as_text=True)
     assert 'github.com/luprzybyl' not in page
-    assert 'href="https://git.example.org/fork"' in _header(client, 'index')
+    assert 'href="https://git.example.org/fork"' in page
+
+
+def test_the_header_leaves_the_source_link_to_the_page(client):
+    # The landing page's hero and every footer already link to the source,
+    # so the header doesn't repeat it.
+    assert 'Source code' not in _header(client, 'index')
