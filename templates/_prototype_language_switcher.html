@@ -59,15 +59,20 @@
 {% endmacro %}
 
 {# ---------------------------------------------------------------- C #}
+{# Verdict round: native names from sm up, codes below (header room on
+   phones), and hidden entirely once the key is released. #}
 {% macro variant_c() %}
-<div role="group" aria-label="Language" class="inline-flex shrink-0 rounded-full border border-white/10 bg-white/[0.03] p-0.5 text-xs font-semibold uppercase tracking-wider{{ ' opacity-40' if proto.released }}"{% if proto.released %} title="{{ locked_reason }}"{% endif %}>
+{% if not proto.released %}
+<div role="group" aria-label="Language" class="inline-flex shrink-0 rounded-full border border-white/10 bg-white/[0.03] p-0.5 text-xs font-semibold">
     {% for code, name in proto.langs %}
+    {% set label %}<span class="hidden sm:inline">{{ name }}</span><span class="uppercase tracking-wider sm:hidden">{{ code }}</span>{% endset %}
     {{ lang_form(code,
-        class='rounded-full px-2.5 py-1 transition ' ~ ('bg-honey-400 text-[#0B0D12]' if code == proto.lang else 'text-slate-400 hover:text-white') ~ (' cursor-not-allowed' if proto.released else ''),
-        label=code, current=code == proto.lang, disabled=proto.released,
-        extra='aria-label="' ~ name ~ '" title="' ~ name ~ '"') }}
+        class='rounded-full px-2.5 py-1 transition ' ~ ('bg-honey-400 text-[#0B0D12]' if code == proto.lang else 'text-slate-400 hover:text-white'),
+        label=label, current=code == proto.lang,
+        extra='aria-label="' ~ name ~ '"') }}
     {% endfor %}
 </div>
+{% endif %}
 {% endmacro %}
 
 {# ---------------------------------------------------------- the bar #}
