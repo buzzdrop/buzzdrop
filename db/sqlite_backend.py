@@ -876,9 +876,9 @@ class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
         )
         return cursor.rowcount > 0
 
-    def purge_expired(self, now_iso: str) -> int:
-        # expires_at and now_iso are both UTC in the fixed-width stored form
-        # (timestamps.to_utc_iso), so a plain text comparison is correct.
+    def purge_expired(self, cutoff_iso: str) -> int:
+        # expires_at and cutoff_iso are both UTC in the fixed-width stored
+        # form (timestamps.to_utc_iso), so a plain text comparison holds.
         # Malformed expires_at values are deleted too — treating a garbage
         # expiry as expired is the desired fail-closed semantics for a
         # credential store (a token must never survive on corrupt data).
@@ -886,7 +886,7 @@ class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
             f'DELETE FROM "{self.table}" '
             'WHERE expires_at IS NOT NULL '
             'AND (expires_at < ? OR NOT is_iso_timestamp(expires_at))',
-            (now_iso,),
+            (cutoff_iso,),
         )
         return cursor.rowcount
 

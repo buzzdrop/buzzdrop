@@ -329,9 +329,9 @@ class TokenStore(ABC):
         """Delete the token with the given stored digest."""
 
     @abstractmethod
-    def purge_expired(self, now_iso: str) -> int:
+    def purge_expired(self, cutoff_iso: str) -> int:
         """
-        Delete tokens whose stored ``expires_at`` is earlier than ``now_iso``.
+        Delete tokens whose stored ``expires_at`` is earlier than ``cutoff_iso``.
 
         Tokens without a stored ``expires_at`` are left alone — the
         application-level fallback expiry is handled by tokens.py.
