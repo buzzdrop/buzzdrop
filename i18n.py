@@ -163,6 +163,14 @@ def pgettext(context, string, **variables):
     return text % variables if variables else text
 
 
+def gettext_noop(string):
+    """
+    Mark ``string`` for extraction and return it untranslated: for a
+    constant that stays English in JSON and is translated where it is shown.
+    """
+    return string
+
+
 def lazy_gettext(string, **variables):
     """A module constant translated when used. ``str()`` it before ``flash``."""
     return LazyString(gettext, string, **variables)

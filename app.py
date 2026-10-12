@@ -73,7 +73,8 @@ config_class.validate()
 
 app.secret_key = app.config['SECRET_KEY']
 i18n.init_app(app)
-RATE_LIMIT_EXCEEDED_MESSAGE = 'Too many requests. Please try again later.'
+# English for API clients; translated where it is flashed.
+RATE_LIMIT_EXCEEDED_MESSAGE = i18n.gettext_noop('Too many requests. Please try again later.')
 
 limiter = Limiter(
     key_func=get_client_ip,
@@ -580,8 +581,7 @@ def handle_rate_limit(error):
         return {'error': message}, 429
 
     if request.endpoint == 'login':
-        # Translated here: the constant also answers API clients, in English.
-        flash(_('Too many requests. Please try again later.'))
+        flash(_(RATE_LIMIT_EXCEEDED_MESSAGE))
         return render_template('login.html'), 429
 
     return message, 429
