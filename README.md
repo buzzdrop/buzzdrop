@@ -78,7 +78,7 @@ chmod +x ~/.local/bin/buzz
 # Configure: ~/.buzz_token → {"token": "<api-token>", "server": "https://your-host"}
 buzz file.pdf                  # generates a 6-word passphrase
 buzz file.pdf -p mypassword
-buzz file.pdf --expiry 2025-12-31T23:59
+buzz file.pdf --expiry 2025-12-31T23:59+01:00   # expiry needs an explicit zone
 ```
 
 Get an API token with `POST /api/token` (see below) — it's shown once. `buzz` refuses plain `http://` servers outside localhost unless you pass `--insecure`, and it aborts against a server that doesn't answer `/upload/begin`.
@@ -106,6 +106,7 @@ Breaking changes from pre-production releases — nothing here is migrated, by d
 - Only `BKV3` shares decrypt; links created by older releases won't open.
 - Legacy API tokens are rejected — generate replacements with `POST /api/token`.
 - Old SHA-256 password hashes in `FLASK_USER_*` no longer work — set real passwords in `.env`.
+- All timestamps are stored in UTC (#250). `expiry` must be sent as an ISO time with its zone (`2025-12-31T23:59+01:00` or `Z`) — a zoneless time gets a 400. Zoneless values written by earlier releases aren't migrated; they're read as UTC, so they can be off by the server's old offset until those drops are gone.
 
 ## Security notes
 
