@@ -70,7 +70,8 @@ class Config:
     S3_SECRET_KEY = os.getenv('S3_SECRET_KEY')
     S3_REGION = os.getenv('S3_REGION', 'us-east-1')
     
-    # Timezone
+    # Times are stored and compared in UTC (#250). DEFAULT_TIMEZONE is
+    # only for text with no browser to localize it: notification emails.
     DEFAULT_TIMEZONE = os.getenv('DEFAULT_TIMEZONE', 'Europe/Warsaw')
 
     # Email notifications

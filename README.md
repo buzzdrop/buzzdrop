@@ -190,6 +190,12 @@ Buzzdrop now stores its data in SQLite via `DATABASE_URL` (default `sqlite:///bu
 2. Set `DATABASE_URL=sqlite:///buzzdrop.db` in `.env` (a stale `DATABASE_PATH=db.json` now refuses to start instead of silently corrupting).
 3. Under Docker, the database and its WAL sidecars live in the mounted `./data` directory (`DATABASE_URL=sqlite:///data/buzzdrop.db`).
 
+## Times are UTC
+
+Every timestamp is stored and compared in UTC, so expiry fires at the moment the uploader picked, whatever zone the server runs in (#250). The page shows times in the viewer's own zone; `DEFAULT_TIMEZONE` (default `Europe/Warsaw`) is used only for the time in notification emails. API clients send `expiry` as an ISO time with its zone (`2025-12-31T23:59+01:00`, or `Z` for UTC); a time without a zone gets a 400.
+
+Times stored without a zone by earlier releases are not migrated (pre-production, like the BKV3 format break): they are read as UTC, so they can be off by the server's offset until those drops are gone. Start from an empty database to avoid it.
+
 ---
 
 Ready to buzz? Drop a file and watch it fly—then disappear!  
@@ -239,7 +245,7 @@ ln -s $(pwd)/cli/buzz ~/.local/bin/buzz
 ```bash
 buzz file.pdf                        # auto-generates a 6-word passphrase
 buzz file.pdf -p my-secret-pass      # use your own password
-buzz file.pdf --expiry 2025-12-31T23:59
+buzz file.pdf --expiry 2025-12-31T23:59+01:00
 ```
 
 Output:

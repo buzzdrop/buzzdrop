@@ -1,10 +1,13 @@
 import pytest
 import os
+import re
 from flask import url_for, session, current_app
 
 import io # For creating dummy file content for uploads
 from datetime import datetime, timedelta
+from timestamps import utcnow
 from auth import get_users
+from utils import format_timestamp
 # Fixtures: 'app', 'client', 'db_instance', 'files_store' from conftest.py
 # Test users from conftest.py: 'testuser:password:false', 'adminuser:adminpass:true'
 
@@ -295,7 +298,7 @@ def test_delete_file_after_download(client, app, files_store, csrf_form_data, cl
 def test_view_file_expired(client, app, files_store, key_release_upload):
     login_user(client, 'testuser', 'password')
 
-    expiry = (datetime.now() - timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M')
+    expiry = (utcnow() - timedelta(minutes=1)).isoformat(timespec='minutes')
     file_data = {
         'file': (io.BytesIO(b'expired'), 'exp.txt'),
         'expiry': expiry
@@ -416,6 +419,12 @@ def test_report_decryption_sends_notification_once(client, app, files_store, mon
     assert 'notify_once.txt' not in sent_messages[0][1]
     assert 'notify_once.txt' in sent_messages[0][2]
     assert 'Decryption status: successful' in sent_messages[0][2]
+    # An email has no browser to show the time in the reader's zone: it is
+    # written in DEFAULT_TIMEZONE, not UTC and not the host's zone (#250).
+    opened = format_timestamp(files_store.get_by_id(file_id)['downloaded_at'],
+                              app.config['DEFAULT_TIMEZONE'])
+    assert re.search(r' CES?T$', opened)
+    assert f'Opened at: {opened}' in sent_messages[0][2]
 
 
     info = files_store.get_by_id(file_id)

@@ -9,7 +9,8 @@ reruns this script and fails if the output changes (the drift check).
 
 Determinism comes from the source: fixed users, file IDs, timestamps
 and session CSRF token, and expiry dates far in the past or future so
-``datetime.now()`` never changes a branch. Only the SRI/asset hashes are
+the current time never changes a branch. Times are stored as the app
+stores them, UTC with microseconds (timestamps.to_utc_iso). Only the SRI/asset hashes are
 rewritten afterwards, and ``<script src>`` tags and the import map are
 stripped (tests import the page modules themselves, and the map would
 churn whenever a JS file changes; JSON config blocks are kept).
@@ -26,9 +27,9 @@ OUT_DIR = ROOT / 'tests' / 'js' / 'fixtures' / 'html'
 
 from app import app as flask_app, get_backend, limiter  # noqa: E402
 
-CREATED_AT = '2025-01-01T12:00:00'
-FUTURE = '2099-01-01T00:00:00'
-PAST = '2000-01-01T00:00:00'
+CREATED_AT = '2025-01-01T11:00:00.000000+00:00'
+FUTURE = '2099-01-01T00:00:00.000000+00:00'
+PAST = '2000-01-01T00:00:00.000000+00:00'
 RECEIPT_HASH = 'ab' * 32
 
 
@@ -54,20 +55,20 @@ def _file(file_id, name, **fields):
 # testuser by another account.
 LISTED_FILES = [
     _file('00000000-0000-4000-8000-000000000006', 'Secret Note', type='text',
-          created_at='2025-01-06T21:35:00'),
+          created_at='2025-01-06T20:35:00.000000+00:00'),
     _file('00000000-0000-4000-8000-000000000001', 'report.pdf',
-          created_at='2025-01-05T12:00:00', expiry_at=FUTURE),
+          created_at='2025-01-05T11:00:00.000000+00:00', expiry_at=FUTURE),
     _file('00000000-0000-4000-8000-000000000002', 'Secret Note', type='text',
-          created_at='2025-01-04T12:00:00', private_note='For the auditor'),
+          created_at='2025-01-04T11:00:00.000000+00:00', private_note='For the auditor'),
     _file('00000000-0000-4000-8000-000000000003', 'photo.png',
-          created_at='2025-01-03T12:00:00', downloaded_at='2025-01-06T09:30:00',
+          created_at='2025-01-03T11:00:00.000000+00:00', downloaded_at='2025-01-06T08:30:00.000000+00:00',
           downloaded_by_ip='203.0.113.7', decryption_success=True),
     _file('00000000-0000-4000-8000-000000000004', 'old.txt',
-          created_at='2025-01-02T12:00:00', expiry_at=PAST, status='expired'),
+          created_at='2025-01-02T11:00:00.000000+00:00', expiry_at=PAST, status='expired'),
     # Key-release lockout: the browser fetches the blob before it asks for
     # the key, so a locked-out drop was downloaded but never decrypted.
     _file('00000000-0000-4000-8000-000000000007', 'locked.zip',
-          downloaded_at='2025-01-05T08:00:00', downloaded_by_ip='203.0.113.9',
+          downloaded_at='2025-01-05T07:00:00.000000+00:00', downloaded_by_ip='203.0.113.9',
           decryption_success=False),
     _file('00000000-0000-4000-8000-000000000005', 'shared.docx',
           uploaded_by='adminuser', shared_with=['testuser']),

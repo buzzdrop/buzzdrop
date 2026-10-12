@@ -45,7 +45,8 @@ RECEIPT_HASH = hashlib.sha256(bytes.fromhex(RECEIPT)).hexdigest()
 WRONG_RECEIPT = '44' * 32
 FILE_CONTENT = 'BKV3 dummy ciphertext'
 NOTE_BYTES = b'BKV3 dummy note ciphertext'
-PAST_EXPIRY = '2000-01-01T00:00'
+# An expiry is an exact moment: the page sends Date.toISOString() (#250).
+PAST_EXPIRY = '2000-01-01T00:00:00.000Z'
 MISSING_ID = '00000000-0000-4000-8000-00000000dead'
 
 # What the browser sends: index-page.js sets both on begin and on the
@@ -186,6 +187,14 @@ SCENARIOS = [
     {
         'name': 'upload-invalid-material',
         'steps': [begin(), upload_file(verifier='not-hex')],
+    },
+    {
+        # A wall-clock expiry with no zone is refused before the share is
+        # bound, so the same share still finishes with a corrected one.
+        'name': 'upload-expiry-without-zone',
+        'steps': [begin(), upload_file('no-zone', expiry='2099-01-01T00:00'),
+                  upload_file('garbage', expiry='next tuesday'),
+                  upload_file(expiry='2099-01-01T00:00:00.000Z')],
     },
     {
         'name': 'upload-refinish',

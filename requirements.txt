@@ -6,3 +6,4 @@ Werkzeug==3.1.9
 boto3==1.43.108
 Flask-Limiter==4.1.1
 zipp>=4.1.1 # not directly required, pinned by Snyk to avoid a vulnerability
+tzdata==2026.5 # zoneinfo data for DEFAULT_TIMEZONE on hosts without a system copy; the Docker image also gets it from apk, for TZ

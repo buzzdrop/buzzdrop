@@ -30,7 +30,7 @@ const SERVER_SHARE_BYTES = 32;
  * The options sent alongside the payload; an empty one is left out, which
  * the server treats as unset.
  * @typedef {object} ShareOptions
- * @property {string} expiry
+ * @property {string} expiry - an exact moment, `Date.toISOString()`
  * @property {string} privateNote
  * @property {boolean} notifyOnOpen
  * @property {string} notificationEmail

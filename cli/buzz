@@ -12,7 +12,7 @@ Buzzdrop web UI.
 Usage:
     buzz file.pdf
     buzz file.pdf -p my-passphrase
-    buzz file.pdf --expiry 2025-12-31T23:59
+    buzz file.pdf --expiry 2025-12-31T23:59+01:00
     buzz database.sqlite -z          # zip before upload (bypasses extension block)
 """
 
@@ -23,6 +23,7 @@ import os
 import secrets
 import sys
 import zipfile
+from datetime import datetime, timezone
 from io import BytesIO
 from urllib.parse import urlparse
 
@@ -1450,6 +1451,27 @@ def upload_begin(server: str, token: str) -> dict | None:
     return {'file_id': file_id, 'h': bytes.fromhex(h_hex)}
 
 
+def expiry_argument(raw: str) -> str:
+    """
+    --expiry as the server stores it: the exact moment, in UTC. The time
+    must carry its zone (an offset or Z); the server would refuse a
+    wall-clock time alone, and refusing it here wastes no key share.
+    """
+    # 'Z' for Pythons before 3.11, whose fromisoformat doesn't take it.
+    value = raw.strip()
+    if value[-1:] in ('Z', 'z'):
+        value = value[:-1] + '+00:00'
+    try:
+        moment = datetime.fromisoformat(value)
+    except ValueError:
+        moment = None
+    if moment is None or moment.tzinfo is None:
+        raise argparse.ArgumentTypeError(
+            f'{raw!r} needs a time zone, e.g. 2025-12-31T23:59+01:00 '
+            'or 2025-12-31T22:59Z')
+    return moment.astimezone(timezone.utc).isoformat(timespec='microseconds')
+
+
 def upload(server: str, token: str, filename: str, encrypted: bytes,
            file_id: str, key_verifier: str, receipt_hash: str,
            expiry: str = None) -> dict:
@@ -1561,7 +1583,8 @@ def main():
     parser.add_argument(
         '--expiry',
         metavar='DATETIME',
-        help='Optional expiry datetime in ISO format, e.g. 2025-12-31T23:59',
+        type=expiry_argument,
+        help='Optional expiry: an ISO time with its zone, e.g. 2025-12-31T23:59+01:00',
     )
     parser.add_argument(
         '--server',

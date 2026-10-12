@@ -81,7 +81,7 @@ jobs:
             ```
             buzz file.pdf                    # generates a random 4-word passphrase
             buzz file.pdf -p my-passphrase   # use your own password
-            buzz file.pdf --expiry 2025-12-31T23:59
+            buzz file.pdf --expiry 2025-12-31T23:59+01:00
             ```
           files: dist/buzz
           fail_on_unmatched_files: true

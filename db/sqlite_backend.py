@@ -24,6 +24,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 from db.base import Backend, FileStore, TokenStore
+from timestamps import now_iso, parse_timestamp, to_utc_iso, utcnow
 
 _SQLITE_MAGIC = b'SQLite format 3\x00'
 
@@ -457,21 +458,6 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
     def update_fields(self, file_id: str, fields: Mapping[str, Any]) -> bool:
         return self._update_by_clause(fields, 'id = ?', (file_id,))
 
-    def claim_download(self, file_id: str, ip_address: str) -> bool:
-        # Expired shares are excluded too: a claim raced against
-        # check_and_handle_expiry() must not resurrect an expired drop.
-        # NULL status is tolerated for partial/legacy rows.
-        now = datetime.now().isoformat()
-        cursor = self._conn().execute(
-            f'UPDATE "{self.table}" '
-            'SET downloaded_at = ?, downloaded_by_ip = ? '
-            'WHERE id = ? AND downloaded_at IS NULL '
-            'AND (status IS NULL OR status != \'expired\') '
-            'AND (expiry_at IS NULL OR expiry_at > ?)',
-            (now, ip_address, file_id, now),
-        )
-        return cursor.rowcount > 0
-
     def claim_notification_send(self, file_id: str) -> bool:
         cursor = self._conn().execute(
             f'UPDATE "{self.table}" '
@@ -479,7 +465,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             'WHERE id = ? '
             'AND notification_sent_at IS NULL '
             'AND notification_claimed_at IS NULL',
-            (datetime.now().isoformat(), file_id),
+            (now_iso(), file_id),
         )
         return cursor.rowcount > 0
 
@@ -501,7 +487,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                 ' created_by) '
                 'VALUES (?, ?, NULL, 0, NULL, ?, ?)',
                 (file_id, h_hex,
-                 created_at or datetime.now().isoformat(), created_by),
+                 created_at or now_iso(), created_by),
             )
             return True
         except sqlite3.IntegrityError:
@@ -599,7 +585,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                 conn.execute(
                     'UPDATE file_keys SET released_at = ?, '
                     'h = NULL, v = NULL, ticket_hash = ? WHERE file_id = ?',
-                    (datetime.now().isoformat(), ticket_hash, file_id),
+                    (now_iso(), ticket_hash, file_id),
                 )
                 # H and V are wiped with the claim: post-release the row
                 # keeps only bookkeeping plus the ticket digest, so a
@@ -654,10 +640,10 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         if released_at is None or ttl_seconds is None:
             return False
         try:
-            released = datetime.fromisoformat(released_at)
+            released = parse_timestamp(released_at)
         except (TypeError, ValueError):
             return True
-        return datetime.now() >= released + timedelta(seconds=ttl_seconds)
+        return utcnow() >= released + timedelta(seconds=ttl_seconds)
 
     @staticmethod
     def _share_file_expired(joined_row) -> bool:
@@ -668,7 +654,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         if not expiry_at:
             return False
         try:
-            return datetime.now() >= datetime.fromisoformat(expiry_at)
+            return utcnow() >= parse_timestamp(expiry_at)
         except ValueError:
             return False
 
@@ -747,7 +733,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                             row['ticket_hash'], presented)):
                     result = {'status': 'bad_ticket'}
                 else:
-                    now = datetime.now().isoformat()
+                    now = now_iso()
                     cursor = conn.execute(
                         'UPDATE files SET downloaded_at = ?, '
                         'downloaded_by_ip = ? '
@@ -772,9 +758,8 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
 
     def expire_unclaimed_releases(self, older_than_seconds: int
                                   ) -> List[Dict[str, Any]]:
-        cutoff_iso = (
-            datetime.now() - timedelta(seconds=older_than_seconds)
-        ).isoformat()
+        cutoff_iso = to_utc_iso(
+            utcnow() - timedelta(seconds=older_than_seconds))
         conn = self._conn()
         conn.execute('BEGIN IMMEDIATE')
         try:
@@ -806,10 +791,8 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         return [{'id': row['id'], 'path': row['path']} for row in rows]
 
     def purge_stale_key_shares(self, older_than_seconds: int) -> int:
-        cutoff = (
-            datetime.now().timestamp() - older_than_seconds
-        )
-        cutoff_iso = datetime.fromtimestamp(cutoff).isoformat()
+        cutoff_iso = to_utc_iso(
+            utcnow() - timedelta(seconds=older_than_seconds))
         # A pending share that never finished is dead weight: its H can
         # never be legitimately bound again, so failing closed is correct.
         cursor = self._conn().execute(
@@ -893,9 +876,9 @@ class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
         )
         return cursor.rowcount > 0
 
-    def purge_expired(self, now_iso: str) -> int:
-        # expires_at and now_iso are both naive ISO-8601 strings produced by
-        # datetime.now().isoformat(), so a plain text comparison is correct.
+    def purge_expired(self, cutoff_iso: str) -> int:
+        # expires_at and cutoff_iso are both UTC in the fixed-width stored
+        # form (timestamps.to_utc_iso), so a plain text comparison holds.
         # Malformed expires_at values are deleted too — treating a garbage
         # expiry as expired is the desired fail-closed semantics for a
         # credential store (a token must never survive on corrupt data).
@@ -903,7 +886,7 @@ class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
             f'DELETE FROM "{self.table}" '
             'WHERE expires_at IS NOT NULL '
             'AND (expires_at < ? OR NOT is_iso_timestamp(expires_at))',
-            (now_iso,),
+            (cutoff_iso,),
         )
         return cursor.rowcount
 

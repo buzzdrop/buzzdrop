@@ -9,6 +9,8 @@ import uuid
 from datetime import datetime
 from typing import Optional, List, Iterable, Tuple
 
+from timestamps import now_iso, to_utc_iso
+
 from db import FileStore
 
 
@@ -62,7 +64,7 @@ class FileRepository:
             'id': file_id,
             'original_name': file_data['original_name'],
             'path': file_data['path'],
-            'created_at': datetime.now().isoformat(),
+            'created_at': now_iso(),
             'downloaded_at': None,
             'uploaded_by': file_data['uploaded_by'],
             'expiry_at': file_data.get('expiry_at'),
@@ -162,23 +164,6 @@ class FileRepository:
         """
         return self.store.all()
 
-    def mark_downloaded(self, file_id: str, ip_address: str) -> bool:
-        """
-        Atomically claim the file as downloaded.
-
-        Runs as a single conditional UPDATE (``WHERE id = ? AND
-        downloaded_at IS NULL``), so only the first of any concurrent
-        requests wins the claim.
-
-        Args:
-            file_id: File UUID
-            ip_address: IP address of downloader
-
-        Returns:
-            True when this call won the download claim, False otherwise
-        """
-        return self.store.claim_download(file_id, ip_address)
-
     def mark_expired(self, file_id: str):
         """
         Mark file as expired.
@@ -270,7 +255,7 @@ class FileRepository:
     def mark_notification_sent(self, file_id: str):
         """Mark uploader notification as sent."""
         self.store.update_fields(file_id, {
-            'notification_sent_at': datetime.now().isoformat(),
+            'notification_sent_at': now_iso(),
             'notification_claimed_at': None,
         })
 
@@ -292,7 +277,7 @@ class FileRepository:
         Returns:
             List of file dictionaries
         """
-        cutoff_iso = cutoff_datetime.isoformat()
+        cutoff_iso = to_utc_iso(cutoff_datetime)
         return [
             file_info for file_info in self.store.all()
             if file_info.get('downloaded_at')

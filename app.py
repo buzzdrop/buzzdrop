@@ -3,7 +3,7 @@ import os
 import secrets
 import smtplib
 import threading
-from datetime import datetime, timedelta
+from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import parseaddr
 from io import BytesIO
@@ -39,8 +39,10 @@ load_dotenv(dotenv_path=env_path)
 from config import get_config
 from storage import get_storage_backend, print_backend_info, StorageError
 from auth import login_required, admin_required, api_auth_required, get_users, get_current_user, login_user, logout_user
+from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcnow
 from utils import (
     format_file_timestamps,
+    format_timestamp,
     enhance_file_display,
     allowed_file,
     get_client_ip,
@@ -233,7 +235,8 @@ def send_open_notification_email(file_info: dict) -> bool:
         '',
         f'Type: {share_type}',
         f'Original name: {original_name}',
-        f'Opened at: {file_info.get("downloaded_at") or datetime.now().isoformat()}',
+        # An email has no browser to localize it: DEFAULT_TIMEZONE.
+        f'Opened at: {format_timestamp(file_info.get("downloaded_at") or now_iso(), current_app.config["DEFAULT_TIMEZONE"])}',
         f'Decryption status: {decryption_status}',
         '',
         'Buzzdrop intentionally omits recipient-sensitive details from this notification.',
@@ -248,8 +251,11 @@ def send_open_notification_email(file_info: dict) -> bool:
 
     file_repo.mark_notification_sent(file_info['id'])
     file_info['notification_claimed_at'] = None
-    file_info['notification_sent_at'] = datetime.now().isoformat()
+    file_info['notification_sent_at'] = now_iso()
     return True
+
+# Stored times as text in UTC, for server-rendered text (the token table).
+app.add_template_filter(format_timestamp, 'timestamp')
 
 # --- SRI HASH HELPER ---
 @app.context_processor
@@ -419,11 +425,11 @@ def check_and_handle_expiry(file_info):
         return status == 'expired'
 
     try:
-        expiry_dt = datetime.fromisoformat(expiry_at)
+        expiry_dt = parse_timestamp(expiry_at)
     except ValueError:
         return False
 
-    if datetime.now() >= expiry_dt:
+    if utcnow() >= expiry_dt:
         # Remove file from storage
         try:
             storage.delete(file_info['path'])
@@ -804,9 +810,9 @@ def create_api_token():
     except ValueError:
         return {'error': 'expires_in_days must be a positive integer'}, 400
 
-    expires_at = datetime.now() + timedelta(days=requested_expiry_days)
+    expires_at = utcnow() + timedelta(days=requested_expiry_days)
     raw_token = generate_api_token(requested_username, expires_at=expires_at)
-    return {'token': raw_token, 'expires_at': expires_at.isoformat()}, 201
+    return {'token': raw_token, 'expires_at': to_utc_iso(expires_at)}, 201
 
 
 @app.route('/api/tokens', methods=['GET'])
@@ -1039,6 +1045,18 @@ def upload_file():
     if share.get('created_by') != g.username:
         return _fail('Key-release share belongs to another user', 403)
 
+    # An expiry names an exact moment (the browser sends toISOString()); a
+    # wall-clock time alone would be read in the server's zone (#250).
+    # Checked before the share is bound, so a refused upload can retry.
+    expiry_raw = request.form.get('expiry')
+    expiry_iso = None
+    if expiry_raw:
+        try:
+            expiry_iso = parse_expiry(expiry_raw)
+        except ValueError:
+            return _fail('Expiry must be an ISO 8601 time with a time zone, '
+                         'e.g. 2026-12-31T23:59+01:00')
+
     if upload_type == 'text' and note_text:
         # Handle text note upload
         # Decode base64 encrypted data
@@ -1047,14 +1065,6 @@ def upload_file():
         # The envelope salt rides on the share row so /view can hand it to
         # the client before it has proved the password (V needs the salt).
         salt_hex = _envelope_salt(text_bytes[:_ENVELOPE_PREFIX_LENGTH])
-        # Parse expiry date
-        expiry_raw = request.form.get('expiry')
-        expiry_iso = None
-        if expiry_raw:
-            try:
-                expiry_iso = datetime.fromisoformat(expiry_raw).isoformat()
-            except ValueError:
-                expiry_iso = None
 
         # The file_id was minted by /upload/begin
         unique_id = file_id
@@ -1129,15 +1139,6 @@ def upload_file():
         # finish loses here, before any blob or record is written.
         if not file_repo.bind_key_verifier(unique_id, key_verifier, salt_hex):
             return _fail('Key-release upload was finalized elsewhere', 409)
-
-        # Parse expiry date
-        expiry_raw = request.form.get('expiry')
-        expiry_iso = None
-        if expiry_raw:
-            try:
-                expiry_iso = datetime.fromisoformat(expiry_raw).isoformat()
-            except ValueError:
-                expiry_iso = None
 
         # Compensation: a bound share with no file record is dangling —
         # if save/create fails after the bind, destroy the share so the

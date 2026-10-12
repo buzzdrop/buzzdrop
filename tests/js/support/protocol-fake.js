@@ -237,15 +237,17 @@ function canonicalHex(value) {
 }
 
 /**
- * `datetime.fromisoformat` for the `datetime-local` values the page sends;
- * anything unparseable is ignored, as app.py does.
+ * timestamps.parse_expiry: an exact moment, an ISO time with a zone (the
+ * page sends `Date.toISOString()`). `undefined` for anything else, which
+ * app.py refuses with a 400; null for no expiry.
  * @param {string | null} value
- * @returns {Date | null}
+ * @returns {Date | null | undefined}
  */
 function parseExpiry(value) {
     if (!value) return null;
+    if (!/^\d{4}-\d{2}-\d{2}T[\d:.]+(Z|[+-]\d{2}:\d{2})$/.test(value)) return undefined;
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
+    return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
 /**
@@ -334,13 +336,13 @@ export function makeProtocolFake(opts = {}) {
     /**
      * Create the files row of a finished upload.
      * @param {string} fileId
-     * @param {{ name: string, blob: Bytes, expiry: string | null, receiptHash: string }} upload
+     * @param {{ name: string, blob: Bytes, expiryAt: Date | null, receiptHash: string }} upload
      */
-    function storeFile(fileId, { name, blob, expiry, receiptHash }) {
+    function storeFile(fileId, { name, blob, expiryAt, receiptHash }) {
         state.files.set(fileId, {
             name,
             blob,
-            expiryAt: parseExpiry(expiry),
+            expiryAt,
             status: 'active',
             downloaded: false,
             receiptHash,
@@ -469,6 +471,10 @@ export function makeProtocolFake(opts = {}) {
         if (key.owner !== owner) {
             return json(403, { error: 'Key-release share belongs to another user' });
         }
+        const expiryAt = parseExpiry(field('expiry'));
+        if (expiryAt === undefined) {
+            return json(400, { error: 'Expiry must be an ISO 8601 time with a time zone, e.g. 2026-12-31T23:59+01:00' });
+        }
 
         const noteText = field('note_text');
         const isText = field('type') === 'text' && Boolean(noteText);
@@ -488,7 +494,7 @@ export function makeProtocolFake(opts = {}) {
         }
 
         key.v = keyVerifier;
-        storeFile(fileId, { name, blob, expiry: field('expiry'), receiptHash });
+        storeFile(fileId, { name, blob, expiryAt, receiptHash });
         return json(200, {
             file_id: fileId,
             share_link: `${ORIGIN}/view/${fileId}`,
@@ -821,6 +827,10 @@ export function makeProtocolFake(opts = {}) {
         const h = crypto.getRandomValues(new Uint8Array(32));
         const data = typeof plaintext === 'string' ? new TextEncoder().encode(plaintext) : plaintext;
         const { blob, verifier, receipt } = await cryptoService.seal(data, password, h);
+        const expiryAt = parseExpiry(expiry ?? null);
+        if (expiryAt === undefined) {
+            throw new Error(`protocol fake: seedShare expiry ${expiry} names no exact moment`);
+        }
         const fileId = crypto.randomUUID();
         state.keys.set(fileId, {
             h: bytesToHex(h), v: bytesToHex(verifier),
@@ -828,7 +838,7 @@ export function makeProtocolFake(opts = {}) {
             ticketHash: null,
         });
         storeFile(fileId, {
-            name, blob, expiry: expiry ?? null, receiptHash: await cryptoService.receiptHash(receipt),
+            name, blob, expiryAt, receiptHash: await cryptoService.receiptHash(receipt),
         });
         return fileId;
     }

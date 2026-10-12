@@ -123,7 +123,7 @@ def test_get_users_non_sequential_and_invalid_vars():
     assert len(users) == 2
 
 
-from utils import enhance_file_display
+from utils import enhance_file_display, format_timestamp
 
 
 def test_status_display_downloaded_without_decryption_report():
@@ -170,31 +170,45 @@ def test_status_display_expired_and_active():
 
 
 def test_enhance_keeps_machine_readable_timestamps():
-    f = {'created_at': '2026-10-06T21:35:29', 'downloaded_at': None,
-         'expiry_at': '2026-01-15T10:30:00'}
+    """The page shows each time in the viewer's zone from the _iso twin
+    (the browser formats it); the server's own text is UTC, never the
+    host's zone (#250)."""
+    f = {'created_at': '2026-10-06T19:35:29.000000+00:00', 'downloaded_at': None,
+         'expiry_at': '2026-01-15T09:30:00.000000+00:00'}
     enhance_file_display(f)
-    assert f['created_at'] == '2026-10-06 21:35:29 CEST'
-    assert f['created_at_iso'] == '2026-10-06T21:35:29+02:00'
-    assert f['expiry_at_iso'] == '2026-01-15T10:30:00+01:00'
+    assert f['created_at'] == '2026-10-06 19:35:29 UTC'
+    assert f['created_at_iso'] == '2026-10-06T19:35:29+00:00'
+    assert f['expiry_at_iso'] == '2026-01-15T09:30:00+00:00'
     assert f['downloaded_at_iso'] is None
+
+
+def test_format_timestamp_in_a_named_zone_for_text_with_no_browser():
+    assert format_timestamp('2026-10-06T19:35:29.000000+00:00', 'Europe/Warsaw') \
+        == '2026-10-06 21:35:29 CEST'
+    # A value still without an offset is UTC, as every stored value is.
+    assert format_timestamp('2026-10-06T19:35:29') == '2026-10-06 19:35:29 UTC'
 
 
 def test_display_name_of_a_file_is_its_name():
     f = {'type': 'file', 'original_name': 'report.pdf', 'private_note': 'Q3',
-         'created_at': '2026-10-06T21:35:29'}
+         'created_at': '2026-10-06T19:35:29.000000+00:00'}
     enhance_file_display(f)
     assert f['display_name'] == 'report.pdf'
+    assert f['display_time_iso'] is None
 
 
 def test_display_name_of_a_text_note_is_its_private_note():
     f = {'type': 'text', 'original_name': 'Secret Note',
-         'private_note': '  For the auditor ', 'created_at': '2026-10-06T21:35:29'}
+         'private_note': '  For the auditor ', 'created_at': '2026-10-06T19:35:29.000000+00:00'}
     enhance_file_display(f)
     assert f['display_name'] == 'For the auditor'
+    assert f['display_time_iso'] is None
 
 
 def test_display_name_of_a_text_note_without_a_note_carries_its_time():
     f = {'type': 'text', 'original_name': 'Secret Note', 'private_note': '',
-         'created_at': '2026-10-06T21:35:29'}
+         'created_at': '2026-10-06T19:35:29.000000+00:00'}
     enhance_file_display(f)
-    assert f['display_name'] == 'Text note \u00b7 21:35'
+    # UTC until the browser puts the time in the viewer's zone.
+    assert f['display_name'] == 'Text note \u00b7 19:35'
+    assert f['display_time_iso'] == '2026-10-06T19:35:29+00:00'

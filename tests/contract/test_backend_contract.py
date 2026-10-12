@@ -16,6 +16,7 @@ import hmac
 import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
+from timestamps import now_iso, to_utc_iso, utcnow
 
 import pytest
 
@@ -61,7 +62,7 @@ def _file_doc(file_id='file-1', **overrides):
         'id': file_id,
         'original_name': 'secret.txt',
         'path': f'uploads/{file_id}',
-        'created_at': datetime.now().isoformat(),
+        'created_at': now_iso(),
         'downloaded_at': None,
         'uploaded_by': 'testuser',
         'expiry_at': None,
@@ -149,34 +150,6 @@ def test_update_fields_missing_id(backend):
     assert backend.files.update_fields('nope', {'status': 'x'}) is False
 
 
-def test_claim_download_once(backend):
-    backend.files.insert(_file_doc())
-    assert backend.files.claim_download('file-1', '1.2.3.4') is True
-    assert backend.files.claim_download('file-1', '5.6.7.8') is False
-
-    stored = backend.files.get_by_id('file-1')
-    assert stored['downloaded_at'] is not None
-    assert stored['downloaded_by_ip'] == '1.2.3.4'
-
-
-def test_claim_download_concurrent_single_winner(backend):
-    """≥8 racing claims must produce exactly one winner — the one-time guarantee."""
-    backend.files.insert(_file_doc())
-
-    workers = 8
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        results = list(pool.map(
-            lambda index: backend.files.claim_download('file-1', f'10.0.0.{index}'),
-            range(workers),
-        ))
-
-    assert results.count(True) == 1
-
-    stored = backend.files.get_by_id('file-1')
-    assert stored['downloaded_at'] is not None
-    assert stored['downloaded_by_ip'] in {f'10.0.0.{i}' for i in range(workers)}
-
-
 def test_claim_notification_send_once(backend):
     backend.files.insert(_file_doc())
     assert backend.files.claim_notification_send('file-1') is True
@@ -186,7 +159,7 @@ def test_claim_notification_send_once(backend):
 def test_claim_notification_send_rejects_sent(backend):
     backend.files.insert(_file_doc())
     backend.files.update_fields(
-        'file-1', {'notification_sent_at': datetime.now().isoformat()}
+        'file-1', {'notification_sent_at': now_iso()}
     )
     assert backend.files.claim_notification_send('file-1') is False
 
@@ -459,7 +432,7 @@ def test_attempt_key_release_burn_on_lockout(backend):
 
 def test_attempt_key_release_expired(backend):
     """Expiry is decided inside the same transaction — and destroys H."""
-    past = (datetime.now() - timedelta(minutes=5)).isoformat()
+    past = to_utc_iso(utcnow() - timedelta(minutes=5))
     _bound_share(backend, expiry_at=past)
 
     result = backend.files.attempt_key_release('f1', _V, 3, False)
@@ -528,7 +501,7 @@ def test_attempt_key_release_race_never_exceeds_max(backend):
 
 def test_purge_stale_key_shares(backend):
     """Pending shares past the TTL are swept; bound shares are not."""
-    old = (datetime.now() - timedelta(hours=2)).isoformat()
+    old = to_utc_iso(utcnow() - timedelta(hours=2))
     backend.files.create_key_share('old-pending', _H, created_at=old)
     backend.files.create_key_share('fresh-pending', 'cc' * 32)
     # A bound share is not pending even if its row is old.
@@ -578,9 +551,9 @@ def _token_doc(**overrides):
         'token_hash': 'hash-' + os.urandom(4).hex(),
         'token_hash_version': 'pbkdf2-sha256-v1',
         'username': 'testuser',
-        'created_at': datetime.now().isoformat(),
+        'created_at': now_iso(),
         'last_used_at': None,
-        'expires_at': (datetime.now() + timedelta(days=30)).isoformat(),
+        'expires_at': to_utc_iso(utcnow() + timedelta(days=30)),
     }
     doc.update(overrides)
     return doc
@@ -611,7 +584,7 @@ def test_token_get_by_and_list_by(backend):
 
 def test_token_update_fields(backend):
     doc_id = backend.tokens.insert(_token_doc())
-    now = datetime.now().isoformat()
+    now = now_iso()
     assert backend.tokens.update_fields(doc_id, {
         'last_used_at': now,
         'token_hash_version': 'v2',
@@ -643,15 +616,15 @@ def test_token_remove_by_hash(backend):
 
 
 def test_token_purge_expired(backend):
-    past = (datetime.now() - timedelta(hours=1)).isoformat()
-    future = (datetime.now() + timedelta(hours=1)).isoformat()
+    past = to_utc_iso(utcnow() - timedelta(hours=1))
+    future = to_utc_iso(utcnow() + timedelta(hours=1))
     backend.tokens.insert(_token_doc(expires_at=past))
     backend.tokens.insert(_token_doc(expires_at=future))
     backend.tokens.insert(_token_doc(expires_at=None))  # legacy: no stored expiry
     # malformed expiry is fail-closed: treated as expired, not kept valid
     backend.tokens.insert(_token_doc(expires_at='not-a-timestamp'))
 
-    assert backend.tokens.purge_expired(datetime.now().isoformat()) == 2
+    assert backend.tokens.purge_expired(now_iso()) == 2
     remaining = backend.tokens.all()
     assert len(remaining) == 2
     assert all(t['expires_at'] in (future, None) for t in remaining)

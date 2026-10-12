@@ -144,7 +144,9 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
 
             expect(upload.alerts()).toEqual([]);
             const [request] = requestsTo(upload, '/upload');
-            expect(field(request, 'expiry')).toBe('2099-01-31T12:00');
+            // Typed as New York wall-clock time (vitest.config.js pins the
+            // zone), sent as the exact moment (#250).
+            expect(field(request, 'expiry')).toBe('2099-01-31T17:00:00.000Z');
             expect(field(request, 'private_note')).toBe('for the Q3 audit');
             expect(field(request, 'notify_on_open')).toBe('true');
             expect(field(request, 'notification_email')).toBe('notify@example.test');

@@ -114,6 +114,8 @@ Storage abstraction is handled inline in `app.py` with conditional checks on `ST
 - `ticket_hash` (SHA-256 of the download ticket derived from H — set by the winning release, consumed by `claim_download_with_ticket`; never the ticket itself)
 - `FileRepository.delete()` drops the row with the file; `burn_key_share()` deletes it alone (crypto-shredding H — SQLite runs `secure_delete=ON` + WAL `TRUNCATE` checkpoint); expiry burns the share; stale pending shares are swept after `KEY_SHARE_PENDING_TTL_SECONDS` (startup + each `/upload/begin`); a share released but not downloaded within `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` expires — `expire_unclaimed_releases` in the expiry sweep (startup + periodic) marks the file expired, deletes the row and the caller deletes the blob, and `claim_download_with_ticket` refuses a late ticket the same way
 
+**Timestamps are UTC** (`timestamps.py`, #250): every stored time is written as `now_iso()`/`to_utc_iso()` (ISO 8601, `+00:00`, always with microseconds, so the SQL text comparisons in `purge_expired` and `purge_stale_key_shares` hold) and compared against `utcnow()`. Never use a naive `datetime.now()`. `parse_timestamp` reads a value with no offset as UTC. Zoneless values from older versions are deliberately not migrated (pre-production break, like BKV3). The server renders its own text in UTC. The index page script (`features/shared-files`) shows times in the viewer's zone with `Intl`, from the `<field>_iso` twins. `DEFAULT_TIMEZONE` is used only for notification emails.
+
 **Database Helper Functions**:
 - `get_backend()`: Returns the `Backend` (.files/.tokens stores), recreating it when DATABASE_URL changed (important for tests)
 - `get_files_store()`: Returns the FileStore using current app context
@@ -156,7 +158,7 @@ Standalone Python script. Requires `cryptography` and `requests` (see `requireme
 ```bash
 buzz file.pdf                  # generates 6-word passphrase
 buzz file.pdf -p mypassword
-buzz file.pdf --expiry 2025-12-31T23:59
+buzz file.pdf --expiry 2025-12-31T23:59+01:00
 ```
 
 Encrypts files using the same `BKV3` format as the browser client and runs the same two-phase upload (`/upload/begin` → `/upload`); aborts if the server does not answer begin (i.e. doesn't speak the key-release protocol). Uploads via Bearer token auth. A binary release is automatically built and published to GitHub Releases on every change to `cli/` (see `.github/workflows/release-cli.yml`).
@@ -164,7 +166,7 @@ Encrypts files using the same `BKV3` format as the browser client and runs the s
 ### Key Routes
 
 - `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`
-- `/upload` (POST): Completes the key-release upload — requires `file_id` + `key_verifier` + `receipt_hash` form fields, refuses to finish another account's share (403), binds V to the pending share atomically, stores the encrypted blob, returns share link. On storage/DB failure the pending share is burned
+- `/upload` (POST): Completes the key-release upload — requires `file_id` + `key_verifier` + `receipt_hash` form fields, refuses to finish another account's share (403), refuses an `expiry` that isn't an ISO time with a zone (400, before the bind, so the share can retry; `timestamps.parse_expiry`; the browser sends `Date.toISOString()`), binds V to the pending share atomically, stores the encrypted blob, returns share link. On storage/DB failure the pending share is burned
 - `/view/<file_id>` (GET): Shows download confirmation page. A drop that was already opened, released (even if never downloaded), expired, never bound or never existed gets one uniform 404 "This drop is gone" page (`_drop_gone`, `templates/error.html`) here and on `/view/<file_id>/confirm`, so the page doesn't reveal which (`/download/<id>` still flashes the specific reason). Unknown URLs and server errors render the same template (`handle_not_found`/`handle_server_error`; JSON for API clients)
 - `/view/<file_id>/confirm` (POST): Shows decryption interface, with the envelope salt in the page config
 - `/download/<file_id>` (GET): Serves the ciphertext once, and only to the release winner — requires `X-Download-Ticket`; `claim_download_with_ticket` verifies the digest (constant-time), stamps `downloaded_at` and consumes the ticket in one `BEGIN IMMEDIATE` transaction, then the blob streams (with `Content-Length`) and is deleted. 403 for a live unreleased share, 410 "claimed" for a released share without the winner's ticket, 410 "expired" once `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` have passed since the release, 410/404 for downloaded/expired/missing (XHR gets JSON, a plain request a flash + redirect). The ticket is consumed before the body streams: a broken-off transfer is not resumable — deliberately, no re-download surface
@@ -188,6 +190,7 @@ Encrypts files using the same `BKV3` format as the browser client and runs the s
 ### Test Configuration
 
 Tests use `conftest.py` fixtures:
+- The clocks are pinned away from UTC and Warsaw, so a naive or wrong-zone timestamp fails a test: `America/New_York` for pytest (conftest), the DOM tests (`vitest.config.js`) and the E2E server (`tests/e2e/e2e.env`), and `Asia/Tokyo` for the E2E browser (`playwright.config.js`). Write test times with `timestamps.utcnow()`
 - Temporary upload directory and database file per test session
 - Test users: `testuser:password:false` and `adminuser:adminpass:true`
 - Environment variables set in fixtures for user authentication
@@ -212,6 +215,7 @@ Key variables in `.env`:
 - Session cookies: `SESSION_COOKIE_SECURE` (default true, but false in development/testing since dev runs over HTTP), `SESSION_COOKIE_HTTPONLY` (default true), `SESSION_COOKIE_SAMESITE` (default `Lax`), `PERMANENT_SESSION_LIFETIME` (seconds, default 28800)
 - Secrets: `TOKEN_HASH_SECRET` is required in `FLASK_ENV=production` and must differ from `FLASK_SECRET_KEY` (dev falls back to `FLASK_SECRET_KEY`)
 - Database: `DATABASE_URL` (`DATABASE_PATH` deprecated → sqlite:/// fallback)
+- Times: `DEFAULT_TIMEZONE` (default `Europe/Warsaw`, notification emails only)
 - Key release: `KEY_RELEASE_RATE_LIMIT` (default `10 per minute`, per file_id), `KEY_RELEASE_MAX_ATTEMPTS` (default 1), `KEY_RELEASE_BURN_ON_LOCKOUT` (default on — lockout deletes the `file_keys` row, H+V destroyed; off keeps the row but permanently refuses releases — currently no unlock path), `KEY_SHARE_PENDING_TTL_SECONDS` (default 3600 — TTL for begun-but-never-finished shares), `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` (default 600 — how long after a successful release the download ticket is honoured; afterwards the drop expires)
 - Source code: `SOURCE_CODE_URL` (default: the upstream GitHub repo; empty falls back to it) — every repository link on the site, including the AGPL-3.0 §13 footer link; a deployment running modified code must point it at its own source
 - Metadata: `REPORT_DECRYPTION_RATE_LIMIT` (default `10 per minute`, per file_id); notification email subjects never carry the filename
