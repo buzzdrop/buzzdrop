@@ -1,0 +1,86 @@
+{# PROTOTYPE (#267): language switcher variants. Throwaway, never on main.
+   Three variants, switched by ?variant= and the floating bar:
+     A  Header menu    a globe + code button in the header opening a menu
+     B  Footer links   "English · Polski" text links in the footer
+     C  Header toggle  an always-visible EN | PL segmented pill in the header
+   `released` simulates the view page after the key was released: every
+   variant shows its "can't switch now" state. #}
+
+{% macro lang_form(code, class='', label=none, current=false, disabled=false, extra='') -%}
+<form method="post" action="{{ url_for('prototype_language') }}" class="contents">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="lang" value="{{ code }}">
+    <input type="hidden" name="next" value="{{ proto.here }}">
+    <button type="submit" lang="{{ code }}" class="{{ class }}"{% if current %} aria-current="true"{% endif %}{% if disabled %} disabled{% endif %} {{ extra|safe }}>{{ label }}</button>
+</form>
+{%- endmacro %}
+
+{% set locked_reason = 'The language can’t change now: reloading would lose this drop, and it opens only once.' %}
+{% set globe %}<svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 fill-none stroke-current" stroke-width="1.5"><circle cx="10" cy="10" r="7.5"/><path d="M2.5 10h15M10 2.5c2.2 2.3 3.2 4.8 3.2 7.5s-1 5.2-3.2 7.5c-2.2-2.3-3.2-4.8-3.2-7.5s1-5.2 3.2-7.5Z"/></svg>{% endset %}
+
+{# ---------------------------------------------------------------- A #}
+{% macro variant_a() %}
+{% set current_name = dict(proto.langs)[proto.lang] %}
+{% if proto.released %}
+<span class="btn-ghost flex cursor-not-allowed items-center gap-1.5 px-3 py-2 opacity-40" title="{{ locked_reason }}" aria-disabled="true" aria-label="Language: {{ current_name }}. {{ locked_reason }}">
+    {{ globe }}<span class="text-xs font-semibold uppercase tracking-wider">{{ proto.lang }}</span>
+</span>
+{% else %}
+<details class="group relative">
+    <summary class="btn-ghost flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 [&::-webkit-details-marker]:hidden" aria-label="Language: {{ current_name }}">
+        {{ globe }}<span class="text-xs font-semibold uppercase tracking-wider">{{ proto.lang }}</span>
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="h-3 w-3 fill-current transition-transform group-open:rotate-180"><path d="M5.5 7.5 10 12l4.5-4.5z"/></svg>
+    </summary>
+    <div class="absolute right-0 z-50 mt-2 w-44 rounded-xl border border-white/10 bg-[#0B0D12] p-1 shadow-2xl">
+        {% for code, name in proto.langs %}
+        {{ lang_form(code, class='flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ' ~ ('text-white' if code == proto.lang else 'text-slate-400 hover:bg-white/5 hover:text-white'), label=name ~ (' ✓' if code == proto.lang else ''), current=code == proto.lang) }}
+        {% endfor %}
+    </div>
+</details>
+{% endif %}
+{% endmacro %}
+
+{# ---------------------------------------------------------------- B #}
+{% macro variant_b() %}
+<p class="flex flex-wrap items-center gap-x-2 text-slate-600" aria-label="Language">
+    {{ globe }}
+    {% for code, name in proto.langs %}
+        {% if not loop.first %}<span aria-hidden="true">&middot;</span>{% endif %}
+        {% if code == proto.lang %}
+        <span lang="{{ code }}" class="font-semibold text-slate-300" aria-current="true">{{ name }}</span>
+        {% elif proto.released %}
+        <span lang="{{ code }}" class="cursor-not-allowed opacity-50" title="{{ locked_reason }}">{{ name }}</span>
+        {% else %}
+        {{ lang_form(code, class='footer-link', label=name) }}
+        {% endif %}
+    {% endfor %}
+    {% if proto.released %}<span class="w-full text-xs text-slate-600 sm:w-auto">(can’t change while this drop is open)</span>{% endif %}
+</p>
+{% endmacro %}
+
+{# ---------------------------------------------------------------- C #}
+{% macro variant_c() %}
+<div role="group" aria-label="Language" class="inline-flex shrink-0 rounded-full border border-white/10 bg-white/[0.03] p-0.5 text-xs font-semibold uppercase tracking-wider{{ ' opacity-40' if proto.released }}"{% if proto.released %} title="{{ locked_reason }}"{% endif %}>
+    {% for code, name in proto.langs %}
+    {{ lang_form(code,
+        class='rounded-full px-2.5 py-1 transition ' ~ ('bg-honey-400 text-[#0B0D12]' if code == proto.lang else 'text-slate-400 hover:text-white') ~ (' cursor-not-allowed' if proto.released else ''),
+        label=code, current=code == proto.lang, disabled=proto.released,
+        extra='aria-label="' ~ name ~ '" title="' ~ name ~ '"') }}
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{# ---------------------------------------------------------- the bar #}
+{% macro bar() %}
+<div class="fixed inset-x-0 bottom-4 z-[100] flex justify-center px-4" data-prototype-bar>
+    <div class="flex items-center gap-1 rounded-full border-2 border-fuchsia-400 bg-white px-2 py-1.5 font-mono text-xs text-black shadow-2xl">
+        <a href="{{ proto.here }}?variant={{ proto.prev }}" data-prototype-prev class="rounded-full px-2 py-1 hover:bg-fuchsia-100" aria-label="Previous variant">&larr;</a>
+        <span class="px-1"><strong>{{ proto.variant }}</strong> ({{ proto.variant_name }})</span>
+        <a href="{{ proto.here }}?variant={{ proto.next }}" data-prototype-next class="rounded-full px-2 py-1 hover:bg-fuchsia-100" aria-label="Next variant">&rarr;</a>
+        <span class="mx-1 h-4 w-px bg-black/20"></span>
+        <a href="{{ proto.here }}?released={{ '0' if proto.released else '1' }}" class="rounded-full px-2 py-1 hover:bg-fuchsia-100">released: <strong>{{ 'yes' if proto.released else 'no' }}</strong></a>
+        <span class="hidden px-1 text-black/60 sm:inline">lang: {{ proto.lang }}</span>
+    </div>
+</div>
+<script type="module" src="{{ url_for('static', filename='js/pages/prototype-bar/entry.js') }}" integrity="{{ sri_hash('js/pages/prototype-bar/entry.js') }}" crossorigin="anonymous"></script>
+{% endmacro %}

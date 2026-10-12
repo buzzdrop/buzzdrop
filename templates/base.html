@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css', v=sri_hash('css/app.css')) }}">
 </head>
 <body class="min-h-full">
+    {% if proto %}{% import "_prototype_language_switcher.html" as ps with context %}{% endif %}
     <!-- Ambient layers: warm light pooling at the top, drifting honeycomb lattice. -->
     <div class="glow-field" aria-hidden="true"></div>
     <div class="hex-veil" aria-hidden="true"></div>
@@ -60,6 +61,8 @@
                         {% endif %}
                     </div>
                     <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                        {% if proto and proto.variant == 'A' %}{{ ps.variant_a() }}{% endif %}
+                        {% if proto and proto.variant == 'C' %}{{ ps.variant_c() }}{% endif %}
                         {% if session.get('username') %}
                             <span class="status-badge status-badge-amber min-w-0 max-w-32 sm:max-w-56{{ ' max-[22rem]:hidden' if session.get('is_admin') }}" title="{{ session.get('username') }}">
                                 <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
@@ -116,7 +119,8 @@
                     <span>{{ footer_note_text }}</span>
                 </p>
                 {% endif %}
-                <p class="text-slate-600 sm:ml-auto">
+                {% if proto and proto.variant == 'B' %}<div class="sm:ml-auto">{{ ps.variant_b() }}</div>{% endif %}
+                <p class="text-slate-600{{ '' if proto and proto.variant == 'B' else ' sm:ml-auto' }}">
                     {# On the recipient's one-time pages it opens a new tab, so they keep their place. #}
                     {% if request.endpoint in ('view_file', 'confirm_view_file') %}
                     <a href="{{ url_for('how_it_works') }}" target="_blank" rel="noopener" aria-label="How it works (opens in new tab)" class="footer-link">How it works</a>
@@ -131,5 +135,6 @@
             </div>
         </footer>
     </div>
+    {% if proto %}{{ ps.bar() }}{% endif %}
 </body>
 </html>

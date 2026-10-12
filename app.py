@@ -1518,6 +1518,53 @@ def report_decryption(file_id):
     return {'status': 'recorded'}
 
 
+
+# --- PROTOTYPE (#267): language switcher variants. Throwaway, never on main.
+# Enabled only with BUZZDROP_PROTOTYPE=1. Variants come from ?variant=A|B|C,
+# the simulated "key released" state from ?released=1|0; both stick in the
+# session so they survive the POST-rendered view page. The language choice
+# is stubbed: it only remembers the pick and flashes, nothing is translated.
+if os.getenv('BUZZDROP_PROTOTYPE') == '1':
+    PROTO_VARIANTS = [('A', 'Header menu'), ('B', 'Footer links'), ('C', 'Header toggle')]
+    PROTO_LANGS = [('en', 'English'), ('pl', 'Polski')]
+
+    @app.context_processor
+    def _prototype_switcher_context():
+        if request.args.get('variant') in {k for k, _ in PROTO_VARIANTS}:
+            session['proto_variant'] = request.args['variant']
+        if request.args.get('released') in {'0', '1'}:
+            session['proto_released'] = request.args['released'] == '1'
+        variant = session.get('proto_variant', 'A')
+        keys = [k for k, _ in PROTO_VARIANTS]
+        i = keys.index(variant)
+        if request.endpoint == 'confirm_view_file':
+            # A POST-rendered page can only come back as its GET form.
+            here = url_for('view_file', file_id=request.view_args['file_id'])
+        else:
+            here = request.path
+        return {
+            'proto': {
+                'variant': variant,
+                'variant_name': dict(PROTO_VARIANTS)[variant],
+                'prev': keys[i - 1],
+                'next': keys[(i + 1) % len(keys)],
+                'released': session.get('proto_released', False),
+                'lang': session.get('proto_lang', 'en'),
+                'langs': PROTO_LANGS,
+                'here': here,
+                'endpoint': request.endpoint,
+            }
+        }
+
+    @app.route('/prototype/language', methods=['POST'])
+    def prototype_language():
+        lang = request.form.get('lang', 'en')
+        session['proto_lang'] = lang
+        flash(f'PROTOTYPE: language set to {dict(PROTO_LANGS).get(lang, lang)} '
+              f'(page reloaded; nothing is translated yet)', 'success')
+        nxt = request.form.get('next') or '/'
+        return redirect(nxt if nxt.startswith('/') and not nxt.startswith('//') else '/')
+
 # Print configuration info on startup
 config_info = config_class.get_display_info()
 print("\n[Configuration]")
