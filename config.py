@@ -74,6 +74,14 @@ class Config:
     # only for text with no browser to localize it: notification emails.
     DEFAULT_TIMEZONE = os.getenv('DEFAULT_TIMEZONE', 'Europe/Warsaw')
 
+    # Languages (#263): LANGUAGES lists the ones served, DEFAULT_LANGUAGE
+    # answers a request whose cookie and Accept-Language match none of
+    # them. Startup fails if the default isn't listed or a listed
+    # language has no compiled catalog (i18n.validate_languages).
+    DEFAULT_LANGUAGE = os.getenv('DEFAULT_LANGUAGE', 'en').strip()
+    LANGUAGES = [code.strip() for code in os.getenv('LANGUAGES', 'en,pl').split(',')
+                 if code.strip()]
+
     # Email notifications
     SMTP_HOST = os.getenv('SMTP_HOST')
     SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))

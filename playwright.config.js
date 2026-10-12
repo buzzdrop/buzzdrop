@@ -28,6 +28,9 @@ export default defineConfig({
         // The viewer's zone, far from the server's (TZ in tests/e2e/e2e.env),
         // so a time shown or sent in the wrong zone fails a journey (#250).
         timezoneId: 'Asia/Tokyo',
+        // The journeys run in English whatever the host's locale (#268); a
+        // Polish journey asks for pl-PL itself.
+        locale: 'en-US',
     },
     projects: [
         // Chrome grants clipboard-write to a page on a click; Playwright's

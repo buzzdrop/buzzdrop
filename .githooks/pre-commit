@@ -1,15 +1,16 @@
 #!/bin/sh
-# Keep the committed DOM-test fixtures and protocol contract in sync with
-# the templates and app.py.
+# Keep the committed gettext catalogs, DOM-test fixtures and protocol
+# contract in sync with the templates and app.py.
 #
 # When a commit touches anything they are generated from (templates/,
-# db/, the root Python modules, the generators and scenarios), regenerate
-# them and stage the result, so CI's drift checks never trip.
+# db/, the root Python modules, babel.cfg, translations/, the generators
+# and scenarios), regenerate them and stage the result, so CI's drift
+# checks never trip. Catalogs come first: the fixtures render with them.
 # Activated by `npm install` (package.json "prepare" sets core.hooksPath).
 # Skip once with: git commit --no-verify
 
 if ! git diff --cached --name-only --diff-filter=ACMRD \
-    | grep -qE '^(templates/|db/|[^/]+\.py$|\.env\.example$|tests/fixtures/)'; then
+    | grep -qE '^(templates/|db/|[^/]+\.py$|\.env\.example$|babel\.cfg$|translations/|tests/fixtures/)'; then
     exit 0
 fi
 
@@ -17,6 +18,12 @@ if [ -x .venv/bin/python ]; then
     PYTHON=.venv/bin/python
 else
     PYTHON=python3
+fi
+
+if ! "$PYTHON" translations/catalogs.py >/dev/null; then
+    echo "pre-commit: updating the translation catalogs failed (see above); commit aborted." >&2
+    echo "pre-commit: fix the error, or skip once with git commit --no-verify." >&2
+    exit 1
 fi
 
 if ! "$PYTHON" tests/fixtures/render_dom_fixtures.py >/dev/null; then
@@ -31,4 +38,5 @@ if ! "$PYTHON" tests/fixtures/record_protocol_contract.py >/dev/null; then
     exit 1
 fi
 
-git add -A tests/js/fixtures/html tests/js/fixtures/protocol-contract.json
+git add -A translations/messages.pot translations/*/LC_MESSAGES \
+    tests/js/fixtures/html tests/js/fixtures/protocol-contract.json

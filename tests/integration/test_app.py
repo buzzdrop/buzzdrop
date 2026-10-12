@@ -52,7 +52,7 @@ def test_index_anonymous_user(client, app):
     # Anonymous visitors should see the marketing landing page, not the upload UI.
     assert b'Share Your File' not in response.data
     assert b'File sharing that stings' in response.data
-    assert b'BuzzDrop: secure, one-time file sharing.' in response.data
+    assert b'Buzzdrop: secure, one-time file sharing.' in response.data
     assert b'Read the code. Then trust it.' in response.data
     assert b'Browse the source code' in response.data
     assert b'Login to start sharing' not in response.data

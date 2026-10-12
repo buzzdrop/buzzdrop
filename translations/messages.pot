@@ -1,0 +1,151 @@
+# Buzzdrop's interface text: every message the app translates, extracted
+# by translations/catalogs.py. Don't edit; rerun the script.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Buzzdrop 1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/buzzdrop/buzzdrop/issues\n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-01-01 00:00+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app.py
+msgid "Too many requests. Please try again later."
+msgstr ""
+
+#: app.py
+msgid "Page not found"
+msgstr ""
+
+#: app.py
+msgid "There's nothing at this address."
+msgstr ""
+
+#: app.py
+msgid "Something went wrong"
+msgstr ""
+
+#: app.py
+msgid "The server hit an error. Please try again in a moment."
+msgstr ""
+
+#: app.py
+msgid "Dead link"
+msgstr ""
+
+#: app.py
+msgid "This drop is gone"
+msgstr ""
+
+#: app.py
+msgid ""
+"It was already opened, it expired, or it never existed. Ask the sender "
+"for a new one."
+msgstr ""
+
+#: app.py
+msgid "Logged in successfully"
+msgstr ""
+
+#: app.py
+msgid "Invalid username or password"
+msgstr ""
+
+#: app.py
+msgid "Invalid request"
+msgstr ""
+
+#: app.py
+msgid "Logged out successfully"
+msgstr ""
+
+#: templates/base.html
+msgid ""
+"Buzzdrop: secure, one-time file sharing. Upload encrypted files or secret"
+" notes, send a link, and let them vanish as soon as the recipient "
+"downloads them."
+msgstr ""
+
+#: templates/base.html
+msgid "Buzzdrop: Secure, One-Time File Sharing"
+msgstr ""
+
+#: templates/base.html
+msgid "One-time buzz"
+msgstr ""
+
+#: templates/base.html
+msgid "Manage Users"
+msgstr ""
+
+#: templates/base.html
+msgid "Logout"
+msgstr ""
+
+#: templates/base.html templates/login.html
+msgid "Login"
+msgstr ""
+
+#: templates/base.html
+msgid "Each drop opens once, then it's gone."
+msgstr ""
+
+#: templates/base.html
+msgid "How it works (opens in new tab)"
+msgstr ""
+
+#: templates/base.html
+msgid "How it works"
+msgstr ""
+
+#: templates/base.html
+msgid "Built in the open."
+msgstr ""
+
+#: templates/base.html
+msgid "Source code (opens in new tab)"
+msgstr ""
+
+#: templates/base.html
+msgid "Source code"
+msgstr ""
+
+#: templates/base.html
+msgid "AGPL-3.0 licence text (opens in new tab)"
+msgstr ""
+
+#: templates/error.html
+msgid "Go to Buzzdrop"
+msgstr ""
+
+#: templates/login.html
+msgid "Private access"
+msgstr ""
+
+#: templates/login.html
+msgid "Enter the hive"
+msgstr ""
+
+#: templates/login.html
+msgid ""
+"Sign in to upload encrypted drops, manage one-time links, and see who "
+"opened them."
+msgstr ""
+
+#: templates/login.html
+msgid "Username"
+msgstr ""
+
+#: templates/login.html
+msgid "Password"
+msgstr ""
+
+#: templates/login.html
+msgid "Accounts are provisioned at deploy time through environment variables."
+msgstr ""
+

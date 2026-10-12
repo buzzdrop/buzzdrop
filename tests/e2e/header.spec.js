@@ -14,7 +14,7 @@ import { USER, logIn } from './support.js';
  * @param {Locator[]} controls
  */
 async function expectOneRow(page, controls) {
-    const logo = await page.getByRole('navigation').getByRole('link', { name: /^BuzzDrop/ }).boundingBox();
+    const logo = await page.getByRole('navigation').getByRole('link', { name: /^Buzzdrop/ }).boundingBox();
     if (!logo) throw new Error('logo is not rendered');
     for (const control of controls) {
         const box = await control.boundingBox();

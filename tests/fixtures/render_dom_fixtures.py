@@ -122,9 +122,10 @@ def _clean(html):
     return SRI_HASH.sub('sha384-FIXTURE', html)
 
 
-def _render(name, client, method, path, data=None):
-    response = client.open(path, method=method, data=data)
-    assert response.status_code == 200, f'{name}: {method} {path} -> {response.status_code}'
+def _render(name, client, method, path, data=None, status=200, language=None):
+    headers = {'Accept-Language': language} if language else {}
+    response = client.open(path, method=method, data=data, headers=headers)
+    assert response.status_code == status, f'{name}: {method} {path} -> {response.status_code}'
     return name, _clean(response.get_data(as_text=True))
 
 
@@ -141,6 +142,12 @@ def render_all():
     fixtures.append(_render('index--files', _client('testuser'), 'GET', '/'))
 
     fixtures.append(_render('how_it_works--default', _client(), 'GET', '/how-it-works'))
+
+    # Polish (#268): one fixture per translated page, chosen the way a
+    # browser does, by Accept-Language.
+    fixtures.append(_render('login--default.pl', _client(), 'GET', '/login', language='pl'))
+    fixtures.append(_render('error--gone.pl', _client(), 'GET', f"/view/{SHARE_FILE['id']}",
+                            status=404, language='pl'))
 
     _reset([], API_TOKENS)
     fixtures.append(_render('users--admin', _client('adminuser'), 'GET', '/users'))
