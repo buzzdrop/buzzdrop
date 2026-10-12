@@ -33,7 +33,11 @@ async function listedRow(page, name) {
 test('a drop uploaded now reads "now", and expires when the uploader said', async ({ page, recipient, sharePassword }) => {
     const file = uniqueFile();
     await logIn(page);
-    await page.getByLabel(/^Expiry date/).fill(tokyoWallClock(Date.now() + 3 * 60 * 60 * 1000));
+    // +3h can land past Tokyo midnight; the page writes hours only within
+    // the viewer's day, and "tomorrow" past it — so the expected text
+    // depends on the day the submitted expiry falls on.
+    const expiryField = tokyoWallClock(Date.now() + 3 * 60 * 60 * 1000);
+    await page.getByLabel(/^Expiry date/).fill(expiryField);
     const link = await shareFile(page, file, sharePassword());
 
     const row = await listedRow(page, file.name);
@@ -41,7 +45,8 @@ test('a drop uploaded now reads "now", and expires when the uploader said', asyn
     const uploaded = row.getByText(/^(now|1 minute ago)$/);
     await expect(uploaded).toBeVisible();
     await expect(uploaded).toHaveAttribute('title', /GMT\+9$/);
-    await expect(row.getByText(/^in (2|3) hours$/)).toBeVisible();
+    const sameDay = expiryField.slice(0, 10) === tokyoWallClock(Date.now()).slice(0, 10);
+    await expect(row.getByText(sameDay ? /^in (2|3) hours$/ : /^tomorrow$/)).toBeVisible();
 
     const view = await recipient.goto(link);
     expect(view?.status()).toBe(200);
