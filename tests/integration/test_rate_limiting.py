@@ -37,6 +37,30 @@ def test_login_rate_limit_blocks_repeated_attempts(client, app, restore_rate_lim
     assert b'Too many requests. Please try again later.' in second.data
 
 
+def test_login_rate_limit_flash_follows_the_language(client, app, restore_rate_limits):
+    app.config['LOGIN_RATE_LIMIT'] = '1 per minute'
+    polish = {'Accept-Language': 'pl'}
+    attempt = {'username': 'testuser', 'password': 'wrongpassword'}
+
+    client.post(url_for('login'), data=attempt, headers=polish)
+    second = client.post(url_for('login'), data=attempt, headers=polish)
+
+    assert second.status_code == 429
+    assert 'Zbyt wiele żądań. Spróbuj ponownie później.' in second.get_data(as_text=True)
+
+
+def test_api_rate_limit_stays_english_for_a_polish_client(client, app, restore_rate_limits):
+    app.config['API_TOKEN_RATE_LIMIT'] = '1 per minute'
+    login_user(client, 'testuser', 'password')
+    request = {'json': {'csrf_token': 'test-csrf-token'}, 'headers': {'Accept-Language': 'pl'}}
+
+    client.post(url_for('create_api_token'), **request)
+    second = client.post(url_for('create_api_token'), **request)
+
+    assert second.status_code == 429
+    assert second.get_json()['error'] == 'Too many requests. Please try again later.'
+
+
 def test_login_rate_limit_ignores_x_forwarded_for_spoofing(client, app, restore_rate_limits):
     app.config['LOGIN_RATE_LIMIT'] = '1 per minute'
     environ_overrides = {'REMOTE_ADDR': '203.0.113.5'}

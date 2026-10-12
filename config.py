@@ -5,6 +5,8 @@ Centralizes all configuration settings from environment variables.
 import os
 from typing import Optional, Set
 
+from i18n import parse_languages
+
 
 def _env_bool(name: str, default: bool) -> bool:
     """Read a boolean environment variable."""
@@ -73,6 +75,13 @@ class Config:
     # Times are stored and compared in UTC (#250). DEFAULT_TIMEZONE is
     # only for text with no browser to localize it: notification emails.
     DEFAULT_TIMEZONE = os.getenv('DEFAULT_TIMEZONE', 'Europe/Warsaw')
+
+    # Languages (#263): LANGUAGES lists the ones served, DEFAULT_LANGUAGE
+    # answers a request whose cookie and Accept-Language match none of
+    # them. Startup fails if the default isn't listed or a listed
+    # language has no compiled catalog (i18n.validate_languages).
+    DEFAULT_LANGUAGE = os.getenv('DEFAULT_LANGUAGE', 'en').strip()
+    LANGUAGES = parse_languages(os.getenv('LANGUAGES', 'en,pl'))
 
     # Email notifications
     SMTP_HOST = os.getenv('SMTP_HOST')

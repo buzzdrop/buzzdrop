@@ -7,6 +7,7 @@ from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import parseaddr
 from io import BytesIO
+from urllib.parse import urlsplit
 from flask import (
     Flask,
     g,
@@ -49,6 +50,8 @@ from utils import (
     cleanup_orphaned_files,
 )
 from models import FileRepository
+import i18n
+from i18n import gettext as _
 
 app = Flask(__name__)
 
@@ -69,7 +72,9 @@ if not app.config.get('SECRET_KEY'):
 config_class.validate()
 
 app.secret_key = app.config['SECRET_KEY']
-RATE_LIMIT_EXCEEDED_MESSAGE = 'Too many requests. Please try again later.'
+i18n.init_app(app)
+# English for API clients; translated where it is flashed.
+RATE_LIMIT_EXCEEDED_MESSAGE = i18n.gettext_noop('Too many requests. Please try again later.')
 
 limiter = Limiter(
     key_func=get_client_ip,
@@ -257,12 +262,20 @@ def send_open_notification_email(file_info: dict) -> bool:
 # Stored times as text in UTC, for server-rendered text (the token table).
 app.add_template_filter(format_timestamp, 'timestamp')
 
-# --- SRI HASH HELPER ---
+@app.context_processor
+def language_processor():
+    # Rendering a template is what makes a response depend on the language.
+    language = i18n.current_language()
+    g.page_language = language
+    return {'page_language': language, 'og_locale': i18n.og_locale(language)}
+
+
 @app.context_processor
 def csrf_token_processor():
     return {'csrf_token': _get_csrf_token}
 
 
+# --- SRI HASH HELPER ---
 def _sri_digest(filepath):
     """SHA-384 SRI value ('sha384-<base64>') of a file's bytes."""
     with open(filepath, 'rb') as f:
@@ -568,7 +581,7 @@ def handle_rate_limit(error):
         return {'error': message}, 429
 
     if request.endpoint == 'login':
-        flash(message)
+        flash(_(RATE_LIMIT_EXCEEDED_MESSAGE))
         return render_template('login.html'), 429
 
     return message, 429
@@ -585,8 +598,8 @@ def handle_not_found(error):
     """A themed 404 page instead of Werkzeug's default (JSON for API clients)."""
     if _is_api_request():
         return {'error': 'Not found'}, 404
-    return _error_page(404, '404', 'Page not found',
-                       "There's nothing at this address.")
+    return _error_page(404, '404', _('Page not found'),
+                       _("There's nothing at this address."))
 
 
 @app.errorhandler(InternalServerError)
@@ -594,8 +607,8 @@ def handle_server_error(error):
     """A themed 500 page instead of Werkzeug's default (JSON for API clients)."""
     if _is_api_request():
         return {'error': 'Internal server error'}, 500
-    return _error_page(500, '500', 'Something went wrong',
-                       'The server hit an error. Please try again in a moment.')
+    return _error_page(500, '500', _('Something went wrong'),
+                       _('The server hit an error. Please try again in a moment.'))
 
 
 def _openable_drop(file_id):
@@ -632,9 +645,9 @@ def _drop_gone():
     reveals nothing about which, just as /release answers a uniform 404.
     (/download still flashes the reason; only /view is uniform.)
     """
-    return _error_page(404, 'Dead link', 'This drop is gone',
-                       'It was already opened, it expired, or it never existed. '
-                       'Ask the sender for a new one.')
+    return _error_page(404, _('Dead link'), _('This drop is gone'),
+                       _('It was already opened, it expired, or it never existed. '
+                         'Ask the sender for a new one.'))
 
 
 @app.route('/')
@@ -737,10 +750,10 @@ def login():
         password = request.form.get('password')
 
         if login_user(username, password):
-            flash('Logged in successfully', 'success')
+            flash(_('Logged in successfully'), 'success')
             return redirect(url_for('index'))
         else:
-            flash('Invalid username or password')
+            flash(_('Invalid username or password'))
 
     return render_template('login.html')
 
@@ -749,11 +762,46 @@ def logout():
     # Logout mutates session state — POST only, gated by the session CSRF
     # token (Bearer Authorization exempts the check as on other routes).
     if not _session_csrf_required():
-        flash('Invalid request')
+        flash(_('Invalid request'))
         return redirect(url_for('index'))
     logout_user()
-    flash('Logged out successfully', 'success')
+    flash(_('Logged out successfully'), 'success')
     return redirect(url_for('index'))
+
+
+def _local_path(target):
+    """``target`` when it is a path on this site, else None (no open redirect)."""
+    if (not target or not target.startswith('/') or target.startswith('//')
+            or '\\' in target or any(ord(char) < 0x20 or ord(char) == 0x7f for char in target)):
+        return None
+    parts = urlsplit(target)
+    if parts.scheme or parts.netloc:
+        return None
+    return target
+
+
+@app.route('/language', methods=['POST'])
+def set_language():
+    """
+    Remember the visitor's language choice in the ``lang`` cookie — the
+    only place it is set (#263) — and go back to ``next``, a local path.
+    Works without JS: the switcher is a plain form.
+    """
+    response = redirect(_local_path(request.form.get('next')) or url_for('index'), 303)
+    if not _is_valid_csrf_token():
+        flash(_('Invalid request'))
+        return response
+    language = request.form.get('lang')
+    if language in app.config['LANGUAGES']:
+        response.set_cookie(
+            i18n.LANGUAGE_COOKIE, language,
+            max_age=i18n.LANGUAGE_COOKIE_MAX_AGE,
+            secure=app.config['SESSION_COOKIE_SECURE'],
+            httponly=True,
+            samesite='Lax',
+        )
+    return response
+
 
 @app.route('/users', methods=['GET'])
 @admin_required
@@ -874,6 +922,16 @@ def revoke_api_token_route(token_id):
 
     flash('API token revoked', 'success')
     return redirect(url_for('manage_users' if current_user.get('is_admin', False) else 'index'))
+
+
+@app.after_request
+def language_headers(response):
+    """A page rendered in a language says which, and that it varies by it."""
+    language = g.get('page_language')
+    if language is not None:
+        response.headers['Content-Language'] = language
+        response.vary.update(('Accept-Language', 'Cookie'))
+    return response
 
 
 @app.after_request

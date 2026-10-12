@@ -1,0 +1,162 @@
+# Buzzdrop's interface text in Polish. Words and style follow
+# translations/pl/GLOSSARY.md; translations/catalogs.py keeps this file
+# in step with the sources. Don't type a non-breaking space after a
+# one-letter word: the app adds it.
+msgid ""
+msgstr ""
+"Project-Id-Version: Buzzdrop 1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/buzzdrop/buzzdrop/issues\n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-01-01 00:00+0000\n"
+"Last-Translator: Buzzdrop\n"
+"Language: pl\n"
+"Language-Team: Polish\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app.py
+msgid "Too many requests. Please try again later."
+msgstr "Zbyt wiele żądań. Spróbuj ponownie później."
+
+#: app.py
+msgid "Page not found"
+msgstr "Nie znaleziono strony"
+
+#: app.py
+msgid "There's nothing at this address."
+msgstr "Pod tym adresem nic nie ma."
+
+#: app.py
+msgid "Something went wrong"
+msgstr "Coś poszło nie tak"
+
+#: app.py
+msgid "The server hit an error. Please try again in a moment."
+msgstr "Wystąpił błąd serwera. Spróbuj ponownie za chwilę."
+
+#: app.py
+msgid "Dead link"
+msgstr "Nieaktywny link"
+
+#: app.py
+msgid "This drop is gone"
+msgstr "Tej przesyłki już nie ma"
+
+#: app.py
+msgid ""
+"It was already opened, it expired, or it never existed. Ask the sender "
+"for a new one."
+msgstr ""
+"Została już otwarta, wygasła albo nigdy nie istniała. Poproś nadawcę o "
+"nową."
+
+#: app.py
+msgid "Logged in successfully"
+msgstr "Zalogowano"
+
+#: app.py
+msgid "Invalid username or password"
+msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
+
+#: app.py
+msgid "Invalid request"
+msgstr "Nieprawidłowe żądanie"
+
+#: app.py
+msgid "Logged out successfully"
+msgstr "Wylogowano"
+
+#: templates/base.html
+msgid ""
+"Buzzdrop: secure, one-time file sharing. Upload encrypted files or secret"
+" notes, send a link, and let them vanish as soon as the recipient "
+"downloads them."
+msgstr ""
+"Buzzdrop: bezpieczne, jednorazowe przesyłanie plików. Wyślij zaszyfrowany"
+" plik albo notatkę, przekaż link i pozwól im zniknąć, gdy tylko odbiorca "
+"je pobierze."
+
+#: templates/base.html
+msgid "Buzzdrop: Secure, One-Time File Sharing"
+msgstr "Buzzdrop: bezpieczne, jednorazowe przesyłanie plików"
+
+#: templates/base.html
+msgid "One-time buzz"
+msgstr "Jednorazowy buzz"
+
+#: templates/base.html
+msgid "Manage Users"
+msgstr "Użytkownicy"
+
+#: templates/base.html
+msgid "Logout"
+msgstr "Wyloguj"
+
+#: templates/base.html templates/login.html
+msgid "Login"
+msgstr "Zaloguj"
+
+#: templates/base.html
+msgid "Each drop opens once, then it's gone."
+msgstr "Każdą przesyłkę można otworzyć raz, potem znika."
+
+#: templates/base.html
+msgid "How it works (opens in new tab)"
+msgstr "Jak to działa (otwiera się w nowej karcie)"
+
+#: templates/base.html
+msgid "How it works"
+msgstr "Jak to działa"
+
+#: templates/base.html
+msgid "Built in the open."
+msgstr "Tworzony jawnie."
+
+#: templates/base.html
+msgid "Source code (opens in new tab)"
+msgstr "Kod źródłowy (otwiera się w nowej karcie)"
+
+#: templates/base.html
+msgid "Source code"
+msgstr "Kod źródłowy"
+
+#: templates/base.html
+msgid "AGPL-3.0 licence text (opens in new tab)"
+msgstr "Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)"
+
+#: templates/error.html
+msgid "Go to Buzzdrop"
+msgstr "Przejdź do Buzzdropa"
+
+#: templates/login.html
+msgid "Private access"
+msgstr "Dostęp prywatny"
+
+#: templates/login.html
+msgid "Enter the hive"
+msgstr "Wejdź do ula"
+
+#: templates/login.html
+msgid ""
+"Sign in to upload encrypted drops, manage one-time links, and see who "
+"opened them."
+msgstr ""
+"Zaloguj się, aby wysyłać zaszyfrowane przesyłki, zarządzać jednorazowymi "
+"linkami i sprawdzać, które z nich otwarto."
+
+#: templates/login.html
+msgid "Username"
+msgstr "Nazwa użytkownika"
+
+#: templates/login.html
+msgid "Password"
+msgstr "Hasło"
+
+#: templates/login.html
+msgid "Accounts are provisioned at deploy time through environment variables."
+msgstr "Konta zakłada się przy wdrożeniu, w zmiennych środowiskowych."
+

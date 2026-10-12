@@ -21,6 +21,10 @@ os.environ['FLASK_USER_2'] = 'adminuser:adminpass:true'
 # No background expiry sweeps during tests — the sweep functions are
 # exercised directly instead of racing a timer.
 os.environ.setdefault('EXPIRY_SWEEP_INTERVAL_SECONDS', '0')
+# Tests run in English unless one asks for another language (#268); the
+# test client sends no Accept-Language.
+os.environ['DEFAULT_LANGUAGE'] = 'en'
+os.environ['LANGUAGES'] = 'en,pl'
 
 # Load .env.example for all test runs
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env.example'), override=False)

@@ -7,3 +7,5 @@ boto3==1.43.110
 Flask-Limiter==4.1.1
 zipp>=4.1.1 # not directly required, pinned by Snyk to avoid a vulnerability
 tzdata==2026.5 # zoneinfo data for DEFAULT_TIMEZONE on hosts without a system copy; the Docker image also gets it from apk, for TZ
+Flask-Babel==4.0.0
+Babel==2.18.0 # pinned: the committed catalogs carry its "Generated-By" header, so a different version reads as stale

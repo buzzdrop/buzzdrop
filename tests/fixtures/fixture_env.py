@@ -33,6 +33,8 @@ os.environ.update({
     'EXPIRY_SWEEP_INTERVAL_SECONDS': '0',
     'ALLOWED_EXTENSIONS': 'txt,pdf,png,jpg,jpeg,gif,doc,docx,xls,xlsx,mp4',
     'MAX_CONTENT_LENGTH': '104857600',
+    'DEFAULT_LANGUAGE': 'en',
+    'LANGUAGES': 'en,pl',
 })
 
 STATE_DIR = tempfile.mkdtemp(prefix='buzzdrop-fixtures-')
