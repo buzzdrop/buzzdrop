@@ -5,6 +5,8 @@ Centralizes all configuration settings from environment variables.
 import os
 from typing import Optional, Set
 
+from i18n import parse_languages
+
 
 def _env_bool(name: str, default: bool) -> bool:
     """Read a boolean environment variable."""
@@ -79,8 +81,7 @@ class Config:
     # them. Startup fails if the default isn't listed or a listed
     # language has no compiled catalog (i18n.validate_languages).
     DEFAULT_LANGUAGE = os.getenv('DEFAULT_LANGUAGE', 'en').strip()
-    LANGUAGES = [code.strip() for code in os.getenv('LANGUAGES', 'en,pl').split(',')
-                 if code.strip()]
+    LANGUAGES = parse_languages(os.getenv('LANGUAGES', 'en,pl'))
 
     # Email notifications
     SMTP_HOST = os.getenv('SMTP_HOST')

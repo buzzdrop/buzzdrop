@@ -261,7 +261,6 @@ def send_open_notification_email(file_info: dict) -> bool:
 # Stored times as text in UTC, for server-rendered text (the token table).
 app.add_template_filter(format_timestamp, 'timestamp')
 
-# --- SRI HASH HELPER ---
 @app.context_processor
 def language_processor():
     # Rendering a template is what makes a response depend on the language.
@@ -275,6 +274,7 @@ def csrf_token_processor():
     return {'csrf_token': _get_csrf_token}
 
 
+# --- SRI HASH HELPER ---
 def _sri_digest(filepath):
     """SHA-384 SRI value ('sha384-<base64>') of a file's bytes."""
     with open(filepath, 'rb') as f:
@@ -580,6 +580,7 @@ def handle_rate_limit(error):
         return {'error': message}, 429
 
     if request.endpoint == 'login':
+        # Translated here: the constant also answers API clients, in English.
         flash(_('Too many requests. Please try again later.'))
         return render_template('login.html'), 429
 
@@ -766,6 +767,7 @@ def logout():
     logout_user()
     flash(_('Logged out successfully'), 'success')
     return redirect(url_for('index'))
+
 
 def _local_path(target):
     """``target`` when it is a path on this site, else None (no open redirect)."""

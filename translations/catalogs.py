@@ -32,8 +32,6 @@ ROOT = Path(__file__).resolve().parents[1]
 TRANSLATIONS = ROOT / 'translations'
 POT_PATH = TRANSLATIONS / 'messages.pot'
 DOMAIN = 'messages'
-# The language the msgids are written in; it has no catalog.
-SOURCE_LANGUAGE = 'en'
 KEYWORDS = {
     '_': None,
     'gettext': None,

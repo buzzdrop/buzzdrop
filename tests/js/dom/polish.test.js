@@ -6,6 +6,7 @@ import { openGonePage, openLoginPage, screen } from '../support/pages/script-fre
 
 /** Testing Library's text matching, minus collapsing a non-breaking space into a space. */
 const keepingNonBreakingSpaces = { normalizer: getDefaultNormalizer({ collapseWhitespace: false }) };
+
 describe('in Polish', () => {
     it('serves the login page', () => {
         const login = openLoginPage({ language: 'pl' });
