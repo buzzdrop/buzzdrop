@@ -8,6 +8,7 @@
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { initPasswordGate } from '../../features/password-gate/index.js';
+import { createProgressBar } from '../../features/progress-bar/index.js';
 import { createShare } from '../../features/share-protocol/index.js';
 import { initSharedFilesList } from '../../features/shared-files/index.js';
 import { isAllowedFile } from '../../lib/file-extensions.js';
@@ -259,18 +260,13 @@ export function initIndex(root, deps) {
      */
     async function share(payload, password) {
         const uploadBtn = required(root, '#share-action-btn', 'button');
-        const progressContainer = required(root, '#share-progress-container', 'div');
-        const progressBar = required(root, '#share-progress-bar', 'div');
-        const progressText = required(root, '#share-progress-text', 'span');
+        const progress = createProgressBar(required(root, '#share-progress', 'div'));
 
         /** @param {number} percent */
         const showProgress = (percent) => {
             uploadBtn.disabled = true;
-            uploadBtn.style.display = 'none';
-            progressContainer.style.display = 'flex';
-            progressBar.style.width = percent + '%';
-            progressText.textContent = percent + '%';
-            progressContainer.setAttribute('aria-valuenow', String(percent));
+            uploadBtn.hidden = true;
+            progress.show(percent);
         };
 
         uploadInProgress = true;
@@ -300,8 +296,8 @@ export function initIndex(root, deps) {
         deps.alert(result.kind === 'refused' ? result.message : 'Network error during upload');
         uploadInProgress = false;
         uploadBtn.disabled = false;
-        uploadBtn.style.display = '';
-        progressContainer.style.display = 'none';
+        uploadBtn.hidden = false;
+        progress.hide();
     }
 
     // --- Dropzone Logic ---

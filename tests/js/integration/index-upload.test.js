@@ -132,9 +132,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
             expect(field(request, 'key_verifier')).toBe(bytesToHex(verifier));
             expect(upload.backend.state.keys.get(fileId)?.v).toBe(bytesToHex(verifier));
 
-            expect(upload.progressShown()).toEqual([
-                { shown: '0%', visible: true }, { shown: '50%', visible: true }, { shown: '100%', visible: true },
-            ]);
+            expect(upload.progressShown()).toEqual(['0%', '50%', '100%']);
             expect(upload.navigatedTo()).toEqual([successUrl(fileId)]);
         });
 

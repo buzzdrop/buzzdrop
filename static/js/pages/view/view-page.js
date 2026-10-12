@@ -11,6 +11,7 @@
 // 4. Save file to disk and notify server
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
+import { createProgressBar } from '../../features/progress-bar/index.js';
 import { claimShare } from '../../features/share-protocol/index.js';
 import { hexToBytes } from '../../lib/hex.js';
 import * as shareCrypto from '../../lib/crypto.js';
@@ -35,6 +36,19 @@ import { required, requiredWindow } from '../../lib/required.js';
  * @property {'file' | 'text'} fileType
  * @property {string | null} salt - the BKV3 envelope salt, hex
  */
+
+/**
+ * What the progress bar calls each step of opening the share. Only the
+ * download reports a percentage; the rest are single Web Crypto calls or a
+ * round trip, so the bar shows them busy.
+ * @type {Record<import('../../features/share-protocol/index.js').ClaimStep, string>}
+ */
+const STEP_NAMES = {
+    unlocking: 'Checking password…',
+    releasing: 'Getting key…',
+    downloading: 'Downloading…',
+    decrypting: 'Decrypting…',
+};
 
 /**
  * `fetch` is bound to the window: called unbound, as deps.fetch(...), the
@@ -77,7 +91,7 @@ export async function initView(root, deps) {
     const decryptBtn = required(root, '#decrypt-btn', 'button');
     const passInput = required(root, '#password-input', 'input');
     const status = required(root, '#status', 'p');
-    const progress = required(root, '#download-progress', 'progress');
+    const progress = createProgressBar(required(root, '#decryption-progress', 'div'));
     // Counts the attempts before the first one; after that the status line
     // says what is left, so the warning would only contradict it.
     const attemptsWarning = required(root, '#attempts-warning', 'p');
@@ -177,8 +191,6 @@ export async function initView(root, deps) {
         const password = passInput.value;
         if (!password) return;
         lockForm();
-        progress.hidden = false;
-        progress.value = 0;
 
         // The blob alone is mathematically dead: the password must be
         // proven to /release first, which hands out the server share H and
@@ -186,9 +198,13 @@ export async function initView(root, deps) {
         const result = await claimShare(sealed, password, {
             fetch: deps.fetch,
             urls: { release: releaseUrl, download: downloadUrl, report: reportDecryptionUrl },
-            onProgress: (percent) => { progress.value = percent; },
+            onStep: (step) => {
+                if (step === 'downloading') progress.show(0, STEP_NAMES.downloading);
+                else progress.busy(STEP_NAMES[step]);
+            },
+            onProgress: (percent) => progress.show(percent, STEP_NAMES.downloading),
         });
-        progress.hidden = true;
+        progress.hide();
         if (result.kind === 'opened') {
             showPlaintext(result.data);
             return;

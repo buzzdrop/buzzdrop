@@ -4,7 +4,7 @@
 // can't see on screen (the address, the clipboard, forms that would have
 // navigated). Drivers find elements the way tests do — by role, label or
 // text — never by id, class or selector.
-import { within } from '@testing-library/dom';
+import { isInaccessible, within } from '@testing-library/dom';
 import { userEvent } from '@testing-library/user-event';
 import { vi } from 'vitest';
 import * as shareCrypto from '../../../../static/js/lib/crypto.js';
@@ -252,4 +252,32 @@ export function typeable(text) {
 export function replaceInFixture(html, search, replacement) {
     if (!html.includes(search)) throw new Error(`fixture edit: "${search}" is not in the fixture`);
     return html.replaceAll(search, replacement);
+}
+
+/**
+ * Every value a progress bar shows while it is on screen, in order: its
+ * aria-valuetext when it names a step, its percentage otherwise. A value
+ * repeated back to back is recorded once. A step whose text doesn't end in
+ * the bar's aria-valuenow is recorded with that number in brackets, so a
+ * busy step that kept a stale percentage shows as 'Decrypting… [100%]'.
+ * A page has at most one bar; without one, nothing is recorded. It is found
+ * by its role alone, since a hidden element has no accessible name.
+ * @param {Page} page
+ * @returns {() => string[]}
+ */
+export function recordProgress({ window, screen }) {
+    /** @type {string[]} */
+    const shown = [];
+    const bar = screen.queryByRole('progressbar', { hidden: true });
+    if (!bar) return () => [];
+    new window.MutationObserver(() => {
+        if (isInaccessible(bar)) return;
+        const text = bar.getAttribute('aria-valuetext');
+        const now = bar.getAttribute('aria-valuenow');
+        const percent = now === null ? null : `${now}%`;
+        const value = text === null ? percent
+            : percent === null || text.endsWith(percent) ? text : `${text} [${percent}]`;
+        if (value !== null && shown.at(-1) !== value) shown.push(value);
+    }).observe(bar, { attributes: true, attributeFilter: ['hidden', 'aria-valuenow', 'aria-valuetext'] });
+    return () => [...shown];
 }

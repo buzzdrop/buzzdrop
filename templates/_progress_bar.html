@@ -1,0 +1,16 @@
+{# The honey progress bar, run by static/js/features/progress-bar/. Rendered
+   hidden; the script shows it with a percentage, or busy with a step's name
+   and no number. The step line shows only with a step. The percentage is
+   5ch wide and right-aligned, so the track keeps its width from 0% to 100%
+   ('%' is wider than a digit, so "100%" overflows 4ch). #}
+{% macro progress_bar(id, label, extra_class='') -%}
+<div id="{{ id }}" class="w-full{% if extra_class %} {{ extra_class }}{% endif %}" role="progressbar" aria-label="{{ label }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+    <p data-progress-step class="mb-2 text-sm text-slate-300" hidden></p>
+    <div class="flex items-center gap-3">
+        <div class="honey-track">
+            <div data-progress-fill class="honey-bar" style="width: 0%"></div>
+        </div>
+        <span data-progress-percent class="w-[5ch] shrink-0 text-right text-sm font-semibold tabular-nums text-honey-300">0%</span>
+    </div>
+</div>
+{%- endmacro %}

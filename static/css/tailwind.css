@@ -532,6 +532,13 @@
     background-size: 32px 100%, 100% 100%;
   }
 
+  /* A step with no percentage (features/progress-bar busy()): the full track,
+     dimmed, with only the stripes moving. It jumps between full and a
+     percentage rather than sliding, which would read as progress. */
+  [data-busy] .honey-bar {
+    @apply opacity-60 transition-none;
+  }
+
   /* ----------------------------------------------------- Landing visuals */
 
   /* Numbered hexagon used by the "how it works" rail. */

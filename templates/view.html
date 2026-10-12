@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from '_progress_bar.html' import progress_bar %}
 
 {% block content_width %}max-w-xl{% endblock %}
 
@@ -39,9 +40,10 @@
             </button>
         </form>
 
-        {# Real download progress while the ticketed /download runs —
-           filled by view-page.js, hidden the rest of the time. #}
-        <progress id="download-progress" class="mt-4 w-full accent-honey-400" max="100" value="0" aria-label="Download progress" hidden></progress>
+        {# Each step of opening the share once Decrypt is pressed: busy while the
+           password is checked, the key fetched and the file decrypted, the real
+           percentage while the ticketed /download runs. Hidden otherwise. #}
+        {{ progress_bar('decryption-progress', 'Decryption progress', extra_class='mt-4') }}
 
         {% if file_type != 'text' %}
         <p id="password-status" class="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-emerald-300" style="display: none;">
