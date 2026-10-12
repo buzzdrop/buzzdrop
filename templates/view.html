@@ -43,7 +43,7 @@
         {# Each step of opening the share once Decrypt is pressed: busy while the
            password is checked, the key fetched and the file decrypted, the real
            percentage while the ticketed /download runs. Hidden otherwise. #}
-        {{ progress_bar('download-progress', 'Download progress', extra_class='mt-4') }}
+        {{ progress_bar('decryption-progress', 'Decryption progress', extra_class='mt-4') }}
 
         {% if file_type != 'text' %}
         <p id="password-status" class="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-emerald-300" style="display: none;">

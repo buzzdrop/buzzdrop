@@ -12,6 +12,8 @@ const fileField = () => screen.getByLabelText('Drop a file here, or browse');
 const strengthMeter = () => screen.getByRole('meter', { name: 'Password strength' });
 const clipboardStatus = () => screen.getByRole('status', { name: 'Clipboard' });
 const passwordCopyStatus = () => screen.getByRole('status', { name: 'Password clipboard' });
+const progressBar = () => screen.getByRole('progressbar', { name: 'Upload progress' });
+const queryProgressBar = () => screen.queryByRole('progressbar', { name: 'Upload progress' });
 /** @param {string} name */
 const shareRow = (name) => within(screen.getByRole('article', { name }));
 /** @param {string} name */
@@ -249,12 +251,12 @@ describe('index page', () => {
     describe('upload progress', () => {
         it('the bar stands in for the share button and counts the upload up', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
-            expect(screen.queryByRole('progressbar', { name: 'Upload progress' })).toBeNull();
+            expect(queryProgressBar()).toBeNull();
 
             await upload.shareMessage('the gate code', SIX_WORDS);
 
             expect(upload.progressShown()).toEqual(['0%', '50%', '100%']);
-            expect(screen.getByRole('progressbar', { name: 'Upload progress' })).toHaveTextContent('100%');
+            expect(progressBar()).toHaveTextContent('100%');
             expect(screen.queryByRole('button', { name: 'Share note' })).toBeNull();
         });
 
@@ -263,7 +265,7 @@ describe('index page', () => {
 
             await upload.shareMessage('the gate code', SIX_WORDS, { server: 'failing' });
 
-            expect(screen.queryByRole('progressbar', { name: 'Upload progress' })).toBeNull();
+            expect(queryProgressBar()).toBeNull();
             expect(screen.getByRole('button', { name: 'Share note' })).toBeEnabled();
         });
     });

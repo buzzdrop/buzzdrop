@@ -91,7 +91,7 @@ export async function initView(root, deps) {
     const decryptBtn = required(root, '#decrypt-btn', 'button');
     const passInput = required(root, '#password-input', 'input');
     const status = required(root, '#status', 'p');
-    const progress = createProgressBar(required(root, '#download-progress', 'div'));
+    const progress = createProgressBar(required(root, '#decryption-progress', 'div'));
     // Counts the attempts before the first one; after that the status line
     // says what is left, so the warning would only contradict it.
     const attemptsWarning = required(root, '#attempts-warning', 'p');

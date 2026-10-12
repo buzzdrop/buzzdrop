@@ -5,6 +5,8 @@ const WRONG_PASSWORD = 'wrong horse';
 const decryptButton = () => screen.getByRole('button', { name: /^Decrypt and / });
 const passwordField = () => screen.getByLabelText('Password');
 const decryptedText = () => screen.getByRole('region', { name: 'Decrypted text' });
+const progressBar = () => screen.getByRole('progressbar', { name: 'Decryption progress' });
+const queryProgressBar = () => screen.queryByRole('progressbar', { name: 'Decryption progress' });
 
 describe('view page', () => {
     it('a message is shown in the page once decrypted', async () => {
@@ -54,18 +56,17 @@ describe('view page', () => {
     // step's name (progressShown flags a percentage left on a busy step).
     it('the progress bar names each step, with the download as a percentage', async () => {
         const share = await openShare({ type: 'file', content: 'report body', download: 'in-progress' });
-        expect(screen.queryByRole('progressbar', { name: 'Download progress' })).toBeNull();
+        expect(queryProgressBar()).toBeNull();
 
         const attempt = share.decryptWithPassword(DEFAULT_PASSWORD);
-        await vi.waitFor(() => expect(screen.getByRole('progressbar', { name: 'Download progress' }))
-            .toHaveAttribute('aria-valuetext', 'Downloading… 0%'));
+        await vi.waitFor(() => expect(progressBar()).toHaveAttribute('aria-valuetext', 'Downloading… 0%'));
         await share.finishDownload();
         await attempt;
 
         expect(share.progressShown()).toEqual([
             'Checking password…', 'Getting key…', 'Downloading… 0%', 'Downloading… 100%', 'Decrypting…',
         ]);
-        expect(screen.queryByRole('progressbar', { name: 'Download progress' })).toBeNull();
+        expect(queryProgressBar()).toBeNull();
         expect(screen.getByRole('status')).toHaveTextContent('Download complete.');
     });
 
@@ -144,7 +145,7 @@ describe('view page', () => {
         await share.decryptWithPassword(password);
 
         expect(screen.getByRole('status')).toHaveTextContent(message);
-        expect(screen.queryByRole('progressbar', { name: 'Download progress' })).toBeNull();
+        expect(queryProgressBar()).toBeNull();
     });
 
     it('a wrong password leaves the form open for another try', async () => {
