@@ -51,6 +51,16 @@ def test_accept_language_picks_polish(client):
     assert POLISH_LOGIN in response.get_data(as_text=True)
 
 
+@pytest.mark.parametrize('header, expected', [
+    ('pl-PL,en;q=0.5', 'pl'),
+    ('en-GB,pl;q=0.5', 'en'),
+    ('de,pl-PL;q=0.8,en;q=0.5', 'pl'),
+    ('pl-PL;q=0,en-US', 'en'),
+])
+def test_a_regional_tag_matches_by_base_language_in_preference_order(client, header, expected):
+    assert _language_of(_login_page(client, **{'Accept-Language': header})) == expected
+
+
 def test_an_unsupported_language_falls_through_to_the_next_preference(client):
     response = _login_page(client, **{'Accept-Language': 'de-DE,fr;q=0.9,pl;q=0.5'})
 

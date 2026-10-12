@@ -83,9 +83,23 @@ def select_language():
         cookie = request.cookies.get(LANGUAGE_COOKIE)
         if cookie in languages:
             return cookie
-        return request.accept_languages.best_match(languages) or default
+        return _best_accepted_language(request.accept_languages, languages) or default
     except Exception:  # a malformed header must not cost the page
         return default
+
+
+def _best_accepted_language(accepted, languages):
+    """
+    The first supported language in the visitor's preference order, each
+    tag matched by its base language (``pl-PL`` → ``pl``). Werkzeug's
+    ``best_match`` tries exact tags across the whole header first, so
+    ``pl-PL,en;q=0.5`` would get ``en``.
+    """
+    for tag, quality in sorted(accepted, key=lambda item: item[1], reverse=True):
+        base = tag.replace('_', '-').split('-')[0].lower()
+        if quality > 0 and base in languages:
+            return base
+    return None
 
 
 def current_language():
