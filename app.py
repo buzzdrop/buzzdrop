@@ -1526,7 +1526,8 @@ def report_decryption(file_id):
 # is stubbed: it only remembers the pick and flashes, nothing is translated.
 if os.getenv('BUZZDROP_PROTOTYPE') == '1':
     PROTO_VARIANTS = [('A', 'Header menu'), ('B', 'Footer links'), ('C', 'Header toggle')]
-    PROTO_LANGS = [('en', 'English'), ('pl', 'Polski')]
+    # 'de' is a stand-in to judge how the menu scales past two languages.
+    PROTO_LANGS = [('en', 'English'), ('pl', 'Polski'), ('de', 'Deutsch')]
 
     @app.context_processor
     def _prototype_switcher_context():

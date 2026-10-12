@@ -21,11 +21,8 @@
 {# ---------------------------------------------------------------- A #}
 {% macro variant_a() %}
 {% set current_name = dict(proto.langs)[proto.lang] %}
-{% if proto.released %}
-<span class="btn-ghost flex cursor-not-allowed items-center gap-1.5 px-3 py-2 opacity-40" title="{{ locked_reason }}" aria-disabled="true" aria-label="Language: {{ current_name }}. {{ locked_reason }}">
-    {{ globe }}<span class="text-xs font-semibold uppercase tracking-wider">{{ proto.lang }}</span>
-</span>
-{% else %}
+{# Verdict round: hidden entirely once the key is released. #}
+{% if not proto.released %}
 <details class="group relative">
     <summary class="btn-ghost flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 [&::-webkit-details-marker]:hidden" aria-label="Language: {{ current_name }}">
         {{ globe }}<span class="text-xs font-semibold uppercase tracking-wider">{{ proto.lang }}</span>
