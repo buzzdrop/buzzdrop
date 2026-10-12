@@ -86,7 +86,7 @@ msgstr "Buzzdrop: bezpieczne, jednorazowe przesyłanie plików"
 
 #: templates/base.html
 msgid "One-time buzz"
-msgstr "Jednorazowe bzzz"
+msgstr "Jednorazowy buzz"
 
 #: templates/base.html
 msgid "Manage Users"
