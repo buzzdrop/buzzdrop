@@ -35,7 +35,7 @@ From [Choose the runner and DOM environment for DOM + JS-integration tests](http
 
 From [What shape should the testability refactor of page scripts take?](https://github.com/buzzdrop/buzzdrop/issues/158). Production JS may be refactored to make it testable, as long as behaviour doesn't change.
 
-- **Split:** each page gets a side-effect-free module (`pages/<page>/<page>-page.js` for `index`, `view`, `success`, `confirm-download`, `hero-flow`, `users` and `how-it-works`) exporting `init<Page>(root, deps)` and `browserDeps()`. Each page's `pages/<page>/entry.js` is only `init<Page>(document, browserDeps())`. Template `<script>` tags, SRI attributes and JSON config blocks stay as they are. **Tests import the page module, never the entry.**
+- **Split:** each page gets a side-effect-free module (`pages/<page>/<page>-page.js` for `index`, `view`, `success`, `confirm-download`, `hero-flow`, `users`, `how-it-works` and `language-menu`) exporting `init<Page>(root, deps)` and `browserDeps()`. Each page's `pages/<page>/entry.js` is only `init<Page>(document, browserDeps())`. Template `<script>` tags, SRI attributes and JSON config blocks stay as they are. **Tests import the page module, never the entry.**
 - **State lives in the `init` closure** (e.g. `uploadInProgress`, `activeShareMode`, parsed config, CSRF token). Every `init()` is a fresh page, and no `vi.resetModules()` is needed.
 - **Dependencies (`deps`):**
 

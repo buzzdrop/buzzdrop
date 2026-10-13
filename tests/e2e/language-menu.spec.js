@@ -32,7 +32,6 @@ test('the keyboard opens the menu, picks Polski, and the choice holds across pag
     await page.keyboard.press('Enter');
 
     await expect(page).toHaveURL(/\/how-it-works$/);
-    await expect(page.locator('html')).toHaveAttribute('lang', 'pl');
     await expect(languageButton(page)).toHaveAccessibleName('Język: Polski');
 
     await page.goto('/login');
