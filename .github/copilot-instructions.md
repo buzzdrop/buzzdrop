@@ -51,7 +51,7 @@ The full protocol, with every route's answers, is in `docs/dev/share-protocol.md
 
 **API token auth:** `POST /api/token` (admin-only, JSON `{"username": "..."}`) issues a raw token shown once. The `@api_auth_required` decorator on `/upload` and `/upload/begin` accepts either `Authorization: Bearer <token>` or a session cookie. When a Bearer header is present and invalid → 401 JSON (no session fallback). On success it sets `flask.g.username`; routes read `g.username` not `session['username']`. Tokens are stored as PBKDF2-HMAC-SHA256 digests in the `api_tokens` table via `TokenStore` — never the raw token.
 
-**`buzz` CLI** (`cli/buzz`): encrypts a file with the same `BKV3` format as the browser and runs the same two-phase upload (`/upload/begin` → `/upload`); aborts if begin 404s. Uploads via Bearer token. Reads `~/.buzz_token` as JSON `{"token": "...", "server": "https://..."}`. Requires `cryptography` and `requests` (see `requirements-cli.txt`). Generates a 4-word passphrase if `-p` is omitted.
+**`buzz` CLI** (`cli/buzz`): encrypts a file with the same `BKV3` format as the browser and runs the same two-phase upload (`/upload/begin` → `/upload`); aborts if begin 404s. Uploads via Bearer token. Reads `~/.buzz_token` as JSON `{"token": "...", "server": "https://..."}`. Requires `cryptography` and `requests` (see `requirements-cli.txt`). Generates a 6-word passphrase if `-p` is omitted.
 
 All `<script>` tags must include `integrity="{{ sri_hash('js/filename.js') }}" crossorigin="anonymous"`; modules they import get SRI from the import map in `base.html` (`_module_import_map`), so every import is a relative specifier under `static/js` (see `docs/dev/security.md`). In development, missing files raise `FileNotFoundError`; in production they log a warning.
 
@@ -73,7 +73,7 @@ All `<script>` tags must include `integrity="{{ sri_hash('js/filename.js') }}" c
 
 **AJAX detection:** Routes check `request.headers.get('X-Requested-With') == 'XMLHttpRequest'` to decide between JSON and redirect responses.
 
-**CSRF on session-authed mutating routes:** `_session_csrf_required()` gates `POST /upload`, `/upload/begin`, `/api/token` (and the form-based delete/confirm/revoke routes). The token travels as `X-CSRF-Token` header, `csrf_token` form field, or JSON field; templates render `<meta name="csrf-token">` (JS reads it in `static/js/features/csrf/`) and hidden form inputs. Requests carrying an `Authorization` header are exempt — cross-site requests can't set it, so Bearer clients are CSRF-immune. Public POSTs (`/release`, `/report_decryption`) have no CSRF gate by design.
+**CSRF on session-authed mutating routes:** `_session_csrf_required()` gates `POST /upload`, `/upload/begin`, `/logout` and `/api/token`; the session-only form routes (`/delete/<id>`, `/view/<id>/confirm`, `/api/tokens/<id>/revoke`, `/language`) call `_is_valid_csrf_token()` directly. The token travels as `X-CSRF-Token` header, `csrf_token` form field, or JSON field; templates render `<meta name="csrf-token">` (JS reads it in `static/js/features/csrf/`) and hidden form inputs. Under `_session_csrf_required()` only, requests carrying an `Authorization` header are exempt — cross-site requests can't set it, so Bearer clients are CSRF-immune. Public POSTs (`/release`, `/report_decryption`) have no CSRF gate by design.
 
 **`sdk/` directory:** Contains a vendored copy of the Dagger Python SDK. No CI workflow uses it, and it is not part of the web application and should not be modified.
 
