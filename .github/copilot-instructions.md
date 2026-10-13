@@ -36,22 +36,13 @@ Buzzdrop is a one-time self-destructing file-sharing app where files are encrypt
 - `cli/buzz` — standalone CLI script (install to `$PATH`; deps in `requirements-cli.txt`)
 - `static/js/` — browser code in `lib/` / `features/` / `pages/` with enforced import rules (see `static/js/CLAUDE.md`); `lib/crypto.js` is the BKV3 format, `features/share-protocol/` the upload and key-release handshake, `pages/<page>/entry.js` what each template loads
 
-**File lifecycle:**
-1. Browser calls `POST /upload/begin` → server mints `{file_id, h}` (random 32-byte share, hex); a pending row lands in the `file_keys` table
-2. Browser derives `file_key = HKDF(Kp ‖ H)`, encrypts plaintext `BKP-FILE ‖ receipt(32B) ‖ data`, then `POST /upload` with `file_id` + `key_verifier` (hex verifier V) + `receipt_hash` (SHA-256 of the receipt) → V is bound to the pending share atomically (owner-checked via `created_by`, 403 for another account), blob stored (local path or S3 key), `files` entry created: `status: active`, `downloaded_at: null`
-3. Recipient visits `/view/<id>` → confirms → `/view/<id>/confirm` renders the decryption UI with the BKV3 envelope salt in the page config; no ciphertext is downloaded yet, and opening the link burns nothing
-4. Browser derives V from the password and `POST /release/<id>` `{v}` → `attempt_key_release` runs the whole read/compare/count/release in ONE transaction, returns `h` exactly once and stores `SHA-256(ticket)`. Misses increment `file_keys.attempts` up to `KEY_RELEASE_MAX_ATTEMPTS` (see **Key-release config** below). `/release` is rate-limited per file_id, not per IP
-5. Browser derives the download ticket `HKDF-SHA256(ikm=H, info='buzzdrop-download-ticket')` and fetches `/download/<id>` with `X-Download-Ticket` → `claim_download_with_ticket` verifies it, sets `downloaded_at` and consumes the ticket in one transaction; the ciphertext streams once and is deleted from storage
-6. Browser derives `file_key`, decrypts client-side and posts the embedded `receipt` to `/report_decryption` — the server validates it against `receipt_hash` and the NULL-guarded write lets only the first valid report set `decryption_success`. A share released but never downloaded is terminal and expires after `KEY_RELEASE_DOWNLOAD_TTL_SECONDS`
-7. Optional expiry: `check_and_handle_expiry()` marks `status: expired`, deletes storage file, and burns the `file_keys` row in the same transaction
-
-Every route's status codes are in `docs/dev/share-protocol.md` §Routes; check there rather than inferring them.
+**File lifecycle:** `/upload/begin` (server mints `file_id` + share H) → browser encrypts → `/upload` (binds verifier V, stores the blob) → recipient opens and confirms `/view/<id>` (burns nothing) → `POST /release/<id>` with V returns H exactly once → `/download/<id>` with the ticket derived from H serves the ciphertext once and deletes it → browser decrypts and posts its receipt to `/report_decryption`. Each step, route and status code is in `docs/dev/share-protocol.md`; check there rather than inferring them.
 
 **Storage abstraction:** `get_storage_backend(config)` returns either `LocalStorage` or `S3Storage`. Both expose `save(file_id, file_data) -> path`, `retrieve(path) -> Iterator[bytes]`, `delete(path)` and `read_prefix(path, length)`. The `path` stored in DB is a local filesystem path for local storage and an S3 key (`uploads/{uuid}`) for S3.
 
 **API token auth:** `POST /api/token` (admin-only, JSON `{"username": "..."}`) issues a raw token shown once. The `@api_auth_required` decorator on `/upload` and `/upload/begin` accepts either `Authorization: Bearer <token>` or a session cookie. When a Bearer header is present and invalid → 401 JSON (no session fallback). On success it sets `flask.g.username`; routes read `g.username` not `session['username']`. Tokens are stored as PBKDF2-HMAC-SHA256 digests in the `api_tokens` table via `TokenStore` — never the raw token.
 
-**`buzz` CLI** (`cli/buzz`): encrypts a file with the same `BKV3` format as the browser and runs the same two-phase upload (`/upload/begin` → `/upload`); aborts if begin 404s. Uploads via Bearer token. Reads `~/.buzz_token` as JSON `{"token": "...", "server": "https://..."}`. Requires `cryptography` and `requests` (see `requirements-cli.txt`). Generates a 6-word passphrase if `-p` is omitted.
+**`buzz` CLI** (`cli/buzz`): a standalone script that uses the browser's `BKV3` format and two-phase upload over a Bearer token. Its dependencies, token file, passphrase default and binary releases are in `cli/CLAUDE.md`.
 
 All `<script>` tags must include `integrity="{{ sri_hash('js/filename.js') }}" crossorigin="anonymous"`; modules they import get SRI from the import map in `base.html` (`_module_import_map`), so every import is a relative specifier under `static/js` (see `docs/dev/security.md`). In development, missing files raise `FileNotFoundError`; in production they log a warning.
 
@@ -67,14 +58,13 @@ All `<script>` tags must include `integrity="{{ sri_hash('js/filename.js') }}" c
 
 **Encrypted binary format (client-side, `BKV3` only):** `BKV3 ‖ salt (16 bytes) ‖ iv (12 bytes) ‖ AES-GCM ciphertext`. Key derivation: `master = PBKDF2-SHA256(password, salt, 600k)`, `Kp = HKDF(master, salt, 'enc')`, `V = HKDF(master, salt, 'ver')`, `file_key = HKDF(Kp ‖ H, salt, 'file')` — `H` is the server share from `file_keys`, `V` the verifier sent on upload/release (both as hex). The plaintext is `BKP-FILE ‖ receipt(32B random) ‖ payload` — the receipt is the decryption proof reported back to `/report_decryption` (server stores only `SHA-256(receipt)` as `receipt_hash`). Legacy v1/v2 blobs are rejected — no backward compatibility (pre-production wipe).
 
-**Key-release config:** `KEY_RELEASE_RATE_LIMIT` (10/min per file_id), `KEY_RELEASE_MAX_ATTEMPTS` (1), `KEY_RELEASE_BURN_ON_LOCKOUT` (default on — lockout deletes the `file_keys` row, H+V destroyed; off keeps the row but permanently refuses releases — currently no unlock path), `KEY_SHARE_PENDING_TTL_SECONDS` (default 3600 — stale pending shares swept at startup and on `/upload/begin`), `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` (default 600 — the download ticket is honoured that long after release; a release nobody downloaded expires and the expiry sweep deletes its blob). `/upload/begin` and `/upload` share the `UPLOAD_RATE_LIMIT` bucket. SQLite runs `PRAGMA secure_delete=ON` + WAL `TRUNCATE` checkpoint after burns.
+**Key-release config:** the `KEY_RELEASE_*` and `KEY_SHARE_PENDING_TTL_SECONDS` settings, their defaults and what lockout does are in `docs/dev/configuration.md`.
 
 **Type field:** DB entries have `type: 'file'` or `type: 'text'` (text notes). Text note content is base64-encoded encrypted data sent via form field `note_text`; file uploads use `multipart/form-data` with field `file`.
 
 **AJAX detection:** Routes check `request.headers.get('X-Requested-With') == 'XMLHttpRequest'` to decide between JSON and redirect responses.
 
-**CSRF on session-authed mutating routes:** `_session_csrf_required()` gates `POST /upload`, `/upload/begin`, `/logout` and `/api/token`; the session-only form routes (`/delete/<id>`, `/view/<id>/confirm`, `/api/tokens/<id>/revoke`, `/language`) call `_is_valid_csrf_token()` directly. The token travels as `X-CSRF-Token` header, `csrf_token` form field, or JSON field; templates render `<meta name="csrf-token">` (JS reads it in `static/js/features/csrf/`) and hidden form inputs. Under `_session_csrf_required()` only, requests carrying an `Authorization` header are exempt — cross-site requests can't set it, so Bearer clients are CSRF-immune. Public POSTs (`/release`, `/report_decryption`) have no CSRF gate by design.
+**CSRF on session-authed mutating routes:** every one checks the token, and only some exempt a request carrying an `Authorization` header. Which routes do, and how the token travels, is in `docs/dev/security.md` §CSRF.
 
 **`sdk/` directory:** Contains a vendored copy of the Dagger Python SDK. No CI workflow uses it, and it is not part of the web application and should not be modified.
 
-**CLI binary releases:** Pushing to `main` with changes under `cli/` or `requirements-cli.txt` triggers `.github/workflows/release-cli.yml`, which builds a PyInstaller single-file binary and publishes it to GitHub Releases automatically.

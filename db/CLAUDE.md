@@ -12,7 +12,7 @@ In `app.py`:
 - `get_backend()` returns the `Backend` (`.files`/`.tokens`) and recreates it when `DATABASE_URL` changed (tests rely on this);
 - `get_files_store()` returns the FileStore for the current app context.
 
-Every stored time is a UTC string from `timestamps.py` (see the root `CLAUDE.md`). The text comparisons in `purge_expired` and `purge_stale_key_shares` depend on that format.
+Every stored time is a UTC string from `timestamps.py` (root `CLAUDE.md`, *Timestamps are UTC*). The text comparisons in `purge_expired` and `purge_stale_key_shares` depend on that format.
 
 ## `files`
 

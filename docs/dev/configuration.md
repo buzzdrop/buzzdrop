@@ -13,7 +13,6 @@
   - `PERMANENT_SESSION_LIFETIME`: seconds, default 28800
 - **Secrets:** `TOKEN_HASH_SECRET` is required in `FLASK_ENV=production` and must differ from `FLASK_SECRET_KEY`. Dev falls back to `FLASK_SECRET_KEY`.
 - **Database:** `DATABASE_URL`. The deprecated `DATABASE_PATH` maps to a `sqlite:///` fallback.
-- **Times:** `DEFAULT_TIMEZONE` (default `Europe/Warsaw`). Where it applies: root `CLAUDE.md`, *Timestamps are UTC*.
 - **Languages:** `DEFAULT_LANGUAGE` (default `en`) and `LANGUAGES` (default `en,pl`). Startup fails if the default isn't listed, or if a listed language other than `en` has no compiled catalog.
 - **Key release** (semantics in `docs/dev/share-protocol.md`):
   - `KEY_RELEASE_RATE_LIMIT`: default `10 per minute`, per `file_id`
@@ -22,7 +21,10 @@
   - `KEY_SHARE_PENDING_TTL_SECONDS`: default 3600, the TTL for shares that were begun but never finished
   - `KEY_RELEASE_DOWNLOAD_TTL_SECONDS`: default 600. How long after a successful release the download ticket is honoured; afterwards the drop expires.
 - **Source code:** `SOURCE_CODE_URL` (default: the upstream GitHub repo; empty falls back to it). It is used for every repository link on the site, including the AGPL-3.0 §13 footer link. A deployment running modified code must point it at its own source.
-- **Metadata:** `REPORT_DECRYPTION_RATE_LIMIT` (default `10 per minute`, per `file_id`). Notification email subjects never carry the filename.
+- **Decryption reports:** `REPORT_DECRYPTION_RATE_LIMIT` (default `10 per minute`, per `file_id`).
+- **Notifications** (uploader emails, sent once the recipient's decryption report arrives): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `SMTP_USE_TLS`, `SMTP_USE_SSL`, `SMTP_TIMEOUT_SECONDS` (examples in `.env.example`). They are off unless both `SMTP_HOST` and `SMTP_FROM_EMAIL` are set.
+  - `DEFAULT_TIMEZONE` (default `Europe/Warsaw`) is the zone of their times (root `CLAUDE.md`, *Timestamps are UTC*).
+  - A subject never carries the filename: subjects show up in previews and provider logs.
 
 ## Deployment
 
