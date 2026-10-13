@@ -1,8 +1,10 @@
 import { getDefaultNormalizer } from '@testing-library/dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { openGonePage, openLoginPage, screen } from '../support/pages/script-free.js';
+import { openSuccessPage } from '../support/pages/success.js';
 
-// Smoke tests for the pages served in Polish so far (#284, #268).
+// Smoke tests for the pages served in Polish so far (#284, #286, #268):
+// the template's words, and the words a page script writes from its strings.
 
 /** Testing Library's text matching, minus collapsing a non-breaking space into a space. */
 const keepingNonBreakingSpaces = { normalizer: getDefaultNormalizer({ collapseWhitespace: false }) };
@@ -36,5 +38,49 @@ describe('in Polish', () => {
         expect(screen.getByText('Została już otwarta, wygasła albo nigdy nie istniała. Poproś nadawcę o nową.')).toBeVisible();
         expect(screen.getByRole('link', { name: 'Przejdź do Buzzdropa' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Zaloguj' })).toBeVisible();
+    });
+
+    it('serves the success page for a file', () => {
+        const success = openSuccessPage({ language: 'pl' });
+
+        expect(success.language()).toBe('pl');
+        expect(screen.getByRole('heading', { level: 1, name: 'Plik jest w\u00a0ulu' })).toBeVisible();
+        expect(screen.getByText(/^Wyślij poniższy link\. Plik pobierze się raz/)).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Skopiuj link' })).toBeVisible();
+        expect(screen.getByRole('region', { name: 'Link z\u00a0hasłem' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Wyślij kolejną przesyłkę' })).toBeVisible();
+    });
+
+    it('serves the success page for a note', () => {
+        openSuccessPage({ language: 'pl', type: 'message' });
+
+        expect(screen.getByRole('heading', { level: 1, name: 'Notatka jest w\u00a0ulu' })).toBeVisible();
+        expect(screen.getByText(/^Wyślij poniższy link\. Notatka otworzy się raz/)).toBeVisible();
+    });
+
+    it('writes the success page script\'s words in Polish', async () => {
+        vi.useFakeTimers();
+        const success = openSuccessPage({ language: 'pl', link: 'one-click' });
+
+        await success.revealPassword();
+        expect(screen.getByRole('button', { name: 'Ukryj' })).toBeVisible();
+        await success.hidePassword();
+        expect(screen.getByRole('button', { name: 'Pokaż' })).toBeVisible();
+
+        await success.copyOneClickLink();
+        await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Skopiuj link z\u00a0hasłem' }))
+            .toHaveTextContent('Skopiowano!'));
+        expect(screen.getByRole('status', { name: 'Schowek' }))
+            .toHaveTextContent('Skopiowano link z hasłem do schowka.');
+    });
+
+    it('says in Polish when the browser blocks a copy on the success page', async () => {
+        const success = openSuccessPage({ language: 'pl', link: 'one-click', clipboard: 'blocked' });
+
+        await success.copyPassword();
+
+        await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Skopiuj hasło' })).toHaveTextContent('Błąd'));
+        expect(screen.getByRole('status', { name: 'Schowek' }))
+            .toHaveTextContent('Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano hasła.');
     });
 });

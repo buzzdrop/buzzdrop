@@ -15,6 +15,7 @@ import { isAllowedFile } from '../../lib/file-extensions.js';
 import * as shareCrypto from '../../lib/crypto.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
+import { readStrings } from '../../lib/strings.js';
 
 /**
  * @typedef {import('../../features/share-protocol/index.js').Payload} Payload
@@ -92,6 +93,7 @@ export function initIndex(root, deps) {
      * @type {AllowedExtensions}
      */
     const allowedExtensions = JSON.parse(required(root, '#allowed-extensions-json', 'script').text);
+    const clipboardStrings = readStrings(required(root, '#page-strings-json', 'script')).section('clipboard-feedback');
 
     /**
      * Upload endpoints injected the same way — a type="application/json" data
@@ -217,7 +219,9 @@ export function initIndex(root, deps) {
         const status = required(root, '#password-copy-status', 'p');
         const label = required(copyPasswordBtn, '#copy-password-label', 'span');
         copyPasswordBtn.addEventListener('click', () =>
-            copyWithFeedback(copyPasswordBtn, passwordGate.input.value, { status, label, what: 'Password' }));
+            copyWithFeedback(copyPasswordBtn, passwordGate.input.value, {
+                status, label, strings: clipboardStrings, subject: 'password',
+            }));
     }
 
     /**
@@ -453,7 +457,9 @@ export function initIndex(root, deps) {
             e.preventDefault();
             // Every .copy-url in the template carries its link in data-url.
             const url = /** @type {string} */ (button.getAttribute('data-url'));
-            copyWithFeedback(button, url, { status: required(root, '#copy-status', 'p'), what: 'Share link' });
+            copyWithFeedback(button, url, {
+                status: required(root, '#copy-status', 'p'), strings: clipboardStrings, subject: 'dropLink',
+            });
         });
     });
 

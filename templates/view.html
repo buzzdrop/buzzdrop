@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from '_page_strings.html' import page_strings %}
+{% from '_clipboard_feedback_strings.html' import strings as clipboard_feedback_strings with context %}
 {% from '_progress_bar.html' import progress_bar %}
 
 {% block content_width %}max-w-xl{% endblock %}
@@ -82,5 +84,6 @@
     'fileType': file_type,
     'salt': salt,
 } | tojson }}</script>
+{{ page_strings({'clipboard-feedback': clipboard_feedback_strings}) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/view/entry.js') }}" integrity="{{ sri_hash('js/pages/view/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}

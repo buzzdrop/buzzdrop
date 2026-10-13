@@ -185,7 +185,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
             expect(failed).toHaveLength(errorCase.reachesUpload ? 1 : 0);
             expect(screen.getByRole('button', { name: 'Share file' })).toBeEnabled();
             expect(screen.getByRole('button', { name: 'Share file' })).toBeVisible();
-            expect(screen.queryByRole('progressbar', { name: 'Upload progress' })).toBeNull();
+            expect(screen.queryByRole('progressbar', { name: 'Sending progress' })).toBeNull();
 
             await upload.share();
 

@@ -1,0 +1,8 @@
+{# The JSON island a page script reads its words from (lib/strings.js,
+   #265): one section per feature or page that writes text at runtime,
+   each from its _<name>_strings.html partial, already translated. Import
+   a partial's `strings` with context: an import without it is cached
+   across requests, and so across languages. #}
+{% macro page_strings(sections) -%}
+<script id="page-strings-json" type="application/json">{{ sections | tojson }}</script>
+{%- endmacro %}

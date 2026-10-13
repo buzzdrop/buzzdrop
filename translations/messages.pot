@@ -64,6 +64,75 @@ msgstr ""
 msgid "Logged out successfully"
 msgstr ""
 
+#. a Copy button's label, flashed after a copy. Keep it short.
+#: templates/_clipboard_feedback_strings.html
+msgid "Copied!"
+msgstr ""
+
+#. a Copy button's label, flashed when the browser refused the copy. Keep it
+#. short.
+#: templates/_clipboard_feedback_strings.html
+msgid "Failed"
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Link copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the link was not copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Drop link copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the drop link was not copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "One-click link copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid ""
+"Your browser blocked clipboard access, so the one-click link was not "
+"copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Password copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the password was not copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Token copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the token was not copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Text copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the text was not copied."
+msgstr ""
+
+#: templates/_success_strings.html
+msgid "Show"
+msgstr ""
+
+#: templates/_success_strings.html
+msgid "Hide"
+msgstr ""
+
 #: templates/base.html
 msgid ""
 "Buzzdrop: secure, one-time file sharing. Upload encrypted files or secret"
@@ -123,6 +192,10 @@ msgstr ""
 msgid "Go to Buzzdrop"
 msgstr ""
 
+#: templates/index.html
+msgid "Sending progress"
+msgstr ""
+
 #: templates/login.html
 msgid "Private access"
 msgstr ""
@@ -141,11 +214,96 @@ msgstr ""
 msgid "Username"
 msgstr ""
 
-#: templates/login.html
+#: templates/login.html templates/success.html
 msgid "Password"
 msgstr ""
 
 #: templates/login.html
 msgid "Accounts are provisioned at deploy time through environment variables."
+msgstr ""
+
+#: templates/success.html
+msgid "Send the link and the password through different channels."
+msgstr ""
+
+#: templates/success.html
+msgid "Drop secured"
+msgstr ""
+
+#: templates/success.html
+msgid "Note is in the hive"
+msgstr ""
+
+#: templates/success.html
+msgid "File is in the hive"
+msgstr ""
+
+#: templates/success.html
+msgid ""
+"Send the link below. The note opens once, when the recipient enters the "
+"password, and is then destroyed."
+msgstr ""
+
+#: templates/success.html
+msgid ""
+"Send the link below. The file downloads once, when the recipient enters "
+"the password, and is then destroyed."
+msgstr ""
+
+#: templates/success.html
+msgid "Link and password, separately"
+msgstr ""
+
+#: templates/success.html
+msgid "Recommended"
+msgstr ""
+
+#: templates/success.html
+msgid ""
+"Send each through a different channel, so one intercepted message is not "
+"enough."
+msgstr ""
+
+#: templates/success.html
+msgid "Link"
+msgstr ""
+
+#: templates/success.html
+msgid "Copy link"
+msgstr ""
+
+#: templates/success.html
+msgid "Copy"
+msgstr ""
+
+#: templates/success.html
+msgid "Copy password"
+msgstr ""
+
+#: templates/success.html
+msgid "One-click link"
+msgstr ""
+
+#: templates/success.html
+msgid ""
+"The password rides along in the URL fragment. Convenient, but anyone "
+"holding the link holds the key — this trades away the two-channel "
+"separation recommended above."
+msgstr ""
+
+#: templates/success.html
+msgid ", with the password after the #"
+msgstr ""
+
+#: templates/success.html
+msgid "Copy one-click link"
+msgstr ""
+
+#: templates/success.html
+msgid "Clipboard"
+msgstr ""
+
+#: templates/success.html
+msgid "Create another drop"
 msgstr ""
 

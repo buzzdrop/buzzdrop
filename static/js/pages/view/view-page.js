@@ -17,6 +17,7 @@ import { hexToBytes } from '../../lib/hex.js';
 import * as shareCrypto from '../../lib/crypto.js';
 import { takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
+import { readStrings } from '../../lib/strings.js';
 
 /** @typedef {import('../../lib/crypto.js').Bytes} Bytes */
 
@@ -91,6 +92,7 @@ export async function initView(root, deps) {
     const decryptBtn = required(root, '#decrypt-btn', 'button');
     const passInput = required(root, '#password-input', 'input');
     const status = required(root, '#status', 'p');
+    const clipboardStrings = readStrings(required(root, '#page-strings-json', 'script')).section('clipboard-feedback');
     const progress = createProgressBar(required(root, '#decryption-progress', 'div'));
     // Counts the attempts before the first one; after that the status line
     // says what is left, so the warning would only contradict it.
@@ -139,7 +141,9 @@ export async function initView(root, deps) {
             // The status line also reports the decryption, so the copy's
             // message stays on it after the flash.
             const btn = required(root, '#copy-text-btn', 'button');
-            btn.addEventListener('click', () => copyWithFeedback(btn, text, { status, what: 'Text', keepStatus: true }));
+            btn.addEventListener('click', () => copyWithFeedback(btn, text, {
+                status, keepStatus: true, strings: clipboardStrings, subject: 'text',
+            }));
         } else {
             // Trigger file download
             const blob = new Blob([fileBytes], { type: 'application/octet-stream' });
@@ -172,13 +176,13 @@ export async function initView(root, deps) {
             return 'Could not reach the server — check the connection and press Decrypt to retry.';
         case 'gone':
             return {
-                claimed: 'This share has already been claimed.',
-                locked: 'Too many incorrect attempts — this share is locked.',
-                // A 404 means the share was gone before this attempt (e.g. a
-                // link holder burned it); our own lockout is 'locked'.
-                missing: 'This share no longer exists — it was deleted, has expired, '
-                    + 'or was locked by wrong password attempts.',
-                refused: 'The server refused to release the key.',
+                claimed: 'This drop has already been opened.',
+                locked: 'Too many incorrect passwords — this drop is locked.',
+                // A 404 means the drop was gone before this attempt (e.g. a
+                // link holder locked it); our own lockout is 'locked'.
+                missing: 'This drop is gone — it was deleted, has expired, '
+                    + 'or was locked by incorrect passwords.',
+                refused: 'The server refused to open this drop.',
                 corrupted: 'Incorrect password or corrupted drop. Ask the sender to send it again.',
             }[result.reason];
         }

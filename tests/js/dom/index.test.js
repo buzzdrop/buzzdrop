@@ -12,8 +12,8 @@ const fileField = () => screen.getByLabelText('Drop a file here, or browse');
 const strengthMeter = () => screen.getByRole('meter', { name: 'Password strength' });
 const clipboardStatus = () => screen.getByRole('status', { name: 'Clipboard' });
 const passwordCopyStatus = () => screen.getByRole('status', { name: 'Password clipboard' });
-const progressBar = () => screen.getByRole('progressbar', { name: 'Upload progress' });
-const queryProgressBar = () => screen.queryByRole('progressbar', { name: 'Upload progress' });
+const progressBar = () => screen.getByRole('progressbar', { name: 'Sending progress' });
+const queryProgressBar = () => screen.queryByRole('progressbar', { name: 'Sending progress' });
 /** @param {string} name */
 const shareRow = (name) => within(screen.getByRole('article', { name }));
 /** @param {string} name */
@@ -332,7 +332,7 @@ describe('index page', () => {
 
             await upload.copyShareLink('report.pdf');
 
-            await vi.waitFor(() => expect(clipboardStatus()).toHaveTextContent('Share link copied to clipboard.'));
+            await vi.waitFor(() => expect(clipboardStatus()).toHaveTextContent('Drop link copied to clipboard.'));
             expect(await upload.clipboardText()).toBe('http://localhost/view/00000000-0000-4000-8000-000000000001');
             expect(shareRow('report.pdf').getByText('Copied!')).toBeVisible();
 
@@ -352,7 +352,7 @@ describe('index page', () => {
             await upload.copyShareLink('report.pdf');
 
             await vi.waitFor(() => expect(clipboardStatus())
-                .toHaveTextContent('Your browser blocked clipboard access, so the share link was not copied.'));
+                .toHaveTextContent('Your browser blocked clipboard access, so the drop link was not copied.'));
             expect(shareRow('report.pdf').getByText('Failed')).toBeVisible();
         });
 

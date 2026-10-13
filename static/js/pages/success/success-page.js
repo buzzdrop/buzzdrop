@@ -3,10 +3,13 @@
 // - Copying the share link, the password and the one-click link to clipboard
 // - Toggling password visibility
 // - Auto-filling the password and one-click link from the URL fragment
+// Its words come from the page strings: templates/_success_strings.html, and
+// _clipboard_feedback_strings.html for what its copies announce.
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
+import { readStrings } from '../../lib/strings.js';
 
 /**
  * @typedef {Record<string, never>} SuccessDeps
@@ -35,6 +38,9 @@ export function initSuccess(root, deps) {
     const copyOneClickBtn = required(root, '#copy-one-click-btn', 'button');
     const toggleBtn = required(root, '#toggle-password', 'button');
     const toggleLabel = required(toggleBtn, '#toggle-password-label', 'span');
+    const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
+    const strings = pageStrings.section('success');
+    const clipboardStrings = pageStrings.section('clipboard-feedback');
 
     // One region for the page announces every copy; the button flash is visual.
     const copyStatus = required(root, '#copy-status', 'p');
@@ -54,14 +60,14 @@ export function initSuccess(root, deps) {
         clearTimeout(hideTimer);
         if (pwdInput.type === 'password') {
             pwdInput.type = 'text';
-            toggleLabel.textContent = 'Hide';
+            toggleLabel.textContent = strings.text('hide');
             hideTimer = setTimeout(() => {
                 pwdInput.type = 'password';
-                toggleLabel.textContent = 'Show';
+                toggleLabel.textContent = strings.text('show');
             }, 5000);
         } else {
             pwdInput.type = 'password';
-            toggleLabel.textContent = 'Show';
+            toggleLabel.textContent = strings.text('show');
         }
     }
 
@@ -70,12 +76,14 @@ export function initSuccess(root, deps) {
     // plain HTTP, where there is no Clipboard API; a password field's value
     // can't be copied by selection, and the one-click link isn't on the page
     // in full.
+    /** @param {string} subject - what is copied, as clipboard-feedback names it */
+    const feedback = (subject) => ({ status: copyStatus, strings: clipboardStrings, subject });
     copyLinkBtn.addEventListener('click', () =>
-        copyWithFeedback(copyLinkBtn, shareLink, { status: copyStatus, what: 'Link' }));
+        copyWithFeedback(copyLinkBtn, shareLink, feedback('link')));
     copyPasswordBtn.addEventListener('click', () =>
-        copyWithFeedback(copyPasswordBtn, pwdInput.value, { status: copyStatus, what: 'Password' }));
+        copyWithFeedback(copyPasswordBtn, pwdInput.value, feedback('password')));
     copyOneClickBtn.addEventListener('click', () =>
-        copyWithFeedback(copyOneClickBtn, oneClickLink, { status: copyStatus, what: 'One-click link' }));
+        copyWithFeedback(copyOneClickBtn, oneClickLink, feedback('oneClickLink')));
     toggleBtn.addEventListener('click', togglePasswordVisibility);
 
     // Auto-fill the password from the URL fragment (the upload flow navigates

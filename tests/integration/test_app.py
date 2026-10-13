@@ -235,9 +235,12 @@ def test_manage_users_page_for_admin(client, app, db_instance):
     # Check that literal passwords from config are not displayed
     assert b'testuser:password:false' not in response.data # Raw config string
     assert b'adminuser:adminpass:true' not in response.data # Raw config string
-    # The import map lists module URLs such as lib/one-click-link.js; it
-    # carries no user data, so the bare-word check skips it.
-    page = re.sub(rb'<script type="importmap">.*?</script>', b'', response.data, flags=re.S)
+    # The import map lists module URLs such as lib/one-click-link.js, and
+    # the page strings hold the copy announcements ('Password copied to
+    # clipboard.'); neither carries user data, so the bare-word check skips
+    # both.
+    page = re.sub(rb'<script (?:type="importmap"|id="page-strings-json" type="application/json")>.*?</script>',
+                  b'', response.data, flags=re.S)
     assert b'password' not in page # The literal string 'password'
     assert b'adminpass' not in response.data # The literal string 'adminpass'
 

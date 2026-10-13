@@ -70,6 +70,79 @@ msgstr "Nieprawidłowe żądanie"
 msgid "Logged out successfully"
 msgstr "Wylogowano"
 
+#. a Copy button's label, flashed after a copy. Keep it short.
+#: templates/_clipboard_feedback_strings.html
+msgid "Copied!"
+msgstr "Skopiowano!"
+
+#. a Copy button's label, flashed when the browser refused the copy. Keep it
+#. short.
+#: templates/_clipboard_feedback_strings.html
+msgid "Failed"
+msgstr "Błąd"
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Link copied to clipboard."
+msgstr "Skopiowano link do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the link was not copied."
+msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano linku."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Drop link copied to clipboard."
+msgstr "Skopiowano do schowka link do przesyłki."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the drop link was not copied."
+msgstr ""
+"Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano linku do "
+"przesyłki."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "One-click link copied to clipboard."
+msgstr "Skopiowano link z hasłem do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid ""
+"Your browser blocked clipboard access, so the one-click link was not "
+"copied."
+msgstr ""
+"Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano linku z "
+"hasłem."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Password copied to clipboard."
+msgstr "Skopiowano hasło do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the password was not copied."
+msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano hasła."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Token copied to clipboard."
+msgstr "Skopiowano token do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the token was not copied."
+msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano tokenu."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Text copied to clipboard."
+msgstr "Skopiowano tekst do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the text was not copied."
+msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano tekstu."
+
+#: templates/_success_strings.html
+msgid "Show"
+msgstr "Pokaż"
+
+#: templates/_success_strings.html
+msgid "Hide"
+msgstr "Ukryj"
+
 #: templates/base.html
 msgid ""
 "Buzzdrop: secure, one-time file sharing. Upload encrypted files or secret"
@@ -132,6 +205,10 @@ msgstr "Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)"
 msgid "Go to Buzzdrop"
 msgstr "Przejdź do Buzzdropa"
 
+#: templates/index.html
+msgid "Sending progress"
+msgstr "Postęp wysyłania"
+
 #: templates/login.html
 msgid "Private access"
 msgstr "Dostęp prywatny"
@@ -152,11 +229,105 @@ msgstr ""
 msgid "Username"
 msgstr "Nazwa użytkownika"
 
-#: templates/login.html
+#: templates/login.html templates/success.html
 msgid "Password"
 msgstr "Hasło"
 
 #: templates/login.html
 msgid "Accounts are provisioned at deploy time through environment variables."
 msgstr "Konta zakłada się przy wdrożeniu, w zmiennych środowiskowych."
+
+#: templates/success.html
+msgid "Send the link and the password through different channels."
+msgstr "Wyślij link i hasło różnymi kanałami."
+
+#: templates/success.html
+msgid "Drop secured"
+msgstr "Przesyłka zabezpieczona"
+
+#: templates/success.html
+msgid "Note is in the hive"
+msgstr "Notatka jest w ulu"
+
+#: templates/success.html
+msgid "File is in the hive"
+msgstr "Plik jest w ulu"
+
+#: templates/success.html
+msgid ""
+"Send the link below. The note opens once, when the recipient enters the "
+"password, and is then destroyed."
+msgstr ""
+"Wyślij poniższy link. Notatka otworzy się raz, gdy odbiorca wpisze hasło,"
+" a potem zostanie zniszczona."
+
+#: templates/success.html
+msgid ""
+"Send the link below. The file downloads once, when the recipient enters "
+"the password, and is then destroyed."
+msgstr ""
+"Wyślij poniższy link. Plik pobierze się raz, gdy odbiorca wpisze hasło, a"
+" potem zostanie zniszczony."
+
+#: templates/success.html
+msgid "Link and password, separately"
+msgstr "Link i hasło osobno"
+
+#: templates/success.html
+msgid "Recommended"
+msgstr "Zalecane"
+
+#: templates/success.html
+msgid ""
+"Send each through a different channel, so one intercepted message is not "
+"enough."
+msgstr ""
+"Wyślij je różnymi kanałami, żeby jedna przechwycona wiadomość nie "
+"wystarczyła."
+
+#: templates/success.html
+msgid "Link"
+msgstr "Link"
+
+#: templates/success.html
+msgid "Copy link"
+msgstr "Skopiuj link"
+
+#: templates/success.html
+msgid "Copy"
+msgstr "Skopiuj"
+
+#: templates/success.html
+msgid "Copy password"
+msgstr "Skopiuj hasło"
+
+#: templates/success.html
+msgid "One-click link"
+msgstr "Link z hasłem"
+
+#: templates/success.html
+msgid ""
+"The password rides along in the URL fragment. Convenient, but anyone "
+"holding the link holds the key — this trades away the two-channel "
+"separation recommended above."
+msgstr ""
+"Hasło jest zapisane w adresie, po znaku #. To wygodne, ale kto ma ten "
+"link, ma też hasło – tracisz rozdzielenie na dwa kanały, zalecane "
+"powyżej."
+
+#: templates/success.html
+msgid ", with the password after the #"
+msgstr ", z hasłem po znaku #"
+
+#: templates/success.html
+msgid "Copy one-click link"
+msgstr "Skopiuj link z hasłem"
+
+#: templates/success.html
+msgid "Clipboard"
+msgstr "Schowek"
+
+#: templates/success.html
+msgid "Create another drop"
+msgstr "Wyślij kolejną przesyłkę"
 

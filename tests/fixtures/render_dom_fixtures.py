@@ -164,6 +164,8 @@ def render_all():
                                 data={'csrf_token': CSRF_TOKEN}))
         fixtures.append(_render(f'success--{kind}', _client('testuser'), 'GET',
                                 f"/success/{record['id']}"))
+        fixtures.append(_render(f'success--{kind}.pl', _client('testuser'), 'GET',
+                                f"/success/{record['id']}", language='pl'))
     return fixtures
 
 

@@ -5,6 +5,7 @@
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { required, requiredClosest } from '../../lib/required.js';
+import { readStrings } from '../../lib/strings.js';
 
 /**
  * @typedef {object} UsersDeps
@@ -47,6 +48,7 @@ export function browserDeps() {
  */
 export function initUsers(root, deps) {
     const csrf = csrfToken(root);
+    const clipboardStrings = readStrings(required(root, '#page-strings-json', 'script')).section('clipboard-feedback');
 
     /** @param {HTMLButtonElement} button */
     async function generateToken(button) {
@@ -89,7 +91,9 @@ export function initUsers(root, deps) {
     /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.copy-token-btn')).forEach((button) => {
         button.addEventListener('click', () => {
             const input = required(requiredClosest(button, '.copy-field', 'div'), 'input', 'input');
-            copyWithFeedback(button, input, { status: required(root, '#copy-status', 'p'), what: 'Token' });
+            copyWithFeedback(button, input, {
+                status: required(root, '#copy-status', 'p'), strings: clipboardStrings, subject: 'token',
+            });
         });
     });
 }

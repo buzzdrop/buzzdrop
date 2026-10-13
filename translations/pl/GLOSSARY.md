@@ -15,6 +15,7 @@ When a string needs a concept listed here, use this word, even where a synonym w
 | Drop link | **link** (m.); in full **link do przesyłki** | | odnośnik, adres URL |
 | Memo | **dopisek** (m.; dopisku) | Say it isn't encrypted wherever it's entered: „Widzisz go tylko ty. Nie jest szyfrowany." | notatka, notatka prywatna |
 | One-time | **jednorazowy / jednorazowa** | „jednorazowy link", „przesyłka jednorazowa" | samozniszczalny, ulotny |
+| One-click link | **link z hasłem** | The drop link with the password in its fragment. | link jednym kliknięciem |
 | Expiry | **termin ważności**; verb **wygasa**; state **wygasła** | Field label: „Termin ważności (opcjonalnie)" | data wygaśnięcia, ważność do |
 
 ### Actions

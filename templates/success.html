@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% from '_page_strings.html' import page_strings %}
+{% from '_clipboard_feedback_strings.html' import strings as clipboard_feedback_strings with context %}
+{% from '_success_strings.html' import strings as success_strings with context %}
 
 {% block content_width %}max-w-2xl{% endblock %}
 
-{% block footer_note %}Send the link and the password through different channels.{% endblock %}
+{% block footer_note %}{{ _('Send the link and the password through different channels.') }}{% endblock %}
 
 {% block content %}
 <div class="mx-auto {{ self.content_width() }}">
@@ -17,12 +20,16 @@
                 </svg>
             </span>
 
-            <span class="eyebrow">Drop secured</span>
+            <span class="eyebrow">{{ _('Drop secured') }}</span>
             <h1 class="mt-5 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                {% if file_type == 'text' %}Note{% else %}File{% endif %} is in the hive
+                {% if file_type == 'text' %}{{ _('Note is in the hive') }}{% else %}{{ _('File is in the hive') }}{% endif %}
             </h1>
             <p class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400">
-                Share the link below. The {% if file_type == 'text' %}note opens{% else %}file downloads{% endif %} once, when the recipient enters the password, and is then destroyed.
+                {% if file_type == 'text' -%}
+                {% trans %}Send the link below. The note opens once, when the recipient enters the password, and is then destroyed.{% endtrans %}
+                {%- else -%}
+                {% trans %}Send the link below. The file downloads once, when the recipient enters the password, and is then destroyed.{% endtrans %}
+                {%- endif %}
             </p>
         </div>
 
@@ -30,34 +37,34 @@
             {# Option 2 leads: it is the one worth defaulting to. #}
             <section class="relative overflow-hidden rounded-2xl border border-honey-400/25 bg-linear-to-br from-honey-400/8 to-transparent p-5">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h2 class="text-sm font-semibold text-white">Link and password, separately</h2>
-                    <span class="status-badge status-badge-amber">Recommended</span>
+                    <h2 class="text-sm font-semibold text-white">{{ _('Link and password, separately') }}</h2>
+                    <span class="status-badge status-badge-amber">{{ _('Recommended') }}</span>
                 </div>
                 <p class="mt-2 text-xs leading-5 text-slate-400">
-                    Send each through a different channel, so one intercepted message is not enough.
+                    {% trans %}Send each through a different channel, so one intercepted message is not enough.{% endtrans %}
                 </p>
 
                 <div class="mt-4 space-y-3">
                     <div>
-                        <label for="share-link" class="field-label">Link</label>
+                        <label for="share-link" class="field-label">{{ _('Link') }}</label>
                         <div class="copy-field">
                             <input type="text" value="{{ share_link }}" readonly class="field-input flex-1 border-transparent bg-transparent shadow-none" id="share-link">
                             {# Every Copy on the page reserves the same words and has a border
                                (transparent on the primary ones), so all three are one width;
                                this one can't fail, but it lines up with the others. #}
-                            <button id="copy-link-btn" type="button" aria-label="Copy link" class="btn-primary shrink-0 border border-transparent px-4 py-2.5">
+                            <button id="copy-link-btn" type="button" aria-label="{{ _('Copy link') }}" class="btn-primary shrink-0 border border-transparent px-4 py-2.5">
                                 <span class="btn-label">
-                                    <span class="copy-label">Copy</span>
-                                    <span class="btn-label-sizer" data-label="Copy" aria-hidden="true"></span>
-                                    <span class="btn-label-sizer" data-label="Copied!" aria-hidden="true"></span>
-                                    <span class="btn-label-sizer" data-label="Failed" aria-hidden="true"></span>
+                                    <span class="copy-label">{{ _('Copy') }}</span>
+                                    <span class="btn-label-sizer" data-label="{{ _('Copy') }}" aria-hidden="true"></span>
+                                    <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.copied }}" aria-hidden="true"></span>
+                                    <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.failed }}" aria-hidden="true"></span>
                                 </span>
                             </button>
                         </div>
                     </div>
 
                     <div>
-                        <label for="password-display" class="field-label">Password</label>
+                        <label for="password-display" class="field-label">{{ _('Password') }}</label>
                         <div class="copy-field">
                             <input type="password" id="password-display" readonly class="field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
                             {# Stacked on phones, so this Copy is full width like the others. #}
@@ -66,17 +73,17 @@
                                    buttons keep one width as they flip and the field doesn't shift. #}
                                 <button id="toggle-password" type="button" aria-controls="password-display" class="btn-secondary px-4 py-2.5" disabled>
                                     <span class="btn-label">
-                                        <span id="toggle-password-label">Show</span>
-                                        <span class="btn-label-sizer" data-label="Show" aria-hidden="true"></span>
-                                        <span class="btn-label-sizer" data-label="Hide" aria-hidden="true"></span>
+                                        <span id="toggle-password-label">{{ success_strings.show }}</span>
+                                        <span class="btn-label-sizer" data-label="{{ success_strings.show }}" aria-hidden="true"></span>
+                                        <span class="btn-label-sizer" data-label="{{ success_strings.hide }}" aria-hidden="true"></span>
                                     </span>
                                 </button>
-                                <button id="copy-password-btn" type="button" aria-label="Copy password" class="btn-primary border border-transparent px-4 py-2.5" disabled>
+                                <button id="copy-password-btn" type="button" aria-label="{{ _('Copy password') }}" class="btn-primary border border-transparent px-4 py-2.5" disabled>
                                     <span class="btn-label">
-                                        <span class="copy-label">Copy</span>
-                                        <span class="btn-label-sizer" data-label="Copy" aria-hidden="true"></span>
-                                        <span class="btn-label-sizer" data-label="Copied!" aria-hidden="true"></span>
-                                        <span class="btn-label-sizer" data-label="Failed" aria-hidden="true"></span>
+                                        <span class="copy-label">{{ _('Copy') }}</span>
+                                        <span class="btn-label-sizer" data-label="{{ _('Copy') }}" aria-hidden="true"></span>
+                                        <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.copied }}" aria-hidden="true"></span>
+                                        <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.failed }}" aria-hidden="true"></span>
                                     </span>
                                 </button>
                             </div>
@@ -86,42 +93,43 @@
             </section>
 
             <section aria-labelledby="one-click-heading" class="rounded-2xl border border-white/[0.07] bg-white/2 p-5">
-                <h2 id="one-click-heading" class="text-sm font-semibold text-white">One-click link</h2>
+                <h2 id="one-click-heading" class="text-sm font-semibold text-white">{{ _('One-click link') }}</h2>
                 <p class="mt-2 text-xs leading-5 text-slate-400">
-                    The password rides along in the URL fragment. Convenient, but anyone holding the link holds
-                    the key — this trades away the two-channel separation recommended above.
+                    {% trans %}The password rides along in the URL fragment. Convenient, but anyone holding the link holds
+                    the key — this trades away the two-channel separation recommended above.{% endtrans %}
                 </p>
                 <div class="copy-field mt-4">
                     {# The URL truncates and the masked fragment never does, so this
                        link reads differently from the plain one above at any width.
                        The real link stays in the script; Copy writes it. #}
                     <p id="one-click-link" class="field-input flex min-w-0 flex-1 border-transparent bg-transparent shadow-none" hidden>
-                        <span class="truncate">{{ share_link }}</span><span class="shrink-0" aria-hidden="true">#••••••</span><span class="sr-only">, with the password after the #</span>
+                        <span class="truncate">{{ share_link }}</span><span class="shrink-0" aria-hidden="true">#••••••</span><span class="sr-only">{{ _(', with the password after the #') }}</span>
                     </p>
-                    <button id="copy-one-click-btn" type="button" aria-label="Copy one-click link" class="btn-secondary shrink-0 px-4 py-2.5" disabled>
+                    <button id="copy-one-click-btn" type="button" aria-label="{{ _('Copy one-click link') }}" class="btn-secondary shrink-0 px-4 py-2.5" disabled>
                         <span class="btn-label">
-                            <span class="copy-label">Copy</span>
-                            <span class="btn-label-sizer" data-label="Copy" aria-hidden="true"></span>
-                            <span class="btn-label-sizer" data-label="Copied!" aria-hidden="true"></span>
-                            <span class="btn-label-sizer" data-label="Failed" aria-hidden="true"></span>
+                            <span class="copy-label">{{ _('Copy') }}</span>
+                            <span class="btn-label-sizer" data-label="{{ _('Copy') }}" aria-hidden="true"></span>
+                            <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.copied }}" aria-hidden="true"></span>
+                            <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.failed }}" aria-hidden="true"></span>
                         </span>
                     </button>
                 </div>
             </section>
         </div>
 
-        <p id="copy-status" class="sr-only" role="status" aria-label="Clipboard"></p>
+        <p id="copy-status" class="sr-only" role="status" aria-label="{{ _('Clipboard') }}"></p>
 
         <div class="mt-8 text-center">
             <a href="{{ url_for('index') }}" class="btn-ghost">
                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 1 1 0-2h5V4a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
                 </svg>
-                Create another drop
+                {{ _('Create another drop') }}
             </a>
         </div>
     </div>
 </div>
 
+{{ page_strings({'clipboard-feedback': clipboard_feedback_strings, 'success': success_strings}) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/success/entry.js') }}" integrity="{{ sri_hash('js/pages/success/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}
