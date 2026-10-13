@@ -20,8 +20,10 @@ describe('language menu', () => {
 
         expect(button()).toHaveAttribute('aria-expanded', 'true');
         expect(screen.getByRole('menu', { name: 'Language: English' })).toBeVisible();
-        expect(screen.getAllByRole('menuitemradio').map((element) => element.textContent?.trim()))
-            .toEqual(['English', 'Polski']);
+        const [first, second, ...rest] = screen.getAllByRole('menuitemradio');
+        expect(first).toHaveAccessibleName('English');
+        expect(second).toHaveAccessibleName('Polski');
+        expect(rest).toEqual([]);
         expect(item('English')).toBeChecked();
         expect(item('Polski')).not.toBeChecked();
         expect(item('Polski')).toHaveAttribute('lang', 'pl');

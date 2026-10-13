@@ -197,7 +197,7 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
 6. The uploader deletes the file from the index list, and the link is dead.
 7. Login → upload → logout (session and CSRF over real HTTP).
 8. The header stays one row at 375px and 320px, logged out and logged in, with no sideways scroll (#232), the language button included (#287).
-9. The language menu (#287): Tab, Enter and the arrows pick Polski and the choice holds on the next page; Escape gives focus back to the button; with JavaScript off the menu still switches the language.
+9. The language menu (#287): Tab, Enter and the arrows pick Polski, Space opens it too, and the choice holds on the next page; Escape gives focus back to the button; with JavaScript off the menu still switches the language.
 
 Hard-to-produce failures (410 edge cases, 429) are mocked per test with `page.route()`. There is no separate mocked-server E2E mode.
 

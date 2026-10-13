@@ -58,6 +58,9 @@ def _menu(response):
 
 def _log_in(client):
     client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    # Logging in starts a new session; seed its CSRF token again.
+    with client.session_transaction() as session:
+        session['csrf_token'] = CSRF_TOKEN
 
 
 def test_the_button_names_the_current_language(client):
@@ -149,3 +152,18 @@ def test_with_one_language_there_is_no_menu(app, client):
 @pytest.mark.parametrize('code, name', [('en', 'English'), ('pl', 'Polski'), ('de', 'Deutsch')])
 def test_a_language_is_named_in_itself(code, name):
     assert i18n.native_name(code) == name
+
+
+def test_a_page_rendered_from_a_post_only_route_goes_back_home(client, key_release_upload):
+    _log_in(client)
+    *_, response = key_release_upload(xhr=False)
+
+    assert response.status_code == 200
+    assert 'File is in the hive' in response.get_data(as_text=True)
+    assert {item['fields']['next'] for item in _menu(response).items} == {'/'}
+
+
+def test_a_page_rendered_from_a_post_to_a_get_route_goes_back_to_it(client):
+    response = client.post(url_for('login'), data={'username': 'testuser', 'password': 'nope'})
+
+    assert {item['fields']['next'] for item in _menu(response).items} == {'/login'}

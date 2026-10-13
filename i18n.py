@@ -132,10 +132,11 @@ def language_menu(current, return_path):
     languages = current_app.config['LANGUAGES']
     if len(languages) < 2:
         return None
+    entries = [{'code': code, 'name': native_name(code), 'current': code == current}
+               for code in languages]
     return {
-        'current': {'code': current, 'name': native_name(current)},
-        'languages': [{'code': code, 'name': native_name(code), 'current': code == current}
-                      for code in languages],
+        'current': next(entry for entry in entries if entry['current']),
+        'languages': entries,
         'next': return_path,
     }
 

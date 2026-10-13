@@ -33,9 +33,9 @@ export function initLanguageMenu(root, deps) {
     // Arrow keys reach the items, so Tab skips over them (a menu is one stop).
     items.forEach((item) => { item.tabIndex = -1; });
 
-    // The list's hidden attribute mirrors the <details> state: the page shows
-    // and hides with `hidden`, and a <details> opened another way (find in
-    // page) still ends up consistent.
+    // The list's hidden attribute and the button's aria-expanded mirror the
+    // <details> state (pages show and hide with `hidden`), also when it
+    // toggles without a click here.
     const sync = () => {
         button.setAttribute('aria-expanded', String(details.open));
         list.hidden = !details.open;

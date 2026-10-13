@@ -1,5 +1,5 @@
-// The header's language menu (#287) in the real browsers: Enter on the
-// button and on an item (which happy-dom can't press on a <summary>),
+// The header's language menu (#287) in the real browsers: Enter and Space
+// on the button and Enter on an item (happy-dom can't press a <summary>),
 // Escape giving focus back, the choice holding across pages, and the menu
 // working with JavaScript off, since each item is a plain form.
 import { test, expect } from './fixtures.js';
@@ -37,6 +37,16 @@ test('the keyboard opens the menu, picks Polski, and the choice holds across pag
 
     await page.goto('/login');
     await expect(page.getByRole('heading', { name: 'Wejdź do ula' })).toBeVisible();
+});
+
+test('Space on the button opens the menu at the current language', async ({ page }) => {
+    await page.goto('/');
+
+    await tabToLanguageButton(page);
+    await page.keyboard.press('Space');
+
+    await expect(page.getByRole('menu')).toBeVisible();
+    await expect(page.getByRole('menuitemradio', { name: 'English' })).toBeFocused();
 });
 
 test('Escape closes the menu and gives focus back to the button', async ({ page }) => {
