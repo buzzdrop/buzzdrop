@@ -462,8 +462,8 @@ export function initIndex(root, deps) {
             const url = /** @type {string} */ (button.getAttribute('data-url'));
             copyWithFeedback(button, url, {
                 status: required(root, '#copy-status', 'p'), strings: clipboardStrings, messages: {
-                    copied: 'Share link copied to clipboard.',
-                    failed: 'Your browser blocked clipboard access, so the share link was not copied.',
+                    copied: 'Drop link copied to clipboard.',
+                    failed: 'Your browser blocked clipboard access, so the drop link was not copied.',
                 },
             });
         });

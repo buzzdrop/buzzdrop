@@ -6,7 +6,8 @@ const FILES = {
     one: '%(count)s plik',
     few: '%(count)s pliki',
     many: '%(count)s plików',
-    other: '%(count)s pliku',
+    // What i18n.plural_forms gives a fraction: the form gettext gives 5.
+    other: '%(count)s plików',
 };
 
 test('a string is read by its key', () => {
@@ -64,7 +65,9 @@ test('Polish plurals pick the CLDR form for the count', () => {
 });
 
 test('a fraction takes the other form', () => {
-    assert.equal(stringsFrom({ files: FILES }, 'pl').plural('files', 1.5, { count: '1,5' }), '1,5 pliku');
+    const files = { ...FILES, other: '%(count)s (other)' };
+
+    assert.equal(stringsFrom({ files }, 'pl').plural('files', 1.5, { count: '1,5' }), '1,5 (other)');
 });
 
 test('English plurals have one and other', () => {

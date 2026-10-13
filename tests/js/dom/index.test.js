@@ -332,7 +332,7 @@ describe('index page', () => {
 
             await upload.copyShareLink('report.pdf');
 
-            await vi.waitFor(() => expect(clipboardStatus()).toHaveTextContent('Share link copied to clipboard.'));
+            await vi.waitFor(() => expect(clipboardStatus()).toHaveTextContent('Drop link copied to clipboard.'));
             expect(await upload.clipboardText()).toBe('http://localhost/view/00000000-0000-4000-8000-000000000001');
             expect(shareRow('report.pdf').getByText('Copied!')).toBeVisible();
 
@@ -352,7 +352,7 @@ describe('index page', () => {
             await upload.copyShareLink('report.pdf');
 
             await vi.waitFor(() => expect(clipboardStatus())
-                .toHaveTextContent('Your browser blocked clipboard access, so the share link was not copied.'));
+                .toHaveTextContent('Your browser blocked clipboard access, so the drop link was not copied.'));
             expect(shareRow('report.pdf').getByText('Failed')).toBeVisible();
         });
 
