@@ -42,6 +42,6 @@ npx playwright install chromium firefox webkit   # once
 npx playwright test
 ```
 
-Every spec imports `test` from `tests/e2e/fixtures.js`. Its always-on guard fails a test whose share password reaches any request or cookie, or that leaves anything in localStorage or sessionStorage. So draw every password from the `sharePassword` fixture.
+Every spec imports `test` from `tests/e2e/fixtures.js`, never from `@playwright/test`. Its always-on guard fails a test whose share password reaches any request or cookie, or that leaves anything in localStorage or sessionStorage. So draw every password from the `sharePassword` fixture.
 
 Animations are off (`reducedMotion: 'reduce'`) because they move elements under clicks.

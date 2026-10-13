@@ -39,13 +39,13 @@ Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their
 
 ## Invariants
 
-- **Timestamps are UTC** (`timestamps.py`, #250). Write every stored time with `now_iso()`/`to_utc_iso()`: ISO 8601 with `+00:00`, always with microseconds, because the SQL text comparisons depend on it. Compare against `utcnow()`.
+- **Timestamps are UTC** (`timestamps.py`, #250). Write every stored time with `now_iso()`/`to_utc_iso()`: ISO 8601 with `+00:00`, always with microseconds, because the SQL text comparisons depend on it. Compare against `utcnow()`. Never use a naive `datetime.now()`.
   - `parse_timestamp` reads a value with no offset as UTC. Zoneless values from older versions are deliberately not migrated.
   - The server renders its own text in UTC. Browser code shows local times with `Intl` from the `<field>_iso` twins. `DEFAULT_TIMEZONE` is used for notification emails only.
 - **`BKV3` is the only share format.** Legacy formats are rejected. This is a deliberate pre-production break, with no backward compatibility.
 - **JSON responses stay English.** An error the web UI may show carries a stable `code` that the browser maps to its own text.
 - **Protocol contract — keep in step.** When a response of `/upload/begin`, `/upload`, `/download`, `/release` or `/report_decryption` changes (its status, its body or the condition that triggers it), the JS protocol fake must follow. The steps are in `tests/CLAUDE.md` §Protocol contract.
 - **Explainer page — keep in step.** `docs/how-it-works.md` is the source of truth for `/how-it-works` and the landing-page walkthrough.
-  - A change to the upload/view/release/download/expiry flow, the crypto, what is stored or how long it is kept updates the doc and the page in the same PR, or the PR says that neither is affected.
+  - A change to the upload/view/release/download/expiry flow, the crypto, what is stored or how long it is kept must update the doc and the page in the same PR, or the PR must say that neither is affected.
   - `tests/unit/test_how_it_works_fingerprint.py` fails until someone has re-read both and pasted the new hash.
   - Page layout and its other checks: `docs/dev/share-protocol.md` §Explainer page.
