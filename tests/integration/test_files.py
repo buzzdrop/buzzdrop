@@ -168,7 +168,9 @@ def test_download_file_success(client, app, files_store, key_release_upload, cla
                           headers=ticket_headers(claim_ticket(file_id)))
     assert response.status_code == 200
     assert response.data == file_content
-    assert response.headers['Content-Disposition'] == f'attachment; filename="{file_name}"'
+    # The download's filename stays neutral: the real one travels inside
+    # the ciphertext and the page names the saved blob itself (#246).
+    assert response.headers['Content-Disposition'] == 'attachment; filename="download"'
 
     updated_file_info = files_store.get_by_id(file_id)
     assert updated_file_info is not None
@@ -206,7 +208,9 @@ def test_view_file_success(client, app, files_store, key_release_upload):
 
     response = client.get(url_for('view_file', file_id=file_id))
     assert response.status_code == 200
-    assert file_name.encode() in response.data
+    # The filename stays inside the ciphertext (#246); the page still
+    # identifies the drop itself.
+    assert file_name.encode() not in response.data
     assert file_id.encode() in response.data
 
 def test_public_views_do_not_show_private_note(client, files_store, csrf_form_data, key_release_upload):
@@ -313,9 +317,10 @@ def test_view_file_expired(client, app, files_store, key_release_upload):
     assert not os.path.exists(updated['path'])
 
 
-def test_view_file_shows_filename_to_recipient(client, app, files_store, key_release_upload, claim_ticket):
-    """Recipients see the real filename on view/confirm and in the
-    download's Content-Disposition."""
+def test_view_file_hides_filename_from_recipient(client, app, files_store, key_release_upload, claim_ticket):
+    """The filename reaches the recipient only inside the ciphertext:
+    view/confirm pages and the download's Content-Disposition stay
+    neutral so the bare link doesn't reveal it (#246)."""
     login_user(client, 'testuser', 'password')
 
     file_id, _h, _rcpt, response = key_release_upload(
@@ -324,18 +329,18 @@ def test_view_file_shows_filename_to_recipient(client, app, files_store, key_rel
 
     view = client.get(url_for('view_file', file_id=file_id))
     assert view.status_code == 200
-    assert b'medical-records.txt' in view.data
+    assert b'medical-records.txt' not in view.data
 
     confirm = client.post(
         url_for('confirm_view_file', file_id=file_id),
         data={'csrf_token': 'test-csrf-token'})
     assert confirm.status_code == 200
-    assert b'"originalName": "medical-records.txt"' in confirm.data
+    assert b'medical-records.txt' not in confirm.data
 
     from conftest import ticket_headers
     download = client.get(url_for('download_file', file_id=file_id),
                           headers=ticket_headers(claim_ticket(file_id)))
-    assert download.headers['Content-Disposition'] == 'attachment; filename="medical-records.txt"'
+    assert download.headers['Content-Disposition'] == 'attachment; filename="download"'
 
 def test_report_decryption_success(client, app, files_store, claim_ticket):
     login_user(client, 'testuser', 'password')

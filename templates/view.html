@@ -20,7 +20,7 @@
             </span>
 
             <span class="eyebrow">Recipient step</span>
-            <h1 class="mt-5 wrap-break-word text-2xl font-semibold tracking-tight text-white">{{ original_name }}</h1>
+            <h1 class="mt-5 wrap-break-word text-2xl font-semibold tracking-tight text-white">Encrypted {% if file_type == 'text' %}note{% else %}file{% endif %}</h1>
             <p id="status" class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400" role="status" aria-live="polite">
                 Enter the password to {% if file_type == 'text' %}reveal this note{% else %}decrypt and download{% endif %}.
             </p>
@@ -80,7 +80,6 @@
     'downloadUrl': url_for('download_file', file_id=file_id),
     'releaseUrl': url_for('release_key', file_id=file_id),
     'reportDecryptionUrl': url_for('report_decryption', file_id=file_id),
-    'originalName': original_name,
     'fileType': file_type,
     'salt': salt,
 } | tojson }}</script>

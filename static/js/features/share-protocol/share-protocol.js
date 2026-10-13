@@ -76,7 +76,7 @@ const SERVER_SHARE_BYTES = 32;
  * locked by this attempt, missing (deleted, expired or burned before this
  * attempt), refused by a failing server, or corrupted (the server released
  * its share, but the blob didn't decrypt with it).
- * @typedef {{ kind: 'opened', data: Bytes, receipt: Bytes }
+ * @typedef {{ kind: 'opened', data: Bytes, receipt: Bytes, name: string }
  *   | { kind: 'retry', remaining: number | null }
  *   | { kind: 'gone', reason: 'claimed' | 'locked' | 'missing' | 'refused' | 'corrupted' }
  *   | { kind: 'unreachable' }} ClaimResult
@@ -166,7 +166,8 @@ export async function createShare(payload, password, options, deps) {
         return handshakeRefused;
     }
 
-    const { blob, verifier, receipt } = await deps.crypto.seal(payload.bytes, password, h);
+    const { blob, verifier, receipt } = await deps.crypto.seal(
+        payload.bytes, password, h, payload.kind === 'file' ? payload.name : '');
     const form = new FormData();
     if (payload.kind === 'file') {
         form.append('file', new File([blob], payload.name));
@@ -230,8 +231,8 @@ async function claim(sealed, password, deps) {
 
     deps.onStep?.('decrypting');
     try {
-        const { data, receipt } = await claim.finish(claim.h, download.blob);
-        return { kind: 'opened', data, receipt };
+        const { data, receipt, name } = await claim.finish(claim.h, download.blob);
+        return { kind: 'opened', data, receipt, name };
     } catch {
         // H is spent: the share can't be tried again.
         return { kind: 'gone', reason: 'corrupted' };
