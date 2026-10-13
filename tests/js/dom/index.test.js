@@ -12,8 +12,8 @@ const fileField = () => screen.getByLabelText('Drop a file here, or browse');
 const strengthMeter = () => screen.getByRole('meter', { name: 'Password strength' });
 const clipboardStatus = () => screen.getByRole('status', { name: 'Clipboard' });
 const passwordCopyStatus = () => screen.getByRole('status', { name: 'Password clipboard' });
-const progressBar = () => screen.getByRole('progressbar', { name: 'Upload progress' });
-const queryProgressBar = () => screen.queryByRole('progressbar', { name: 'Upload progress' });
+const progressBar = () => screen.getByRole('progressbar', { name: 'Sending progress' });
+const queryProgressBar = () => screen.queryByRole('progressbar', { name: 'Sending progress' });
 /** @param {string} name */
 const shareRow = (name) => within(screen.getByRole('article', { name }));
 /** @param {string} name */

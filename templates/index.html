@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from '_page_strings.html' import page_strings %}
+{% from '_clipboard_feedback_strings.html' import strings as clipboard_feedback_strings with context %}
 {% from '_play_toggle.html' import play_toggle %}
 {% from '_progress_bar.html' import progress_bar %}
 {% from '_how_it_works_content.html' import brief %}
@@ -132,8 +134,8 @@ Send the link and the password through different channels.
                             <span class="btn-label">
                                 <span id="copy-password-label">Copy</span>
                                 <span class="btn-label-sizer" data-label="Copy" aria-hidden="true"></span>
-                                <span class="btn-label-sizer" data-label="Copied!" aria-hidden="true"></span>
-                                <span class="btn-label-sizer" data-label="Failed" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.copied }}" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.failed }}" aria-hidden="true"></span>
                             </span>
                         </button>
                     </div>
@@ -207,7 +209,7 @@ Send the link and the password through different channels.
                         </svg>
                     </button>
                 </div>
-                {{ progress_bar('share-progress', 'Upload progress', extra_class='mt-4') }}
+                {{ progress_bar('share-progress', _('Sending progress'), extra_class='mt-4') }}
             </div>
         </div>
     </div>
@@ -531,8 +533,8 @@ Send the link and the password through different channels.
                             <span class="btn-label">
                                 <span class="copy-label">Copy link</span>
                                 <span class="btn-label-sizer" data-label="Copy link" aria-hidden="true"></span>
-                                <span class="btn-label-sizer" data-label="Copied!" aria-hidden="true"></span>
-                                <span class="btn-label-sizer" data-label="Failed" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.copied }}" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.failed }}" aria-hidden="true"></span>
                             </span>
                         </button>
                         <form method="post" action="{{ url_for('delete_file', file_id=file.id) }}" class="inline-block" data-confirm-message="Delete this file?">
@@ -566,5 +568,6 @@ Send the link and the password through different channels.
     'uploadUrl': url_for('upload_file'),
     'uploadBeginUrl': url_for('upload_begin'),
 } | tojson }}</script>
+{{ page_strings({'clipboard-feedback': clipboard_feedback_strings}) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/index/entry.js') }}" integrity="{{ sri_hash('js/pages/index/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}

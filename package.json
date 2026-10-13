@@ -22,6 +22,8 @@
     "@testing-library/user-event": "^14.6.7",
     "@types/node": "^26.6.4",
     "@vitest/coverage-v8": "^5.0.3",
+    "acorn": "^8.19.0",
+    "acorn-walk": "^8.3.5",
     "dom-accessibility-api": "^0.7.1",
     "happy-dom": "^20.14.5",
     "tailwindcss": "^4.3.3",

@@ -1,12 +1,16 @@
 """
 i18n.py (#263, #265): the Polish non-breaking-space wrapper, the startup
-check on LANGUAGES/DEFAULT_LANGUAGE, and the rule that flashed text is
-translated eagerly.
+check on LANGUAGES/DEFAULT_LANGUAGE, the plural forms handed to page
+scripts, and the rule that flashed text is translated eagerly.
 """
 import ast
+from io import BytesIO
 from pathlib import Path
 
 import pytest
+from babel.messages.catalog import Catalog
+from babel.messages.mofile import write_mo
+from babel.support import Translations
 
 import i18n
 from i18n import keep_polish_orphans_attached, validate_languages
@@ -92,6 +96,50 @@ def test_parse_languages(value, expected):
 def test_language_selection_never_raises(app, header):
     with app.test_request_context('/', headers={'Accept-Language': header}):
         assert i18n.select_language() in app.config['LANGUAGES']
+
+
+# --- Plural forms for page scripts (#265) ---------------------------------
+
+def _translations(language, plurals):
+    """A catalog in ``language`` holding ``plurals``: (singular, plural) → forms."""
+    catalog = Catalog(locale=language)
+    for ids, forms in plurals.items():
+        catalog.add(ids, forms)
+    buffer = BytesIO()
+    write_mo(buffer, catalog)
+    return Translations(fp=BytesIO(buffer.getvalue()))
+
+
+def test_plural_forms_are_keyed_by_cldr_category(app, monkeypatch):
+    files = ('%(count)s file', '%(count)s files')
+    polish = _translations('pl', {files: ('%(count)s plik', '%(count)s pliki', '%(count)s plików')})
+    monkeypatch.setattr(i18n, 'get_translations', lambda: polish)
+
+    with app.test_request_context('/', headers={'Accept-Language': 'pl'}):
+        forms = i18n.plural_forms(*files)
+
+    # gettext's Polish formula has three forms; CLDR's "other" (fractions)
+    # gets the one gettext gives a fraction.
+    assert forms == {'one': '%(count)s plik', 'few': '%(count)s pliki',
+                     'many': '%(count)s plików', 'other': '%(count)s plików'}
+
+
+def test_plural_forms_in_english_are_the_msgids(app):
+    with app.test_request_context('/'):
+        forms = i18n.plural_forms('%(count)s file', '%(count)s files')
+
+    assert forms == {'one': '%(count)s file', 'other': '%(count)s files'}
+
+
+def test_plural_forms_keep_polish_one_letter_words_attached(app, monkeypatch):
+    attempts = ('%(count)s attempt left', '%(count)s attempts left')
+    polish = _translations('pl', {attempts: ('i %(count)s próba', 'i %(count)s próby', 'i %(count)s prób')})
+    monkeypatch.setattr(i18n, 'get_translations', lambda: polish)
+
+    with app.test_request_context('/', headers={'Accept-Language': 'pl'}):
+        forms = i18n.plural_forms(*attempts)
+
+    assert forms['one'] == f'i{NBSP}%(count)s próba'
 
 
 # --- flash() takes eagerly translated text (#265) -------------------------

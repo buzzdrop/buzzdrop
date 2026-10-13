@@ -7,6 +7,7 @@ When one of the drift checks fails, run ``python translations/catalogs.py``
 """
 import re
 import sys
+import uuid
 from collections import Counter
 from html.parser import HTMLParser
 from io import BytesIO
@@ -19,6 +20,7 @@ from flask import url_for
 from werkzeug.exceptions import InternalServerError
 
 import i18n
+from timestamps import now_iso
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'translations'))
@@ -128,6 +130,8 @@ TRANSLATABLE_ATTRIBUTES = ('aria-label', 'title', 'placeholder', 'alt')
 # Text runs on across these; any other tag ends a run of words.
 INLINE_TAGS = {'a', 'abbr', 'b', 'code', 'em', 'i', 'small', 'span', 'strong', 'time'}
 NOT_WORDS = re.compile(r'^[\W\d_]*$')
+# Links the server renders, such as a drop link.
+URL = re.compile(r'^https?://')
 SURROUNDING_PUNCTUATION = '()[]{}.,:;!?"\'\u201e\u201d'
 
 
@@ -191,7 +195,8 @@ def _outside_markers(text):
         elif depth == 0:
             outside.append(char)
     words = (word.strip(SURROUNDING_PUNCTUATION) for word in ''.join(outside).split())
-    return [word for word in words if word not in ALLOWED and not NOT_WORDS.match(word)]
+    return [word for word in words
+            if word not in ALLOWED and not NOT_WORDS.match(word) and not URL.match(word)]
 
 
 def _unwrapped(html):
@@ -225,6 +230,20 @@ def _unknown_url(client):
     return client.get('/does-not-exist')
 
 
+def _success_page(file_type):
+    def render(client):
+        from app import get_files_store
+        file_id = str(uuid.uuid4())
+        get_files_store().insert({
+            'id': file_id, 'original_name': 'secret.txt', 'path': f'nonexistent/{file_id}',
+            'created_at': now_iso(), 'downloaded_at': None, 'uploaded_by': 'testuser',
+            'expiry_at': None, 'status': 'active', 'type': file_type,
+        })
+        client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+        return client.get(url_for('upload_success', file_id=file_id))
+    return render
+
+
 # The pages converted so far; each i18n issue adds its own.
 CONVERTED_PAGES = {
     'login': _login_page,
@@ -232,6 +251,8 @@ CONVERTED_PAGES = {
     'drop is gone': _gone_page,
     'drop is gone, admin header and flash': _gone_page_as_admin_with_a_flash,
     'unknown URL': _unknown_url,
+    'success, file': _success_page('file'),
+    'success, note': _success_page('text'),
 }
 
 

@@ -81,7 +81,8 @@ From [How are DOM fixtures rendered from the real Jinja templates?](https://gith
   - `how_it_works`: anonymous, the default view (`default`); other views are opened by address, which the page script reads
 
   `login.html` is excluded in English (it has no JS). Flash-message variants are added only when a DOM test needs one.
-- **Languages** ([#268](https://github.com/buzzdrop/buzzdrop/issues/268)): every fixture above is English (the generator pins `DEFAULT_LANGUAGE=en`, and nothing sends `Accept-Language`), and the ~140 text queries stay English. Each translated page also gets **one Polish fixture**, `<template>--<state>.pl`, requested with `Accept-Language: pl` and drift-checked like the rest: so far `login--default.pl` and `error--gone.pl` (the "drop is gone" page; #284). Later i18n issues add `index--files.pl`, `view--file.pl`, `success--file.pl`, `confirm_download--file.pl`, `how_it_works--default.pl` and `users--admin.pl`.
+- **Languages** ([#268](https://github.com/buzzdrop/buzzdrop/issues/268)): every fixture above is English (the generator pins `DEFAULT_LANGUAGE=en`, and nothing sends `Accept-Language`), and the ~140 text queries stay English. Each translated page also gets **one Polish fixture**, `<template>--<state>.pl`, requested with `Accept-Language: pl` and drift-checked like the rest: so far `login--default.pl` and `error--gone.pl` (the "drop is gone" page; #284), and `success--file.pl` and `success--text.pl` ([#286](https://github.com/buzzdrop/buzzdrop/issues/286)). Later i18n issues add `index--files.pl`, `view--file.pl`, `confirm_download--file.pl`, `how_it_works--default.pl` and `users--admin.pl`.
+- **Page strings** ([#265](https://github.com/buzzdrop/buzzdrop/issues/265)): the words a page script writes come from the page's `page-strings-json` island (`templates/_page_strings.html`, filled from each feature's or page's `_<name>_strings.html`), which the fixtures keep like the other JSON blocks, in the fixture's language. A DOM test therefore sees the server's words, and a page whose template lacks a string fails, because the reader (`lib/strings.js`) throws on an unknown key.
 
 ## 5. Protocol fake
 
@@ -155,6 +156,9 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
 - Existing: `crypto`, `passphrase`, `shared-files` (the crypto fixtures are byte-identical to `tests/unit/test_cli_crypto.py`).
 - New: `one-click-link.test.js`, `file-extensions.test.js`, `hex.test.js`, `architecture.test.js` (the layer rules, #251); `shared-files.test.js` gains the search-text and `compareRows` cases (§3).
 - `required.test.js`: the element lookups (§3) return the match, and throw on a missing element, a wrong tag or a windowless document.
+- `strings.test.js` (#286): the page-strings reader throws on an unknown key, a section or plural read as a string, and a placeholder without a value; `%(name)s` fill and `%%`; the plural helper picks the CLDR form with `Intl.PluralRules` (`pl`: 1, 2, 5, 12, 22, 25, and a fraction), falling back to `other`.
+- `format.test.js` (#286): `lib/format.js` numbers and whole percentages per language (`en`, `pl`, `de`).
+- `js-literals.test.js` (#268, #286): see §7c.
 
 ### DOM (Vitest + happy-dom, against the template fixtures)
 - **Index page (`pages/index/`):**
@@ -173,7 +177,7 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
 - **Confirm page (`pages/confirm-download/`):** the fragment password carried across the confirm POST (one well-formed case).
 - **Hero flow (`pages/hero-flow/`):** reduced motion means no autoplay; the toggle pauses it; hovering the stage or pausing keeps the time left in the hold, for leaving or Play to resume, and the next stage gets its full hold; coming back to the tab doesn't resume a stage the pointer still rests on (#248). The stage on screen is the list item with `aria-current="step"`.
 - **How it works (`pages/how-it-works/`, #245):** Next/Previous and the step list move the step on screen (the one visible `article`, its list button `aria-current="step"`), Previous and Next disabled at the ends; a `#step-…` address, on load or followed later, opens that step; Play advances on a timer, also under reduced motion (which only drops the animation), stops at the last step and starts over from it, Pause keeps the time left for Play to resume, and stepping by hand stops it; nothing moves until Play. Each switch changes the step on screen in place (actor, auth, upload field, end of decryption, the filename caveat) and writes `?sender=…&content=…` to the address, keeping its fragment; CLI disables Text with its reason as the radio's description and moves Text to File, also when the address asks for CLI + text; the choice is announced in a status line.
-- **Polish smoke tests (`tests/js/dom/polish.test.js`, #268):** one per Polish fixture: `<html lang="pl">`, the key template strings in Polish, a one-letter word joined to the next by a non-breaking space; as pages with scripts are translated, also the strings the script writes from the page's JSON island, `Intl` dates and one plural with a *few* and a *many* case.
+- **Polish smoke tests (`tests/js/dom/polish.test.js`, #268):** one per Polish fixture: `<html lang="pl">`, the key template strings in Polish, a one-letter word joined to the next by a non-breaking space; as pages with scripts are translated, also the strings the script writes from the page's JSON island, `Intl` dates and one plural with a *few* and a *many* case, where the page has them. The success page (#286) checks its file and note wording, and that Show/Hide, Copy's flash and the clipboard status (copied and blocked) are Polish; it has no dates or counts.
 - **Users page (`pages/users/`, admin):** Generate shows the token and its expiry and re-enables the button; a server error shows its message; the request carries the CSRF header; Copy shows "Copied!".
 
 ### JS integration (page modules + real `lib/crypto.js` + protocol fake)
@@ -237,7 +241,7 @@ From [Frontend tests: drive pages through user-behaviour helpers instead of setu
   |---|---|---|
   | `page.js` | the core: a fixture in its own happy-dom window, Testing Library queries bound to it, a user-event session | `openPage`, `screen`, `waitUntil`, `typeable` |
   | `upload.js` | `openUploadPage(options)` (index, logged in), `openLandingPage(options)` (index, anonymous, with the hero) | `switchToNote`, `writeMessage`, `selectFile`, `dropFile`, `enterPassword`, `generatePassword`, `showPassword`, `hidePassword`, `copyPassword`, `setShareOptions`, `share`, `shareFile`, `shareMessage`, `press`, `searchShares`, `sortSharesBy`, `nextSharesPage`, `copyShareLink`, `deleteShare`; `pauseWalkthrough`, `playWalkthrough`, `pointAtWalkthrough`, `moveAwayFromWalkthrough`, `leaveTab`, `returnToTab` |
-  | `success.js` | `openSuccessPage(options)` | `copyShareLink`, `copyOneClickLink`, `revealPassword`, `hidePassword` |
+  | `success.js` | `openSuccessPage(options)` (`type: 'file' \| 'message'`, `language: 'en' \| 'pl'`) | `copyShareLink`, `copyOneClickLink`, `copyPassword`, `revealPassword`, `hidePassword` |
   | `confirm.js` | `openConfirmPage(options)` | `proceedToView` |
   | `view.js` | `openShare(options)` | `decryptWithPassword`, `decryptWithEnter`, `copyMessage`, `finishDownload` |
   | `users.js` | `openUsersPage(options)` | `generateToken`, `startGeneratingToken`, `finishTokenRequest`, `copyToken` |
@@ -260,6 +264,19 @@ From [#235](https://github.com/buzzdrop/buzzdrop/issues/235). Tests and drivers 
 - **When a query can't find something, fix the page, not the test.** #235 gave the pages the semantics the tests (and users) rely on: live regions with a role (the view page's `status`, the named `Clipboard` status on index, success and users, with copies on the view page announced through its status line, `alert` for the token error), a `meter` for password strength and one `progressbar` (`templates/_progress_bar.html`) for uploads and for each step of opening a share, its step in `aria-valuetext`, named regions for the decrypted note, the walkthrough, the drop list and each token card, named share rows, real `<button>`s for copying a share link, stable names for copy buttons (`Copy link`, `Copy password`, `Copy one-click link`, `Copy token`), errors tied to their fields with `aria-describedby`, and `aria-current="step"` on the walkthrough. Page scripts may keep looking elements up by id internally; this is about what the page exposes.
 - **Visual-only state** (a badge's colour, which icon a toggle shows) has nothing to perceive beyond its text or name, and is asserted through those.
 - **E2E** uses Playwright's equivalents (`getByRole`, `getByLabel`, `getByText`), never `page.locator('#…')` or a class, and the recipient's steps go through the verbs in `tests/e2e/support.js` (`proceedToView`, `decryptWithPassword`, `decryptWithEnter`, `decryptFile`, `decryptMessage`, `oneClickLink`).
+
+## 7c. Languages
+
+From [How do tests and CI work under i18n?](https://github.com/buzzdrop/buzzdrop/issues/268). Existing tests stay English (§4); these checks catch text left untranslated.
+
+- **Catalog checks** (pytest, `tests/unit/test_translations.py`): `.pot` drift, `.po` sync, stale `.mo`, strict completeness (untranslated or fuzzy fails), no obsolete entries, placeholder and inline-tag parity.
+- **Pseudo-locale check** (same file): a test-only locale `xx`, built in memory at test time and never committed or enableable, wraps every translation in markers. Each page on its `CONVERTED_PAGES` list is rendered in it, and visible text or an `aria-label`, `title`, `placeholder` or `alt` outside the markers fails, except brand names, user data, numbers and links the server renders. The list grows with each i18n issue: the login, error and "drop is gone" pages (#284), the success page for a file and a note (#286).
+- **JS-literal check** (`tests/js/js-literals.test.js`, `node --test`): JS holds no user-facing text (#265). For each module on its opt-in `CONVERTED_MODULES` list, it parses the source (acorn) and fails on a string or template literal with words written straight into `textContent`, `innerText`/`innerHTML`, `title`, `placeholder`, `alt`, an `aria…` property or attribute (`setAttribute`), or `alert()`, including through `?:`, `||`, `&&`, `??` and `+`. A literal reaching the write through a variable or a function argument is not seen. Its own cases pin what it catches and lets through. The list grows with each i18n issue: `lib/strings.js`, `lib/format.js`, `features/clipboard-feedback/` and `pages/success/` (#286).
+- **Polish E2E** (`tests/e2e/polish.spec.js`, all three browsers), added once the send and open pages are translated:
+  1. The browser locale is `pl-PL`, so `Accept-Language` negotiation is exercised.
+  2. A text note makes the full round trip (send, open, decrypt) with the Polish UI checked.
+  3. Switching to English with `POST /language` persists across pages.
+  4. The switcher is unavailable after the drop is opened.
 
 ## 8. E2E harness and test profile
 

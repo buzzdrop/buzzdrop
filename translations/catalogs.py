@@ -40,6 +40,7 @@ KEYWORDS = {
     'npgettext': ((1, 'c'), 2, 3),
     'lazy_gettext': None,
     'gettext_noop': None,
+    'plural_forms': (1, 2),
 }
 COMMENT_TAGS = ('Translators:',)
 # A fixed date keeps the header from changing on every run.

@@ -18,6 +18,7 @@ round-trips as ``Markup``). ``tests/unit/test_i18n.py`` enforces both.
 import re
 from pathlib import Path
 
+from babel import Locale, UnknownLocaleError
 from flask import current_app, g, has_request_context, request
 from flask_babel import Babel, get_locale, get_translations, refresh
 from flask_babel.speaklater import LazyString
@@ -171,6 +172,32 @@ def gettext_noop(string):
     return string
 
 
+# Numbers tried, in order, for one that falls in each CLDR plural category.
+# A category only fractions reach (Polish "other") is found by a fraction,
+# but gettext counts whole numbers, so it takes the form gettext gives
+# _FRACTION_COUNT: a fraction reads like "several" ("1,5 plików").
+_PLURAL_SAMPLES = (*range(0, 200), 0.5, 1.5)
+_FRACTION_COUNT = 5
+
+
+def plural_forms(singular, plural):
+    """
+    The plural forms of a message for a page script to choose from, keyed
+    by the language's CLDR plural categories (#265): each is the gettext
+    form for a number in that category, its placeholders left unfilled.
+    The script picks one with ``Intl.PluralRules`` (``lib/strings.js``),
+    so no gettext plural formula reaches the browser.
+    """
+    try:
+        rule = Locale.parse(current_language()).plural_form
+    except (UnknownLocaleError, ValueError):  # the test-only pseudo-locale
+        rule = Locale.parse(SOURCE_LANGUAGE).plural_form
+    counts = {}
+    for number in _PLURAL_SAMPLES:
+        counts.setdefault(rule(number), number if isinstance(number, int) else _FRACTION_COUNT)
+    return {category: _translate_plural(singular, plural, count) for category, count in counts.items()}
+
+
 def lazy_gettext(string, **variables):
     """A module constant translated when used. ``str()`` it before ``flash``."""
     return LazyString(gettext, string, **variables)
@@ -195,6 +222,7 @@ def init_app(app):
           default_translation_directories=str(TRANSLATIONS_DIR))
     app.before_request(_forget_language)
     app.jinja_env.policies['ext.i18n.trimmed'] = True
+    app.jinja_env.globals['plural_forms'] = plural_forms
     app.jinja_env.install_gettext_callables(
         gettext=_translate,
         ngettext=_translate_plural,

@@ -1,0 +1,9 @@
+{# The words features/clipboard-feedback/ writes: what a Copy button's
+   label flashes. A page that copies puts them in its page strings under
+   'clipboard-feedback' (_page_strings.html); its buttons reserve their
+   width with sizers of the same words. #}
+{# Translators: a Copy button's label, flashed after a copy. Keep it short. #}
+{% set copied = _('Copied!') %}
+{# Translators: a Copy button's label, flashed when the browser refused the copy. Keep it short. #}
+{% set failed = _('Failed') %}
+{% set strings = {'copied': copied, 'failed': failed} %}

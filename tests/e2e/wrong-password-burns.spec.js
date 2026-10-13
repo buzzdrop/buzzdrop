@@ -15,7 +15,7 @@ test('one wrong password burns the file', async ({ page, recipient, sharePasswor
     await openShare(recipient, link);
     await decryptWithPassword(recipient, wrongPassword);
 
-    await expect(shareStatus(recipient)).toHaveText('Too many incorrect attempts — this share is locked.');
+    await expect(shareStatus(recipient)).toHaveText('Too many incorrect passwords — this drop is locked.');
     await expect(decryptButton(recipient)).toBeDisabled();
 
     // The page has given up; ask /release directly. The share is burned, so
