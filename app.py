@@ -87,7 +87,11 @@ limiter = Limiter(
 
 
 class NotificationPreferenceError(Exception):
-    """Safe validation error for uploader notification inputs."""
+    """
+    Safe validation error for uploader notification inputs. ``message`` is
+    English, marked with ``gettext_noop``: it is the JSON ``error``, and is
+    translated only where it is flashed.
+    """
 
     def __init__(self, message: str, code: str):
         super().__init__(message)
@@ -171,7 +175,7 @@ def _get_notification_preferences(username: str) -> tuple[bool, str | None]:
         return False, None
 
     if not _notifications_configured():
-        raise NotificationPreferenceError('Open notifications are not configured on this server',
+        raise NotificationPreferenceError(i18n.gettext_noop('Open notifications are not configured on this server'),
                                          'notifications_unconfigured')
 
     user = get_users().get(username, {})
@@ -179,15 +183,15 @@ def _get_notification_preferences(username: str) -> tuple[bool, str | None]:
     requested_email = (request.form.get('notification_email') or '').strip()
 
     if not configured_email:
-        raise NotificationPreferenceError('Configure an account email before enabling open notifications',
+        raise NotificationPreferenceError(i18n.gettext_noop('Configure an account email before enabling open notifications'),
                                          'account_email_missing')
 
     if not _is_valid_notification_email(configured_email):
-        raise NotificationPreferenceError('Your configured account email is invalid',
+        raise NotificationPreferenceError(i18n.gettext_noop('Your configured account email is invalid'),
                                          'account_email_invalid')
 
     if requested_email and requested_email != configured_email:
-        raise NotificationPreferenceError('Open notifications can only be sent to your configured account email',
+        raise NotificationPreferenceError(i18n.gettext_noop('Open notifications can only be sent to your configured account email'),
                                          'notification_email_mismatch')
 
     return True, configured_email
@@ -585,7 +589,8 @@ def handle_large_file(error):
     """Return a user-friendly message when the uploaded file exceeds the limit."""
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return {'error': 'File too large', 'code': 'file_too_large'}, 413
-    flash('File too large')
+    # A note can be too large too.
+    flash(_('Drop too large'))
     return 'File too large', 413
 
 
@@ -1091,7 +1096,7 @@ def upload_file():
     if not _session_csrf_required():
         if wants_json:
             return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
-        flash('Invalid request')
+        flash(_('Invalid request'))
         return redirect(url_for('index'))
 
     # Every upload is two-phase: the client must have run /upload/begin
@@ -1101,10 +1106,12 @@ def upload_file():
     key_verifier = (request.form.get('key_verifier') or '').strip().lower() or None
     receipt_hash = (request.form.get('receipt_hash') or '').strip().lower() or None
 
+    # `message` is English, marked with gettext_noop: the JSON error stays
+    # English, and the flash is translated.
     def _fail(message, code, status=400):
         if wants_json:
             return {'error': message, 'code': code}, status
-        flash(message)
+        flash(_(message))
         return redirect(url_for('index'))
 
     try:
@@ -1117,7 +1124,7 @@ def upload_file():
         or not _is_valid_key_material(key_verifier)
         or not _is_valid_key_material(receipt_hash)
     ):
-        return _fail('Invalid key-release upload', 'invalid_upload')
+        return _fail(i18n.gettext_noop('Invalid key-release upload'), 'invalid_upload')
     share = file_repo.get_key_share(file_id)
     if (
         share is None
@@ -1125,12 +1132,12 @@ def upload_file():
         or share.get('released_at') is not None
         or file_repo.get_by_id(file_id) is not None
     ):
-        return _fail('Unknown or already finalized key-release upload',
+        return _fail(i18n.gettext_noop('Unknown or already finalized key-release upload'),
                      'share_unavailable', 409)
     # Owner binding: only the account that ran /upload/begin may finish
     # it — a leaked pending file_id must not let someone else claim it.
     if share.get('created_by') != g.username:
-        return _fail('Key-release share belongs to another user', 'share_not_owned', 403)
+        return _fail(i18n.gettext_noop('Key-release share belongs to another user'), 'share_not_owned', 403)
 
     # An expiry names an exact moment (the browser sends toISOString()); a
     # wall-clock time alone would be read in the server's zone (#250).
@@ -1141,8 +1148,8 @@ def upload_file():
         try:
             expiry_iso = parse_expiry(expiry_raw)
         except ValueError:
-            return _fail('Expiry must be an ISO 8601 time with a time zone, '
-                         'e.g. 2026-12-31T23:59+01:00', 'invalid_expiry')
+            return _fail(i18n.gettext_noop('Expiry must be an ISO 8601 time with a time zone, '
+                                           'e.g. 2026-12-31T23:59+01:00'), 'invalid_expiry')
 
     if upload_type == 'text' and note_text:
         # Handle text note upload
@@ -1159,7 +1166,7 @@ def upload_file():
         # Binding V atomically claims the pending share — a racing second
         # finish loses here, before any blob or record is written.
         if not file_repo.bind_key_verifier(unique_id, key_verifier, salt_hex):
-            return _fail('Key-release upload was finalized elsewhere',
+            return _fail(i18n.gettext_noop('Key-release upload was finalized elsewhere'),
                          'share_unavailable', 409)
 
         # Compensation: a bound share with no file record is dangling —
@@ -1186,7 +1193,7 @@ def upload_file():
                 except Exception:
                     pass
             file_repo.burn_key_share(unique_id)
-            return _fail('Upload failed', 'upload_failed', 500)
+            return _fail(i18n.gettext_noop('Upload failed'), 'upload_failed', 500)
 
         share_link = url_for('view_file', file_id=unique_id, _external=True)
         if wants_json:
@@ -1199,12 +1206,12 @@ def upload_file():
 
     # Handle regular file upload
     if 'file' not in request.files:
-        flash('No file part')
+        flash(_('No file part'))
         return redirect(url_for('index'))
     
     file = request.files['file']
     if file.filename == '':
-        flash('No selected file')
+        flash(_('No selected file'))
         return redirect(url_for('index'))
     
     if file and allowed_file(file.filename):
@@ -1226,7 +1233,7 @@ def upload_file():
         # Binding V atomically claims the pending share — a racing second
         # finish loses here, before any blob or record is written.
         if not file_repo.bind_key_verifier(unique_id, key_verifier, salt_hex):
-            return _fail('Key-release upload was finalized elsewhere',
+            return _fail(i18n.gettext_noop('Key-release upload was finalized elsewhere'),
                          'share_unavailable', 409)
 
         # Compensation: a bound share with no file record is dangling —
@@ -1253,7 +1260,7 @@ def upload_file():
                 except Exception:
                     pass
             file_repo.burn_key_share(unique_id)
-            return _fail('Upload failed', 'upload_failed', 500)
+            return _fail(i18n.gettext_noop('Upload failed'), 'upload_failed', 500)
 
         share_link = url_for('view_file', file_id=unique_id, _external=True)
         if wants_json:
@@ -1264,7 +1271,7 @@ def upload_file():
             }
         return render_template('success.html', share_link=share_link, file_type='file')
     
-    flash('File type not allowed')
+    flash(_('File type not allowed'))
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return {'error': 'File type not allowed', 'code': 'type_not_allowed'}, 400
     return redirect(url_for('index'))

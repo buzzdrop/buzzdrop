@@ -142,6 +142,22 @@ def test_plural_forms_keep_polish_one_letter_words_attached(app, monkeypatch):
     assert forms['one'] == f'i{NBSP}%(count)s próba'
 
 
+def test_script_gettext_leaves_placeholders_for_the_page_script(app, monkeypatch):
+    rejected = 'Password rejected: %(reason)s'
+    polish = _translations('pl', {rejected: 'Hasło odrzucone w %(reason)s'})
+    monkeypatch.setattr(i18n, 'get_translations', lambda: polish)
+
+    with app.test_request_context('/', headers={'Accept-Language': 'pl'}):
+        assert i18n.script_gettext(rejected) == f'Hasło odrzucone w{NBSP}%(reason)s'
+
+
+def test_script_gettext_renders_in_a_template_without_values(app):
+    with app.test_request_context('/'):
+        rendered = app.jinja_env.from_string("{{ script_gettext('Strong (~%(bits)s bits).') }}").render()
+
+    assert rendered == 'Strong (~%(bits)s bits).'
+
+
 # --- flash() takes eagerly translated text (#265) -------------------------
 
 def _flash_rule_violations(source):
@@ -199,3 +215,15 @@ def test_flash_rule_allows_eager_and_str_wrapped_text():
 @pytest.mark.parametrize('module', sorted(p.name for p in ROOT.glob('*.py')))
 def test_flashed_text_is_translated_eagerly(module):
     assert _flash_rule_violations((ROOT / module).read_text(encoding='utf-8')) == []
+
+
+@pytest.mark.parametrize('size, language, expected', [
+    (100 * 1024 * 1024, 'en', '100 MB'),
+    (100 * 1024 * 1024, 'pl', '100 MB'),
+    (1536 * 1024, 'en', '1.5 MB'),
+    (1536 * 1024, 'pl', '1,5 MB'),
+    (2048 * 1024 * 1024, 'en', '2,048 MB'),
+    (2048 * 1024 * 1024, 'pl', '2 048 MB'),
+])
+def test_format_size_in_binary_megabytes_with_the_languages_numbers(size, language, expected):
+    assert i18n.format_size(size, language) == expected

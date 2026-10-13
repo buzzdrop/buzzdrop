@@ -155,14 +155,27 @@ function isEffPassphrase(password) {
 }
 
 /**
+ * How strong a password is: `common` for one on the blocklist, whatever its
+ * length; `weak` below MIN_ENTROPY_BITS; `fair`; `strong` from
+ * STRONG_ENTROPY_BITS. The page puts it into words (features/password-gate).
+ * @typedef {'empty' | 'common' | 'weak' | 'fair' | 'strong'} Strength
+ */
+
+/**
+ * @typedef {object} Assessment
+ * @property {Strength} strength
+ * @property {number} bits - the estimated entropy
+ * @property {boolean} blocked - the upload must refuse it (common or weak)
+ */
+
+/**
  * Estimate password strength.
  * @param {string} password
- * @returns {{bits: number, level: 'empty'|'weak'|'fair'|'strong',
- *            blocked: boolean, message: string}}
+ * @returns {Assessment}
  */
 export function assessPassword(password) {
     if (!password) {
-        return { bits: 0, level: 'empty', blocked: false, message: '' };
+        return { strength: 'empty', bits: 0, blocked: false };
     }
 
     // Blocklist: leet-normalized, and the same with trailing digits/punct
@@ -172,26 +185,14 @@ export function assessPassword(password) {
     const stripped = lowered.replace(/[\d\W_]+$/g, '');
     const candidates = [normalizeLeet(lowered), normalizeLeet(stripped)];
     if (candidates.some((c) => COMMON_PASSWORDS.has(c))) {
-        return {
-            bits: 10,
-            level: 'weak',
-            blocked: true,
-            message: 'That password is on every cracker list ever published.',
-        };
+        return { strength: 'common', bits: 10, blocked: true };
     }
 
     // Exact dice math when every token is an EFF word — this is the case
     // the Generate button produces.
     const wordCount = isEffPassphrase(password);
     if (wordCount > 0) {
-        const bits = wordCount * BITS_PER_WORD;
-        const level = bits >= STRONG_ENTROPY_BITS ? 'strong' : 'fair';
-        return {
-            bits,
-            level,
-            blocked: false,
-            message: `~${Math.round(bits)} bits — ${wordCount}-word passphrase.`,
-        };
+        return rated(wordCount * BITS_PER_WORD);
     }
 
     const pool = characterPoolSize(password);
@@ -214,30 +215,17 @@ export function assessPassword(password) {
     if (password.length < 12 && pool <= 36) {
         bits = Math.min(bits, password.length * Math.log2(pool) * 0.8);
     }
-    bits = Math.max(0, bits);
+    return rated(Math.max(0, bits));
+}
 
-    if (bits < MIN_ENTROPY_BITS) {
-        return {
-            bits,
-            level: 'weak',
-            blocked: true,
-            message: `Too weak (~${Math.round(bits)} bits). Use Generate or a longer passphrase.`,
-        };
-    }
-    if (bits < STRONG_ENTROPY_BITS) {
-        return {
-            bits,
-            level: 'fair',
-            blocked: false,
-            message: `Acceptable (~${Math.round(bits)} bits) — a generated 6-word passphrase is stronger.`,
-        };
-    }
-    return {
-        bits,
-        level: 'strong',
-        blocked: false,
-        message: `Strong (~${Math.round(bits)} bits).`,
-    };
+/**
+ * @param {number} bits
+ * @returns {Assessment}
+ */
+function rated(bits) {
+    if (bits < MIN_ENTROPY_BITS) return { strength: 'weak', bits, blocked: true };
+    if (bits < STRONG_ENTROPY_BITS) return { strength: 'fair', bits, blocked: false };
+    return { strength: 'strong', bits, blocked: false };
 }
 
 /**

@@ -140,9 +140,8 @@
             Make it <span class="honey-text">buzz</span>, then vanish.
         </h1>
         <h2 class="max-w-2xl text-sm leading-relaxed text-slate-400">
-            <strong>Encrypt a file or a secret note in your browser</strong>, send one link, and let the drop delete itself
-            the moment it is downloaded. The contents are ciphertext to the server; details like the filename and your private note are not.
-         </h2>
+            <strong>Encrypt a file or a secret note in your browser</strong>, send one link, and let the drop delete itself the moment it is downloaded. The contents are ciphertext to the server; details like the filename and your memo are not.
+        </h2>
     </header>
 
     <div class="surface-card animate-fade-up delay-1 p-6 sm:p-8">
@@ -182,8 +181,9 @@
                             </span>
                         </p>
                         <div class="space-y-2 pt-1">
-                            <p><span class="stat-chip">Up to 100MB</span></p>
-                            <p class="mx-auto max-w-sm text-xs leading-5 text-slate-600">DOC · DOCX · GIF · JPEG · JPG · MP4 · PDF · PNG · TXT · XLS · XLSX</p>
+                            <p><span class="stat-chip">Up to 100 MB</span></p>
+                            
+                            <p translate="no" class="mx-auto max-w-sm text-xs leading-5 text-slate-600">DOC · DOCX · GIF · JPEG · JPG · MP4 · PDF · PNG · TXT · XLS · XLSX</p>
                         </div>
                     </div>
                     <input id="file" name="file" type="file" class="sr-only" aria-labelledby="dropzone-label" aria-describedby="file-error" required>
@@ -194,7 +194,7 @@
 
         <div id="text-note-section" style="visibility:hidden;" class="flex flex-col" role="tabpanel" aria-labelledby="text-tab">
             <label for="note-text" class="field-label">Secret text</label>
-            <textarea id="note-text" rows="9" class="field-input min-h-56 flex-1 font-mono text-[0.8rem] leading-6" placeholder="Paste the note you want to protect with a one-time buzz..." aria-required="true" aria-describedby="note-error"></textarea>
+            <textarea id="note-text" rows="9" class="field-input min-h-56 flex-1 font-mono text-[0.8rem] leading-6" placeholder="Paste the note you want to protect with a one-time buzz…" aria-required="true" aria-describedby="note-error"></textarea>
             <p class="field-help">Encrypted in the browser before it reaches the server.</p>
             <p id="note-error" class="file-error" role="alert"></p>
         </div>
@@ -249,12 +249,16 @@
             <div class="grid gap-5 md:grid-cols-2">
                 <div>
                     <label for="shared-expiry" class="field-label">Expiry date <span class="text-slate-600">(optional)</span></label>
-                    <input id="shared-expiry" name="expiry" type="datetime-local" class="field-input">
-                    <p class="field-help">Leave empty to keep the drop until it&rsquo;s opened.</p>
+                    <input id="shared-expiry" name="expiry" type="datetime-local" class="field-input" aria-describedby="expiry-zone">
+                    
+                    <p id="expiry-zone" class="field-help" hidden></p>
+                    <p class="field-help">Leave empty to keep the drop until it’s opened.</p>
                 </div>
                 <div>
-                    <label for="shared-private-note" class="field-label">Private note <span class="text-slate-600">(optional)</span></label>
-                    <textarea id="shared-private-note" name="private_note" rows="2" class="field-input" placeholder="Visible only to you, in your drop list"></textarea>
+                    <label for="shared-private-note" class="field-label">Memo <span class="text-slate-600">(optional)</span></label>
+                    <textarea id="shared-private-note" name="private_note" rows="2" class="field-input" placeholder="A reminder in your drop list" aria-describedby="memo-help"></textarea>
+                    
+                    <p id="memo-help" class="field-help">Only you see it. It isn’t encrypted.</p>
                 </div>
             </div>
 
@@ -606,7 +610,7 @@
 
 <script id="allowed-extensions-json" type="application/json">["doc", "docx", "gif", "jpeg", "jpg", "mp4", "pdf", "png", "txt", "xls", "xlsx"]</script>
 <script id="upload-endpoints-json" type="application/json">{"uploadBeginUrl": "/upload/begin", "uploadUrl": "/upload"}</script>
-<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}}</script>
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "composer": {"chooseFile": "Choose a file to share.", "expiryZone": "In your time zone (%(zone)s).", "refusals": {"account_email_invalid": "Your configured account email is invalid.", "account_email_missing": "Configure an account email before enabling open notifications.", "csrf_failed": "Your session has expired. Reload the page and try again.", "file_too_large": "The drop is too large to send.", "handshake_refused": "The server would not accept the drop. Please try again.", "invalid_expiry": "Choose a valid expiry time.", "notification_email_mismatch": "Open notifications can only be sent to your configured account email.", "notifications_unconfigured": "Open notifications are not configured on this server.", "rate_limited": "Too many requests. Please try again later.", "reply_unreadable": "The drop may have been sent, but the server\u0027s reply could not be read.", "send_failed": "Could not send the drop. Please try again.", "type_not_allowed": "That file type is not allowed."}, "sendFile": "Share file", "sendNote": "Share note", "typeNotAllowed": "That file type is not allowed.", "unreachable": "Network error while sending the drop. Please try again.", "writeNote": "Write the note you want to share."}, "password-gate": {"hide": "Hide", "hidePassword": "Hide password", "levels": {"fair": "Fair", "strong": "Strong", "weak": "Weak"}, "messages": {"common": "That password is on every cracker list ever published.", "fair": "Acceptable (~%(bits)s bits) \u2014 a generated 6-word passphrase is stronger.", "strong": "Strong (~%(bits)s bits).", "weak": "Too weak (~%(bits)s bits). Use Generate or a longer passphrase."}, "missing": "Enter a password, or press Generate.", "rejected": "Password rejected: %(reason)s", "show": "Show", "showPassword": "Show password"}}</script>
 
         </main>
 

@@ -17,8 +17,12 @@ const JS_ROOT = new URL('../../static/js/', import.meta.url);
 
 const CONVERTED_MODULES = [
     'features/clipboard-feedback/clipboard-feedback.js',
+    'features/password-gate/password-gate.js',
+    'features/share-protocol/share-protocol.js',
     'lib/format.js',
+    'lib/passphrase.js',
     'lib/strings.js',
+    'pages/index/index-page.js',
     'pages/language-menu/language-menu-page.js',
     'pages/success/success-page.js',
 ];

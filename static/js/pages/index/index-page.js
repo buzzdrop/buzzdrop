@@ -13,6 +13,7 @@ import { createShare } from '../../features/share-protocol/index.js';
 import { initSharedFilesList } from '../../features/shared-files/index.js';
 import { isAllowedFile } from '../../lib/file-extensions.js';
 import * as shareCrypto from '../../lib/crypto.js';
+import { timeZoneName } from '../../lib/format.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
@@ -93,7 +94,10 @@ export function initIndex(root, deps) {
      * @type {AllowedExtensions}
      */
     const allowedExtensions = JSON.parse(required(root, '#allowed-extensions-json', 'script').text);
-    const clipboardStrings = readStrings(required(root, '#page-strings-json', 'script')).section('clipboard-feedback');
+    const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
+    const clipboardStrings = pageStrings.section('clipboard-feedback');
+    const strings = pageStrings.section('composer');
+    const { lang } = root.documentElement;
 
     /**
      * Upload endpoints injected the same way — a type="application/json" data
@@ -106,8 +110,8 @@ export function initIndex(root, deps) {
     // The composer's two modes are an ARIA tab set: the rail is the tablist and
     // each section is the panel its tab controls.
     const shareModes = {
-        file: { tab: 'file-tab', panel: 'file-upload-section', action: 'Share file' },
-        text: { tab: 'text-tab', panel: 'text-note-section', action: 'Share note' },
+        file: { tab: 'file-tab', panel: 'file-upload-section', action: 'sendFile' },
+        text: { tab: 'text-tab', panel: 'text-note-section', action: 'sendNote' },
     };
     /** @type {Array<'file' | 'text'>} */
     const shareModeOrder = ['file', 'text'];
@@ -154,7 +158,7 @@ export function initIndex(root, deps) {
             if (isActive && focusTab) tabNode.focus();
         });
 
-        setShareAction(shareModes[mode].action);
+        setShareAction(strings.text(shareModes[mode].action));
     }
 
     function showFileUpload() {
@@ -213,6 +217,8 @@ export function initIndex(root, deps) {
     // renders it disabled.
     const copyPasswordBtn = /** @type {HTMLButtonElement | null} */ (root.getElementById('copy-password-btn'));
     const passwordGate = initPasswordGate(root, {
+        strings: pageStrings.section('password-gate'),
+        lang,
         onChange: (password) => { if (copyPasswordBtn) copyPasswordBtn.disabled = !password; },
     });
     if (passwordGate && copyPasswordBtn) {
@@ -234,6 +240,16 @@ export function initIndex(root, deps) {
         const password = passwordGate.input.value;
         return passwordGate.accept(password) ? password : null;
     };
+
+    // --- Expiry ---
+    // The field takes a wall-clock time in the viewer's zone, so the hint
+    // names that zone the way their language does (#266).
+    const expiryZone = root.getElementById('expiry-zone');
+    if (expiryZone) {
+        const zone = timeZoneName(lang, new Intl.DateTimeFormat().resolvedOptions().timeZone);
+        expiryZone.textContent = strings.text('expiryZone', { zone });
+        expiryZone.hidden = false;
+    }
 
     // --- Open notifications ---
     // The account email (rendered only when there is one) shows while the
@@ -269,7 +285,8 @@ export function initIndex(root, deps) {
     /**
      * Seal the payload and upload it, with the progress bar standing in for
      * the share button while the upload runs. On success the page leaves for
-     * the success page; otherwise it alerts and the button comes back.
+     * the success page; otherwise it alerts, in the words for the refusal's
+     * reason, and the button comes back.
      * @param {Payload} payload
      * @param {string} password - carried to the success page in the URL fragment
      */
@@ -296,9 +313,9 @@ export function initIndex(root, deps) {
                 csrfToken: csrf,
                 onProgress: showProgress,
             });
-        } catch (err) {
-            const error = /** @type {Error | undefined} */ (err);
-            result = { kind: 'refused', message: error && error.message ? error.message : 'Could not send the drop. Please try again.' };
+        } catch {
+            // Sealing itself failed.
+            result = { kind: 'refused', reason: 'send_failed' };
         }
 
         if (result.kind === 'created') {
@@ -308,7 +325,8 @@ export function initIndex(root, deps) {
             deps.navigate(buildOneClickLink(`/success/${result.fileId}`, password));
             return;
         }
-        deps.alert(result.kind === 'refused' ? result.message : 'Network error while sending the drop. Please try again.');
+        deps.alert(result.kind === 'refused'
+            ? strings.section('refusals').text(result.reason) : strings.text('unreachable'));
         uploadInProgress = false;
         uploadBtn.disabled = false;
         uploadBtn.hidden = false;
@@ -335,7 +353,7 @@ export function initIndex(root, deps) {
     function rejectFile(input) {
         input.value = '';
         showSelectedFile(null);
-        showRefusal('file-error', 'That file type is not allowed.');
+        showRefusal('file-error', strings.text('typeNotAllowed'));
     }
 
     const dropzone = root.getElementById('dropzone');
@@ -402,7 +420,7 @@ export function initIndex(root, deps) {
             if (uploadInProgress) return;
             const file = required(root, '#file', 'input').files?.[0];
             if (!file) {
-                showRefusal('file-error', 'Choose a file to share.');
+                showRefusal('file-error', strings.text('chooseFile'));
                 return;
             }
             const password = acceptedPassword();
@@ -423,7 +441,7 @@ export function initIndex(root, deps) {
         const noteField = required(root, '#note-text', 'textarea');
         const noteText = noteField.value;
         if (!noteText) {
-            showRefusal('note-error', 'Write the note you want to share.');
+            showRefusal('note-error', strings.text('writeNote'));
             noteField.focus();
             return;
         }

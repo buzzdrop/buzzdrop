@@ -271,7 +271,7 @@ export function openUploadPage({
          */
         async setShareOptions({ expiry, privateNote, notify }) {
             if (expiry !== undefined) await user.type(screen.getByLabelText(/^Expiry date/), expiry);
-            if (privateNote !== undefined) await user.type(screen.getByLabelText(/^Private note/), typeable(privateNote));
+            if (privateNote !== undefined) await user.type(screen.getByLabelText(/^Memo/), typeable(privateNote));
             if (notify) await user.click(screen.getByRole('checkbox', { name: /^Notify me when this is opened/ }));
         },
         /**

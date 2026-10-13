@@ -154,8 +154,9 @@ def pseudo_locale(template, monkeypatch):
 class _VisibleText(HTMLParser):
     """The text a reader meets: text nodes and translatable attributes."""
 
-    def __init__(self):
+    def __init__(self, pending=()):
         super().__init__()
+        self.pending = set(pending)
         self.text = []
         self.attributes = []
         self._skipping = 0
@@ -168,10 +169,13 @@ class _VisibleText(HTMLParser):
         self._break(tag)
         if tag == self._untranslated:
             self._untranslated_depth += 1
-        elif self._untranslated is None and attrs.get('translate') == 'no':
+        elif self._untranslated is None and (attrs.get('translate') == 'no' or attrs.get('id') in self.pending):
             self._untranslated, self._untranslated_depth = tag, 1
         if tag in ('script', 'style') or self._untranslated == tag and self._untranslated_depth == 1:
             self._skipping += 1
+        # translate="no" covers an element's attributes too.
+        if self._untranslated is not None:
+            return
         for name in TRANSLATABLE_ATTRIBUTES:
             if attrs.get(name):
                 self.attributes.append(attrs[name])
@@ -212,8 +216,10 @@ def _outside_markers(text):
             if word not in ALLOWED and not NOT_WORDS.match(word) and not URL.match(word)]
 
 
-def _unwrapped(html):
-    parser = _VisibleText()
+def _unwrapped(html, pending=()):
+    """The words of ``html`` outside the markers, skipping the elements
+    whose ids are in ``pending`` (parts a later issue converts)."""
+    parser = _VisibleText(pending)
     parser.feed(html)
     # Runs of inline text join as rendered: one marker pair may span inline tags.
     found = _outside_markers(''.join(parser.text))
@@ -243,6 +249,15 @@ def _unknown_url(client):
     return client.get('/does-not-exist')
 
 
+def _landing_page(client):
+    return client.get(url_for('index'))
+
+
+def _composer(client):
+    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    return client.get(url_for('index'))
+
+
 def _success_page(file_type):
     def render(client):
         from app import get_files_store
@@ -266,15 +281,22 @@ CONVERTED_PAGES = {
     'unknown URL': _unknown_url,
     'success, file': _success_page('file'),
     'success, note': _success_page('text'),
+    'landing page': _landing_page,
+    'composer': _composer,
+}
+# Parts of a converted page that a later issue converts, by element id.
+PENDING = {
+    # The hero walkthrough: #291, with the how-it-works page it quotes.
+    'landing page': {'flow-stage'},
 }
 
 
 @pytest.mark.parametrize('page', CONVERTED_PAGES)
-def test_converted_pages_have_no_unwrapped_text(client, pseudo_locale, page):
+def test_converted_pages_have_no_unwrapped_text(client, db_instance, pseudo_locale, page):
     html = CONVERTED_PAGES[page](client).get_data(as_text=True)
 
     assert OPEN in html, 'the pseudo-locale is not in effect'
-    assert _unwrapped(html) == []
+    assert _unwrapped(html, PENDING.get(page, ())) == []
 
 
 def test_the_server_error_page_has_no_unwrapped_text(app, pseudo_locale):
@@ -295,6 +317,14 @@ def test_the_pseudo_locale_check_catches_unwrapped_text():
 
 def test_the_pseudo_locale_check_skips_what_is_marked_untranslated():
     html = ('<p><span translate="no">Polski <span>polski</span></span> After</p>'
-            '<button translate="no" lang="pl">Polski</button><b>Bold</b>')
+            '<button translate="no" lang="pl">Polski</button><b>Bold</b>'
+            '<p translate="no"><a title="PDF">PDF</a></p>')
 
     assert _unwrapped(html) == ['After', 'Bold']
+
+
+def test_the_pseudo_locale_check_skips_what_a_later_issue_converts():
+    html = ('<div id="later" aria-label="Later"><p>Not yet</p><b title="Nor this">x</b></div>'
+            '<p id="now">Now</p>')
+
+    assert _unwrapped(html, pending={'later'}) == ['Now']

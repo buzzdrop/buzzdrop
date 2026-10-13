@@ -47,10 +47,21 @@ const SERVER_SHARE_BYTES = 32;
  */
 
 /**
- * How creating a share ended. A refusal carries the page's message for the
- * server's `code`, never the server's own words (#285).
+ * Why creating a share was refused, for the page to put into words: the
+ * server's `code` when the page can explain it (#285), else
+ * `handshake_refused` (POST /upload/begin), `send_failed` (POST /upload) or
+ * `reply_unreadable` (a success the page can't read). Never the server's
+ * own words.
+ * @typedef {'file_too_large' | 'type_not_allowed' | 'rate_limited' | 'csrf_failed'
+ *   | 'invalid_expiry' | 'notifications_unconfigured' | 'account_email_missing'
+ *   | 'account_email_invalid' | 'notification_email_mismatch'
+ *   | 'handshake_refused' | 'send_failed' | 'reply_unreadable'} RefusalReason
+ */
+
+/**
+ * How creating a share ended.
  * @typedef {{ kind: 'created', fileId: string }
- *   | { kind: 'refused', message: string }
+ *   | { kind: 'refused', reason: RefusalReason }
  *   | { kind: 'unreachable' }} CreateResult
  */
 
@@ -100,22 +111,24 @@ const SERVER_SHARE_BYTES = 32;
  * @property {string} [code]
  */
 
-// What the page says for each refusal of POST /upload/begin or /upload it
-// can explain; any other refusal is HANDSHAKE_REFUSED or SEND_FAILED.
-/** @type {Map<string | undefined, string>} */
-const UPLOAD_REFUSALS = new Map([
-    ['file_too_large', 'The file is too large to send.'],
-    ['type_not_allowed', 'That file type is not allowed.'],
-    ['rate_limited', 'Too many requests. Please try again later.'],
-    ['csrf_failed', 'Your session has expired. Reload the page and try again.'],
-    ['invalid_expiry', 'Choose a valid expiry time.'],
-    ['notifications_unconfigured', 'Open notifications are not configured on this server.'],
-    ['account_email_missing', 'Configure an account email before enabling open notifications.'],
-    ['account_email_invalid', 'Your configured account email is invalid.'],
-    ['notification_email_mismatch', 'Open notifications can only be sent to your configured account email.'],
+// The codes of POST /upload/begin and /upload refusals the page can explain;
+// any other refusal is `handshake_refused` or `send_failed`.
+/** @type {ReadonlySet<string | undefined>} */
+const EXPLAINED_CODES = new Set([
+    'file_too_large', 'type_not_allowed', 'rate_limited', 'csrf_failed', 'invalid_expiry',
+    'notifications_unconfigured', 'account_email_missing', 'account_email_invalid',
+    'notification_email_mismatch',
 ]);
-const SEND_FAILED = 'Could not send the drop. Please try again.';
-const HANDSHAKE_REFUSED = 'The server would not accept the drop. Please try again.';
+
+/**
+ * @param {string | undefined} code - the server's
+ * @param {'handshake_refused' | 'send_failed'} otherwise
+ * @returns {CreateResult}
+ */
+function refused(code, otherwise) {
+    const reason = /** @type {RefusalReason} */ (EXPLAINED_CODES.has(code) ? code : otherwise);
+    return { kind: 'refused', reason };
+}
 
 /**
  * What POST /release answers: `{h}` (the server share, hex) on a verifier
@@ -145,14 +158,13 @@ export async function createShare(payload, password, options, deps) {
     } catch {
         return { kind: 'unreachable' };
     }
-    const handshakeRefused = /** @type {const} */ ({ kind: 'refused', message: HANDSHAKE_REFUSED });
     if (!begun.ok) {
         /** @type {Partial<UploadBeginResponse> | null} */
         let body = null;
         try {
             body = await begun.json();
         } catch {}
-        return { kind: 'refused', message: UPLOAD_REFUSALS.get(body?.code) ?? HANDSHAKE_REFUSED };
+        return refused(body?.code, 'handshake_refused');
     }
     let fileId;
     let h;
@@ -163,7 +175,7 @@ export async function createShare(payload, password, options, deps) {
         h = hexToBytes(body.h);
         if (h.length !== SERVER_SHARE_BYTES) throw new Error('server share H has the wrong length');
     } catch {
-        return handshakeRefused;
+        return refused(undefined, 'handshake_refused');
     }
 
     const { blob, verifier, receipt } = await deps.crypto.seal(payload.bytes, password, h);
@@ -386,9 +398,9 @@ function send(deps, form, headers) {
             if (xhr.status >= 200 && xhr.status < 300) {
                 resolve(body?.file_id
                     ? { kind: 'created', fileId: body.file_id }
-                    : { kind: 'refused', message: "The drop may have been sent, but the server's reply could not be read." });
+                    : { kind: 'refused', reason: 'reply_unreadable' });
             } else {
-                resolve({ kind: 'refused', message: UPLOAD_REFUSALS.get(body?.code) ?? SEND_FAILED });
+                resolve(refused(body?.code, 'send_failed'));
             }
         };
         xhr.onerror = () => resolve({ kind: 'unreachable' });
