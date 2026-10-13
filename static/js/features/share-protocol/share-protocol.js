@@ -104,7 +104,7 @@ const SERVER_SHARE_BYTES = 32;
 // can explain; any other refusal is HANDSHAKE_REFUSED or UPLOAD_FAILED.
 /** @type {Map<string | undefined, string>} */
 const UPLOAD_REFUSALS = new Map([
-    ['file_too_large', 'The file is too large to share.'],
+    ['file_too_large', 'The file is too large to send.'],
     ['type_not_allowed', 'That file type is not allowed.'],
     ['rate_limited', 'Too many requests. Please try again later.'],
     ['csrf_failed', 'Your session has expired. Reload the page and try again.'],

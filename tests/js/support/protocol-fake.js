@@ -186,8 +186,9 @@ export function loadContract() {
 let recordedInjections;
 
 /**
- * The injected responses recorded from app.py (413, rate-limit 429), keyed
- * by `<route> <status>`: failNext's default bodies.
+ * The injected responses recorded from app.py (413, rate-limit 429, a
+ * disallowed file type's 400), keyed by `<route> <status>`: failNext's
+ * default bodies.
  * @returns {Map<string, FakeResponse>}
  */
 function recordedInjection() {
@@ -299,9 +300,10 @@ export function makeProtocolFake(opts = {}) {
     const failures = new Map();
 
     /**
-     * Queue a one-shot failure for the next request to `route`. A bare 413 or
-     * 429 (or `{ status }` without a body) answers with the body recorded from
-     * app.py; 'network' makes the request fail as a dropped connection.
+     * Queue a one-shot failure for the next request to `route`. A bare status
+     * with a recorded injection (413, 429, /upload's 400), or `{ status }`
+     * without a body, answers with the body recorded from app.py; 'network'
+     * makes the request fail as a dropped connection.
      * @param {Route} route
      * @param {Failure} failure
      */
