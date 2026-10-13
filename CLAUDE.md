@@ -27,7 +27,7 @@ CI fails while the DOM fixtures, the protocol contract or the catalogs are stale
 
 Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their own when you work in that folder.
 
-- **`app.py`** holds the routes, security headers and the expiry sweep. It is helped by `auth.py` (users, login decorators), `tokens.py` (API tokens), `storage.py` (local/S3 blobs, `STORAGE_BACKEND`), `i18n.py`, `timestamps.py`, `config.py`, `models.py` (`FileRepository`, the facade over `db/`'s `FileStore`) and `utils.py` (display timestamps, upload checks, client IP, orphan cleanup). `migrate_db.py` is a one-off TinyDB → SQLite migration.
+- **`app.py`** holds the routes, security headers and the expiry sweep. It is helped by `auth.py` (users, login decorators), `tokens.py` (API tokens), `storage.py` (local/S3 blobs, `STORAGE_BACKEND`), `i18n.py` (language selection; translate through it, not `flask_babel`), `timestamps.py`, `config.py`, `models.py` (`FileRepository`, the facade over `db/`'s `FileStore`) and `utils.py` (display timestamps, upload checks, client IP, orphan cleanup). `migrate_db.py` is a one-off TinyDB → SQLite migration.
 - **Share protocol**, i.e. the crypto, `/upload*`, `/view`, `/release`, `/download`, `/report_decryption`, expiry and the file lifecycle → `docs/dev/share-protocol.md`. The design rationale is in `docs/true-one-time.md` §6.
 - **Database** (`files`, `api_tokens`, `file_keys`, adding a backend) → `db/CLAUDE.md`.
 - **User-facing text**, i.e. any template or flash text, JS-written text, a JSON error the UI shows, or a new language → `docs/dev/i18n.md`.

@@ -52,13 +52,15 @@ The server renders the BKV3 envelope salt into the view page config, so nothing 
 
 ## File lifecycle
 
-1. `/upload/begin` creates a pending `file_keys` row and returns `file_id` + `H`.
-2. The browser encrypts. `POST /upload` binds V, stores the blob (local/S3) and creates the `files` row with `status: active`. The share link is `/view/{uuid}`.
-3. The recipient visits the link and confirms. The view page gets the envelope salt but no ciphertext yet; opening the link burns nothing.
-4. Release. Wrong passwords consume `attempts`, with lockout at `KEY_RELEASE_MAX_ATTEMPTS`. With `KEY_RELEASE_BURN_ON_LOCKOUT` (the default), lockout deletes the `file_keys` row and H is gone.
-5. Download with the ticket: served once, `downloaded_at` set, ticket consumed, storage deleted. Then decrypt and trigger the browser download.
-6. A share released but never downloaded is terminal: `/view` shows the "drop is gone" page, and after `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` the drop expires and the sweep deletes the blob.
-7. Files with `expiry_at` are auto-deleted by `check_and_handle_expiry()`. It also burns the `file_keys` row inside the same transaction, so H never outlives the file.
+The steps under *Client-side encryption* are the flow. This is the state each one leaves behind.
+
+- **Begin:** a pending `file_keys` row.
+- **Upload:** V bound, the blob stored (local/S3), and a `files` row with `status: active`. The share link is `/view/{uuid}`.
+- **Opening and confirming the link** burns nothing.
+- **Wrong passwords** consume `attempts`. Lockout comes at `KEY_RELEASE_MAX_ATTEMPTS`; what it does to the row depends on `KEY_RELEASE_BURN_ON_LOCKOUT` (`docs/dev/configuration.md`).
+- **Download:** `downloaded_at` set, the ticket consumed, the blob deleted. The browser then decrypts and saves the file.
+- **Released but never downloaded** is terminal: `/view` shows the "drop is gone" page, and after `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` the drop expires and the sweep deletes the blob.
+- **Expiry:** files with `expiry_at` are auto-deleted by `check_and_handle_expiry()`. It also burns the `file_keys` row inside the same transaction, so H never outlives the file.
 
 ## Explainer page
 
@@ -68,4 +70,4 @@ The landing page's hero walkthrough is its one short account of the flow (#271).
 - Its captions are `brief` in the same content file and must read word for word like the doc's "In brief" (`tests/integration/test_how_it_works.py`). They link on to `/how-it-works`.
 - Each "What's guaranteed" card links to the doc step that makes it true (`#step-…`, checked against the doc's step ids).
 
-`tests/unit/test_how_it_works_fingerprint.py` hashes the code that defines the flow. What it covers is listed in the doc's "Keeping this true" note and in the test's `WHOLE_FILES`. The doc carries that hash. The test fails until someone has re-read the doc and the page against the change and pasted the new hash from the test's message.
+`tests/unit/test_how_it_works_fingerprint.py` hashes the code that defines the flow. What it covers is listed in the doc's "Keeping this true" note and in the test's `WHOLE_FILES`, `FUNCTIONS`, `QUOTED_LINES` and `MODULE_ASSIGNMENTS` tables. The doc carries that hash, and the test's failure message prints the new one.
