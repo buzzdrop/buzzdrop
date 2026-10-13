@@ -22,6 +22,10 @@ Features are composed in a page: when one feature needs another's output, the pa
 
 JS holds no user-facing text (#265): the server translates it. A feature or page that writes text has a `templates/_<name>_strings.html` partial whose `strings` dict the page imports `with context` and renders into its `page-strings-json` island (`templates/_page_strings.html`), one section per feature or page. The page reads it with `readStrings(required(root, '#page-strings-json', 'script'))` from `lib/strings.js` and hands a feature its section; `text(key, values)` fills `%(name)s`, `plural(key, count, values)` picks a form by `Intl.PluralRules` (the forms come from `i18n.plural_forms`), and an unknown key throws. Numbers go into a string already formatted by `lib/format.js`. A converted module is listed in `tests/js/js-literals.test.js`, which fails on literal text written into `textContent`, aria attributes, `title`, `placeholder`, `alt` or `alert()`.
 
+## Showing and hiding
+
+A page script shows and hides with the `hidden` attribute, not the `.hidden` class, since the DOM tests run in happy-dom, which can't see Tailwind's CSS.
+
 ## Where a new module goes
 
 1. Reused by several pages, or a slice of behaviour with its own state and markup → a feature, exposed through its `index.js`.

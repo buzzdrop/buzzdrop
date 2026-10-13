@@ -20,7 +20,7 @@ Write test times with `timestamps.utcnow()`.
 
 **`docs/frontend-test-strategy.md` is the locked spec.** It covers layers, runners, the page-script refactor, DOM fixtures, the protocol fake, the scenario catalogue, page drivers, accessibility-first queries, E2E and CI. Read it before adding or changing any JS test or test harness.
 
-DOM and JS-integration tests drive each page through its driver in `tests/js/support/pages/`. They query only by role, label or text (Testing Library), never by id or class. A page script shows and hides with the `hidden` attribute, not the `.hidden` class, since happy-dom can't see Tailwind's CSS.
+DOM and JS-integration tests drive each page through its driver in `tests/js/support/pages/`. They query only by role, label or text (Testing Library), never by id or class.
 
 ## Protocol contract
 
