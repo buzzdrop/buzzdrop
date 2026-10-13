@@ -235,6 +235,10 @@ SCENARIOS = [
         'name': 'download-missing',
         'steps': [download('missing-file', share=MISSING_ID),
                   download('missing-file-xhr', share=MISSING_ID, xhr=True),
+                  # A ticket-shaped header on a drop that isn't there
+                  # still reaches the state checks: 404.
+                  download('missing-file-ticket', share=MISSING_ID,
+                           ticket=WRONG_V, xhr=True),
                   begin('begin-unfinished'),
                   download('pending', share='begin-unfinished')],
     },

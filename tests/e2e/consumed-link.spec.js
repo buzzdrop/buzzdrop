@@ -2,7 +2,7 @@
 // decrypted, its link is spent. The page no longer offers it, the ciphertext
 // is gone, and /release answers 410 even to the right password.
 import { test, expect } from './fixtures.js';
-import { captureCiphertext, decryptFile, expectDeadLink, flash, logIn, openShare, releaseStatus, shareFile, shareStatus, shareUrl, uniqueFile } from './support.js';
+import { captureCiphertext, decryptFile, expectDeadLink, logIn, openShare, releaseStatus, shareFile, shareStatus, shareUrl, uniqueFile } from './support.js';
 
 test('a second visit to a consumed link fails', async ({ page, recipient, sharePassword }) => {
     const password = sharePassword();
@@ -16,8 +16,10 @@ test('a second visit to a consumed link fails', async ({ page, recipient, shareP
 
     await expectDeadLink(recipient, link);
 
-    await recipient.goto(shareUrl(link, 'download'));
-    await expect(flash(recipient)).toContainText('This file has already been downloaded');
+    // /download without a ticket answers a uniform 403 — a live drop
+    // would look the same to anyone holding only the link (#240).
+    const dl = await recipient.goto(shareUrl(link, 'download'));
+    expect(dl?.status()).toBe(403);
 
     expect(await releaseStatus(recipient, link, blob, password)).toBe(410);
 });

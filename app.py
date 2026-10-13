@@ -675,8 +675,8 @@ def _drop_gone():
     """
     The /view page for a drop link that leads nowhere. It is the same whether
     the drop was already opened, expired or never existed, so the page
-    reveals nothing about which, just as /release answers a uniform 404.
-    (/download still flashes the reason; only /view is uniform.)
+    reveals nothing about which — just as /release answers a uniform 404
+    and /download without a ticket answers a uniform 403 (#240).
     """
     return _error_page(404, _('Dead link'), _('This drop is gone'),
                        _('It was already opened, it expired, or it never existed. '
@@ -1299,35 +1299,24 @@ def download_file(file_id):
     nothing. The ticket is consumed with the claim, before the body
     streams, and the blob is deleted after it: a transfer that breaks off
     is not resumable — deliberately, no retry surface. Without a
-    valid ticket an unreleased share answers a bare 403 to everyone; a
-    released share answers 'claimed', since only the release winner holds
-    the ticket.
+    ticket every drop answers a bare 403 — live, dead or imaginary,
+    always the same — since only the release winner holds one (#240);
+    the specific outcomes below remain for a ticket holder alone.
     """
-    xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    file_info = file_repo.get_by_id(file_id)
-    if not file_info:
-        if xhr:
-            return {'error': 'File not found'}, 404
-        flash('File not found')
-        return redirect(url_for('index'))
-    if 'downloaded_at' in file_info and file_info['downloaded_at'] is not None:
-        if xhr:
-            return {'error': 'This file has already been downloaded'}, 410
-        flash('This file has already been downloaded at {}'.format(file_info['downloaded_at']))
-        return redirect(url_for('index'))
-    if check_and_handle_expiry(file_info):
-        if xhr:
-            return {'error': 'File has expired'}, 410
-        flash('File has expired')
-        return redirect(url_for('index'))
-
+    # The ticket is checked before the drop's state is touched: only the
+    # /release winner holds one, so everyone else gets one uniform answer
+    # that reveals nothing about whether the drop ever existed, opened or
+    # expired (#240) — a live drop looks identical to a dead one.
     ticket = request.headers.get('X-Download-Ticket')
     if isinstance(ticket, str):
         ticket = ticket.strip().lower()
+    if not ticket:
+        return {'error': 'Forbidden'}, 403
 
     # Verify the ticket and claim the blob in one transaction — exactly
     # one concurrent requester wins, and the ticket is consumed with the
-    # claim.
+    # claim. Only the page script ever holds a ticket, so every outcome
+    # below is plain JSON.
     result = file_repo.claim_download_with_ticket(
         file_id, ticket, get_client_ip(),
         current_app.config['KEY_RELEASE_DOWNLOAD_TTL_SECONDS'])
@@ -1336,30 +1325,20 @@ def download_file(file_id):
     if status == 'not_released':
         return {'error': 'Forbidden'}, 403
     if status == 'bad_ticket':
-        if xhr:
-            return {'error': 'This drop has already been claimed'}, 410
-        flash('This file has already been claimed')
-        return redirect(url_for('index'))
+        return {'error': 'This drop has already been claimed'}, 410
     if status == 'already_downloaded':
-        if xhr:
-            return {'error': 'This file has already been downloaded'}, 410
-        flash('This file has already been downloaded')
-        return redirect(url_for('index'))
+        return {'error': 'This file has already been downloaded'}, 410
     if status == 'expired':
         if result.get('path'):
             try:
                 storage.delete(result['path'])
             except Exception:
                 pass
-        if xhr:
-            return {'error': 'File has expired'}, 410
-        flash('File has expired')
-        return redirect(url_for('index'))
+        return {'error': 'File has expired'}, 410
     if status == 'missing':
-        if xhr:
-            return {'error': 'File not found'}, 404
-        flash('File not found')
-        return redirect(url_for('index'))
+        return {'error': 'File not found'}, 404
+
+    file_info = file_repo.get_by_id(file_id)
 
     # Stream file from storage
     def generate():

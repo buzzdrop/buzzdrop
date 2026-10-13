@@ -127,7 +127,7 @@ export const EMITS = [
     ['/upload', 200, 'state'], ['/upload', 400, 'state'], ['/upload', 403, 'state'],
     ['/upload', 400, 'injected'],
     ['/upload', 409, 'state'], ['/upload', 413, 'injected'], ['/upload', 429, 'injected'],
-    ['/download', 200, 'state'], ['/download', 302, 'state'], ['/download', 403, 'state'],
+    ['/download', 200, 'state'], ['/download', 403, 'state'],
     ['/download', 404, 'state'], ['/download', 410, 'state'], ['/download', 429, 'injected'],
     ['/release', 200, 'state'], ['/release', 400, 'state'], ['/release', 403, 'state'],
     ['/release', 404, 'state'], ['/release', 410, 'state'], ['/release', 429, 'state'],
@@ -260,15 +260,6 @@ function parseExpiry(value) {
  */
 function json(status, body) {
     return { status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
-}
-
-/** @returns {FakeResponse} */
-function redirectHome() {
-    return {
-        status: 302,
-        headers: { 'Content-Type': 'text/html; charset=utf-8', Location: '/' },
-        body: '',
-    };
 }
 
 /**
@@ -547,33 +538,39 @@ export function makeProtocolFake(opts = {}) {
      * @param {Record<string, string>} headers
      */
     async function download(fileId, headers) {
-        const xhr = headers['x-requested-with'] === 'XMLHttpRequest';
+        // The ticket is checked before the drop's state: only the release
+        // winner holds one, so without it everyone gets a uniform 403 —
+        // nothing leaks about whether the drop existed or how it died
+        // (#240).
+        const rawTicket = headers['x-download-ticket'];
+        const ticket = typeof rawTicket === 'string' ? rawTicket.trim().toLowerCase() : null;
+        if (!ticket) {
+            return json(403, { error: 'Forbidden' });
+        }
         const file = state.files.get(fileId);
         if (!file) {
-            return xhr ? json(404, { error: 'File not found' }) : redirectHome();
+            return json(404, { error: 'File not found' });
         }
         if (file.downloaded) {
-            return xhr ? json(410, { error: 'This file has already been downloaded' }) : redirectHome();
+            return json(410, { error: 'This file has already been downloaded' });
         }
         if (isExpired(file)) {
             expire(fileId, file);
-            return xhr ? json(410, { error: 'File has expired' }) : redirectHome();
+            return json(410, { error: 'File has expired' });
         }
         const key = state.keys.get(fileId);
         // A release nobody downloaded within the window expires the drop.
         if (key && key.releasedAt !== null
                 && Date.now() >= Date.parse(key.releasedAt) + downloadTtlSeconds * 1000) {
             expire(fileId, file);
-            return xhr ? json(410, { error: 'File has expired' }) : redirectHome();
+            return json(410, { error: 'File has expired' });
         }
         if (!key || key.releasedAt === null) {
             return json(403, { error: 'Forbidden' });
         }
-        const rawTicket = headers['x-download-ticket'];
-        const ticket = typeof rawTicket === 'string' ? rawTicket.trim().toLowerCase() : null;
         const presented = isKeyMaterial(ticket) ? await sha256Hex(/** @type {string} */ (ticket)) : null;
         if (key.ticketHash === null || presented !== key.ticketHash) {
-            return xhr ? json(410, { error: 'This drop has already been claimed' }) : redirectHome();
+            return json(410, { error: 'This drop has already been claimed' });
         }
         const blob = file.blob ?? new Uint8Array();
         file.downloaded = true;

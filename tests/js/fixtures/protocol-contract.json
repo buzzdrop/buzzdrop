@@ -1143,10 +1143,12 @@
             ]
           },
           "response": {
-            "status": 302,
+            "status": 403,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8",
-              "Location": "/"
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Forbidden"
             }
           }
         }
@@ -2185,10 +2187,12 @@
             ]
           },
           "response": {
-            "status": 302,
+            "status": 403,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8",
-              "Location": "/"
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Forbidden"
             }
           }
         },
@@ -2203,6 +2207,30 @@
             ],
             "headers": {
               "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Forbidden"
+            }
+          }
+        },
+        {
+          "name": "missing-file-ticket",
+          "as": null,
+          "request": {
+            "method": "GET",
+            "path": [
+              "/download/",
+              "00000000-0000-4000-8000-00000000dead"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-Download-Ticket": "2222222222222222222222222222222222222222222222222222222222222222"
             }
           },
           "response": {
@@ -2252,10 +2280,12 @@
             ]
           },
           "response": {
-            "status": 302,
+            "status": 403,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8",
-              "Location": "/"
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Forbidden"
             }
           }
         }
@@ -2451,10 +2481,12 @@
             }
           },
           "response": {
-            "status": 302,
+            "status": 410,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8",
-              "Location": "/"
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "This drop has already been claimed"
             }
           }
         },

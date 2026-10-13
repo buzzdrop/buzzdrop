@@ -186,21 +186,21 @@ describe('the contract covers the fake', () => {
 });
 
 describe('fetch adapter', () => {
-    it('follows the 302 a dead download answers, and the 403 a live one', async () => {
+    it('answers every ticketless download with one uniform 403', async () => {
         const fake = makeProtocolFake();
 
+        // Missing, live or dead — without a ticket the answer never names
+        // which (#240).
         const missing = await fake.fetch('/download/nope');
-        expect(missing.status).toBe(200);
-        expect(missing.redirected).toBe(true);
-        expect(missing.url).toBe('http://localhost/');
+        expect(missing.status).toBe(403);
+        expect(missing.redirected).toBe(false);
 
         const fileId = await fake.seedShare({ password: 'pw', plaintext: 'hello' });
 
-        // A live but unreleased share is a bare 403 to everyone.
         const unreleased = await fake.fetch(`/download/${fileId}`);
         expect(unreleased.status).toBe(403);
 
-        // A released share without the winner's ticket redirects home.
+        // A released share mints a ticket the winner recomputes from H.
         const { verifier } = await shareCrypto.open(
             /** @type {import('../../../static/js/lib/hex.js').Bytes} */ (
                 fake.state.files.get(fileId)?.blob)).unlock('pw');
@@ -213,9 +213,9 @@ describe('fetch adapter', () => {
         const h = hexToBytes(/** @type {string} */ (JSON.parse(String(released.body)).h));
         const ticket = await shareCrypto.downloadTicket(h);
 
+        // A released share without the winner's ticket is the same 403.
         const claimed = await fake.fetch(`/download/${fileId}`);
-        expect(claimed.redirected).toBe(true);
-        expect(claimed.url).toBe('http://localhost/');
+        expect(claimed.status).toBe(403);
 
         const served = await fake.fetch(`/download/${fileId}`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-Download-Ticket': ticket },
