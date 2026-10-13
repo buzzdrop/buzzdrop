@@ -30,6 +30,7 @@ Buzzdrop is a one-time self-destructing file-sharing app where files are encrypt
 - `storage.py` — `StorageBackend` ABC with `LocalStorage` and `S3Storage` implementations
 - `auth.py` — user loading from env vars, `@login_required`/`@admin_required` decorators
 - `config.py` — `Config`/`DevelopmentConfig`/`TestingConfig`/`ProductionConfig`; selected via `FLASK_ENV`
+- `i18n.py` — language resolution and Flask-Babel setup (see `docs/dev/i18n.md`)
 - `tokens.py` — `generate_api_token`, `validate_api_token`, `revoke_api_token`; token hashes stored via `TokenStore` (`api_tokens` table)
 - `utils.py` — shared helpers: `enhance_file_display()` (formats timestamps with `<field>_iso` twins, adds `status_key`/`status_display` from `STATUS_LABELS` and the list's `display_name`), `allowed_file()`, `get_client_ip()` (proxy-aware), `cleanup_orphaned_files()`. Server text is UTC (`WEB_TIMEZONE`); the page script shows times in the viewer's zone. `timestamps.py` — every stored time is UTC (`utcnow()`, `now_iso()`, `to_utc_iso()`, `parse_expiry()`); never use a naive `datetime.now()`.
 - `cli/buzz` — standalone CLI script (install to `$PATH`; deps in `requirements-cli.txt`)
@@ -38,19 +39,21 @@ Buzzdrop is a one-time self-destructing file-sharing app where files are encrypt
 **File lifecycle:**
 1. Browser calls `POST /upload/begin` → server mints `{file_id, h}` (random 32-byte share, hex); a pending row lands in the `file_keys` table
 2. Browser derives `file_key = HKDF(Kp ‖ H)`, encrypts plaintext `BKP-FILE ‖ receipt(32B) ‖ data`, then `POST /upload` with `file_id` + `key_verifier` (hex verifier V) + `receipt_hash` (SHA-256 of the receipt) → V is bound to the pending share atomically (owner-checked via `created_by`, 403 for another account), blob stored (local path or S3 key), `files` entry created: `status: active`, `downloaded_at: null`
-3. Recipient visits `/view/<id>` → confirms → `/view/<id>/confirm` renders decryption UI
-4. Browser fetches `/download/<id>` → ciphertext streamed once, then deleted from storage; `downloaded_at` set
-5. Browser `POST /release/<id>` `{v}` → `attempt_key_release` runs the whole read/compare/count/release in ONE transaction, returns `h` exactly once (later calls → 410; wrong V → 403; lockout → 429; missing/pending → 404). Misses increment `file_keys.attempts`; lockout at `KEY_RELEASE_MAX_ATTEMPTS` (with `KEY_RELEASE_BURN_ON_LOCKOUT` — the default — the row — and H — is deleted). `/release` is rate-limited per file_id, not per IP. The client then posts the embedded `receipt` to `/report_decryption` — the server validates it against `receipt_hash` and the NULL-guarded write lets only the first valid report set `decryption_success`
-6. Browser derives `file_key` and decrypts client-side
+3. Recipient visits `/view/<id>` → confirms → `/view/<id>/confirm` renders the decryption UI with the BKV3 envelope salt in the page config; no ciphertext is downloaded yet, and opening the link burns nothing
+4. Browser derives V from the password and `POST /release/<id>` `{v}` → `attempt_key_release` runs the whole read/compare/count/release in ONE transaction, returns `h` exactly once and stores `SHA-256(ticket)` (wrong V → 403; after release or expiry → 410; the locking attempt → 429; missing/pending/burned → 404). Misses increment `file_keys.attempts`; lockout at `KEY_RELEASE_MAX_ATTEMPTS` (with `KEY_RELEASE_BURN_ON_LOCKOUT` — the default — the row — and H — is deleted). `/release` is rate-limited per file_id, not per IP
+5. Browser derives the download ticket `HKDF-SHA256(ikm=H, info='buzzdrop-download-ticket')` and fetches `/download/<id>` with `X-Download-Ticket` → `claim_download_with_ticket` verifies it, sets `downloaded_at` and consumes the ticket in one transaction; the ciphertext streams once and is deleted from storage (403 for an unreleased share, 410 without the winner's ticket or after `KEY_RELEASE_DOWNLOAD_TTL_SECONDS`)
+6. Browser derives `file_key`, decrypts client-side and posts the embedded `receipt` to `/report_decryption` — the server validates it against `receipt_hash` and the NULL-guarded write lets only the first valid report set `decryption_success`. A share released but never downloaded is terminal and expires after `KEY_RELEASE_DOWNLOAD_TTL_SECONDS`
 7. Optional expiry: `check_and_handle_expiry()` marks `status: expired`, deletes storage file, and burns the `file_keys` row in the same transaction
 
-**Storage abstraction:** `get_storage_backend(config)` returns either `LocalStorage` or `S3Storage`. Both expose `save(file_id, file_data) -> path`, `retrieve(path) -> Iterator[bytes]`, `delete(path)`. The `path` stored in DB is a local filesystem path for local storage and an S3 key (`uploads/{uuid}`) for S3.
+The full protocol, with every route's answers, is in `docs/dev/share-protocol.md`.
+
+**Storage abstraction:** `get_storage_backend(config)` returns either `LocalStorage` or `S3Storage`. Both expose `save(file_id, file_data) -> path`, `retrieve(path) -> Iterator[bytes]`, `delete(path)` and `read_prefix(path, length)`. The `path` stored in DB is a local filesystem path for local storage and an S3 key (`uploads/{uuid}`) for S3.
 
 **API token auth:** `POST /api/token` (admin-only, JSON `{"username": "..."}`) issues a raw token shown once. The `@api_auth_required` decorator on `/upload` and `/upload/begin` accepts either `Authorization: Bearer <token>` or a session cookie. When a Bearer header is present and invalid → 401 JSON (no session fallback). On success it sets `flask.g.username`; routes read `g.username` not `session['username']`. Tokens are stored as PBKDF2-HMAC-SHA256 digests in the `api_tokens` table via `TokenStore` — never the raw token.
 
 **`buzz` CLI** (`cli/buzz`): encrypts a file with the same `BKV3` format as the browser and runs the same two-phase upload (`/upload/begin` → `/upload`); aborts if begin 404s. Uploads via Bearer token. Reads `~/.buzz_token` as JSON `{"token": "...", "server": "https://..."}`. Requires `cryptography` and `requests` (see `requirements-cli.txt`). Generates a 4-word passphrase if `-p` is omitted.
 
- All `<script>` tags must include `integrity="{{ sri_hash('js/filename.js') }}" crossorigin="anonymous"`. In development, missing files raise `FileNotFoundError`; in production they log a warning.
+All `<script>` tags must include `integrity="{{ sri_hash('js/filename.js') }}" crossorigin="anonymous"`; modules they import get SRI from the import map in `base.html` (`_module_import_map`), so every import is a relative specifier under `static/js` (see `docs/dev/security.md`). In development, missing files raise `FileNotFoundError`; in production they log a warning.
 
 ## Key Conventions
 
@@ -70,8 +73,8 @@ Buzzdrop is a one-time self-destructing file-sharing app where files are encrypt
 
 **AJAX detection:** Routes check `request.headers.get('X-Requested-With') == 'XMLHttpRequest'` to decide between JSON and redirect responses.
 
-**CSRF on session-authed mutating routes:** `_session_csrf_required()` gates `POST /upload`, `/upload/begin`, `/api/token` (and the form-based delete/confirm/revoke routes). The token travels as `X-CSRF-Token` header, `csrf_token` form field, or JSON field; templates render `<meta name="csrf-token">` (JS reads it in main.js) and hidden form inputs. Requests carrying an `Authorization` header are exempt — cross-site requests can't set it, so Bearer clients are CSRF-immune. Public POSTs (`/release`, `/report_decryption`) have no CSRF gate by design.
+**CSRF on session-authed mutating routes:** `_session_csrf_required()` gates `POST /upload`, `/upload/begin`, `/api/token` (and the form-based delete/confirm/revoke routes). The token travels as `X-CSRF-Token` header, `csrf_token` form field, or JSON field; templates render `<meta name="csrf-token">` (JS reads it in `static/js/features/csrf/`) and hidden form inputs. Requests carrying an `Authorization` header are exempt — cross-site requests can't set it, so Bearer clients are CSRF-immune. Public POSTs (`/release`, `/report_decryption`) have no CSRF gate by design.
 
-**`sdk/` directory:** Contains a vendored copy of the Dagger Python SDK used by the Dagger-based CI pipeline. It is not part of the web application and should not be modified.
+**`sdk/` directory:** Contains a vendored copy of the Dagger Python SDK. No CI workflow uses it, and it is not part of the web application and should not be modified.
 
 **CLI binary releases:** Pushing to `main` with changes under `cli/` or `requirements-cli.txt` triggers `.github/workflows/release-cli.yml`, which builds a PyInstaller single-file binary and publishes it to GitHub Releases automatically.
