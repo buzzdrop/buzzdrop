@@ -262,9 +262,23 @@ def test_delete_file_before_download(client, app, files_store, csrf_form_data):
 
     response = client.post(url_for('delete_file', file_id=file_id), data=csrf_form_data(), follow_redirects=True)
     assert response.status_code == 200
-    assert b'File deleted successfully' in response.data
+    assert b'Drop deleted' in response.data
     assert files_store.get_by_id(file_id) is None
     assert not os.path.exists(file_path)
+
+
+def test_delete_file_says_so_in_the_page_language(client, app, files_store, csrf_form_data):
+    login_user(client, 'testuser', 'password')
+    file_id, _rc = upload_file_for_user(client, app, files_store, 'del.txt', 'hi', 'testuser')
+    polish = {'Accept-Language': 'pl'}
+
+    deleted = client.post(url_for('delete_file', file_id=file_id), data=csrf_form_data(),
+                          headers=polish, follow_redirects=True)
+    again = client.post(url_for('delete_file', file_id=file_id), data=csrf_form_data(),
+                        headers=polish, follow_redirects=True)
+
+    assert 'Przesyłkę usunięto' in deleted.get_data(as_text=True)
+    assert 'Nie znaleziono przesyłki' in again.get_data(as_text=True)
 
 
 def test_delete_file_requires_csrf(client, app, files_store):
@@ -296,7 +310,7 @@ def test_delete_file_after_download(client, app, files_store, csrf_form_data, cl
 
     response = client.post(url_for('delete_file', file_id=file_id), data=csrf_form_data(), follow_redirects=True)
     assert response.status_code == 200
-    assert b'File deleted successfully' in response.data
+    assert b'Drop deleted' in response.data
     assert files_store.get_by_id(file_id) is None
 
 

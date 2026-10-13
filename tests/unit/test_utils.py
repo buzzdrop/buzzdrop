@@ -127,14 +127,14 @@ from utils import enhance_file_display, format_timestamp
 
 
 def test_status_display_downloaded_without_decryption_report():
-    """Wrong-password flow: blob claimed, no report → 'Downloaded', not Active."""
+    """Wrong-password flow: blob claimed, no report → 'Opened', not Active."""
     f = {
         'status': 'active',
         'downloaded_at': '2026-10-04T21:21:08',
         'decryption_success': None,
     }
     enhance_file_display(f)
-    assert f['status_display'] == 'Downloaded'
+    assert f['status_display'] == 'Opened'
     assert f['status_key'] == 'downloaded'
 
 
@@ -156,7 +156,7 @@ def test_status_display_lockout_with_or_without_download():
         f = {'status': 'active', 'downloaded_at': downloaded_at,
              'decryption_success': False}
         enhance_file_display(f)
-        assert (f['status_key'], f['status_display']) == ('locked-out', 'Locked out')
+        assert (f['status_key'], f['status_display']) == ('locked-out', 'Locked')
 
 
 def test_status_display_expired_and_active():
@@ -210,5 +210,24 @@ def test_display_name_of_a_text_note_without_a_note_carries_its_time():
          'created_at': '2026-10-06T19:35:29.000000+00:00'}
     enhance_file_display(f)
     # UTC until the browser puts the time in the viewer's zone.
-    assert f['display_name'] == 'Text note \u00b7 19:35'
+    assert f['display_name'] == 'Note \u00b7 19:35'
     assert f['display_time_iso'] == '2026-10-06T19:35:29+00:00'
+
+
+def test_the_list_words_are_translated_by_the_given_function():
+    """The page's language comes from the request, so the route passes its
+    gettext; JSON callers keep the English default."""
+    pirate = {'Opened': 'Plundered', 'Note \u00b7 %(time)s': 'Scroll \u00b7 %(time)s'}.get
+    f = {'type': 'text', 'private_note': '', 'status': 'active',
+         'created_at': '2026-10-06T19:35:29.000000+00:00',
+         'downloaded_at': '2026-10-06T20:00:00.000000+00:00'}
+    enhance_file_display(f, translate=lambda text: pirate(text, text))
+    assert (f['status_key'], f['status_display']) == ('downloaded', 'Plundered')
+    assert f['display_name'] == 'Scroll \u00b7 19:35'
+
+
+def test_status_labels_cover_every_status_key():
+    from utils import status_labels
+    assert status_labels(str.upper) == {
+        'active': 'ACTIVE', 'decrypted': 'DECRYPTED', 'locked-out': 'LOCKED',
+        'downloaded': 'OPENED', 'expired': 'EXPIRED'}

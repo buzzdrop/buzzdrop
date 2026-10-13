@@ -152,11 +152,26 @@ def test_user_file_status_endpoint_returns_only_owned_file_statuses(client, app,
         'id': 'file-5',
         'status': 'active',
         'status_key': 'downloaded',
-        'status_display': 'Downloaded',
+        'status_display': 'Opened',
         'downloaded_at': '2025-01-02 11:00:00 UTC',
         'downloaded_at_iso': '2025-01-02T11:00:00+00:00',
         'downloaded_by_ip': None,
     }
+
+
+def test_user_file_status_endpoint_stays_english_for_a_polish_page(client, app, files_store):
+    """JSON stays English: the page names a status by its key."""
+    login_user(client, 'testuser', 'password')
+    files_store.insert({
+        'id': 'file-1', 'original_name': 'file-1.txt', 'path': '/fake/file-1',
+        'uploaded_by': 'testuser', 'created_at': '2025-01-01T12:00:00.000000+00:00',
+        'downloaded_at': '2025-01-02T11:00:00.000000+00:00', 'status': 'active',
+    })
+
+    response = client.get(url_for('user_file_statuses', id=['file-1']), headers={'Accept-Language': 'pl'})
+
+    status = response.json['files'][0]
+    assert (status['status_key'], status['status_display']) == ('downloaded', 'Opened')
 
 def test_index_logged_in_user_sees_own_private_note(client, app, files_store):
     login_user(client, 'testuser', 'password')

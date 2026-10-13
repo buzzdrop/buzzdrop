@@ -4,6 +4,7 @@
 {% from '_password_gate_strings.html' import strings as password_gate_strings with context %}
 {% from '_composer_strings.html' import strings as composer_strings with context %}
 {% from '_hero_flow_strings.html' import strings as hero_flow_strings with context %}
+{% from '_shared_files_strings.html' import strings as shared_files_strings with context %}
 {% from '_play_toggle.html' import play_toggle %}
 {% from '_progress_bar.html' import progress_bar %}
 {% from '_how_it_works_content.html' import brief %}
@@ -480,24 +481,24 @@
     <section class="surface-card animate-fade-up delay-2 p-6 sm:p-8" aria-labelledby="shared-files-heading">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h2 id="shared-files-heading" class="text-xl font-semibold tracking-tight text-white">Your drops</h2>
-                <p class="mt-1 text-sm text-slate-400">Track every buzz and copy links without exposing your memos.</p>
+                <h2 id="shared-files-heading" class="text-xl font-semibold tracking-tight text-white">{{ _('Your drops') }}</h2>
+                <p class="mt-1 text-sm text-slate-400">{{ _('Track every buzz and copy links without exposing your memos.') }}</p>
             </div>
-            <span class="status-badge status-badge-slate">{{ user_files|length }} total</span>
+            <span class="status-badge status-badge-slate">{{ ngettext('%(num)s drop', '%(num)s drops', user_files|length) }}</span>
         </div>
 
         <div class="mt-6 flex flex-col gap-4 border-t border-white/6 pt-6 lg:flex-row lg:items-end lg:justify-between">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <label class="block sm:w-72">
-                    <span class="field-label">Quick search</span>
-                    <input id="shared-files-search" type="search" class="field-input py-2.5" placeholder="Name, note, or status">
+                    <span class="field-label">{{ _('Quick search') }}</span>
+                    <input id="shared-files-search" type="search" class="field-input py-2.5" placeholder="{{ _('Name, memo, or status') }}">
                 </label>
                 <label class="block sm:w-56">
-                    <span class="field-label">Sort by</span>
+                    <span class="field-label">{{ _('Sort by') }}</span>
                     <select id="shared-files-sort" class="field-input py-2.5">
-                        <option value="uploaded:desc" selected>Uploaded (newest)</option>
-                        <option value="downloaded:desc">Downloaded (newest)</option>
-                        <option value="expiry:asc">Expiry (soonest)</option>
+                        <option value="uploaded:desc" selected>{{ _('Sent (newest)') }}</option>
+                        <option value="downloaded:desc">{{ _('Opened (newest)') }}</option>
+                        <option value="expiry:asc">{{ _('Expiry (soonest)') }}</option>
                     </select>
                 </label>
             </div>
@@ -505,51 +506,54 @@
         </div>
 
         <div id="shared-files-list" class="mt-5 space-y-3" data-page-size="5" data-status-url="{{ url_for('user_file_statuses') }}">
-            {# Times render in full, in UTC; the page script swaps in a relative time
-               and puts the full one, in the viewer's zone, in the title. It also
-               puts a "Text note · HH:MM" title's time in the viewer's zone
-               (data-note-time). Only an active drop's link still works. #}
-            {% macro timestamp(shown, iso) %}<time datetime="{{ iso or '' }}" title="{{ shown }}">{{ shown }}</time>{% endmacro %}
+            {# Times render in full, in UTC, as machine text (translate="no"); the
+               page script swaps in a relative time and puts the full one, in the
+               viewer's zone, in the title, both in the page's language. It also
+               puts a "Note · HH:MM" title's time in the viewer's zone
+               (data-note-time). A file name or memo is the sender's own words,
+               so it isn't translated either. Only an active drop's link still
+               works. #}
+            {% macro timestamp(shown, iso) %}<time datetime="{{ iso or '' }}" title="{{ shown }}" translate="no">{{ shown }}</time>{% endmacro %}
             {% for file in user_files %}
-            <article class="dashboard-item shared-file-row" aria-labelledby="shared-file-name-{{ file.id }}" data-file-id="{{ file.id }}" data-search-base="{{ (file.display_name ~ ' ' ~ (file.private_note or '') ~ ' ' ~ file.created_at ~ ' ' ~ (file.expiry_at or ''))|lower }}" data-uploaded-at="{{ file.created_at_iso or '' }}" data-expiry-at="{{ file.expiry_at_iso or '' }}" data-downloaded-at="{{ file.downloaded_at_iso or '' }}" data-search-text="{{ (file.display_name ~ ' ' ~ (file.private_note or '') ~ ' ' ~ file.status ~ ' ' ~ file.status_display ~ ' ' ~ file.created_at ~ ' ' ~ (file.expiry_at or '') ~ ' ' ~ (file.downloaded_by_ip or ''))|lower }}">
+            <article class="dashboard-item shared-file-row" aria-labelledby="shared-file-name-{{ file.id }}" data-file-id="{{ file.id }}" data-search-base="{{ (file.display_name ~ ' ' ~ (file.private_note or ''))|lower }}" data-uploaded-at="{{ file.created_at_iso or '' }}" data-expiry-at="{{ file.expiry_at_iso or '' }}" data-downloaded-at="{{ file.downloaded_at_iso or '' }}" data-search-text="{{ (file.display_name ~ ' ' ~ (file.private_note or '') ~ ' ' ~ file.status ~ ' ' ~ file.status_display ~ ' ' ~ (file.downloaded_by_ip or ''))|lower }}">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div class="min-w-0 flex-1">
-                        <h3 id="shared-file-name-{{ file.id }}" class="truncate text-base font-semibold text-white" title="{{ file.display_name }}"{% if file.display_time_iso %} data-note-time="{{ file.display_time_iso }}"{% endif %}>{{ file.display_name }}</h3>
+                        <h3 id="shared-file-name-{{ file.id }}" class="truncate text-base font-semibold text-white" title="{{ file.display_name }}"{% if file.display_time_iso %} data-note-time="{{ file.display_time_iso }}"{% elif file.type != 'text' or (file.private_note or '')|trim %} translate="no"{% endif %}>{{ file.display_name }}</h3>
                         {% if file.private_note and file.type != 'text' %}
-                            <p class="mt-2 text-sm text-slate-500">{{ file.private_note }}</p>
+                            <p class="mt-2 text-sm text-slate-500" translate="no">{{ file.private_note }}</p>
                         {% endif %}
                         <dl class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400">
                             <div class="flex gap-1.5">
-                                <dt class="font-semibold uppercase tracking-wider text-slate-500">Uploaded</dt>
+                                <dt class="font-semibold uppercase tracking-wider text-slate-500">{# Translators: when the drop was sent; it agrees with "drop", as the status labels do. #}{{ _('Sent') }}</dt>
                                 <dd class="tabular-nums">{{ timestamp(file.created_at, file.created_at_iso) }}</dd>
                             </div>
                             <div class="flex gap-1.5">
-                                <dt class="font-semibold uppercase tracking-wider text-slate-500">Expiry</dt>
-                                <dd class="tabular-nums">{% if file.expiry_at %}{{ timestamp(file.expiry_at, file.expiry_at_iso) }}{% else %}No expiry{% endif %}</dd>
+                                <dt class="font-semibold uppercase tracking-wider text-slate-500">{{ _('Expiry') }}</dt>
+                                <dd class="tabular-nums">{% if file.expiry_at %}{{ timestamp(file.expiry_at, file.expiry_at_iso) }}{% else %}{{ _('No expiry') }}{% endif %}</dd>
                             </div>
                             <div class="flex gap-1.5">
-                                <dt class="font-semibold uppercase tracking-wider text-slate-500">Opened</dt>
-                                <dd class="tabular-nums" data-file-downloaded-at>{% if file.downloaded_at %}{{ timestamp(file.downloaded_at, file.downloaded_at_iso) }}{% else %}Not yet{% endif %}</dd>
+                                <dt class="font-semibold uppercase tracking-wider text-slate-500">{{ _('Opened') }}</dt>
+                                <dd class="tabular-nums" data-file-downloaded-at>{% if file.downloaded_at %}{{ timestamp(file.downloaded_at, file.downloaded_at_iso) }}{% else %}{{ shared_files_strings.notYet }}{% endif %}</dd>
                             </div>
                             <div class="flex gap-1.5 break-all">
-                                <dt class="font-semibold uppercase tracking-wider text-slate-500">From</dt>
+                                <dt class="font-semibold uppercase tracking-wider text-slate-500">{{ _('From') }}</dt>
                                 <dd class="tabular-nums" data-file-downloaded-by>{{ file.downloaded_by_ip or '—' }}</dd>
                             </div>
                         </dl>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 lg:justify-end">
                         <span data-file-status data-status="{{ file.status_key }}" class="status-badge">{{ file.status_display }}</span>
-                        <button type="button" class="copy-url btn-secondary px-4 py-2" data-url="{{ url_for('view_file', file_id=file.id, _external=True) }}" aria-label="Copy link for {{ file.display_name }}"{% if file.status_key != 'active' %} hidden{% endif %}>
+                        <button type="button" class="copy-url btn-secondary px-4 py-2" data-url="{{ url_for('view_file', file_id=file.id, _external=True) }}" aria-label="{{ shared_files_strings.copyLinkFor|format(name=file.display_name) }}"{% if file.status_key != 'active' %} hidden{% endif %}>
                             <span class="btn-label">
-                                <span class="copy-label">Copy link</span>
-                                <span class="btn-label-sizer" data-label="Copy link" aria-hidden="true"></span>
+                                <span class="copy-label">{{ _('Copy link') }}</span>
+                                <span class="btn-label-sizer" data-label="{{ _('Copy link') }}" aria-hidden="true"></span>
                                 <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.copied }}" aria-hidden="true"></span>
                                 <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.failed }}" aria-hidden="true"></span>
                             </span>
                         </button>
-                        <form method="post" action="{{ url_for('delete_file', file_id=file.id) }}" class="inline-block" data-confirm-message="Delete this file?">
+                        <form method="post" action="{{ url_for('delete_file', file_id=file.id) }}" class="inline-block" data-confirm-message="{{ _('Delete this drop?') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn-danger">Delete</button>
+                            <button type="submit" class="btn-danger">{{ _('Delete') }}</button>
                         </form>
                     </div>
                 </div>
@@ -557,16 +561,16 @@
             {% endfor %}
         </div>
 
-        <p id="copy-status" class="sr-only" role="status" aria-label="Clipboard"></p>
+        <p id="copy-status" class="sr-only" role="status" aria-label="{{ _('Clipboard') }}"></p>
 
-        <p id="shared-files-empty-state" class="mt-4 hidden rounded-2xl border border-white/6 bg-white/2 px-5 py-6 text-center text-sm text-slate-500">No drops match this search.</p>
+        <p id="shared-files-empty-state" class="mt-4 hidden rounded-2xl border border-white/6 bg-white/2 px-5 py-6 text-center text-sm text-slate-500">{{ _('No drops match this search.') }}</p>
 
         {# Shown by the page script once there is more than one page. #}
         <div id="shared-files-pagination" hidden class="mt-6 flex flex-col gap-3 border-t border-white/6 pt-5 sm:flex-row sm:items-center sm:justify-between">
             <span id="shared-files-page" class="text-sm font-medium text-slate-500"></span>
             <div class="flex gap-2">
-                <button id="shared-files-prev" type="button" class="btn-secondary px-4 py-2 disabled:pointer-events-none disabled:opacity-40">Previous</button>
-                <button id="shared-files-next" type="button" class="btn-secondary px-4 py-2 disabled:pointer-events-none disabled:opacity-40">Next</button>
+                <button id="shared-files-prev" type="button" class="btn-secondary px-4 py-2 disabled:pointer-events-none disabled:opacity-40">{{ _('Previous') }}</button>
+                <button id="shared-files-next" type="button" class="btn-secondary px-4 py-2 disabled:pointer-events-none disabled:opacity-40">{{ _('Next') }}</button>
             </div>
         </div>
     </section>
@@ -583,6 +587,7 @@
     'password-gate': password_gate_strings,
     'composer': composer_strings,
     'hero-flow': hero_flow_strings,
+    'shared-files': shared_files_strings,
 }) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/index/entry.js') }}" integrity="{{ sri_hash('js/pages/index/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}

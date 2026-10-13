@@ -132,6 +132,47 @@ msgstr "Nie wybrano pliku"
 msgid "File type not allowed"
 msgstr "Niedozwolony typ pliku"
 
+#: app.py
+msgid "Drop not found"
+msgstr "Nie znaleziono przesyłki"
+
+#: app.py
+msgid "Drop deleted"
+msgstr "Przesyłkę usunięto"
+
+#: utils.py
+msgid "Active"
+msgstr "Aktywna"
+
+#: utils.py
+msgid "Decrypted"
+msgstr "Odszyfrowana"
+
+#: utils.py
+msgid "Locked"
+msgstr "Zablokowana"
+
+#. Translators: a drop's status, also the label of when it was opened; it
+#. agrees with "drop".
+#: templates/index.html utils.py
+msgid "Opened"
+msgstr "Otwarta"
+
+#: utils.py
+msgid "Expired"
+msgstr "Wygasła"
+
+#. the title of a note sent without a memo; %(time)s is when it was sent, e.g.
+#. "21:35".
+#: templates/_shared_files_strings.html utils.py
+#, python-format
+msgid "Note · %(time)s"
+msgstr "Notatka · %(time)s"
+
+#: templates/index.html utils.py
+msgid "Note"
+msgstr "Notatka"
+
 #. a Copy button's label, flashed after a copy. Keep it short.
 #: templates/_clipboard_feedback_strings.html
 msgid "Copied!"
@@ -348,6 +389,33 @@ msgstr "Ukryj hasło"
 msgid "Enter a password, or press Generate."
 msgstr "Wpisz hasło albo naciśnij „Wygeneruj”."
 
+#. a Copy link button's accessible name; %(name)s is the drop's title.
+#: templates/_shared_files_strings.html
+#, python-format
+msgid "Copy link for %(name)s"
+msgstr "Skopiuj link: %(name)s"
+
+#: templates/_shared_files_strings.html
+msgid "Not yet"
+msgstr "Jeszcze nie"
+
+#: templates/_shared_files_strings.html
+msgid "No matching drops"
+msgstr "Brak pasujących przesyłek"
+
+#: templates/_shared_files_strings.html
+#, python-format
+msgid "Page %(page)s of %(total)s"
+msgstr "Strona %(page)s z %(total)s"
+
+#: templates/_shared_files_strings.html
+#, python-format
+msgid "Showing %(first)s–%(last)s of %(count)s drop"
+msgid_plural "Showing %(first)s–%(last)s of %(count)s drops"
+msgstr[0] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłka"
+msgstr[1] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłki"
+msgstr[2] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłek"
+
 #: templates/base.html
 msgid ""
 "Buzzdrop: secure, one-time file sharing. Encrypt files or notes, send a "
@@ -440,10 +508,6 @@ msgstr "Co wysyłasz?"
 #: templates/index.html
 msgid "File"
 msgstr "Plik"
-
-#: templates/index.html
-msgid "Note"
-msgstr "Notatka"
 
 #: templates/index.html
 msgid ""
@@ -790,6 +854,91 @@ msgstr "Przeczytaj README (otwiera się w nowej karcie)"
 msgid "Read the README"
 msgstr "Przeczytaj README"
 
+#: templates/index.html
+msgid "Your drops"
+msgstr "Twoje przesyłki"
+
+#: templates/index.html
+msgid "Track every buzz and copy links without exposing your memos."
+msgstr "Śledź każdą przesyłkę i kopiuj linki, nie odsłaniając dopisków."
+
+#: templates/index.html
+#, python-format
+msgid "%(num)s drop"
+msgid_plural "%(num)s drops"
+msgstr[0] "%(num)s przesyłka"
+msgstr[1] "%(num)s przesyłki"
+msgstr[2] "%(num)s przesyłek"
+
+#: templates/index.html
+msgid "Quick search"
+msgstr "Szybkie wyszukiwanie"
+
+#: templates/index.html
+msgid "Name, memo, or status"
+msgstr "Nazwa, dopisek lub status"
+
+#: templates/index.html
+msgid "Sort by"
+msgstr "Sortuj według"
+
+#: templates/index.html
+msgid "Sent (newest)"
+msgstr "Najnowsze wysłane"
+
+#: templates/index.html
+msgid "Opened (newest)"
+msgstr "Najnowsze otwarte"
+
+#: templates/index.html
+msgid "Expiry (soonest)"
+msgstr "Najbliższy termin ważności"
+
+#. when the drop was sent; it agrees with "drop", as the status labels do.
+#: templates/index.html
+msgid "Sent"
+msgstr "Wysłana"
+
+#: templates/index.html
+msgid "Expiry"
+msgstr "Termin ważności"
+
+#: templates/index.html
+msgid "No expiry"
+msgstr "Bez terminu"
+
+#: templates/index.html
+msgid "From"
+msgstr "Z adresu"
+
+#: templates/index.html templates/success.html
+msgid "Copy link"
+msgstr "Skopiuj link"
+
+#: templates/index.html
+msgid "Delete this drop?"
+msgstr "Usunąć tę przesyłkę?"
+
+#: templates/index.html
+msgid "Delete"
+msgstr "Usuń"
+
+#: templates/index.html templates/success.html
+msgid "Clipboard"
+msgstr "Schowek"
+
+#: templates/index.html
+msgid "No drops match this search."
+msgstr "Żadna przesyłka nie pasuje do wyszukiwania."
+
+#: templates/index.html
+msgid "Previous"
+msgstr "Poprzednia"
+
+#: templates/index.html
+msgid "Next"
+msgstr "Następna"
+
 #: templates/login.html
 msgid "Private access"
 msgstr "Dostęp prywatny"
@@ -859,10 +1008,6 @@ msgid "Link"
 msgstr "Link"
 
 #: templates/success.html
-msgid "Copy link"
-msgstr "Skopiuj link"
-
-#: templates/success.html
 msgid "One-click link"
 msgstr "Link z hasłem"
 
@@ -883,10 +1028,6 @@ msgstr ", z hasłem po znaku #"
 #: templates/success.html
 msgid "Copy one-click link"
 msgstr "Skopiuj link z hasłem"
-
-#: templates/success.html
-msgid "Clipboard"
-msgstr "Schowek"
 
 #: templates/success.html
 msgid "Create another drop"

@@ -2,7 +2,8 @@
 // address), relative times, and a status refresh for the rows on screen.
 
 import { required, requiredWindow } from '../../lib/required.js';
-import { buildSharedFilesUrl, clockTime, compareRows, fullTime, getSharedFilesPage, relativeTime, rowSearchText } from './shared-files.js';
+import { clockTime, formatNumber, fullTime, relativeTime } from '../../lib/format.js';
+import { buildSharedFilesUrl, compareRows, getSharedFilesPage, rowSearchText } from './shared-files.js';
 
 /**
  * What the shared-files status endpoint answers.
@@ -18,6 +19,8 @@ import { buildSharedFilesUrl, clockTime, compareRows, fullTime, getSharedFilesPa
  * @typedef {object} SharedFilesDeps
  * @property {typeof fetch} fetch - for the status refresh
  * @property {() => number} now - epoch milliseconds, for the relative times
+ * @property {import('../../lib/strings.js').Strings} strings - the page
+ *   strings' 'shared-files' section (templates/_shared_files_strings.html)
  */
 
 /**
@@ -47,8 +50,13 @@ export function initSharedFilesList(root, deps) {
     }
 
     // In the page's language and the viewer's zone: the server writes UTC.
-    /** @type {import('./shared-files.js').TimeFormat} */
-    const format = { locale: root.documentElement.lang || 'en' };
+    const lang = root.documentElement.lang || 'en';
+    /** @type {import('../../lib/format.js').TimeFormat} */
+    const format = { locale: lang };
+    const { strings } = deps;
+    const statuses = strings.section('statuses');
+    /** @param {number} value */
+    const number = (value) => formatNumber(value, lang);
 
     /**
      * Swap each full timestamp for one relative to now, and put the full one,
@@ -67,22 +75,20 @@ export function initSharedFilesList(root, deps) {
     showRelativeTimes(list);
 
     // A note without a memo is titled by its time: put that in the
-    // viewer's zone too, wherever the title appears. The search then finds
-    // a row by the title and the times as shown.
+    // viewer's zone too, wherever the title appears, the search included.
+    // Times are not searched (#266): the Sort menu orders by them.
     rows.forEach((row) => {
         const heading = /** @type {HTMLElement | null} */ (row.querySelector('[data-note-time]'));
         const clock = heading && clockTime(Date.parse(heading.dataset.noteTime || ''), format);
-        const shown = Array.from(row.querySelectorAll('time[datetime]'), (time) => /** @type {HTMLElement} */ (time).title);
         if (heading && clock) {
-            const name = `Text note \u00b7 ${clock}`;
+            const name = strings.text('noteTitle', { time: clock });
             heading.textContent = name;
             heading.title = name;
-            required(row, '.copy-url', 'button').setAttribute('aria-label', `Copy link for ${name}`);
-            shown.push(name);
+            required(row, '.copy-url', 'button').setAttribute('aria-label', strings.text('copyLinkFor', { name }));
+            const extra = ` ${name}`.toLowerCase();
+            row.dataset.searchBase += extra;
+            row.dataset.searchText += extra;
         }
-        const extra = ` ${shown.join(' ')}`.toLowerCase();
-        row.dataset.searchBase += extra;
-        row.dataset.searchText += extra;
     });
 
     const pageSize = Math.max(parseInt(list.dataset.pageSize || '5', 10), 1);
@@ -107,12 +113,16 @@ export function initSharedFilesList(root, deps) {
 
         if (totalResults === 0) {
             emptyState.style.display = 'block';
-            pageLabel.textContent = 'Page 0 of 0';
-            summary.textContent = 'No matching drops';
+            pageLabel.textContent = strings.text('page', { page: number(0), total: number(0) });
+            summary.textContent = strings.text('noMatches');
         } else {
             emptyState.style.display = 'none';
-            pageLabel.textContent = `Page ${currentPage} of ${page.totalPages}`;
-            summary.textContent = `Showing ${page.startIndex + 1}-${Math.min(page.startIndex + pageSize, totalResults)} of ${totalResults} drops`;
+            pageLabel.textContent = strings.text('page', { page: number(currentPage), total: number(page.totalPages) });
+            summary.textContent = strings.plural('summary', totalResults, {
+                first: number(page.startIndex + 1),
+                last: number(Math.min(page.startIndex + pageSize, totalResults)),
+                count: number(totalResults),
+            });
         }
 
         pagination.hidden = page.totalPages <= 1;
@@ -164,14 +174,15 @@ export function initSharedFilesList(root, deps) {
                     downloadedAt.replaceChildren(time);
                     showRelativeTimes(downloadedAt);
                 } else {
-                    downloadedAt.textContent = 'Not yet';
+                    downloadedAt.textContent = strings.text('notYet');
                 }
                 downloadedBy.textContent = file.downloaded_by_ip || '—';
                 row.dataset.downloadedAt = file.downloaded_at_iso || '';
-                statusBadge.textContent = file.status_display || '';
+                const label = statuses.text(file.status_key);
+                statusBadge.textContent = label;
                 statusBadge.dataset.status = file.status_key;
                 copyButton.hidden = file.status_key !== 'active';
-                row.dataset.searchText = rowSearchText(row.dataset.searchBase, file);
+                row.dataset.searchText = rowSearchText(row.dataset.searchBase, file, label);
                 updated = true;
             });
             if (updated) {

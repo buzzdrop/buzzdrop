@@ -122,6 +122,47 @@ msgstr ""
 msgid "File type not allowed"
 msgstr ""
 
+#: app.py
+msgid "Drop not found"
+msgstr ""
+
+#: app.py
+msgid "Drop deleted"
+msgstr ""
+
+#: utils.py
+msgid "Active"
+msgstr ""
+
+#: utils.py
+msgid "Decrypted"
+msgstr ""
+
+#: utils.py
+msgid "Locked"
+msgstr ""
+
+#. Translators: a drop's status, also the label of when it was opened; it
+#. agrees with "drop".
+#: templates/index.html utils.py
+msgid "Opened"
+msgstr ""
+
+#: utils.py
+msgid "Expired"
+msgstr ""
+
+#. the title of a note sent without a memo; %(time)s is when it was sent, e.g.
+#. "21:35".
+#: templates/_shared_files_strings.html utils.py
+#, python-format
+msgid "Note · %(time)s"
+msgstr ""
+
+#: templates/index.html utils.py
+msgid "Note"
+msgstr ""
+
 #. a Copy button's label, flashed after a copy. Keep it short.
 #: templates/_clipboard_feedback_strings.html
 msgid "Copied!"
@@ -326,6 +367,32 @@ msgstr ""
 msgid "Enter a password, or press Generate."
 msgstr ""
 
+#. a Copy link button's accessible name; %(name)s is the drop's title.
+#: templates/_shared_files_strings.html
+#, python-format
+msgid "Copy link for %(name)s"
+msgstr ""
+
+#: templates/_shared_files_strings.html
+msgid "Not yet"
+msgstr ""
+
+#: templates/_shared_files_strings.html
+msgid "No matching drops"
+msgstr ""
+
+#: templates/_shared_files_strings.html
+#, python-format
+msgid "Page %(page)s of %(total)s"
+msgstr ""
+
+#: templates/_shared_files_strings.html
+#, python-format
+msgid "Showing %(first)s–%(last)s of %(count)s drop"
+msgid_plural "Showing %(first)s–%(last)s of %(count)s drops"
+msgstr[0] ""
+msgstr[1] ""
+
 #: templates/base.html
 msgid ""
 "Buzzdrop: secure, one-time file sharing. Encrypt files or notes, send a "
@@ -410,10 +477,6 @@ msgstr ""
 
 #: templates/index.html
 msgid "File"
-msgstr ""
-
-#: templates/index.html
-msgid "Note"
 msgstr ""
 
 #: templates/index.html
@@ -718,6 +781,90 @@ msgstr ""
 msgid "Read the README"
 msgstr ""
 
+#: templates/index.html
+msgid "Your drops"
+msgstr ""
+
+#: templates/index.html
+msgid "Track every buzz and copy links without exposing your memos."
+msgstr ""
+
+#: templates/index.html
+#, python-format
+msgid "%(num)s drop"
+msgid_plural "%(num)s drops"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/index.html
+msgid "Quick search"
+msgstr ""
+
+#: templates/index.html
+msgid "Name, memo, or status"
+msgstr ""
+
+#: templates/index.html
+msgid "Sort by"
+msgstr ""
+
+#: templates/index.html
+msgid "Sent (newest)"
+msgstr ""
+
+#: templates/index.html
+msgid "Opened (newest)"
+msgstr ""
+
+#: templates/index.html
+msgid "Expiry (soonest)"
+msgstr ""
+
+#. when the drop was sent; it agrees with "drop", as the status labels do.
+#: templates/index.html
+msgid "Sent"
+msgstr ""
+
+#: templates/index.html
+msgid "Expiry"
+msgstr ""
+
+#: templates/index.html
+msgid "No expiry"
+msgstr ""
+
+#: templates/index.html
+msgid "From"
+msgstr ""
+
+#: templates/index.html templates/success.html
+msgid "Copy link"
+msgstr ""
+
+#: templates/index.html
+msgid "Delete this drop?"
+msgstr ""
+
+#: templates/index.html
+msgid "Delete"
+msgstr ""
+
+#: templates/index.html templates/success.html
+msgid "Clipboard"
+msgstr ""
+
+#: templates/index.html
+msgid "No drops match this search."
+msgstr ""
+
+#: templates/index.html
+msgid "Previous"
+msgstr ""
+
+#: templates/index.html
+msgid "Next"
+msgstr ""
+
 #: templates/login.html
 msgid "Private access"
 msgstr ""
@@ -779,10 +926,6 @@ msgid "Link"
 msgstr ""
 
 #: templates/success.html
-msgid "Copy link"
-msgstr ""
-
-#: templates/success.html
 msgid "One-click link"
 msgstr ""
 
@@ -799,10 +942,6 @@ msgstr ""
 
 #: templates/success.html
 msgid "Copy one-click link"
-msgstr ""
-
-#: templates/success.html
-msgid "Clipboard"
 msgstr ""
 
 #: templates/success.html

@@ -2,9 +2,10 @@
 Utility functions for Buzzdrop application.
 """
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Callable, Optional
 from flask import current_app, has_app_context
 
+from i18n import gettext_noop
 from timestamps import parse_timestamp
 
 # The zone of the server's own text in the web page: UTC, a fallback until
@@ -91,17 +92,31 @@ def format_file_timestamps(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict
     return file_dict
 
 
-# What the drop list calls each status. Only an active drop's link works.
+# What the drop list calls each status (#264), in English: the list's route
+# translates them (status_labels), and the status endpoint's JSON stays
+# English. Only an active drop's link works.
 STATUS_LABELS = {
-    'active': 'Active',
-    'decrypted': 'Decrypted',
-    'locked-out': 'Locked out',
-    'downloaded': 'Downloaded',
-    'expired': 'Expired',
+    'active': gettext_noop('Active'),
+    'decrypted': gettext_noop('Decrypted'),
+    'locked-out': gettext_noop('Locked'),
+    # Translators: a drop's status, also the label of when it was opened; it agrees with "drop".
+    'downloaded': gettext_noop('Opened'),
+    'expired': gettext_noop('Expired'),
 }
+NOTE_TITLE = gettext_noop('Note \u00b7 %(time)s')
+UNTIMED_NOTE_TITLE = gettext_noop('Note')
 
 
-def _display_name(file_dict: dict, tz_name: str) -> str:
+def _untranslated(text: str) -> str:
+    return text
+
+
+def status_labels(translate: Callable[[str], str] = _untranslated) -> dict:
+    """Each status key's label, through ``translate``."""
+    return {key: translate(label) for key, label in STATUS_LABELS.items()}
+
+
+def _display_name(file_dict: dict, tz_name: str, translate: Callable[[str], str]) -> str:
     """The drop's title in the list: every note is stored as 'Secret Note',
     so a note goes by its memo, or failing that its time."""
     if file_dict.get('type') != 'text':
@@ -110,13 +125,13 @@ def _display_name(file_dict: dict, tz_name: str) -> str:
     if note:
         return note
     try:
-        return f"Text note \u00b7 {_in_zone(file_dict['created_at'], tz_name):%H:%M}"
+        return translate(NOTE_TITLE) % {'time': f"{_in_zone(file_dict['created_at'], tz_name):%H:%M}"}
     except Exception:
-        return 'Text note'
+        return translate(UNTIMED_NOTE_TITLE)
 
 
 def _display_time_iso(file_dict: dict, tz_name: str) -> Optional[str]:
-    """The time in a "Text note · HH:MM" title, for the page script to put
+    """The time in a "Note · HH:MM" title, for the page script to put
     in the viewer's zone; None when the title has no time."""
     if file_dict.get('type') != 'text' or (file_dict.get('private_note') or '').strip():
         return None
@@ -125,7 +140,8 @@ def _display_time_iso(file_dict: dict, tz_name: str) -> Optional[str]:
     return _iso_twin(file_dict['created_at'], tz_name)
 
 
-def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict:
+def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE,
+                         translate: Callable[[str], str] = _untranslated) -> dict:
     """
     Enhance file dictionary with formatted timestamps and status display.
     Modifies the dictionary in place.
@@ -133,20 +149,22 @@ def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict:
     Args:
         file_dict: File information dictionary
         tz_name: Timezone name for formatting timestamps
+        translate: gettext for the list's words (status label, note title);
+            English when omitted
     
     Returns:
         Enhanced file_dict with:
         - Formatted timestamp fields (created_at, downloaded_at, expiry_at),
           each with an offset-aware ISO twin (<field>_iso, None when unset)
         - status_key (a key of STATUS_LABELS; only 'active' is a live link)
-          and status_display, its label
+          and status_display, its label through ``translate``
         - display_name: the file name, or for a text note its memo,
-          else "Text note · HH:MM"
+          else "Note · HH:MM"
         - display_time_iso: that HH:MM as an ISO value, else None
     """
     # A text note has no file name; read the note's creation time before
     # the timestamps are formatted for display.
-    file_dict['display_name'] = _display_name(file_dict, tz_name)
+    file_dict['display_name'] = _display_name(file_dict, tz_name, translate)
     file_dict['display_time_iso'] = _display_time_iso(file_dict, tz_name)
 
     # Format timestamps
@@ -169,7 +187,7 @@ def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict:
     else:
         status_key = 'active'
     file_dict['status_key'] = status_key
-    file_dict['status_display'] = STATUS_LABELS[status_key]
+    file_dict['status_display'] = translate(STATUS_LABELS[status_key])
 
     return file_dict
 

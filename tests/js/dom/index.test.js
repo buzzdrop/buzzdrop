@@ -360,7 +360,7 @@ describe('index page', () => {
             openUploadPage({ sharesPerPage: 10 });
 
             expect(copyLinkButton('report.pdf')).toBeVisible();
-            expect(copyLinkButton('Text note · 15:35')).toBeVisible();
+            expect(copyLinkButton('Note · 15:35')).toBeVisible();
             expect(queryCopyLinkButton('photo.png')).toBeNull();
             expect(queryCopyLinkButton('old.txt')).toBeNull();
             expect(queryCopyLinkButton('locked.zip')).toBeNull();
@@ -372,14 +372,14 @@ describe('index page', () => {
             const upload = openUploadPage();
 
             expect(await upload.deleteShare('report.pdf', { confirm: false }))
-                .toEqual({ asked: ['Delete this file?'], deleted: false });
+                .toEqual({ asked: ['Delete this drop?'], deleted: false });
         });
 
         it('accepting the confirmation lets the delete through', async () => {
             const upload = openUploadPage();
 
             expect(await upload.deleteShare('report.pdf', { confirm: true }))
-                .toEqual({ asked: ['Delete this file?'], deleted: true });
+                .toEqual({ asked: ['Delete this drop?'], deleted: true });
         });
     });
 
@@ -390,14 +390,14 @@ describe('index page', () => {
             expect(shareRow('report.pdf').getByText('Active')).toBeVisible();
             expect(shareRow('photo.png').getByText('Decrypted')).toBeVisible();
             expect(shareRow('old.txt').getByText('Expired')).toBeVisible();
-            expect(shareRow('locked.zip').getByText('Locked out')).toBeVisible();
+            expect(shareRow('locked.zip').getByText('Locked')).toBeVisible();
         });
 
         it('titles a text note by its memo, or else by its time', () => {
             const upload = openUploadPage({ sharesPerPage: 10 });
 
             expect(upload.sharesShown()).toContain('For the auditor');
-            expect(upload.sharesShown()).toContain('Text note · 15:35');
+            expect(upload.sharesShown()).toContain('Note · 15:35');
             // The note is the title, so it isn't repeated under it.
             expect(shareRow('For the auditor').getAllByText('For the auditor')).toHaveLength(1);
             // A long note is truncated in the heading, so its title holds it whole.
@@ -408,7 +408,7 @@ describe('index page', () => {
         it('says plainly when there is no expiry, opening or address yet', () => {
             openUploadPage();
 
-            expect(shareRow('Text note · 15:35').getByText('No expiry')).toBeVisible();
+            expect(shareRow('Note · 15:35').getByText('No expiry')).toBeVisible();
             expect(shareRow('report.pdf').getByText('Not yet')).toBeVisible();
             expect(shareRow('report.pdf').getByText('—')).toBeVisible();
         });
@@ -419,7 +419,7 @@ describe('index page', () => {
             // "yesterday", though only 14 hours ago.
             openUploadPage();
 
-            expect(shareRow('Text note · 15:35').getByText('yesterday'))
+            expect(shareRow('Note · 15:35').getByText('yesterday'))
                 .toHaveAttribute('title', 'Jan 6, 2025, 15:35 EST');
             expect(shareRow('report.pdf').getByText('2 days ago'))
                 .toHaveAttribute('title', 'Jan 5, 2025, 06:00 EST');
@@ -429,12 +429,14 @@ describe('index page', () => {
                 .toHaveAttribute('title', 'Jan 6, 2025, 03:30 EST');
         });
 
-        it('finds a row by its times as the viewer sees them', async () => {
+        it('does not search by time, which the Sort menu orders by (#266)', async () => {
             const upload = openUploadPage();
 
-            await upload.searchShares('jan 6, 2025, 03:30');
+            await upload.searchShares('jan 6');
+            expect(upload.sharesShown()).toEqual([]);
 
-            expect(upload.sharesShown()).toEqual(['photo.png']);
+            await upload.searchShares('2025');
+            expect(upload.sharesShown()).toEqual([]);
         });
 
         it('search filters the rows and is kept in the URL', async () => {
@@ -443,7 +445,7 @@ describe('index page', () => {
             await upload.searchShares('photo');
 
             expect(upload.sharesShown()).toEqual(['photo.png']);
-            expect(screen.getByText('Showing 1-1 of 1 drops')).toBeVisible();
+            expect(screen.getByText('Showing 1–1 of 1 drop')).toBeVisible();
             expect(new URL(upload.url()).searchParams.get('shared_search')).toBe('photo');
         });
 
@@ -461,15 +463,15 @@ describe('index page', () => {
         it('lists the newest upload first, and sorting reorders the rows', async () => {
             const upload = openUploadPage({ sharesPerPage: 10 });
 
-            expect(screen.getByRole('combobox', { name: 'Sort by' })).toHaveDisplayValue('Uploaded (newest)');
+            expect(screen.getByRole('combobox', { name: 'Sort by' })).toHaveDisplayValue('Sent (newest)');
             expect(upload.sharesShown()).toEqual(
-                ['Text note · 15:35', 'report.pdf', 'For the auditor', 'photo.png', 'old.txt', 'locked.zip']);
+                ['Note · 15:35', 'report.pdf', 'For the auditor', 'photo.png', 'old.txt', 'locked.zip']);
 
             await upload.sortSharesBy('Expiry (soonest)');
 
             expect(upload.sharesShown().slice(0, 2)).toEqual(['old.txt', 'report.pdf']);
 
-            await upload.sortSharesBy('Downloaded (newest)');
+            await upload.sortSharesBy('Opened (newest)');
 
             expect(upload.sharesShown()[0]).toBe('photo.png');
         });
@@ -489,7 +491,7 @@ describe('index page', () => {
         it('pages through the rows and keeps the page in the URL', async () => {
             const upload = openUploadPage({ sharesPerPage: 2 });
 
-            expect(upload.sharesShown()).toEqual(['Text note · 15:35', 'report.pdf']);
+            expect(upload.sharesShown()).toEqual(['Note · 15:35', 'report.pdf']);
             expect(screen.getByText('Page 1 of 3')).toBeVisible();
             expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled();
 
@@ -498,21 +500,22 @@ describe('index page', () => {
 
             expect(upload.sharesShown()).toEqual(['old.txt', 'locked.zip']);
             expect(screen.getByText('Page 3 of 3')).toBeVisible();
-            expect(screen.getByText('Showing 5-6 of 6 drops')).toBeVisible();
+            expect(screen.getByText('Showing 5–6 of 6 drops')).toBeVisible();
             expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
             expect(new URL(upload.url()).searchParams.get('shared_page')).toBe('3');
 
             await upload.previousSharesPage();
             await upload.previousSharesPage();
 
-            expect(upload.sharesShown()).toEqual(['Text note · 15:35', 'report.pdf']);
+            expect(upload.sharesShown()).toEqual(['Note · 15:35', 'report.pdf']);
             expect(new URL(upload.url()).searchParams.has('shared_page')).toBe(false);
         });
 
         it('starts from the search and page in the URL', () => {
-            const upload = openUploadPage({ path: '/?shared_search=2025&shared_page=2', sharesPerPage: 2 });
+            // Every row's name has an "o".
+            const upload = openUploadPage({ path: '/?shared_search=o&shared_page=2', sharesPerPage: 2 });
 
-            expect(screen.getByRole('searchbox', { name: 'Quick search' })).toHaveValue('2025');
+            expect(screen.getByRole('searchbox', { name: 'Quick search' })).toHaveValue('o');
             expect(screen.getByText('Page 2 of 3')).toBeVisible();
             expect(upload.sharesShown()).toHaveLength(2);
         });
@@ -525,7 +528,9 @@ describe('index page', () => {
 
             await upload.nextSharesPage();
 
-            await vi.waitFor(() => expect(shareRow('For the auditor').getByText('Downloaded')).toBeVisible());
+            // The badge now says Opened, as the label of the time does.
+            await vi.waitFor(() => expect(shareRow('For the auditor').getAllByText('Opened')).toHaveLength(2));
+            expect(shareRow('For the auditor').queryByText('Active')).toBeNull();
             expect(upload.statusChecks()).toEqual([['For the auditor', 'photo.png']]);
             expect(shareRow('For the auditor').getByText('2 hours ago'))
                 .toHaveAttribute('title', 'Jan 7, 2025, 04:00 EST');
