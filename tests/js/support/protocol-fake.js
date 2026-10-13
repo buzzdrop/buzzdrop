@@ -583,7 +583,9 @@ export function makeProtocolFake(opts = {}) {
             status: 200,
             headers: {
                 'Content-Type': 'application/octet-stream',
-                'Content-Disposition': `attachment; filename="${file.name}"`,
+                // Like the server: the real name stays inside the
+                // ciphertext; the page names the saved blob (#246).
+                'Content-Disposition': 'attachment; filename="download"',
                 'Content-Length': String(blob.length),
             },
             body: blob,
@@ -833,7 +835,7 @@ export function makeProtocolFake(opts = {}) {
         /** @type {Bytes} */
         const h = crypto.getRandomValues(new Uint8Array(32));
         const data = typeof plaintext === 'string' ? new TextEncoder().encode(plaintext) : plaintext;
-        const { blob, verifier, receipt } = await cryptoService.seal(data, password, h);
+        const { blob, verifier, receipt } = await cryptoService.seal(data, password, h, name);
         const expiryAt = parseExpiry(expiry ?? null);
         if (expiryAt === undefined) {
             throw new Error(`protocol fake: seedShare expiry ${expiry} names no exact moment`);

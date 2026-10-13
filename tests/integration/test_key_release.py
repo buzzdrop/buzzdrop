@@ -572,7 +572,8 @@ def test_key_release_end_to_end(client, files_store, key_release_settings):
     file_id = begin.get_json()['file_id']
     h = bytes.fromhex(begin.get_json()['h'])
 
-    blob, v_hex, receipt_hash = buzz.encrypt_file(plaintext, password, h)
+    blob, v_hex, receipt_hash = buzz.encrypt_file(
+        plaintext, password, h, name='payload.txt')
     assert blob.startswith(b'BKV3')
 
     finish = client.post(
@@ -613,8 +614,9 @@ def test_key_release_end_to_end(client, files_store, key_release_settings):
     assert download.status_code == 200
     served = download.data
 
-    data, receipt = buzz.decrypt_file(served, password, h=released_h)
+    data, receipt, name = buzz.decrypt_file(served, password, h=released_h)
     assert data == plaintext
+    assert name == 'payload.txt'
 
     # The receipt proves decryption — /report_decryption accepts it.
     report = client.post(

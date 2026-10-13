@@ -178,7 +178,7 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 {%- endmacro %}
 
 {# What the server sees, row by row: label, sees, never sees. #}
-{% set name_seen %}<span {{ show('content', 'file') }}>The <strong class="hiw-caveat">original filename, in plain text</strong>. It is stored, sent with the download and shown on the recipient&rsquo;s confirm page.</span><span {{ show('content', 'text') }}>The label &ldquo;Secret Note&rdquo;</span>{% endset %}
+{% set name_seen %}<span {{ show('content', 'file') }}>The <strong class="hiw-caveat">original filename, in plain text</strong>. It is stored and shown in the sender&rsquo;s drop list; the recipient never sees it on a page — the name they save the file under arrives inside the ciphertext.</span><span {{ show('content', 'text') }}>The label &ldquo;Secret Note&rdquo;</span>{% endset %}
 {% set name_unseen %}<span {{ show('content', 'file') }}>&mdash;</span><span {{ show('content', 'text') }}>Anything in the note</span>{% endset %}
 {% set sees_rows = [
     ('Content', 'Ciphertext and its approximate size', 'The plaintext'),

@@ -55,16 +55,17 @@ requires_cryptography = pytest.mark.skipif(
 # h = 0x20..0x3f, receipt = 0x40..0x5f).
 FIXTURE_PASSWORD = 'fixture-password-123'
 FIXTURE_DATA = b'fixture-data'
-# v3 blob: 'BKV3' + salt(16) + iv(12) + AES-GCM('BKP-FILE' + receipt + data),
-# key-release KDF.
+# v3 blob: 'BKV3' + salt(16) + iv(12) + AES-GCM('BKP-FIL2' + receipt
+# + name_len + name + data), key-release KDF; name = 'fixture.txt'.
 V3_FIXTURE = bytes.fromhex(
     '424b5633'
     '000102030405060708090a0b0c0d0e0f'
     '101112131415161718191a1b'
-    '9d9e3a85dc0667cf2d932f2ff111e26d53863a05b353260ca7f44e971372b9'
-    '1bc0238a04ef05c5b1e79f2b61b3a603b53c45ea318ba552f5d223fffcaa'
-    'e506cbea569cd3'
+    '9d9e3a85dc0667b82d932f2ff111e26d53863a05b353260ca7f44e971372b9'
+    '1bc0238a04ef05c5b181fd357cbea013ea3d0aea2827e2a9a028d27eca72df'
+    '74344c7ea12e03f2d5554b18f6b1a2eeda326a'
 )
+V3_FIXTURE_NAME = 'fixture.txt'
 V3_FIXTURE_H = bytes.fromhex(
     '202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f'
 )
@@ -81,10 +82,10 @@ def test_encrypt_output_length():
     buzz = _import_buzz()
     data = b'hello world'
     blob, _v, receipt_hash = buzz.encrypt_file(
-        data, 'test-password', h=os.urandom(32))
+        data, 'test-password', h=os.urandom(32), name='hello.txt')
     # magic(4) + salt(16) + iv(12) + AES-GCM(tag=16 + plaintext with
-    # 8-byte header + 32-byte receipt)
-    expected_min = 4 + 16 + 12 + 16 + 8 + 32 + len(data)
+    # 8-byte header + 32-byte receipt + 2-byte name length + name)
+    expected_min = 4 + 16 + 12 + 16 + 8 + 32 + 2 + len('hello.txt') + len(data)
     assert len(blob) == expected_min
     assert len(receipt_hash) == 64
 
@@ -96,7 +97,7 @@ def test_encrypt_receipt_hash_matches_payload():
     buzz = _import_buzz()
     h = os.urandom(32)
     blob, _v, receipt_hash = buzz.encrypt_file(b'data', 'pw', h)
-    _data, receipt = buzz.decrypt_file(blob, 'pw', h)
+    _data, receipt, _name = buzz.decrypt_file(blob, 'pw', h)
     assert hashlib.sha256(receipt).hexdigest() == receipt_hash
 
 
@@ -122,20 +123,22 @@ def test_encrypt_decrypt_roundtrip():
     buzz = _import_buzz()
     original = b'key-release payload \x00\xff'
     h = os.urandom(32)
-    blob, _v, _rh = buzz.encrypt_file(original, 'pw', h)
-    data, receipt = buzz.decrypt_file(blob, 'pw', h=h)
+    blob, _v, _rh = buzz.encrypt_file(original, 'pw', h, name='payload.bin')
+    data, receipt, name = buzz.decrypt_file(blob, 'pw', h=h)
     assert data == original
     assert len(receipt) == 32
+    assert name == 'payload.bin'
 
 
 @requires_cryptography
 def test_v3_fixture_decrypts_and_verifier_matches():
     """Pinned v3 fixture: same bytes in JS test (crypto.test.js)."""
     buzz = _import_buzz()
-    data, receipt = buzz.decrypt_file(
+    data, receipt, name = buzz.decrypt_file(
         V3_FIXTURE, FIXTURE_PASSWORD, h=V3_FIXTURE_H)
     assert data == FIXTURE_DATA
     assert receipt == V3_FIXTURE_RECEIPT
+    assert name == V3_FIXTURE_NAME
     # The verifier the client binds is derivable from password + blob salt.
     salt = V3_FIXTURE[4:20]
     _kp, v = buzz.derive_key_release_keys(FIXTURE_PASSWORD, salt)
@@ -201,7 +204,7 @@ def test_unicode_password():
     h = os.urandom(32)
 
     blob, _v, _rh = buzz.encrypt_file(original, password, h)
-    data, _receipt = buzz.decrypt_file(blob, password, h=h)
+    data, _receipt, _n = buzz.decrypt_file(blob, password, h=h)
     assert data == original
 
 

@@ -128,7 +128,7 @@ def test_view_text_note_shows_correct_template(client, app, files_store):
     # the note's label.
     response = client.get(url_for('view_file', file_id=note_id))
     assert response.status_code == 200
-    assert b'Secret Note' in response.data
+    assert b'A secret note' in response.data
     assert b'Ready to view?' in response.data
     assert b'This note can be opened once.' in response.data
     assert b'If the sender shared the password separately' in response.data

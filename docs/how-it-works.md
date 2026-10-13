@@ -4,7 +4,7 @@ The user-facing account of what happens when you share a file or a note with Buz
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
-<!-- how-it-works-fingerprint: sha256:1835fe4a5c58fd9c770910cec1f1de9b7537bc3b7c60d99d7957ee72be6ef97b -->
+<!-- how-it-works-fingerprint: sha256:f3f350d55d3b5e74a2ac5543fc7dc7ab93e29b5fbe05067561d2daac988ac33c -->
 
 > **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto, the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release defaults, and the server code that releases, serves, expires and deletes a drop (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc and the page against the change, fix whichever is now wrong, and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer page — keep in step" says the same for reviewers.
 
@@ -47,7 +47,7 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 
 **CLI + text note doesn't exist yet.** `buzz` only sends files (no note mode, no stdin), so the page disables Text while the CLI is selected, with the hint "the CLI sends files only". It turns on when [#247](https://github.com/buzzdrop/buzzdrop/issues/247) (CLI note mode) lands.
 
-**The filename is visible.** Until [#246](https://github.com/buzzdrop/buzzdrop/issues/246) (encrypt filenames) lands, a file's name travels and is stored in plain text: the server keeps it in its database, sends it in the download's `Content-Disposition` header and shows it on the recipient's confirm page. Neither this doc nor the page may claim the server knows nothing.
+**The filename is sender-facing, not recipient-facing.** A file's name still travels in plain text at upload (the multipart filename) and is stored so the sender's drop list can show it. But it is never rendered to whoever holds only the link: the recipient's pages stay nameless, the download's `Content-Disposition` is neutral, and the name the browser finally saves the file under arrives inside the ciphertext itself — readable only after the password held ([#246](https://github.com/buzzdrop/buzzdrop/issues/246)).
 
 ## The flow
 

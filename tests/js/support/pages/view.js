@@ -40,6 +40,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
  * @property {string} [query] - a query string the link carries, e.g. 'x=1'
  * @property {string} [password] - the share's password
  * @property {string | Bytes} [content] - what was shared
+ * @property {string} [name] - the filename sealed inside the share
  * @property {'done' | 'in-progress'} [download] - in-progress holds the
  *   download until finishDownload()
  * @property {'ok' | 'unsupported-format' | 'corrupted'} [share] - DOM layer only
@@ -94,6 +95,7 @@ export async function openShare({
     query,
     password = DEFAULT_PASSWORD,
     content = DEFAULT_MESSAGE,
+    name,
     download = 'done',
     share = 'ok',
     server = 'ok',
@@ -105,7 +107,8 @@ export async function openShare({
     const { service: cryptoService, timeout } = cryptoFor(crypto,
         { unsupportedFormat: share === 'unsupported-format', corrupted: share === 'corrupted' });
     const backend = uploaded?.backend ?? makeProtocolFake({ maxAttempts });
-    const fileId = uploaded?.fileId ?? await backend.seedShare({ password, plaintext: content }, cryptoService);
+    const fileId = uploaded?.fileId ?? await backend.seedShare(
+        { password, plaintext: content, name }, cryptoService);
     await arrange(backend, fileId, server, cryptoService, password, maxAttempts);
     // Only what the page sends from here on is its own.
     const logStart = backend.log.length;

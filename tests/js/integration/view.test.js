@@ -35,7 +35,7 @@ const requestText = (request) => {
 
 describe('view page decryption', { timeout: TEST_TIMEOUT }, () => {
     it('releases H, fetches the blob with the ticket, decrypts and reports the receipt', async () => {
-        const share = await openShare({ crypto: 'real', type: 'file', password: PASSWORD, content: FILE_BYTES });
+        const share = await openShare({ crypto: 'real', type: 'file', password: PASSWORD, content: FILE_BYTES, name: 'contract.pdf' });
 
         await share.decryptWithPassword(PASSWORD);
 

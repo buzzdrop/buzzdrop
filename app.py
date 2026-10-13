@@ -1376,7 +1376,10 @@ def download_file(file_id):
                 pass
 
     headers = {
-        'Content-Disposition': f'attachment; filename="{file_info.get("original_name") or "download"}"'
+        # Neutral name: the real one travels inside the ciphertext and the
+        # page saves the decrypted blob under it, so the server never
+        # renders the filename to whoever holds only the link (#246).
+        'Content-Disposition': 'attachment; filename="download"'
     }
     try:
         # Lets the client report real download progress.
@@ -1446,7 +1449,7 @@ def view_file(file_id):
     if not file_info:
         return _drop_gone()
     file_type = file_info.get('type', 'file')
-    return render_template('confirm_download.html', file_id=file_id, original_name=file_info.get('original_name'), file_type=file_type)
+    return render_template('confirm_download.html', file_id=file_id, file_type=file_type)
 
 @app.route('/view/<file_id>/confirm', methods=['POST'])
 @limiter.shared_limit(
@@ -1475,7 +1478,7 @@ def confirm_view_file(file_id):
         except StorageError:
             salt = None
     file_type = file_info.get('type', 'file')
-    return render_template('view.html', file_id=file_id, original_name=file_info.get('original_name'), file_type=file_type,
+    return render_template('view.html', file_id=file_id, file_type=file_type,
                            salt=salt,
                            max_attempts=current_app.config['KEY_RELEASE_MAX_ATTEMPTS'])
 
