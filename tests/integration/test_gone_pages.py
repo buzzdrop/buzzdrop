@@ -91,7 +91,7 @@ def test_unknown_url_answers_api_clients_with_json(client):
     response = client.get('/api/does-not-exist')
 
     assert response.status_code == 404
-    assert response.get_json() == {'error': 'Not found'}
+    assert response.get_json() == {'error': 'Not found', 'code': 'not_found'}
 
 
 def test_server_error_page_is_themed(app):

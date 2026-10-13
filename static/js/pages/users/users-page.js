@@ -13,12 +13,24 @@ import { required, requiredClosest } from '../../lib/required.js';
 
 /**
  * What POST /api/token answers: the raw token (shown once) and its expiry on
- * success, `{error}` otherwise.
+ * success, `{error, code}` otherwise. `error` is English for API clients;
+ * the page shows the message for `code` (#285).
  * @typedef {object} TokenResponse
  * @property {string} [token]
  * @property {string} [expires_at]
- * @property {string} [error]
+ * @property {string} [code]
  */
+
+// What the page says for each refusal of POST /api/token it can explain; any
+// other refusal is TOKEN_FAILED.
+/** @type {Map<string | undefined, string>} */
+const TOKEN_REFUSALS = new Map([
+    ['admin_required', 'Only an admin can generate a token for another user.'],
+    ['unknown_user', 'That user no longer exists.'],
+    ['csrf_failed', 'Your session has expired. Reload the page and try again.'],
+    ['rate_limited', 'Too many requests. Please try again later.'],
+]);
+const TOKEN_FAILED = 'Could not generate a token. Please try again.';
 
 /**
  * `fetch` is bound to the window: called unbound, as deps.fetch(...), the
@@ -57,7 +69,7 @@ export function initUsers(root, deps) {
             });
             /** @type {TokenResponse} */
             const body = await resp.json().catch(() => ({}));
-            if (!resp.ok) throw new Error(body.error || `Server returned ${resp.status}`);
+            if (!resp.ok) throw new Error(TOKEN_REFUSALS.get(body.code) ?? TOKEN_FAILED);
             // A 2xx always carries the token.
             input.value = /** @type {string} */ (body.token);
             expires.textContent = `Expires ${body.expires_at}. Reload to see it in the list below.`;

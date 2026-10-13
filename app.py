@@ -89,9 +89,10 @@ limiter = Limiter(
 class NotificationPreferenceError(Exception):
     """Safe validation error for uploader notification inputs."""
 
-    def __init__(self, message: str):
+    def __init__(self, message: str, code: str):
         super().__init__(message)
         self.message = message
+        self.code = code
 
 
 def _get_csrf_token():
@@ -170,20 +171,24 @@ def _get_notification_preferences(username: str) -> tuple[bool, str | None]:
         return False, None
 
     if not _notifications_configured():
-        raise NotificationPreferenceError('Open notifications are not configured on this server')
+        raise NotificationPreferenceError('Open notifications are not configured on this server',
+                                         'notifications_unconfigured')
 
     user = get_users().get(username, {})
     configured_email = (user.get('email') or '').strip()
     requested_email = (request.form.get('notification_email') or '').strip()
 
     if not configured_email:
-        raise NotificationPreferenceError('Configure an account email before enabling open notifications')
+        raise NotificationPreferenceError('Configure an account email before enabling open notifications',
+                                         'account_email_missing')
 
     if not _is_valid_notification_email(configured_email):
-        raise NotificationPreferenceError('Your configured account email is invalid')
+        raise NotificationPreferenceError('Your configured account email is invalid',
+                                         'account_email_invalid')
 
     if requested_email and requested_email != configured_email:
-        raise NotificationPreferenceError('Open notifications can only be sent to your configured account email')
+        raise NotificationPreferenceError('Open notifications can only be sent to your configured account email',
+                                         'notification_email_mismatch')
 
     return True, configured_email
 
@@ -558,7 +563,7 @@ _expiry_sweep_thread = start_expiry_sweep_thread(
 def handle_large_file(error):
     """Return a user-friendly message when the uploaded file exceeds the limit."""
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return {'error': 'File too large'}, 413
+        return {'error': 'File too large', 'code': 'file_too_large'}, 413
     flash('File too large')
     return 'File too large', 413
 
@@ -578,7 +583,7 @@ def handle_rate_limit(error):
     message = getattr(error, 'description', RATE_LIMIT_EXCEEDED_MESSAGE)
 
     if _is_api_request():
-        return {'error': message}, 429
+        return {'error': message, 'code': 'rate_limited'}, 429
 
     if request.endpoint == 'login':
         flash(_(RATE_LIMIT_EXCEEDED_MESSAGE))
@@ -597,7 +602,7 @@ def _error_page(status, eyebrow, heading, message):
 def handle_not_found(error):
     """A themed 404 page instead of Werkzeug's default (JSON for API clients)."""
     if _is_api_request():
-        return {'error': 'Not found'}, 404
+        return {'error': 'Not found', 'code': 'not_found'}, 404
     return _error_page(404, '404', _('Page not found'),
                        _("There's nothing at this address."))
 
@@ -606,7 +611,7 @@ def handle_not_found(error):
 def handle_server_error(error):
     """A themed 500 page instead of Werkzeug's default (JSON for API clients)."""
     if _is_api_request():
-        return {'error': 'Internal server error'}, 500
+        return {'error': 'Internal server error', 'code': 'server_error'}, 500
     return _error_page(500, '500', _('Something went wrong'),
                        _('The server hit an error. Please try again in a moment.'))
 
@@ -837,7 +842,7 @@ def create_api_token():
     """
     from tokens import DEFAULT_TOKEN_EXPIRY_DAYS, generate_api_token
     if not _session_csrf_required():
-        return {'error': 'CSRF validation failed'}, 403
+        return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
     data = request.get_json(silent=True) or {}
     current_user = get_current_user()
     current_username = current_user['username']
@@ -848,10 +853,11 @@ def create_api_token():
     is_current_admin = current_user.get('is_admin', False)
 
     if requested_username != current_username and not is_current_admin:
-        return {'error': 'Admin access required to generate tokens for other users'}, 403
+        return {'error': 'Admin access required to generate tokens for other users',
+                'code': 'admin_required'}, 403
 
     if requested_username not in users:
-        return {'error': 'Unknown user'}, 404
+        return {'error': 'Unknown user', 'code': 'unknown_user'}, 404
 
     try:
         requested_expiry_days = _parse_positive_integer(requested_expiry_days)
@@ -1035,7 +1041,7 @@ def upload_begin():
     ``file_id`` + ``key_verifier`` + ``receipt_hash``.
     """
     if not _session_csrf_required():
-        return {'error': 'CSRF validation failed'}, 403
+        return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
 
     # Pending shares that never finished are dead weight — sweep them on
     # the same path that creates them.
@@ -1062,7 +1068,7 @@ def upload_file():
 
     if not _session_csrf_required():
         if wants_json:
-            return {'error': 'CSRF validation failed'}, 403
+            return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
         flash('Invalid request')
         return redirect(url_for('index'))
 
@@ -1073,23 +1079,23 @@ def upload_file():
     key_verifier = (request.form.get('key_verifier') or '').strip().lower() or None
     receipt_hash = (request.form.get('receipt_hash') or '').strip().lower() or None
 
-    def _fail(message, status=400):
+    def _fail(message, code, status=400):
         if wants_json:
-            return {'error': message}, status
+            return {'error': message, 'code': code}, status
         flash(message)
         return redirect(url_for('index'))
 
     try:
         notify_on_open, notification_email = _get_notification_preferences(g.username)
     except NotificationPreferenceError as exc:
-        return _fail(exc.message)
+        return _fail(exc.message, exc.code)
 
     if (
         not file_id
         or not _is_valid_key_material(key_verifier)
         or not _is_valid_key_material(receipt_hash)
     ):
-        return _fail('Invalid key-release upload')
+        return _fail('Invalid key-release upload', 'invalid_upload')
     share = file_repo.get_key_share(file_id)
     if (
         share is None
@@ -1097,11 +1103,12 @@ def upload_file():
         or share.get('released_at') is not None
         or file_repo.get_by_id(file_id) is not None
     ):
-        return _fail('Unknown or already finalized key-release upload', 409)
+        return _fail('Unknown or already finalized key-release upload',
+                     'share_unavailable', 409)
     # Owner binding: only the account that ran /upload/begin may finish
     # it — a leaked pending file_id must not let someone else claim it.
     if share.get('created_by') != g.username:
-        return _fail('Key-release share belongs to another user', 403)
+        return _fail('Key-release share belongs to another user', 'share_not_owned', 403)
 
     # An expiry names an exact moment (the browser sends toISOString()); a
     # wall-clock time alone would be read in the server's zone (#250).
@@ -1113,7 +1120,7 @@ def upload_file():
             expiry_iso = parse_expiry(expiry_raw)
         except ValueError:
             return _fail('Expiry must be an ISO 8601 time with a time zone, '
-                         'e.g. 2026-12-31T23:59+01:00')
+                         'e.g. 2026-12-31T23:59+01:00', 'invalid_expiry')
 
     if upload_type == 'text' and note_text:
         # Handle text note upload
@@ -1130,7 +1137,8 @@ def upload_file():
         # Binding V atomically claims the pending share — a racing second
         # finish loses here, before any blob or record is written.
         if not file_repo.bind_key_verifier(unique_id, key_verifier, salt_hex):
-            return _fail('Key-release upload was finalized elsewhere', 409)
+            return _fail('Key-release upload was finalized elsewhere',
+                         'share_unavailable', 409)
 
         # Compensation: a bound share with no file record is dangling —
         # if save/create fails after the bind, destroy the share so the
@@ -1156,7 +1164,7 @@ def upload_file():
                 except Exception:
                     pass
             file_repo.burn_key_share(unique_id)
-            return _fail('Upload failed', 500)
+            return _fail('Upload failed', 'upload_failed', 500)
 
         share_link = url_for('view_file', file_id=unique_id, _external=True)
         if wants_json:
@@ -1196,7 +1204,8 @@ def upload_file():
         # Binding V atomically claims the pending share — a racing second
         # finish loses here, before any blob or record is written.
         if not file_repo.bind_key_verifier(unique_id, key_verifier, salt_hex):
-            return _fail('Key-release upload was finalized elsewhere', 409)
+            return _fail('Key-release upload was finalized elsewhere',
+                         'share_unavailable', 409)
 
         # Compensation: a bound share with no file record is dangling —
         # if save/create fails after the bind, destroy the share so the
@@ -1222,7 +1231,7 @@ def upload_file():
                 except Exception:
                     pass
             file_repo.burn_key_share(unique_id)
-            return _fail('Upload failed', 500)
+            return _fail('Upload failed', 'upload_failed', 500)
 
         share_link = url_for('view_file', file_id=unique_id, _external=True)
         if wants_json:
@@ -1235,7 +1244,7 @@ def upload_file():
     
     flash('File type not allowed')
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return {'error': 'File type not allowed'}, 400
+        return {'error': 'File type not allowed', 'code': 'type_not_allowed'}, 400
     return redirect(url_for('index'))
 
 # Remove confirm_download route, logic moves to /view/<file_id> and /view/<file_id>/confirm

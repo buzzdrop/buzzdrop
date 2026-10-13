@@ -111,4 +111,19 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
 
         expect(result).toEqual({ kind: 'refused', message: 'The server refused the upload handshake.' });
     });
+
+    // The page shows the message for the refusal's code; `error` is English
+    // for API clients and never reaches the screen (#285).
+    it.each([
+        ['a known code', { error: 'File type not allowed', code: 'type_not_allowed' }, 'That file type is not allowed.'],
+        ['an unknown code', { error: 'Something new went wrong', code: 'something_new' }, 'Upload failed'],
+        ['no code', { error: 'Something old went wrong' }, 'Upload failed'],
+    ])('an upload refused with %s shows its own message', async (_, body, message) => {
+        const fake = makeProtocolFake({ csrfToken: CSRF_TOKEN });
+        fake.failNext('/upload', { status: 400, body });
+
+        const result = await createShare({ kind: 'text', bytes: new Uint8Array([1]) }, PASSWORD, NO_OPTIONS, createDeps(fake));
+
+        expect(result).toEqual({ kind: 'refused', message });
+    });
 });

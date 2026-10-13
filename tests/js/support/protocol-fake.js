@@ -116,14 +116,16 @@ const PROGRESS_STEPS = [0.5, 1];
 /**
  * Every response the fake can answer with, as `[route, status, source]`:
  * 'state' when the fake produces it from its own state, 'injected' when
- * only failNext can (413, rate-limit 429). The contract test fails on an
- * entry no scenario records, and on a recorded response missing here.
+ * only failNext can (413, rate-limit 429, a disallowed file type's 400). The
+ * contract test fails on an entry no scenario records, and on a recorded
+ * response missing here.
  * @type {Array<[Route, number, 'state' | 'injected']>}
  */
 export const EMITS = [
     ['/upload/begin', 200, 'state'], ['/upload/begin', 403, 'state'],
     ['/upload/begin', 429, 'injected'],
     ['/upload', 200, 'state'], ['/upload', 400, 'state'], ['/upload', 403, 'state'],
+    ['/upload', 400, 'injected'],
     ['/upload', 409, 'state'], ['/upload', 413, 'injected'], ['/upload', 429, 'injected'],
     ['/download', 200, 'state'], ['/download', 302, 'state'], ['/download', 403, 'state'],
     ['/download', 404, 'state'], ['/download', 410, 'state'], ['/download', 429, 'injected'],
@@ -369,25 +371,25 @@ export function makeProtocolFake(opts = {}) {
     /**
      * _get_notification_preferences: an open notification goes only to the
      * account's own configured email, and only when SMTP is set up. Returns
-     * the server's error message, or null when the request is acceptable.
+     * the server's refusal body, or null when the request is acceptable.
      * @param {string} user
      * @param {(field: string) => string | null} field
-     * @returns {string | null}
+     * @returns {{ error: string, code: string } | null}
      */
     function notificationPreferenceError(user, field) {
         const requested = ['1', 'true', 'yes', 'on']
             .includes((field('notify_on_open') ?? '').trim().toLowerCase());
         if (!requested) return null;
         if (!notificationsConfigured) {
-            return 'Open notifications are not configured on this server';
+            return { error: 'Open notifications are not configured on this server', code: 'notifications_unconfigured' };
         }
         const configured = accountEmails[user];
         if (!configured) {
-            return 'Configure an account email before enabling open notifications';
+            return { error: 'Configure an account email before enabling open notifications', code: 'account_email_missing' };
         }
         const asked = (field('notification_email') ?? '').trim();
         if (asked && asked !== configured) {
-            return 'Open notifications can only be sent to your configured account email';
+            return { error: 'Open notifications can only be sent to your configured account email', code: 'notification_email_mismatch' };
         }
         return null;
     }
@@ -429,7 +431,7 @@ export function makeProtocolFake(opts = {}) {
     function uploadBegin(headers) {
         const owner = requireUser('/upload/begin');
         if (!hasCsrf(headers)) {
-            return json(403, { error: 'CSRF validation failed' });
+            return json(403, { error: 'CSRF validation failed', code: 'csrf_failed' });
         }
         const fileId = crypto.randomUUID();
         const h = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
@@ -447,7 +449,7 @@ export function makeProtocolFake(opts = {}) {
             throw new Error('protocol fake: /upload speaks only the XHR multipart form the page sends');
         }
         if (!hasCsrf(headers)) {
-            return json(403, { error: 'CSRF validation failed' });
+            return json(403, { error: 'CSRF validation failed', code: 'csrf_failed' });
         }
         /** @param {string} field */
         const field = (field) => {
@@ -456,24 +458,27 @@ export function makeProtocolFake(opts = {}) {
         };
         const notificationError = notificationPreferenceError(owner, field);
         if (notificationError) {
-            return json(400, { error: notificationError });
+            return json(400, notificationError);
         }
         const fileId = field('file_id')?.trim() || null;
         const keyVerifier = canonicalHex(field('key_verifier'));
         const receiptHash = canonicalHex(field('receipt_hash'));
         if (!fileId || !isKeyMaterial(keyVerifier) || !isKeyMaterial(receiptHash)) {
-            return json(400, { error: 'Invalid key-release upload' });
+            return json(400, { error: 'Invalid key-release upload', code: 'invalid_upload' });
         }
         const key = state.keys.get(fileId);
         if (!key || key.v !== null || key.releasedAt !== null || state.files.has(fileId)) {
-            return json(409, { error: 'Unknown or already finalized key-release upload' });
+            return json(409, { error: 'Unknown or already finalized key-release upload', code: 'share_unavailable' });
         }
         if (key.owner !== owner) {
-            return json(403, { error: 'Key-release share belongs to another user' });
+            return json(403, { error: 'Key-release share belongs to another user', code: 'share_not_owned' });
         }
         const expiryAt = parseExpiry(field('expiry'));
         if (expiryAt === undefined) {
-            return json(400, { error: 'Expiry must be an ISO 8601 time with a time zone, e.g. 2026-12-31T23:59+01:00' });
+            return json(400, {
+                error: 'Expiry must be an ISO 8601 time with a time zone, e.g. 2026-12-31T23:59+01:00',
+                code: 'invalid_expiry',
+            });
         }
 
         const noteText = field('note_text');

@@ -262,7 +262,7 @@ describe('XMLHttpRequest adapter', () => {
         expect(await done).toBe('load');
         expect(progress).toEqual([0.5, 1]);
         expect(xhr.status).toBe(400);
-        expect(JSON.parse(xhr.responseText)).toEqual({ error: 'Invalid key-release upload' });
+        expect(JSON.parse(xhr.responseText)).toEqual({ error: 'Invalid key-release upload', code: 'invalid_upload' });
     });
 
     it('calls onerror on an injected network failure', async () => {

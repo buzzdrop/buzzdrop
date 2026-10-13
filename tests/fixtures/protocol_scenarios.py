@@ -26,8 +26,9 @@ A later step refers to an earlier step's JSON response field with
 in a ``json``/``form`` value.
 
 ``injected: True`` marks a response the fake cannot produce from its own
-state (413, rate-limit 429): the fake's replay injects it with
-``failNext(route, status)``, which defaults to this recorded body.
+state (413, rate-limit 429, a disallowed file type): the fake's replay
+injects it with ``failNext(route, status)``, which defaults to this
+recorded body.
 
 The server never checks crypto, so verifiers and receipt hashes are fixed
 64-hex dummies; the one receipt that must hash to a stored
@@ -275,6 +276,13 @@ SCENARIOS = [
         'name': 'upload-too-large',
         'config': {'MAX_CONTENT_LENGTH': 64},
         'steps': [begin(), {**upload_file(), 'injected': True}],
+    },
+    {
+        # The page refuses a disallowed type before sending anything, so the
+        # fake takes any extension; the server's refusal is injected.
+        'name': 'upload-type-not-allowed',
+        'steps': [begin(), {**upload_file(), 'injected': True,
+                            'files': {'file': {'filename': 'tool.exe', 'content': FILE_CONTENT}}}],
     },
     {
         'name': 'rate-limit-upload-begin',

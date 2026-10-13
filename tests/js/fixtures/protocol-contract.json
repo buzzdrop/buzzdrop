@@ -1402,6 +1402,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "csrf_failed",
               "error": "CSRF validation failed"
             }
           }
@@ -1461,6 +1462,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "csrf_failed",
               "error": "CSRF validation failed"
             }
           }
@@ -1532,6 +1534,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "invalid_upload",
               "error": "Invalid key-release upload"
             }
           }
@@ -1604,6 +1607,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "invalid_expiry",
               "error": "Expiry must be an ISO 8601 time with a time zone, e.g. 2026-12-31T23:59+01:00"
             }
           }
@@ -1641,6 +1645,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "invalid_expiry",
               "error": "Expiry must be an ISO 8601 time with a time zone, e.g. 2026-12-31T23:59+01:00"
             }
           }
@@ -1785,6 +1790,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "share_unavailable",
               "error": "Unknown or already finalized key-release upload"
             }
           }
@@ -1830,6 +1836,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "share_unavailable",
               "error": "Unknown or already finalized key-release upload"
             }
           }
@@ -1902,6 +1909,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "account_email_missing",
               "error": "Configure an account email before enabling open notifications"
             }
           }
@@ -1964,6 +1972,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "notification_email_mismatch",
               "error": "Open notifications can only be sent to your configured account email"
             }
           }
@@ -2077,6 +2086,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "notifications_unconfigured",
               "error": "Open notifications are not configured on this server"
             }
           }
@@ -2148,6 +2158,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "share_not_owned",
               "error": "Key-release share belongs to another user"
             }
           }
@@ -2917,7 +2928,81 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "file_too_large",
               "error": "File too large"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "upload-type-not-allowed",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "begin",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload/begin"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "file_id": "<uuid>",
+              "h": "<hex64>"
+            }
+          }
+        },
+        {
+          "name": "upload",
+          "as": "testuser",
+          "injected": true,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "file_id": {
+                "$ref": "begin.file_id"
+              },
+              "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+            },
+            "files": {
+              "file": {
+                "filename": "tool.exe",
+                "content": "BKV3 dummy ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "type_not_allowed",
+              "error": "File type not allowed"
             }
           }
         }
@@ -2977,6 +3062,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "rate_limited",
               "error": "Too many requests. Please try again later."
             }
           }
@@ -3088,6 +3174,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "rate_limited",
               "error": "Too many requests. Please try again later."
             }
           }
@@ -3341,6 +3428,7 @@
               "Cache-Control": "no-store"
             },
             "json": {
+              "code": "rate_limited",
               "error": "Too many requests. Please try again later."
             }
           }

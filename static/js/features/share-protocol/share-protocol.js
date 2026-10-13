@@ -91,11 +91,29 @@ const SERVER_SHARE_BYTES = 32;
  */
 
 /**
- * What POST /upload answers: the share's id on success, `{error}` otherwise.
+ * What POST /upload answers: the share's id on success, `{error, code}`
+ * otherwise. `error` is English for API clients; the page shows the message
+ * for `code` (#285).
  * @typedef {object} UploadResponse
  * @property {string} [file_id]
- * @property {string} [error]
+ * @property {string} [code]
  */
+
+// What the page says for each refusal of POST /upload it can explain; any
+// other refusal is UPLOAD_FAILED.
+/** @type {Map<string | undefined, string>} */
+const UPLOAD_REFUSALS = new Map([
+    ['file_too_large', 'The file is too large to share.'],
+    ['type_not_allowed', 'That file type is not allowed.'],
+    ['rate_limited', 'Too many requests. Please try again later.'],
+    ['csrf_failed', 'Your session has expired. Reload the page and try again.'],
+    ['invalid_expiry', 'Choose a valid expiry time.'],
+    ['notifications_unconfigured', 'Open notifications are not configured on this server.'],
+    ['account_email_missing', 'Configure an account email before enabling open notifications.'],
+    ['account_email_invalid', 'Your configured account email is invalid.'],
+    ['notification_email_mismatch', 'Open notifications can only be sent to your configured account email.'],
+]);
+const UPLOAD_FAILED = 'Upload failed';
 
 /**
  * What POST /release answers: `{h}` (the server share, hex) on a verifier
@@ -361,7 +379,7 @@ function send(deps, form, headers) {
                     ? { kind: 'created', fileId: body.file_id }
                     : { kind: 'refused', message: 'Upload succeeded but server returned invalid JSON' });
             } else {
-                resolve({ kind: 'refused', message: body?.error || 'Upload failed' });
+                resolve({ kind: 'refused', message: UPLOAD_REFUSALS.get(body?.code) ?? UPLOAD_FAILED });
             }
         };
         xhr.onerror = () => resolve({ kind: 'unreachable' });
