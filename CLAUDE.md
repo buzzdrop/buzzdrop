@@ -15,7 +15,7 @@ Never commit issue work to `main`. Before the first change, branch off an up-to-
 python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
 python app.py                      # local dev; or docker-compose build && docker-compose up
 pytest -v                          # all Python tests; narrow with a path or ::test_name
-npm run typecheck                  # JSDoc + tsc --checkJs over browser JS and JS tests (no build step)
+npm run typecheck                  # JSDoc + tsc --checkJs over browser JS and JS tests (no build step; jsconfig.json; CI job js-fast)
 npm test                           # JS unit + DOM tests
 npm run fixtures                   # regenerate DOM fixtures + protocol contract
 python translations/catalogs.py    # extract/update/compile gettext catalogs
@@ -27,7 +27,7 @@ CI fails while the DOM fixtures, the protocol contract or the catalogs are stale
 
 Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their own when you work in that folder.
 
-- **`app.py`** holds the routes, security headers and the expiry sweep. It is helped by `auth.py` (users, login decorators), `tokens.py` (API tokens), `storage.py` (local/S3 blobs, `STORAGE_BACKEND`), `i18n.py`, `timestamps.py` and `config.py`.
+- **`app.py`** holds the routes, security headers and the expiry sweep. It is helped by `auth.py` (users, login decorators), `tokens.py` (API tokens), `storage.py` (local/S3 blobs, `STORAGE_BACKEND`), `i18n.py`, `timestamps.py`, `config.py`, `models.py` (`FileRepository`, the facade over `db/`'s `FileStore`) and `utils.py` (display timestamps, upload checks, client IP, orphan cleanup). `migrate_db.py` is a one-off TinyDB → SQLite migration.
 - **Share protocol**, i.e. the crypto, `/upload*`, `/view`, `/release`, `/download`, `/report_decryption`, expiry and the file lifecycle → `docs/dev/share-protocol.md`. The design rationale is in `docs/true-one-time.md` §6.
 - **Database** (`files`, `api_tokens`, `file_keys`, adding a backend) → `db/CLAUDE.md`.
 - **User-facing text**, i.e. any template or flash text, JS-written text, a JSON error the UI shows, or a new language → `docs/dev/i18n.md`.
@@ -40,8 +40,8 @@ Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their
 ## Invariants
 
 - **Timestamps are UTC** (`timestamps.py`, #250). Write every stored time with `now_iso()`/`to_utc_iso()`: ISO 8601 with `+00:00`, always with microseconds, because the SQL text comparisons depend on it. Compare against `utcnow()`. Never use a naive `datetime.now()`.
-  - `parse_timestamp` reads a value with no offset as UTC. Zoneless values from older versions are deliberately not migrated.
-  - The server renders its own text in UTC. Browser code shows local times with `Intl` from the `<field>_iso` twins. `DEFAULT_TIMEZONE` is used for notification emails only.
+  - `parse_timestamp` reads a value with no offset as UTC. Zoneless values from older versions are deliberately not migrated (a pre-production break, like BKV3).
+  - The server renders its own text in UTC. The index page script (`features/shared-files`) shows local times with `Intl` from the `<field>_iso` twins. `DEFAULT_TIMEZONE` is used for notification emails only.
 - **`BKV3` is the only share format.** Legacy formats are rejected. This is a deliberate pre-production break, with no backward compatibility.
 - **JSON responses stay English.** An error the web UI may show carries a stable `code` that the browser maps to its own text.
 - **Protocol contract — keep in step.** When a response of `/upload/begin`, `/upload`, `/download`, `/release` or `/report_decryption` changes (its status, its body or the condition that triggers it), the JS protocol fake must follow. The steps are in `tests/CLAUDE.md` §Protocol contract.
