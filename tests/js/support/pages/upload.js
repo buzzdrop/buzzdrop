@@ -30,6 +30,18 @@ const SHARE_IDS = {
     'locked.zip': '00000000-0000-4000-8000-000000000007',
 };
 
+/** The composer's controls, as each language names them. */
+const WORDS = {
+    en: {
+        password: 'Password', fileField: 'Drop a file here, or browse', noteTab: 'Text note', fileTab: 'File',
+        noteField: 'Secret text', generate: 'Generate', send: /^Share (file|note)$/,
+    },
+    pl: {
+        password: 'Hasło', fileField: 'Upuść tu plik albo wybierz go', noteTab: 'Notatka', fileTab: 'Plik',
+        noteField: 'Treść notatki', generate: 'Wygeneruj', send: /^Wyślij (plik|notatkę)$/,
+    },
+};
+
 /** When the page is looked at: the day after the fixture's newest upload. */
 const NOW = '2025-01-07T12:00:00+01:00';
 
@@ -70,6 +82,8 @@ export const PASSWORDS = {
  * @property {import('./page.js').ClipboardKind} [clipboard]
  * @property {import('./page.js').CryptoKind} [crypto] - real in the JS-integration layer
  * @property {Fake} [backend] - the server uploads go to, when a test needs one it made
+ * @property {'en' | 'pl'} [language] - the language the browser asked for; Polish is
+ *   rendered for the no-shares account only
  */
 
 /**
@@ -108,11 +122,18 @@ function indexDeps(fetch, crypto, xhr) {
 export const WALKTHROUGH_HOLD_MS = HOLD_MS;
 
 /**
- * Open the landing page an anonymous visitor sees, with both its scripts.
- * @param {{ path?: string, reducedMotion?: boolean }} [options]
+ * The fixture of `name` in `language`: English has no suffix.
+ * @param {string} name
+ * @param {'en' | 'pl'} language
  */
-export function openLandingPage({ path = '/', reducedMotion = false } = {}) {
-    const page = openPage('index--anonymous', { path, reducedMotion });
+const inLanguage = (name, language) => (language === 'en' ? name : `${name}.${language}`);
+
+/**
+ * Open the landing page an anonymous visitor sees, with both its scripts.
+ * @param {{ path?: string, reducedMotion?: boolean, language?: 'en' | 'pl' }} [options]
+ */
+export function openLandingPage({ path = '/', reducedMotion = false, language = 'en' } = {}) {
+    const page = openPage(inLanguage('index--anonymous', language), { path, reducedMotion });
     const { deps } = indexDeps(async (input) => {
         throw new Error(`the landing page sent ${input}`);
     }, cryptoFor('stub').service, page.window.XMLHttpRequest);
@@ -151,10 +172,11 @@ export function openUploadPage({
     clipboard = 'ok',
     crypto = 'stub',
     backend,
+    language = 'en',
 } = {}) {
     const { fixture, user: owner } = ACCOUNTS[account];
     const server = backend ?? makeProtocolFake({ owner });
-    const page = openPage(fixture, {
+    const page = openPage(inLanguage(fixture, language), {
         path,
         clipboard,
         edit: (html) => (sharesPerPage
@@ -196,8 +218,9 @@ export function openUploadPage({
     // Every value the upload bar shows while it is on screen.
     const progressShown = recordProgress(page);
 
-    const passwordField = () => screen.getByLabelText('Password');
-    const fileField = () => screen.getByLabelText('Drop a file here, or browse');
+    const words = WORDS[language];
+    const passwordField = () => screen.getByLabelText(words.password);
+    const fileField = () => screen.getByLabelText(words.fileField);
     /** @param {ShareName} name */
     const shareRow = (name) => screen.getByRole('article', { name });
     /** @param {string} name */
@@ -221,11 +244,11 @@ export function openUploadPage({
         /** What the page sent to the server, in order. */
         requestsSent: () => [...server.log],
 
-        switchToNote: () => user.click(screen.getByRole('tab', { name: 'Text note' })),
-        switchToFile: () => user.click(screen.getByRole('tab', { name: 'File' })),
+        switchToNote: () => user.click(screen.getByRole('tab', { name: words.noteTab })),
+        switchToFile: () => user.click(screen.getByRole('tab', { name: words.fileTab })),
         /** @param {string} text */
         async writeMessage(text) {
-            const field = screen.getByLabelText('Secret text');
+            const field = screen.getByLabelText(words.noteField);
             await user.clear(field);
             if (text) await user.type(field, typeable(text));
         },
@@ -254,7 +277,7 @@ export function openUploadPage({
             if (text) await user.type(passwordField(), typeable(text));
         },
         clearPassword: () => user.clear(passwordField()),
-        generatePassword: () => user.click(screen.getByRole('button', { name: 'Generate' })),
+        generatePassword: () => user.click(screen.getByRole('button', { name: words.generate })),
         copyPassword: () => user.click(screen.getByRole('button', { name: 'Copy password' })),
         showPassword: () => user.click(screen.getByRole('button', { name: 'Show password' })),
         hidePassword: () => user.click(screen.getByRole('button', { name: 'Hide password' })),
@@ -283,7 +306,7 @@ export function openUploadPage({
         async share({ server: situation = 'ok' } = {}) {
             arrange(situation);
             const outcomes = navigations.length + alerts.length;
-            await user.click(screen.getByRole('button', { name: /^Share (file|note)$/ }));
+            await user.click(screen.getByRole('button', { name: words.send }));
             await waitUntil(() => expect(navigations.length + alerts.length > outcomes
                 || screen.queryAllByRole('alert').some((region) => region.textContent?.trim())).toBe(true), timeout);
         },
