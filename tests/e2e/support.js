@@ -39,7 +39,7 @@ export async function logIn(page) {
     // Module scripts run before DOMContentLoaded: from then on the composer's
     // listeners are wired, and a click is not lost on a half-booted page.
     await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('button', { name: 'Share file' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Send file' })).toBeVisible();
 }
 
 /**
@@ -53,7 +53,7 @@ export async function logIn(page) {
 export async function shareFile(page, file, password) {
     await page.getByLabel('Drop a file here, or browse').setInputFiles(file);
     await page.getByLabel('Password', { exact: true }).fill(password);
-    await page.getByRole('button', { name: 'Share file' }).click();
+    await page.getByRole('button', { name: 'Send file' }).click();
     return shareLink(page);
 }
 
@@ -65,10 +65,10 @@ export async function shareFile(page, file, password) {
  * @returns {Promise<string>}
  */
 export async function shareNote(page, text, password) {
-    await page.getByRole('tab', { name: 'Text note' }).click();
-    await page.getByLabel('Secret text').fill(text);
+    await page.getByRole('tab', { name: 'Note' }).click();
+    await page.getByLabel('Your note').fill(text);
     await page.getByLabel('Password', { exact: true }).fill(password);
-    await page.getByRole('button', { name: 'Share note' }).click();
+    await page.getByRole('button', { name: 'Send note' }).click();
     return shareLink(page);
 }
 

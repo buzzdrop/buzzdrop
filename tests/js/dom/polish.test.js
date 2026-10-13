@@ -112,6 +112,19 @@ describe('in Polish', () => {
         expect(screen.getByRole('link', { name: 'Jak sprawdzane jest hasło' })).toBeVisible();
     });
 
+    it('serves the landing walkthrough\'s artwork and play toggle in Polish', async () => {
+        const landing = openLandingPage({ language: 'pl' });
+
+        const walkthrough = screen.getByRole('region', { name: 'Jak działa przesyłka' });
+        expect(walkthrough).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Jak działa Buzzdrop, szczegółowo' })).toBeVisible();
+
+        await landing.pauseWalkthrough();
+        expect(screen.getByRole('button', { name: 'Odtwórz przykład' })).toBeVisible();
+        await landing.playWalkthrough();
+        expect(screen.getByRole('button', { name: 'Wstrzymaj przykład' })).toBeVisible();
+    });
+
     it('serves the composer', () => {
         openUploadPage({ account: 'no-shares', language: 'pl' });
 

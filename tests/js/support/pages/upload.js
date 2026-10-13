@@ -33,13 +33,19 @@ const SHARE_IDS = {
 /** The composer's controls, as each language names them. */
 const WORDS = {
     en: {
-        password: 'Password', fileField: 'Drop a file here, or browse', noteTab: 'Text note', fileTab: 'File',
-        noteField: 'Secret text', generate: 'Generate', send: /^Share (file|note)$/,
+        password: 'Password', fileField: 'Drop a file here, or browse', noteTab: 'Note', fileTab: 'File',
+        noteField: 'Your note', generate: 'Generate', send: /^Send (file|note)$/,
     },
     pl: {
         password: 'Hasło', fileField: 'Upuść tu plik albo wybierz go', noteTab: 'Notatka', fileTab: 'Plik',
         noteField: 'Treść notatki', generate: 'Wygeneruj', send: /^Wyślij (plik|notatkę)$/,
     },
+};
+
+/** The walkthrough and its play toggle, as each language names them. */
+const LANDING_WORDS = {
+    en: { walkthrough: 'How a drop works', pause: 'Pause walkthrough', play: 'Play walkthrough' },
+    pl: { walkthrough: 'Jak działa przesyłka', pause: 'Wstrzymaj przykład', play: 'Odtwórz przykład' },
 };
 
 /** When the page is looked at: the day after the fixture's newest upload. */
@@ -140,7 +146,8 @@ export function openLandingPage({ path = '/', reducedMotion = false, language = 
     initIndex(page.window.document, deps);
     initHeroFlow(page.window.document, {});
     const { screen, user } = page;
-    const walkthrough = () => screen.getByRole('region', { name: 'How a drop works' });
+    const words = LANDING_WORDS[language];
+    const walkthrough = () => screen.getByRole('region', { name: words.walkthrough });
     // happy-dom never hides a tab, so a tab switch is the flag and the event
     // a browser would give.
     const { document } = page.window;
@@ -151,8 +158,8 @@ export function openLandingPage({ path = '/', reducedMotion = false, language = 
     return {
         url: page.url,
         historyLength: page.historyLength,
-        pauseWalkthrough: () => user.click(screen.getByRole('button', { name: 'Pause walkthrough' })),
-        playWalkthrough: () => user.click(screen.getByRole('button', { name: 'Play walkthrough' })),
+        pauseWalkthrough: () => user.click(screen.getByRole('button', { name: words.pause })),
+        playWalkthrough: () => user.click(screen.getByRole('button', { name: words.play })),
         pointAtWalkthrough: () => user.hover(walkthrough()),
         moveAwayFromWalkthrough: () => user.unhover(walkthrough()),
         leaveTab: () => setTabHidden(true),

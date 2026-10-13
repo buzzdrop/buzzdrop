@@ -169,7 +169,7 @@ class _VisibleText(HTMLParser):
         self._break(tag)
         if tag == self._untranslated:
             self._untranslated_depth += 1
-        elif self._untranslated is None and (attrs.get('translate') == 'no' or attrs.get('id') in self.pending):
+        elif self._untranslated is None and (attrs.get('translate') == 'no' or self._is_pending(attrs)):
             self._untranslated, self._untranslated_depth = tag, 1
         if tag in ('script', 'style') or self._untranslated == tag and self._untranslated_depth == 1:
             self._skipping += 1
@@ -181,6 +181,11 @@ class _VisibleText(HTMLParser):
                 self.attributes.append(attrs[name])
         if tag == 'meta' and attrs.get('name') == 'description':
             self.attributes.append(attrs['content'])
+
+    def _is_pending(self, attrs):
+        classes = (attrs.get('class') or '').split()
+        return (f"#{attrs.get('id')}" in self.pending
+                or any(f'.{name}' in self.pending for name in classes))
 
     def handle_endtag(self, tag):
         self._break(tag)
@@ -218,7 +223,8 @@ def _outside_markers(text):
 
 def _unwrapped(html, pending=()):
     """The words of ``html`` outside the markers, skipping the elements
-    whose ids are in ``pending`` (parts a later issue converts)."""
+    ``pending`` names as ``#id`` or ``.class`` (parts a later issue
+    converts)."""
     parser = _VisibleText(pending)
     parser.feed(html)
     # Runs of inline text join as rendered: one marker pair may span inline tags.
@@ -284,10 +290,10 @@ CONVERTED_PAGES = {
     'landing page': _landing_page,
     'composer': _composer,
 }
-# Parts of a converted page that a later issue converts, by element id.
+# Parts of a converted page that a later issue converts, as #id or .class.
 PENDING = {
-    # The hero walkthrough: #291, with the how-it-works page it quotes.
-    'landing page': {'flow-stage'},
+    # The hero walkthrough's captions: #291, with the how-it-works page they quote.
+    'landing page': {'.flow-cap'},
 }
 
 
@@ -325,6 +331,6 @@ def test_the_pseudo_locale_check_skips_what_is_marked_untranslated():
 
 def test_the_pseudo_locale_check_skips_what_a_later_issue_converts():
     html = ('<div id="later" aria-label="Later"><p>Not yet</p><b title="Nor this">x</b></div>'
-            '<p id="now">Now</p>')
+            '<p class="cap soon">Nor yet</p><p id="now">Now</p>')
 
-    assert _unwrapped(html, pending={'later'}) == ['Now']
+    assert _unwrapped(html, pending={'#later', '.soon'}) == ['Now']

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="fixture-csrf-token">
     <meta name="theme-color" content="#07080B">
-    <meta name="description" content="Buzzdrop: secure, one-time file sharing. Upload encrypted files or secret notes, send a link, and let them vanish as soon as the recipient downloads them.">
+    <meta name="description" content="Buzzdrop: secure, one-time file sharing. Encrypt files or notes, send a link, and let them vanish as soon as the recipient downloads them.">
     <meta property="og:locale" content="en_US">
     <title>Buzzdrop: Secure, One-Time File Sharing</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
@@ -140,7 +140,7 @@
             Make it <span class="honey-text">buzz</span>, then vanish.
         </h1>
         <h2 class="max-w-2xl text-sm leading-relaxed text-slate-400">
-            <strong>Encrypt a file or a secret note in your browser</strong>, send one link, and let the drop delete itself the moment it is downloaded. The contents are ciphertext to the server; details like the filename and your memo are not.
+            <strong>Encrypt a file or a note in your browser</strong>, send one link, and let the drop delete itself the moment it is downloaded. The contents are ciphertext to the server; details like the filename and your memo are not.
         </h2>
     </header>
 
@@ -151,7 +151,7 @@
                 File
             </button>
             <button id="text-tab" type="button" role="tab" aria-selected="false" aria-controls="text-note-section" tabindex="-1" class="share-tab">
-                Text note
+                Note
             </button>
         </div>
 
@@ -193,7 +193,7 @@
         </div>
 
         <div id="text-note-section" style="visibility:hidden;" class="flex flex-col" role="tabpanel" aria-labelledby="text-tab">
-            <label for="note-text" class="field-label">Secret text</label>
+            <label for="note-text" class="field-label">Your note</label>
             <textarea id="note-text" rows="9" class="field-input min-h-56 flex-1 font-mono text-[0.8rem] leading-6" placeholder="Paste the note you want to protect with a one-time buzz…" aria-required="true" aria-describedby="note-error"></textarea>
             <p class="field-help">Encrypted in the browser before it reaches the server.</p>
             <p id="note-error" class="file-error" role="alert"></p>
@@ -240,7 +240,7 @@
                     </div>
                     <p id="password-strength-text" class="field-help"></p>
                 </div>
-                <p class="field-help">Share it through a different channel than the link.</p>
+                <p class="field-help">Send it through a different channel than the link.</p>
                 
                 <p id="password-copy-status" class="sr-only" role="status" aria-label="Password clipboard"></p>
                 <p id="password-error" class="file-error" role="alert"></p>
@@ -294,8 +294,8 @@
                         <p class="font-semibold text-white">One-time buzz</p>
                         <p class="mt-1 text-slate-400">Stored as ciphertext only, destroyed the moment the recipient downloads it.</p>
                     </div>
-                    <button id="share-action-btn" type="button" aria-label="Share file" class="btn-primary w-full shrink-0 sm:w-auto">
-                        <span id="share-action-label" class="relative z-10">Share file</span>
+                    <button id="share-action-btn" type="button" aria-label="Send file" class="btn-primary w-full shrink-0 sm:w-auto">
+                        <span id="share-action-label" class="relative z-10">Send file</span>
                         <svg class="relative z-10 h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M3 10a1 1 0 0 1 1-1h9.586L9.293 4.707a1 1 0 0 1 1.414-1.414l6 6a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1-1.414-1.414L13.586 11H4a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
                         </svg>
@@ -320,7 +320,7 @@
 
 <script id="allowed-extensions-json" type="application/json">["doc", "docx", "gif", "jpeg", "jpg", "mp4", "pdf", "png", "txt", "xls", "xlsx"]</script>
 <script id="upload-endpoints-json" type="application/json">{"uploadBeginUrl": "/upload/begin", "uploadUrl": "/upload"}</script>
-<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "composer": {"chooseFile": "Choose a file to share.", "expiryZone": "In your time zone (%(zone)s).", "refusals": {"account_email_invalid": "Your configured account email is invalid.", "account_email_missing": "Configure an account email before enabling open notifications.", "csrf_failed": "Your session has expired. Reload the page and try again.", "file_too_large": "The drop is too large to send.", "handshake_refused": "The server would not accept the drop. Please try again.", "invalid_expiry": "Choose a valid expiry time.", "notification_email_mismatch": "Open notifications can only be sent to your configured account email.", "notifications_unconfigured": "Open notifications are not configured on this server.", "rate_limited": "Too many requests. Please try again later.", "reply_unreadable": "The drop may have been sent, but the server\u0027s reply could not be read.", "send_failed": "Could not send the drop. Please try again.", "type_not_allowed": "That file type is not allowed."}, "sendFile": "Share file", "sendNote": "Share note", "unreachable": "Network error while sending the drop. Please try again.", "writeNote": "Write the note you want to share."}, "password-gate": {"hide": "Hide", "hidePassword": "Hide password", "levels": {"fair": "Fair", "strong": "Strong", "weak": "Weak"}, "messages": {"common": "That password is on every cracker list ever published.", "fair": "Acceptable (~%(bits)s bits) \u2014 a generated 6-word passphrase is stronger.", "strong": "Strong (~%(bits)s bits).", "weak": "Too weak (~%(bits)s bits). Use Generate or a longer passphrase."}, "missing": "Enter a password, or press Generate.", "rejected": "Password rejected: %(reason)s", "show": "Show", "showPassword": "Show password"}}</script>
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "composer": {"chooseFile": "Choose a file to send.", "expiryZone": "In your time zone (%(zone)s).", "refusals": {"account_email_invalid": "Your configured account email is invalid.", "account_email_missing": "Configure an account email before enabling open notifications.", "csrf_failed": "Your session has expired. Reload the page and try again.", "file_too_large": "The drop is too large to send.", "handshake_refused": "The server would not accept the drop. Please try again.", "invalid_expiry": "Choose a valid expiry time.", "notification_email_mismatch": "Open notifications can only be sent to your configured account email.", "notifications_unconfigured": "Open notifications are not configured on this server.", "rate_limited": "Too many requests. Please try again later.", "reply_unreadable": "The drop may have been sent, but the server\u0027s reply could not be read.", "send_failed": "Could not send the drop. Please try again.", "type_not_allowed": "That file type is not allowed."}, "sendFile": "Send file", "sendNote": "Send note", "unreachable": "Network error while sending the drop. Please try again.", "writeNote": "Write the note you want to send."}, "hero-flow": {"pause": "Pause walkthrough", "play": "Play walkthrough"}, "password-gate": {"hide": "Hide", "hidePassword": "Hide password", "levels": {"fair": "Fair", "strong": "Strong", "weak": "Weak"}, "messages": {"common": "That password is on every cracker list ever published.", "fair": "Acceptable (~%(bits)s bits) \u2014 a generated 6-word passphrase is stronger.", "strong": "Strong (~%(bits)s bits).", "weak": "Too weak (~%(bits)s bits). Use Generate or a longer passphrase."}, "missing": "Enter a password, or press Generate.", "rejected": "Password rejected: %(reason)s", "show": "Show", "showPassword": "Show password"}}</script>
 
         </main>
 

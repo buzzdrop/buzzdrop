@@ -191,19 +191,19 @@ msgid "In your time zone (%(zone)s)."
 msgstr ""
 
 #: templates/_composer_strings.html
-msgid "Share file"
+msgid "Send file"
 msgstr ""
 
 #: templates/_composer_strings.html
-msgid "Share note"
+msgid "Send note"
 msgstr ""
 
 #: templates/_composer_strings.html
-msgid "Choose a file to share."
+msgid "Choose a file to send."
 msgstr ""
 
 #: templates/_composer_strings.html
-msgid "Write the note you want to share."
+msgid "Write the note you want to send."
 msgstr ""
 
 #: templates/_composer_strings.html
@@ -252,6 +252,14 @@ msgstr ""
 
 #: templates/_composer_strings.html
 msgid "The drop may have been sent, but the server's reply could not be read."
+msgstr ""
+
+#: templates/_hero_flow_strings.html
+msgid "Play walkthrough"
+msgstr ""
+
+#: templates/_hero_flow_strings.html
+msgid "Pause walkthrough"
 msgstr ""
 
 #. the language menu button's name; %(language)s is the current language in
@@ -320,9 +328,8 @@ msgstr ""
 
 #: templates/base.html
 msgid ""
-"Buzzdrop: secure, one-time file sharing. Upload encrypted files or secret"
-" notes, send a link, and let them vanish as soon as the recipient "
-"downloads them."
+"Buzzdrop: secure, one-time file sharing. Encrypt files or notes, send a "
+"link, and let them vanish as soon as the recipient downloads them."
 msgstr ""
 
 #: templates/base.html
@@ -391,10 +398,10 @@ msgstr ""
 
 #: templates/index.html
 msgid ""
-"<strong>Encrypt a file or a secret note in your browser</strong>, send "
-"one link, and let the drop delete itself the moment it is downloaded. The"
-" contents are ciphertext to the server; details like the filename and "
-"your memo are not."
+"<strong>Encrypt a file or a note in your browser</strong>, send one link,"
+" and let the drop delete itself the moment it is downloaded. The contents"
+" are ciphertext to the server; details like the filename and your memo "
+"are not."
 msgstr ""
 
 #: templates/index.html
@@ -406,7 +413,7 @@ msgid "File"
 msgstr ""
 
 #: templates/index.html
-msgid "Text note"
+msgid "Note"
 msgstr ""
 
 #: templates/index.html
@@ -425,7 +432,7 @@ msgid "Up to %(size)s"
 msgstr ""
 
 #: templates/index.html
-msgid "Secret text"
+msgid "Your note"
 msgstr ""
 
 #: templates/index.html
@@ -465,7 +472,7 @@ msgid "Password strength"
 msgstr ""
 
 #: templates/index.html
-msgid "Share it through a different channel than the link."
+msgid "Send it through a different channel than the link."
 msgstr ""
 
 #: templates/index.html
@@ -532,7 +539,7 @@ msgstr ""
 
 #: templates/index.html
 msgid ""
-"Send a file or a secret note as a single link.<br>It opens once, then "
+"Send a file or a note as a single link.<br>It opens once, then "
 "it’s&nbsp;gone."
 msgstr ""
 
@@ -552,6 +559,48 @@ msgstr ""
 
 #: templates/index.html
 msgid "AES-GCM · PBKDF2, 600k iterations · Local or S3 storage · CLI included"
+msgstr ""
+
+#: templates/index.html
+msgid "How a drop works"
+msgstr ""
+
+#: templates/index.html
+msgid "contract.pdf"
+msgstr ""
+
+#: templates/index.html
+msgid "Wire details inside"
+msgstr ""
+
+#. the walkthrough's mock countdown, 24 hours. Keep it this short.
+#: templates/index.html
+msgid "24h"
+msgstr ""
+
+#. an example expiry in the walkthrough's artwork, any date.
+#: templates/index.html
+msgid "Expires 12 Oct, 18:00"
+msgstr ""
+
+#: templates/index.html
+msgid "Copied"
+msgstr ""
+
+#: templates/index.html
+msgid "You"
+msgstr ""
+
+#: templates/index.html
+msgid "Them"
+msgstr ""
+
+#: templates/index.html
+msgid "Deleted from the server"
+msgstr ""
+
+#: templates/index.html
+msgid "How Buzzdrop works, in detail"
 msgstr ""
 
 #: templates/index.html

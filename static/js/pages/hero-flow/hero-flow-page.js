@@ -4,6 +4,7 @@
 // ordered list, so assistive tech reads the whole sequence regardless of which
 // stage happens to be on screen.
 import { required, requiredWindow } from '../../lib/required.js';
+import { readStrings } from '../../lib/strings.js';
 import { createPlayToggle } from '../../features/play-toggle/index.js';
 
 /**
@@ -31,6 +32,7 @@ export function initHeroFlow(root, deps) {
     const stage = root.getElementById('flow-stage');
     if (!stage) return;
 
+    const strings = readStrings(required(root, '#page-strings-json', 'script')).section('hero-flow');
     const steps = Array.from(stage.querySelectorAll('.flow-step'));
     const dots = Array.from(stage.querySelectorAll('.flow-dot'));
     const reduceMotion = requiredWindow(root).matchMedia('(prefers-reduced-motion: reduce)');
@@ -68,7 +70,7 @@ export function initHeroFlow(root, deps) {
     // the ring froze instead of starting over.
     const button = required(stage, '#flow-toggle', 'button');
     const toggle = createPlayToggle(button, stage, {
-        play: 'Play walkthrough', pause: 'Pause walkthrough',
+        play: strings.text('play'), pause: strings.text('pause'),
     }, () => {
         render((current + 1) % steps.length);
         toggle.restart(holdOf(current));
