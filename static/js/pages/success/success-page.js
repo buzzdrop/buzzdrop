@@ -3,7 +3,8 @@
 // - Copying the share link, the password and the one-click link to clipboard
 // - Toggling password visibility
 // - Auto-filling the password and one-click link from the URL fragment
-// Its words come from the page strings (templates/_success_strings.html).
+// Its words come from the page strings: templates/_success_strings.html, and
+// _clipboard_feedback_strings.html for what its copies announce.
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
@@ -75,22 +76,14 @@ export function initSuccess(root, deps) {
     // plain HTTP, where there is no Clipboard API; a password field's value
     // can't be copied by selection, and the one-click link isn't on the page
     // in full.
-    /**
-     * How a copy is announced, by the keys of its two messages.
-     * @param {string} copied
-     * @param {string} failed
-     */
-    const feedback = (copied, failed) => ({
-        status: copyStatus,
-        strings: clipboardStrings,
-        messages: { copied: strings.text(copied), failed: strings.text(failed) },
-    });
+    /** @param {string} subject - what is copied, as clipboard-feedback names it */
+    const feedback = (subject) => ({ status: copyStatus, strings: clipboardStrings, subject });
     copyLinkBtn.addEventListener('click', () =>
-        copyWithFeedback(copyLinkBtn, shareLink, feedback('linkCopied', 'linkNotCopied')));
+        copyWithFeedback(copyLinkBtn, shareLink, feedback('link')));
     copyPasswordBtn.addEventListener('click', () =>
-        copyWithFeedback(copyPasswordBtn, pwdInput.value, feedback('passwordCopied', 'passwordNotCopied')));
+        copyWithFeedback(copyPasswordBtn, pwdInput.value, feedback('password')));
     copyOneClickBtn.addEventListener('click', () =>
-        copyWithFeedback(copyOneClickBtn, oneClickLink, feedback('oneClickLinkCopied', 'oneClickLinkNotCopied')));
+        copyWithFeedback(copyOneClickBtn, oneClickLink, feedback('oneClickLink')));
     toggleBtn.addEventListener('click', togglePasswordVisibility);
 
     // Auto-fill the password from the URL fragment (the upload flow navigates

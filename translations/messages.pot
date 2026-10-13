@@ -75,38 +75,62 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
+#: templates/_clipboard_feedback_strings.html
+msgid "Link copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the link was not copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Drop link copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the drop link was not copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "One-click link copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid ""
+"Your browser blocked clipboard access, so the one-click link was not "
+"copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Password copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the password was not copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Token copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the token was not copied."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Text copied to clipboard."
+msgstr ""
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the text was not copied."
+msgstr ""
+
 #: templates/_success_strings.html
 msgid "Show"
 msgstr ""
 
 #: templates/_success_strings.html
 msgid "Hide"
-msgstr ""
-
-#: templates/_success_strings.html
-msgid "Link copied to clipboard."
-msgstr ""
-
-#: templates/_success_strings.html
-msgid "Your browser blocked clipboard access, so the link was not copied."
-msgstr ""
-
-#: templates/_success_strings.html
-msgid "Password copied to clipboard."
-msgstr ""
-
-#: templates/_success_strings.html
-msgid "Your browser blocked clipboard access, so the password was not copied."
-msgstr ""
-
-#: templates/_success_strings.html
-msgid "One-click link copied to clipboard."
-msgstr ""
-
-#: templates/_success_strings.html
-msgid ""
-"Your browser blocked clipboard access, so the one-click link was not "
-"copied."
 msgstr ""
 
 #: templates/base.html

@@ -220,10 +220,7 @@ export function initIndex(root, deps) {
         const label = required(copyPasswordBtn, '#copy-password-label', 'span');
         copyPasswordBtn.addEventListener('click', () =>
             copyWithFeedback(copyPasswordBtn, passwordGate.input.value, {
-                status, label, strings: clipboardStrings, messages: {
-                    copied: 'Password copied to clipboard.',
-                    failed: 'Your browser blocked clipboard access, so the password was not copied.',
-                },
+                status, label, strings: clipboardStrings, subject: 'password',
             }));
     }
 
@@ -461,10 +458,7 @@ export function initIndex(root, deps) {
             // Every .copy-url in the template carries its link in data-url.
             const url = /** @type {string} */ (button.getAttribute('data-url'));
             copyWithFeedback(button, url, {
-                status: required(root, '#copy-status', 'p'), strings: clipboardStrings, messages: {
-                    copied: 'Drop link copied to clipboard.',
-                    failed: 'Your browser blocked clipboard access, so the drop link was not copied.',
-                },
+                status: required(root, '#copy-status', 'p'), strings: clipboardStrings, subject: 'dropLink',
             });
         });
     });

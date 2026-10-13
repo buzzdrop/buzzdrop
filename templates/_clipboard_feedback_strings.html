@@ -1,9 +1,40 @@
 {# The words features/clipboard-feedback/ writes: what a Copy button's
-   label flashes. A page that copies puts them in its page strings under
-   'clipboard-feedback' (_page_strings.html); its buttons reserve their
-   width with sizers of the same words. #}
+   label flashes, and what the status announces after a copy, one pair per
+   thing a page copies (a page names it by its key, the `subject` of its
+   copyWithFeedback call). A page that copies puts them in its page strings
+   under 'clipboard-feedback' (_page_strings.html); its buttons reserve
+   their width with sizers of the label words. #}
 {# Translators: a Copy button's label, flashed after a copy. Keep it short. #}
 {% set copied = _('Copied!') %}
 {# Translators: a Copy button's label, flashed when the browser refused the copy. Keep it short. #}
 {% set failed = _('Failed') %}
-{% set strings = {'copied': copied, 'failed': failed} %}
+{% set strings = {
+    'copied': copied,
+    'failed': failed,
+    'announcements': {
+        'link': {
+            'copied': _('Link copied to clipboard.'),
+            'failed': _('Your browser blocked clipboard access, so the link was not copied.'),
+        },
+        'dropLink': {
+            'copied': _('Drop link copied to clipboard.'),
+            'failed': _('Your browser blocked clipboard access, so the drop link was not copied.'),
+        },
+        'oneClickLink': {
+            'copied': _('One-click link copied to clipboard.'),
+            'failed': _('Your browser blocked clipboard access, so the one-click link was not copied.'),
+        },
+        'password': {
+            'copied': _('Password copied to clipboard.'),
+            'failed': _('Your browser blocked clipboard access, so the password was not copied.'),
+        },
+        'token': {
+            'copied': _('Token copied to clipboard.'),
+            'failed': _('Your browser blocked clipboard access, so the token was not copied.'),
+        },
+        'text': {
+            'copied': _('Text copied to clipboard.'),
+            'failed': _('Your browser blocked clipboard access, so the text was not copied.'),
+        },
+    },
+} %}

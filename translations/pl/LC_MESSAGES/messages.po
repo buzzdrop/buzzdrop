@@ -81,6 +81,60 @@ msgstr "Skopiowano!"
 msgid "Failed"
 msgstr "Błąd"
 
+#: templates/_clipboard_feedback_strings.html
+msgid "Link copied to clipboard."
+msgstr "Skopiowano link do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the link was not copied."
+msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano linku."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Drop link copied to clipboard."
+msgstr "Skopiowano do schowka link do przesyłki."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the drop link was not copied."
+msgstr ""
+"Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano linku do "
+"przesyłki."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "One-click link copied to clipboard."
+msgstr "Skopiowano link z hasłem do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid ""
+"Your browser blocked clipboard access, so the one-click link was not "
+"copied."
+msgstr ""
+"Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano linku z "
+"hasłem."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Password copied to clipboard."
+msgstr "Skopiowano hasło do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the password was not copied."
+msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano hasła."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Token copied to clipboard."
+msgstr "Skopiowano token do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the token was not copied."
+msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano tokenu."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Text copied to clipboard."
+msgstr "Skopiowano tekst do schowka."
+
+#: templates/_clipboard_feedback_strings.html
+msgid "Your browser blocked clipboard access, so the text was not copied."
+msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano tekstu."
+
 #: templates/_success_strings.html
 msgid "Show"
 msgstr "Pokaż"
@@ -88,34 +142,6 @@ msgstr "Pokaż"
 #: templates/_success_strings.html
 msgid "Hide"
 msgstr "Ukryj"
-
-#: templates/_success_strings.html
-msgid "Link copied to clipboard."
-msgstr "Skopiowano link do schowka."
-
-#: templates/_success_strings.html
-msgid "Your browser blocked clipboard access, so the link was not copied."
-msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano linku."
-
-#: templates/_success_strings.html
-msgid "Password copied to clipboard."
-msgstr "Skopiowano hasło do schowka."
-
-#: templates/_success_strings.html
-msgid "Your browser blocked clipboard access, so the password was not copied."
-msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano hasła."
-
-#: templates/_success_strings.html
-msgid "One-click link copied to clipboard."
-msgstr "Skopiowano link z hasłem do schowka."
-
-#: templates/_success_strings.html
-msgid ""
-"Your browser blocked clipboard access, so the one-click link was not "
-"copied."
-msgstr ""
-"Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano linku z "
-"hasłem."
 
 #: templates/base.html
 msgid ""

@@ -92,10 +92,7 @@ export function initUsers(root, deps) {
         button.addEventListener('click', () => {
             const input = required(requiredClosest(button, '.copy-field', 'div'), 'input', 'input');
             copyWithFeedback(button, input, {
-                status: required(root, '#copy-status', 'p'), strings: clipboardStrings, messages: {
-                    copied: 'Token copied to clipboard.',
-                    failed: 'Your browser blocked clipboard access, so the token was not copied.',
-                },
+                status: required(root, '#copy-status', 'p'), strings: clipboardStrings, subject: 'token',
             });
         });
     });

@@ -142,10 +142,7 @@ export async function initView(root, deps) {
             // message stays on it after the flash.
             const btn = required(root, '#copy-text-btn', 'button');
             btn.addEventListener('click', () => copyWithFeedback(btn, text, {
-                status, keepStatus: true, strings: clipboardStrings, messages: {
-                    copied: 'Text copied to clipboard.',
-                    failed: 'Your browser blocked clipboard access, so the text was not copied.',
-                },
+                status, keepStatus: true, strings: clipboardStrings, subject: 'text',
             }));
         } else {
             // Trigger file download
