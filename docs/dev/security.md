@@ -24,16 +24,18 @@ Decorators:
 
 Every session-authed mutating route checks the CSRF token. `_is_valid_csrf_token()` accepts it via the `X-CSRF-Token` header, a `csrf_token` form field or a JSON field. JS clients read the token from `<meta name="csrf-token">` in `base.html`.
 
-Routes that also accept a Bearer token call `_session_csrf_required()`, which exempts a request carrying an `Authorization` header: cross-site requests can't set one, so Bearer clients are immune to CSRF.
+These routes call `_session_csrf_required()`, which exempts any request carrying an `Authorization` header: cross-site requests can't set one, so the Bearer clients of `/upload` and `/upload/begin` are immune to CSRF. `/logout` and `/api/token` accept no Bearer token but get the same exemption.
 - `/upload` and `/upload/begin`
 - `/logout`
 - `/api/token`
 
-The session-only form routes call `_is_valid_csrf_token()` directly, with no `Authorization` exemption:
+These routes call `_is_valid_csrf_token()` directly, with no `Authorization` exemption:
 - `/delete/<id>`
 - `/view/<id>/confirm`
 - `/api/tokens/<id>/revoke`
-- `/language` (see `docs/dev/i18n.md`) The public unauthenticated POSTs (`/release`, `/report_decryption`) intentionally have no CSRF gate.
+- `/language` (see `docs/dev/i18n.md`)
+
+The public unauthenticated POSTs (`/release`, `/report_decryption`) intentionally have no CSRF gate.
 
 ## API tokens (`tokens.py`)
 
