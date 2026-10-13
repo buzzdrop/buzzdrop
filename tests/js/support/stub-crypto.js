@@ -21,6 +21,36 @@ async function sha256(input) {
 }
 
 /**
+ * The stub's blob body: the name travels inside the sealed bytes like the
+ * real 'BKP-FIL2' layout, so a salt-only share can recover it at finish().
+ * @param {Bytes} data
+ * @param {string} name
+ * @returns {Bytes}
+ */
+function pack(data, name) {
+    const nameBytes = new TextEncoder().encode(name);
+    const blob = new Uint8Array(MAGIC.length + 2 + nameBytes.length + data.length);
+    blob.set(MAGIC);
+    blob[MAGIC.length] = nameBytes.length >> 8;
+    blob[MAGIC.length + 1] = nameBytes.length & 0xff;
+    blob.set(nameBytes, MAGIC.length + 2);
+    blob.set(data, MAGIC.length + 2 + nameBytes.length);
+    return blob;
+}
+
+/**
+ * @param {Bytes} bytes - a blob body past the magic
+ * @returns {{ data: Bytes, name: string }}
+ */
+function unpack(bytes) {
+    const nameLen = (bytes[0] << 8) | bytes[1];
+    return {
+        name: new TextDecoder().decode(bytes.slice(2, 2 + nameLen)),
+        data: bytes.slice(2 + nameLen),
+    };
+}
+
+/**
  * @typedef {object} StubCryptoOptions
  * @property {boolean} [unsupportedFormat] - every share fails to parse, as one in a format the page doesn't know
  * @property {boolean} [corrupted] - decryption fails without a message, as for a damaged share
@@ -32,7 +62,7 @@ async function sha256(input) {
  */
 export function makeStubCrypto({ unsupportedFormat = false, corrupted = false } = {}) {
     /**
-     * @param {Bytes} [data] - plaintext a pre-downloaded share carries
+     * @param {Bytes} [data] - packed body a pre-downloaded share carries
      * @returns {import('../../../static/js/lib/crypto.js').SealedShare}
      */
     function stubShare(data) {
@@ -44,19 +74,19 @@ export function makeStubCrypto({ unsupportedFormat = false, corrupted = false } 
                         if (corrupted) throw new Error('');
                         // A salt-only share gets its payload from the blob
                         // finish() receives; a downloaded one carries it.
-                        const bytes = blob ?? data;
-                        return { data: (bytes ?? new Uint8Array()).slice(MAGIC.length), receipt: RECEIPT };
+                        const raw = blob ?? data ?? new Uint8Array(2);
+                        const bytes = new TextDecoder().decode(raw.slice(0, MAGIC.length)) === 'STUB'
+                            ? raw.slice(MAGIC.length) : raw;
+                        const { data: opened, name } = unpack(bytes);
+                        return { data: opened, receipt: RECEIPT, name };
                     },
                 };
             },
         };
     }
     return {
-        async seal(data, password) {
-            const blob = new Uint8Array(MAGIC.length + data.length);
-            blob.set(MAGIC);
-            blob.set(data, MAGIC.length);
-            return { blob, verifier: await sha256(password), receipt: RECEIPT };
+        async seal(data, password, h, name = '') {
+            return { blob: pack(data, name), verifier: await sha256(password), receipt: RECEIPT };
         },
         async receiptHash(receipt) {
             return bytesToHex(await sha256(receipt));
@@ -64,7 +94,7 @@ export function makeStubCrypto({ unsupportedFormat = false, corrupted = false } 
         open(blob) {
             const magic = new TextDecoder().decode(blob.slice(0, MAGIC.length));
             if (unsupportedFormat || magic !== 'STUB') throw new Error('Unsupported share format');
-            return stubShare(blob);
+            return stubShare(blob.slice(MAGIC.length));
         },
         // The salt-only share the view page builds: the ciphertext arrives
         // at finish() time, after the release won.

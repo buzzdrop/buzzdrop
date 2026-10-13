@@ -7,18 +7,19 @@ const encoder = new TextEncoder();
 
 // Deterministic fixtures, byte-identical to tests/unit/test_cli_crypto.py:
 // salt = 0x00..0x0f, iv = 0x10..0x1b, h = 0x20..0x3f, receipt = 0x40..0x5f,
-// password 'fixture-password-123', plaintext payload = 'fixture-data'
-// (prefixed with 'BKP-FILE' ‖ receipt inside ct).
+// password 'fixture-password-123', name 'fixture.txt', plaintext payload
+// 'fixture-data' (inside ct: 'BKP-FIL2' ‖ receipt ‖ name_len ‖ name ‖ data).
 const FIXTURE_PASSWORD = 'fixture-password-123';
 const FIXTURE_DATA = encoder.encode('fixture-data');
+const FIXTURE_NAME = 'fixture.txt';
 const V3_FIXTURE = Uint8Array.from(
     Buffer.from(
         '424b5633' +
         '000102030405060708090a0b0c0d0e0f' +
         '101112131415161718191a1b' +
-        '9d9e3a85dc0667cf2d932f2ff111e26d53863a05b353260ca7f44e971372b9' +
-        '1bc0238a04ef05c5b1e79f2b61b3a603b53c45ea318ba552f5d223fffcaa' +
-        'e506cbea569cd3',
+        '9d9e3a85dc0667b82d932f2ff111e26d53863a05b353260ca7f44e971372b9' +
+        '1bc0238a04ef05c5b181fd357cbea013ea3d0aea2827e2a9a028d27eca72df' +
+        '74344c7ea12e03f2d5554b18f6b1a2eeda326a',
         'hex',
     ),
 );
@@ -41,13 +42,14 @@ test('seal produces a BKV3 envelope with a verifier and a receipt', async () => 
 test('a sealed share opens with its password and the server share', async () => {
     const h = randomShare();
     const data = encoder.encode('key-release payload \x00\x01');
-    const sealed = await seal(data, 'pw', h);
+    const sealed = await seal(data, 'pw', h, 'zażółć gęślą.txt');
 
     const attempt = await open(sealed.blob).unlock('pw');
     assert.deepEqual(attempt.verifier, sealed.verifier);
     const opened = await attempt.finish(h);
     assert.deepEqual(opened.data, data);
     assert.deepEqual(opened.receipt, sealed.receipt);
+    assert.equal(opened.name, 'zażółć gęślą.txt');
 });
 
 test('unlocking derives the master key once per attempt', async () => {
@@ -87,9 +89,10 @@ test('seal and finish reject a malformed server share', async () => {
 test('python-generated v3 fixture opens in JS', async () => {
     const attempt = await open(V3_FIXTURE).unlock(FIXTURE_PASSWORD);
     assert.equal(bytesToHex(attempt.verifier), V3_FIXTURE_V);
-    const { data, receipt } = await attempt.finish(V3_FIXTURE_H);
+    const { data, receipt, name } = await attempt.finish(V3_FIXTURE_H);
     assert.deepEqual(data, FIXTURE_DATA);
     assert.deepEqual(receipt, V3_FIXTURE_RECEIPT);
+    assert.equal(name, FIXTURE_NAME);
 });
 
 test('a share cannot open without the server share or the password', async () => {

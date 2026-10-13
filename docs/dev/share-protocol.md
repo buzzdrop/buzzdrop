@@ -10,7 +10,7 @@ Files are encrypted in the browser with the Web Crypto API (`static/js/lib/crypt
 
 1. `POST /upload/begin` → server mints `file_id` and a random share `H`, returns `{file_id, h}` (H as hex)
 2. `master = PBKDF2-SHA256(password, salt, 600k)`; `Kp = HKDF(master, salt, 'enc')`, `V = HKDF(master, salt, 'ver')`
-3. `file_key = HKDF(Kp ‖ H, salt, 'file')`; plaintext is `BKP-FILE ‖ receipt(32B random) ‖ data` (the receipt is the decryption proof — the server stores only its SHA-256), then AES-GCM encrypted
+3. `file_key = HKDF(Kp ‖ H, salt, 'file')`; plaintext is `BKP-FIL2 ‖ receipt(32B random) ‖ name_len(2B BE) ‖ name(utf-8) ‖ data` (the receipt is the decryption proof — the server stores only its SHA-256; the name is the original filename, which reaches the recipient only through the ciphertext, #246), then AES-GCM encrypted
 4. Envelope: `BKV3 ‖ salt(16) ‖ iv(12) ‖ ciphertext`, uploaded with `file_id` + `key_verifier` (hex V) + `receipt_hash` — the server binds V to the pending share atomically (only the account that ran `begin` may finish: `created_by` check, 403 otherwise)
 
 ### Decryption: password first, ciphertext second

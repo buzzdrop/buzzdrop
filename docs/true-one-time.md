@@ -362,7 +362,7 @@ Two additional properties worth stressing:
 ### 6.7. Honest costs and trade-offs
 
 - **New protocol**: upload handshake (H must exist before encryption),
-  `/release` endpoint, versioned payload format (`BKP-FILE` v2),
+  `/release` endpoint, versioned payload format (`BKP-FIL2`),
   CLI parity.
 - **V is offline-crackable** after `db` theft — requires a strong KDF
   (already: 600k) and is no worse than today.
@@ -455,7 +455,9 @@ runtime toggle.
   `UPLOAD_RATE_LIMIT` bucket — a complete upload costs 2 hits
   (effective 15 files/h at the default `30 per hour`).
 - Wire format: `BKV3 ‖ salt(16) ‖ iv(12) ‖ AES-GCM`, inner plaintext
-  `BKP-FILE ‖ receipt(32B random) ‖ payload`. `Kp`/`V`/`file_key` use
+  `BKP-FIL2 ‖ receipt(32B random) ‖ name_len(2B BE) ‖ name(utf-8) ‖
+  payload` — the name is the original filename, delivered to the
+  recipient through the ciphertext (#246). `Kp`/`V`/`file_key` use
   HKDF-SHA256 with the blob salt and `info` labels `enc`/`ver`/`file`.
   Only `BKV3` is read or written; the magic stays for future version
   bumps.

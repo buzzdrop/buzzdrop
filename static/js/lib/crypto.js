@@ -14,10 +14,12 @@
  *   file_key = HKDF(Kp || H, salt, 'file')
  *
  * The version magic lives outside the encrypted data so future bumps stay
- * possible; only 'BKV3' is supported. The plaintext itself starts with
- * 'BKP-FILE' ‖ receipt(32B random) ‖ payload — the receipt is the
- * decryption proof the client returns to /report_decryption; the server
- * only ever stores its SHA-256 hash.
+ * possible; only 'BKV3' is supported. The plaintext itself is
+ * 'BKP-FIL2' ‖ receipt(32B random) ‖ name_len(2B BE) ‖ name(utf-8) ‖
+ * payload — the receipt is the decryption proof the client returns to
+ * /report_decryption (the server only ever stores its SHA-256 hash), and
+ * the name is the original filename, delivered to the recipient through
+ * the ciphertext so the server never renders it before the password held.
  *
  * The interface is a sealed share rather than a call order: seal() makes
  * one, open() parses one, and unlock() derives the master key once per
@@ -39,10 +41,13 @@ import { bytesToHex } from './hex.js';
  */
 
 /**
- * What an opened share yields: the payload and its receipt.
+ * What an opened share yields: the payload, its receipt and the original
+ * filename it was sealed under ('' when the sender named nothing, e.g.
+ * a text note).
  * @typedef {object} Opened
  * @property {Bytes} data
  * @property {Bytes} receipt
+ * @property {string} name
  */
 
 /**
@@ -85,26 +90,34 @@ const ENVELOPE_MAGIC = encoder.encode('BKV3');
 const HKDF_INFO_ENC = encoder.encode('enc');
 const HKDF_INFO_VER = encoder.encode('ver');
 const HKDF_INFO_FILE = encoder.encode('file');
-// Inner plaintext magic, prepended before encryption.
-const HEADER = encoder.encode('BKP-FILE');
+// Inner plaintext magic, prepended before encryption. 'BKP-FIL2' adds the
+// length-prefixed filename field over the original 'BKP-FILE' layout; the
+// clean break is deliberate, as with the dropped v1/v2 envelopes.
+const HEADER = encoder.encode('BKP-FIL2');
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const SHARE_LENGTH = 32;
 // Random 32-byte receipt encrypted inside the payload — proves decryption
 // to /report_decryption via its stored SHA-256 hash.
 const RECEIPT_LENGTH = 32;
+// The filename field's length prefix is 2 bytes big-endian — a name past
+// 65535 utf-8 bytes doesn't survive anyway, so seal() truncates there.
+const NAME_LENGTH_BYTES = 2;
+const MAX_NAME_BYTES = 0xffff;
 // Smallest legal blob: magic + salt + iv + GCM tag (16) + the inner header
-// (8) + receipt (32) — anything shorter cannot be a BKV3 blob.
-const MIN_BLOB_LENGTH = 4 + 16 + 12 + 16 + 8 + 32;
+// (8) + receipt (32) + name length (2) — anything shorter can't be a BKV3
+// blob.
+const MIN_BLOB_LENGTH = 4 + 16 + 12 + 16 + 8 + 32 + NAME_LENGTH_BYTES;
 
 /**
  * Encrypt data for a share.
  * @param {Bytes} data - Raw data to encrypt
  * @param {string} password
  * @param {Bytes} h - Server share from /upload/begin (32 bytes)
+ * @param {string} [name] - Original filename, carried inside the ciphertext
  * @returns {Promise<Sealed>}
  */
-export async function seal(data, password, h) {
+export async function seal(data, password, h, name = '') {
     checkServerShare(h);
     const salt = randomBytes(SALT_LENGTH);
     const iv = randomBytes(IV_LENGTH);
@@ -112,10 +125,14 @@ export async function seal(data, password, h) {
     const { kp, verifier } = await deriveKeys(password, salt);
     const key = await fileKey(kp, h, salt, 'encrypt');
 
-    const headLen = HEADER.length + RECEIPT_LENGTH;
+    const nameBytes = encoder.encode(name).slice(0, MAX_NAME_BYTES);
+    const headLen = HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES + nameBytes.length;
     const plain = new Uint8Array(headLen + data.length);
     plain.set(HEADER);
     plain.set(receipt, HEADER.length);
+    plain[HEADER.length + RECEIPT_LENGTH] = nameBytes.length >> 8;
+    plain[HEADER.length + RECEIPT_LENGTH + 1] = nameBytes.length & 0xff;
+    plain.set(nameBytes, HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES);
     plain.set(data, headLen);
 
     const encrypted = await globalThis.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
@@ -202,11 +219,22 @@ function makeShare(salt, envelope) {
                     const key = await fileKey(kp, h, salt, 'decrypt');
                     const plain = new Uint8Array(
                         await globalThis.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext));
-                    const headLen = HEADER.length + RECEIPT_LENGTH;
-                    if (plain.length < headLen || HEADER.some((byte, i) => plain[i] !== byte)) {
+                    const fixedLen = HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES;
+                    if (plain.length < fixedLen || HEADER.some((byte, i) => plain[i] !== byte)) {
                         throw new Error('Invalid password or corrupted data');
                     }
-                    return { data: plain.slice(headLen), receipt: plain.slice(HEADER.length, headLen) };
+                    const nameLen = (plain[HEADER.length + RECEIPT_LENGTH] << 8)
+                        | plain[HEADER.length + RECEIPT_LENGTH + 1];
+                    const headLen = fixedLen + nameLen;
+                    if (plain.length < headLen) {
+                        throw new Error('Invalid password or corrupted data');
+                    }
+                    return {
+                        data: plain.slice(headLen),
+                        receipt: plain.slice(HEADER.length, HEADER.length + RECEIPT_LENGTH),
+                        name: new TextDecoder().decode(
+                            plain.slice(HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES, headLen)),
+                    };
                 },
             };
         },

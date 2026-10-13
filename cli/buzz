@@ -1024,15 +1024,19 @@ TOKEN_FILE = os.path.expanduser('~/.buzz_token')
 # Server-gated key release (docs/true-one-time.md §6): the file key needs
 # both halves, so a blob alone is mathematically dead. The magic keeps a
 # version marker for future bumps; only 'BKV3' is supported. Plaintext
-# always starts with b'BKP-FILE' (inside the ciphertext) for integrity
+# always starts with b'BKP-FIL2' (inside the ciphertext) for integrity
 # validation.
 # ---------------------------------------------------------------------------
 MAGIC_V3 = b'BKV3'
-PLAINTEXT_MAGIC = b'BKP-FILE'
-# Random receipt encrypted inside the payload: 'BKP-FILE' ‖ receipt(32B)
-# ‖ data. The server stores only SHA-256(receipt) and /report_decryption
-# requires the receipt — proof the reporter actually decrypted.
+PLAINTEXT_MAGIC = b'BKP-FIL2'
+# Plaintext: 'BKP-FIL2' ‖ receipt(32B) ‖ name_len(2B BE) ‖ name(utf-8)
+# ‖ data. The receipt is the decryption proof — the server stores only
+# SHA-256(receipt) and /report_decryption requires it. The name is the
+# original filename, delivered to the recipient through the ciphertext so
+# the server never has to render it before the password held.
 _RECEIPT_LEN = 32
+_NAME_LEN_BYTES = 2
+_MAX_NAME_BYTES = 0xffff
 ITERATIONS = 600_000
 _SALT_LEN = 16
 _IV_LEN = 12
@@ -1328,13 +1332,14 @@ def _derive_file_key(kp: bytes, h: bytes, salt: bytes) -> bytes:
     return _hkdf(kp + h, salt, _HKDF_INFO_FILE)
 
 
-def encrypt_file(file_bytes: bytes, password: str, h: bytes
-                 ) -> tuple[bytes, str, str]:
+def encrypt_file(file_bytes: bytes, password: str, h: bytes,
+                 name: str = '') -> tuple[bytes, str, str]:
     """
     Encrypt file_bytes for a key-release share (docs/true-one-time.md §6).
 
     Args:
         h: the 32-byte server share returned by POST /upload/begin.
+        name: the original filename, carried inside the ciphertext.
 
     Returns:
         (blob, v_hex, receipt_hash) — blob = MAGIC_V3 + salt + iv +
@@ -1354,7 +1359,10 @@ def encrypt_file(file_bytes: bytes, password: str, h: bytes
     kp, v = derive_key_release_keys(password, salt)
     file_key = _derive_file_key(kp, h, salt)
 
-    plaintext = PLAINTEXT_MAGIC + receipt + file_bytes
+    name_bytes = name.encode('utf-8')[:_MAX_NAME_BYTES]
+    plaintext = (PLAINTEXT_MAGIC + receipt
+                 + len(name_bytes).to_bytes(_NAME_LEN_BYTES, 'big')
+                 + name_bytes + file_bytes)
     ciphertext = AESGCM(file_key).encrypt(iv, plaintext, None)
     return (
         MAGIC_V3 + salt + iv + ciphertext,
@@ -1364,7 +1372,7 @@ def encrypt_file(file_bytes: bytes, password: str, h: bytes
 
 
 def decrypt_file(encrypted: bytes, password: str, h: bytes
-                 ) -> tuple[bytes, bytes]:
+                 ) -> tuple[bytes, bytes, str]:
     """
     Decrypt a Buzzdrop payload produced by encrypt_file() or the web UI.
 
@@ -1373,8 +1381,9 @@ def decrypt_file(encrypted: bytes, password: str, h: bytes
     file_key = HKDF(Kp ‖ h).
 
     Returns:
-        (data, receipt) — the original file bytes (inner 'BKP-FILE'
-        header and receipt stripped) plus the 32-byte decryption receipt.
+        (data, receipt, name) — the original file bytes (inner 'BKP-FIL2'
+        header, receipt and name field stripped), the 32-byte decryption
+        receipt and the filename carried inside the ciphertext.
         Raises InvalidTag/ValueError on wrong password, wrong/missing
         H, or corruption.
     """
@@ -1395,11 +1404,17 @@ def decrypt_file(encrypted: bytes, password: str, h: bytes
 
     if not plaintext.startswith(PLAINTEXT_MAGIC):
         raise ValueError('Invalid password or corrupted data')
-    head_len = len(PLAINTEXT_MAGIC) + _RECEIPT_LEN
+    fixed_len = len(PLAINTEXT_MAGIC) + _RECEIPT_LEN + _NAME_LEN_BYTES
+    if len(plaintext) < fixed_len:
+        raise ValueError('Invalid password or corrupted data')
+    receipt = plaintext[len(PLAINTEXT_MAGIC):len(PLAINTEXT_MAGIC) + _RECEIPT_LEN]
+    name_len = int.from_bytes(
+        plaintext[len(PLAINTEXT_MAGIC) + _RECEIPT_LEN:fixed_len], 'big')
+    head_len = fixed_len + name_len
     if len(plaintext) < head_len:
         raise ValueError('Invalid password or corrupted data')
-    receipt = plaintext[len(PLAINTEXT_MAGIC):head_len]
-    return plaintext[head_len:], receipt
+    name = plaintext[fixed_len:head_len].decode('utf-8', errors='replace')
+    return plaintext[head_len:], receipt, name
 
 
 def upload_begin(server: str, token: str) -> dict | None:
@@ -1658,7 +1673,7 @@ def main():
         end=' ', flush=True,
     )
     encrypted, key_verifier, receipt_hash = encrypt_file(
-        file_bytes, password, begin['h'])
+        file_bytes, password, begin['h'], name=os.path.basename(upload_name))
     print(f"done  ({_format_size(len(encrypted))} on wire)")
 
     # Upload with live progress bar

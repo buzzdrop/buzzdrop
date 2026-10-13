@@ -33,7 +33,6 @@ import { readStrings } from '../../lib/strings.js';
  * @property {string} downloadUrl
  * @property {string} releaseUrl
  * @property {string} reportDecryptionUrl
- * @property {string} originalName
  * @property {'file' | 'text'} fileType
  * @property {string | null} salt - the BKV3 envelope salt, hex
  */
@@ -79,7 +78,6 @@ export async function initView(root, deps) {
         downloadUrl,
         releaseUrl,
         reportDecryptionUrl,
-        originalName,
         fileType,
         salt,
     } = JSON.parse(required(root, '#view-config-json', 'script').text);
@@ -127,8 +125,11 @@ export async function initView(root, deps) {
         if (passwordStatus) passwordStatus.style.display = 'flex';
     }
 
-    /** @param {Bytes} fileBytes */
-    function showPlaintext(fileBytes) {
+    /**
+     * @param {Bytes} fileBytes
+     * @param {string} name - the filename recovered from the ciphertext
+     */
+    function showPlaintext(fileBytes, name) {
         // Check if this is a text note or file
         if (fileType === 'text') {
             // Display text in the page
@@ -149,7 +150,7 @@ export async function initView(root, deps) {
             const blob = new Blob([fileBytes], { type: 'application/octet-stream' });
             const a = root.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = originalName;
+            a.download = name || 'download';
             root.body.appendChild(a);
             a.click();
             a.remove();
@@ -210,7 +211,7 @@ export async function initView(root, deps) {
         });
         progress.hide();
         if (result.kind === 'opened') {
-            showPlaintext(result.data);
+            showPlaintext(result.data, result.name);
             return;
         }
         status.textContent = failureMessage(result);
