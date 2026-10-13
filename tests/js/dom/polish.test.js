@@ -1,5 +1,6 @@
 import { getDefaultNormalizer } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
+import { openLanguageMenuPage } from '../support/pages/language-menu.js';
 import { openGonePage, openLoginPage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
 
@@ -38,6 +39,22 @@ describe('in Polish', () => {
         expect(screen.getByText('Została już otwarta, wygasła albo nigdy nie istniała. Poproś nadawcę o nową.')).toBeVisible();
         expect(screen.getByRole('link', { name: 'Przejdź do Buzzdropa' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Zaloguj' })).toBeVisible();
+    });
+
+    it('names the language menu in Polish, with Polski checked', async () => {
+        const menu = openLanguageMenuPage({ language: 'pl' });
+
+        await menu.openMenu();
+
+        expect(screen.getByRole('menu', { name: 'Język: Polski' })).toBeVisible();
+        expect(screen.getByRole('menuitemradio', { name: 'Polski' })).toBeChecked();
+        expect(screen.getByRole('menuitemradio', { name: 'English' })).not.toBeChecked();
+    });
+
+    it('offers no language menu on the drop-is-gone page', () => {
+        openGonePage({ language: 'pl' });
+
+        expect(screen.queryByRole('button', { name: /^Język/ })).toBeNull();
     });
 
     it('serves the success page for a file', () => {

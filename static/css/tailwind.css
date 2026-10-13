@@ -350,6 +350,31 @@
     @apply bg-white/5 text-honey-300;
   }
 
+  /* --------------------------------------------------------- Language menu */
+
+  /* The header's language menu (#287): a <details> whose <summary> is the
+     button, so it opens without JS too. */
+  .lang-menu-button {
+    @apply cursor-pointer list-none gap-1.5 px-2.5 sm:px-3 [&::-webkit-details-marker]:hidden;
+  }
+
+  .lang-menu-button[aria-expanded='true'],
+  details[open] > .lang-menu-button {
+    @apply bg-white/5 text-white;
+  }
+
+  .lang-menu-list {
+    @apply absolute right-0 z-50 mt-2 w-44 rounded-xl border border-white/10 bg-hive-900 p-1 shadow-2xl;
+  }
+
+  .lang-menu-item {
+    @apply flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm text-slate-400 transition duration-200 hover:bg-white/5 hover:text-white focus-visible:bg-white/5 focus-visible:text-white;
+  }
+
+  .lang-menu-item[aria-checked='true'] {
+    @apply text-honey-300;
+  }
+
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-300 transition duration-200 hover:border-rose-500/50 hover:bg-rose-500/20 hover:text-rose-200;
   }

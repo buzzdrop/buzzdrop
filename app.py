@@ -267,12 +267,33 @@ def send_open_notification_email(file_info: dict) -> bool:
 # Stored times as text in UTC, for server-rendered text (the token table).
 app.add_template_filter(format_timestamp, 'timestamp')
 
+# The recipient's pages, the "drop is gone" page included: their language
+# is their browser's, and reloading one could lose the drop, so they offer
+# no language menu (#287).
+RECIPIENT_ENDPOINTS = ('view_file', 'confirm_view_file')
+
+
+def _language_return_path():
+    """
+    Where a language choice goes back to: this page, or the home page when
+    this one can't be fetched again by a GET (a POST-only route, such as
+    /upload rendering the success page without JS).
+    """
+    if request.url_rule is not None and 'GET' not in request.url_rule.methods:
+        return url_for('index')
+    query = request.query_string.decode('latin-1')
+    return request.script_root + request.path + (f'?{query}' if query else '')
+
+
 @app.context_processor
 def language_processor():
     # Rendering a template is what makes a response depend on the language.
     language = i18n.current_language()
     g.page_language = language
-    return {'page_language': language, 'og_locale': i18n.og_locale(language)}
+    menu = None
+    if request.endpoint not in RECIPIENT_ENDPOINTS:
+        menu = i18n.language_menu(language, _language_return_path())
+    return {'page_language': language, 'og_locale': i18n.og_locale(language), 'language_menu': menu}
 
 
 @app.context_processor

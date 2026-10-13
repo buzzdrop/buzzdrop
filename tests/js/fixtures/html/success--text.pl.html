@@ -56,6 +56,42 @@
                     </div>
                     <div class="flex min-w-0 items-center gap-2 sm:gap-3">
                         
+
+<details id="language-menu" class="relative shrink-0">
+    <summary id="language-menu-button" role="button" aria-haspopup="menu" aria-controls="language-menu-list"
+             
+             aria-label="Język: Polski"
+             class="btn-ghost lang-menu-button">
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.5"><circle cx="10" cy="10" r="7.5"/><path d="M2.5 10h15M10 2.5c2.2 2.3 3.2 4.8 3.2 7.5s-1 5.2-3.2 7.5c-2.2-2.3-3.2-4.8-3.2-7.5s1-5.2 3.2-7.5Z"/></svg>
+        <span translate="no" class="text-xs uppercase tracking-wider">pl</span>
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="hidden h-3 w-3 fill-current sm:block"><path d="M5.5 7.5 10 12l4.5-4.5z"/></svg>
+    </summary>
+    <div id="language-menu-list" role="menu" aria-labelledby="language-menu-button" class="lang-menu-list">
+        
+        <form method="post" action="/language" role="none">
+            <input type="hidden" name="csrf_token" value="fixture-csrf-token">
+            <input type="hidden" name="lang" value="en">
+            <input type="hidden" name="next" value="/success/00000000-0000-4000-8000-0000000000f2">
+            <button type="submit" role="menuitemradio" aria-checked="false" lang="en" translate="no" class="lang-menu-item">
+                <span>English</span>
+                
+            </button>
+        </form>
+        
+        <form method="post" action="/language" role="none">
+            <input type="hidden" name="csrf_token" value="fixture-csrf-token">
+            <input type="hidden" name="lang" value="pl">
+            <input type="hidden" name="next" value="/success/00000000-0000-4000-8000-0000000000f2">
+            <button type="submit" role="menuitemradio" aria-checked="true" lang="pl" translate="no" class="lang-menu-item">
+                <span>Polski</span>
+                <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 shrink-0 fill-current"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
+            </button>
+        </form>
+        
+    </div>
+</details>
+
+                        
                             <span class="status-badge status-badge-amber min-w-0 max-w-32 sm:max-w-56" title="testuser">
                                 <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
                                 <span class="truncate">testuser</span>

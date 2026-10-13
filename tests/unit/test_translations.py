@@ -120,7 +120,8 @@ def test_parity_check_catches(msgid, msgstr):
 #
 # Every translation in `xx` is the English text between markers, stretched.
 # A converted page rendered in it must show no text outside the markers,
-# except what is never translated (ALLOWED). The catalog is built in
+# except what is never translated (ALLOWED) and what the page marks
+# translate="no", such as the language menu's names, each in itself (#287). The catalog is built in
 # memory here; it is never committed, and LANGUAGES can't list it.
 
 OPEN, CLOSE = '⟦', '⟧'
@@ -158,11 +159,18 @@ class _VisibleText(HTMLParser):
         self.text = []
         self.attributes = []
         self._skipping = 0
+        # The translate="no" element we are in, and how deep in its own tag.
+        self._untranslated = None
+        self._untranslated_depth = 0
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         self._break(tag)
-        if tag in ('script', 'style'):
+        if tag == self._untranslated:
+            self._untranslated_depth += 1
+        elif self._untranslated is None and attrs.get('translate') == 'no':
+            self._untranslated, self._untranslated_depth = tag, 1
+        if tag in ('script', 'style') or self._untranslated == tag and self._untranslated_depth == 1:
             self._skipping += 1
         for name in TRANSLATABLE_ATTRIBUTES:
             if attrs.get(name):
@@ -174,6 +182,11 @@ class _VisibleText(HTMLParser):
         self._break(tag)
         if tag in ('script', 'style'):
             self._skipping -= 1
+        if tag == self._untranslated:
+            self._untranslated_depth -= 1
+            if not self._untranslated_depth:
+                self._untranslated = None
+                self._skipping -= 1
 
     def _break(self, tag):
         if tag not in INLINE_TAGS:
@@ -278,3 +291,10 @@ def test_the_pseudo_locale_check_catches_unwrapped_text():
             '<span>Buzz<b>drop</b> 404 &middot;</span>')
 
     assert _unwrapped(html) == ['Unwrapped', 'Close']
+
+
+def test_the_pseudo_locale_check_skips_what_is_marked_untranslated():
+    html = ('<p><span translate="no">Polski <span>polski</span></span> After</p>'
+            '<button translate="no" lang="pl">Polski</button><b>Bold</b>')
+
+    assert _unwrapped(html) == ['After', 'Bold']
