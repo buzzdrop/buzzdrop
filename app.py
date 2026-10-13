@@ -862,7 +862,8 @@ def create_api_token():
     try:
         requested_expiry_days = _parse_positive_integer(requested_expiry_days)
     except ValueError:
-        return {'error': 'expires_in_days must be a positive integer'}, 400
+        return {'error': 'expires_in_days must be a positive integer',
+                'code': 'invalid_expiry_days'}, 400
 
     expires_at = utcnow() + timedelta(days=requested_expiry_days)
     raw_token = generate_api_token(requested_username, expires_at=expires_at)

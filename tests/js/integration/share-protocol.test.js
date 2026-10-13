@@ -126,4 +126,28 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
 
         expect(result).toEqual({ kind: 'refused', message });
     });
+
+    // The refusal is mapped like /upload's: a rate limit or an expired
+    // session shows up at begin first, since begin is the first gated call.
+    it.each([
+        ['a known code', 429, 'Too many requests. Please try again later.'],
+        ['an unknown code', { status: 400, body: { error: 'Something new went wrong', code: 'something_new' } }, 'The server refused the upload handshake.'],
+        ['no JSON body', { status: 502, body: '<html>Bad gateway</html>' }, 'The server refused the upload handshake.'],
+    ])('a handshake refused with %s shows its own message', async (_, failure, message) => {
+        const fake = makeProtocolFake({ csrfToken: CSRF_TOKEN });
+        fake.failNext('/upload/begin', failure);
+
+        const result = await createShare({ kind: 'text', bytes: new Uint8Array([1]) }, PASSWORD, NO_OPTIONS, createDeps(fake));
+
+        expect(result).toEqual({ kind: 'refused', message });
+    });
+
+    it('a handshake refused for an expired session says so', async () => {
+        const fake = makeProtocolFake({ csrfToken: CSRF_TOKEN });
+        const deps = { ...createDeps(fake), csrfToken: 'stale' };
+
+        const result = await createShare({ kind: 'text', bytes: new Uint8Array([1]) }, PASSWORD, NO_OPTIONS, deps);
+
+        expect(result).toEqual({ kind: 'refused', message: 'Your session has expired. Reload the page and try again.' });
+    });
 });

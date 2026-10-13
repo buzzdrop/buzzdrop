@@ -160,3 +160,11 @@ def test_token_for_an_unknown_user(client):
     response = client.post(url_for('create_api_token'),
                            json={'username': 'nobody', 'csrf_token': CSRF_TOKEN})
     assert_refused(response, 404, 'unknown_user', 'Unknown user')
+
+
+def test_token_with_an_invalid_expiry(client):
+    login(client)
+    response = client.post(url_for('create_api_token'),
+                           json={'expires_in_days': 0, 'csrf_token': CSRF_TOKEN})
+    assert_refused(response, 400, 'invalid_expiry_days',
+                   'expires_in_days must be a positive integer')

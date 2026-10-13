@@ -47,8 +47,8 @@ const SERVER_SHARE_BYTES = 32;
  */
 
 /**
- * How creating a share ended. A refusal carries the server's own words when
- * it gave any.
+ * How creating a share ended. A refusal carries the page's message for the
+ * server's `code`, never the server's own words (#285).
  * @typedef {{ kind: 'created', fileId: string }
  *   | { kind: 'refused', message: string }
  *   | { kind: 'unreachable' }} CreateResult
@@ -84,10 +84,11 @@ const SERVER_SHARE_BYTES = 32;
 
 /**
  * What POST /upload/begin answers: the new share's id and the server share H
- * (hex).
+ * (hex) on success, `{error, code}` otherwise.
  * @typedef {object} UploadBeginResponse
  * @property {string} file_id
  * @property {string} h
+ * @property {string} [code]
  */
 
 /**
@@ -99,8 +100,8 @@ const SERVER_SHARE_BYTES = 32;
  * @property {string} [code]
  */
 
-// What the page says for each refusal of POST /upload it can explain; any
-// other refusal is UPLOAD_FAILED.
+// What the page says for each refusal of POST /upload/begin or /upload it
+// can explain; any other refusal is HANDSHAKE_REFUSED or UPLOAD_FAILED.
 /** @type {Map<string | undefined, string>} */
 const UPLOAD_REFUSALS = new Map([
     ['file_too_large', 'The file is too large to share.'],
@@ -114,6 +115,7 @@ const UPLOAD_REFUSALS = new Map([
     ['notification_email_mismatch', 'Open notifications can only be sent to your configured account email.'],
 ]);
 const UPLOAD_FAILED = 'Upload failed';
+const HANDSHAKE_REFUSED = 'The server refused the upload handshake.';
 
 /**
  * What POST /release answers: `{h}` (the server share, hex) on a verifier
@@ -143,8 +145,15 @@ export async function createShare(payload, password, options, deps) {
     } catch {
         return { kind: 'unreachable' };
     }
-    const handshakeRefused = /** @type {const} */ ({ kind: 'refused', message: 'The server refused the upload handshake.' });
-    if (!begun.ok) return handshakeRefused;
+    const handshakeRefused = /** @type {const} */ ({ kind: 'refused', message: HANDSHAKE_REFUSED });
+    if (!begun.ok) {
+        /** @type {Partial<UploadBeginResponse> | null} */
+        let body = null;
+        try {
+            body = await begun.json();
+        } catch {}
+        return { kind: 'refused', message: UPLOAD_REFUSALS.get(body?.code) ?? HANDSHAKE_REFUSED };
+    }
     let fileId;
     let h;
     try {
