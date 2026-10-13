@@ -113,6 +113,33 @@ def og_locale(language):
     return OG_LOCALES.get(language, f'{language}_{language.upper()}')
 
 
+def native_name(language):
+    """
+    A language's name in that language, capitalized as it stands alone in
+    a list ("Polski", not "polski"): how a reader finds their own language.
+    """
+    name = Locale.parse(language).get_display_name(language)
+    return name[:1].upper() + name[1:]
+
+
+def language_menu(current, return_path):
+    """
+    What the header's language menu shows (#287): every language in
+    ``LANGUAGES`` by its native name, the current one marked, and the page
+    each choice goes back to. None with a single language, as there is
+    nothing to choose.
+    """
+    languages = current_app.config['LANGUAGES']
+    if len(languages) < 2:
+        return None
+    return {
+        'current': {'code': current, 'name': native_name(current)},
+        'languages': [{'code': code, 'name': native_name(code), 'current': code == current}
+                      for code in languages],
+        'next': return_path,
+    }
+
+
 def keep_polish_orphans_attached(text):
     """
     Join each standalone one-letter word (a, i, o, u, w, z) to the next

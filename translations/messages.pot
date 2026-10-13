@@ -125,6 +125,13 @@ msgstr ""
 msgid "Your browser blocked clipboard access, so the text was not copied."
 msgstr ""
 
+#. the language menu button's name; %(language)s is the current language in
+#. itself, e.g. "Polski".
+#: templates/_language_menu.html
+#, python-format
+msgid "Language: %(language)s"
+msgstr ""
+
 #: templates/_success_strings.html
 msgid "Show"
 msgstr ""

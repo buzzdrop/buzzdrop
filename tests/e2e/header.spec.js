@@ -32,13 +32,17 @@ for (const width of [375, 320]) {
         await page.setViewportSize({ width, height: 740 });
         const header = page.getByRole('navigation');
 
+        const language = header.getByRole('button', { name: 'Language: English' });
+
         await page.goto('/');
         await expectOneRow(page, [
+            language,
             header.getByRole('link', { name: 'Login' }),
         ]);
 
         await logIn(page);
         await expectOneRow(page, [
+            language,
             header.getByText(USER.username, { exact: true }),
             header.getByRole('button', { name: 'Logout' }),
         ]);

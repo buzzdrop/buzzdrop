@@ -135,6 +135,13 @@ msgstr "Skopiowano tekst do schowka."
 msgid "Your browser blocked clipboard access, so the text was not copied."
 msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano tekstu."
 
+#. the language menu button's name; %(language)s is the current language in
+#. itself, e.g. "Polski".
+#: templates/_language_menu.html
+#, python-format
+msgid "Language: %(language)s"
+msgstr "Język: %(language)s"
+
 #: templates/_success_strings.html
 msgid "Show"
 msgstr "Pokaż"

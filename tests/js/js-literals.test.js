@@ -19,6 +19,7 @@ const CONVERTED_MODULES = [
     'features/clipboard-feedback/clipboard-feedback.js',
     'lib/format.js',
     'lib/strings.js',
+    'pages/language-menu/language-menu-page.js',
     'pages/success/success-page.js',
 ];
 

@@ -76,6 +76,7 @@ export function addressOf(path, { link = 'plain', password = DEFAULT_PASSWORD, q
  * @typedef {object} FormSubmission
  * @property {string} action
  * @property {string} method
+ * @property {Record<string, string>} fields - what the form posts, files left out
  */
 
 /**
@@ -153,7 +154,14 @@ export function openPage(fixture, { path = '/', reducedMotion = false, edit, cli
     const submitted = [];
     window.addEventListener('submit', (event) => {
         const form = /** @type {HTMLFormElement} */ (event.target);
-        if (!event.defaultPrevented) submitted.push({ action: form.action, method: form.method });
+        if (!event.defaultPrevented) {
+            /** @type {Record<string, string>} */
+            const fields = {};
+            new window.FormData(form).forEach((value, name) => {
+                if (typeof value === 'string') fields[name] = value;
+            });
+            submitted.push({ action: form.action, method: form.method, fields });
+        }
         event.preventDefault();
     });
 
