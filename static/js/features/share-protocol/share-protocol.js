@@ -52,10 +52,7 @@ const SERVER_SHARE_BYTES = 32;
  * `handshake_refused` (POST /upload/begin), `send_failed` (POST /upload) or
  * `reply_unreadable` (a success the page can't read). Never the server's
  * own words.
- * @typedef {'file_too_large' | 'type_not_allowed' | 'rate_limited' | 'csrf_failed'
- *   | 'invalid_expiry' | 'notifications_unconfigured' | 'account_email_missing'
- *   | 'account_email_invalid' | 'notification_email_mismatch'
- *   | 'handshake_refused' | 'send_failed' | 'reply_unreadable'} RefusalReason
+ * @typedef {ExplainedCode | 'handshake_refused' | 'send_failed' | 'reply_unreadable'} RefusalReason
  */
 
 /**
@@ -112,22 +109,32 @@ const SERVER_SHARE_BYTES = 32;
  */
 
 // The codes of POST /upload/begin and /upload refusals the page can explain;
-// any other refusal is `handshake_refused` or `send_failed`.
-/** @type {ReadonlySet<string | undefined>} */
-const EXPLAINED_CODES = new Set([
+// any other refusal is `handshake_refused` or `send_failed`. The page's
+// words for each are the `refusals` of templates/_composer_strings.html.
+const EXPLAINED_CODES = /** @type {const} */ ([
     'file_too_large', 'type_not_allowed', 'rate_limited', 'csrf_failed', 'invalid_expiry',
     'notifications_unconfigured', 'account_email_missing', 'account_email_invalid',
     'notification_email_mismatch',
 ]);
 
+/** @typedef {typeof EXPLAINED_CODES[number]} ExplainedCode */
+
 /**
- * @param {string | undefined} code - the server's
+ * @param {string | undefined} code
+ * @returns {code is ExplainedCode}
+ */
+function isExplained(code) {
+    return /** @type {readonly (string | undefined)[]} */ (EXPLAINED_CODES).includes(code);
+}
+
+/**
+ * A refusal for the server's `code`, or for `otherwise` when the page can't explain it.
+ * @param {string | undefined} code
  * @param {'handshake_refused' | 'send_failed'} otherwise
  * @returns {CreateResult}
  */
 function refused(code, otherwise) {
-    const reason = /** @type {RefusalReason} */ (EXPLAINED_CODES.has(code) ? code : otherwise);
-    return { kind: 'refused', reason };
+    return { kind: 'refused', reason: isExplained(code) ? code : otherwise };
 }
 
 /**
@@ -175,7 +182,7 @@ export async function createShare(payload, password, options, deps) {
         h = hexToBytes(body.h);
         if (h.length !== SERVER_SHARE_BYTES) throw new Error('server share H has the wrong length');
     } catch {
-        return refused(undefined, 'handshake_refused');
+        return { kind: 'refused', reason: 'handshake_refused' };
     }
 
     const { blob, verifier, receipt } = await deps.crypto.seal(payload.bytes, password, h);

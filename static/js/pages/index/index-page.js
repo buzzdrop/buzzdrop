@@ -353,7 +353,7 @@ export function initIndex(root, deps) {
     function rejectFile(input) {
         input.value = '';
         showSelectedFile(null);
-        showRefusal('file-error', strings.text('typeNotAllowed'));
+        showRefusal('file-error', strings.section('refusals').text('type_not_allowed'));
     }
 
     const dropzone = root.getElementById('dropzone');

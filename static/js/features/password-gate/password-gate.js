@@ -19,17 +19,18 @@ import { required } from '../../lib/required.js';
  *   with the field focused
  */
 
-// Per level: the bar's and the message's colour, and the key of the word the
-// meter reports to assistive tech (the colour carries it on screen).
-const WEAK = { fill: 'pw-fill-weak', text: 'pw-text-weak', label: 'weak' };
+// Per level: the bar's and the message's colour, and the key in `levels` of
+// the word the meter reports to assistive tech (the colour carries it on
+// screen).
+const WEAK = { fill: 'pw-fill-weak', text: 'pw-text-weak', levelKey: 'weak' };
 // Per strength, its level: a common password is drawn weak, and its
 // message says why.
 /** @type {Record<Exclude<import('../../lib/passphrase.js').Strength, 'empty'>, typeof WEAK>} */
 const LEVEL = {
     common: WEAK,
     weak: WEAK,
-    fair: { fill: 'pw-fill-fair', text: 'pw-text-fair', label: 'fair' },
-    strong: { fill: 'pw-fill-strong', text: 'pw-text-strong', label: 'strong' },
+    fair: { fill: 'pw-fill-fair', text: 'pw-text-fair', levelKey: 'fair' },
+    strong: { fill: 'pw-fill-strong', text: 'pw-text-strong', levelKey: 'strong' },
 };
 
 /**
@@ -94,7 +95,7 @@ function wire(root, input, { strings, lang, onChange }) {
         const fill = Math.min(100, Math.round((result.bits / 90) * 100));
         strengthMeter.style.setProperty('--strength-fill', `${fill}%`);
         strengthMeter.setAttribute('aria-valuenow', String(fill));
-        strengthMeter.setAttribute('aria-valuetext', levels.text(level.label));
+        strengthMeter.setAttribute('aria-valuetext', levels.text(level.levelKey));
         strengthText.className = `field-help ${level.text}`;
         strengthText.textContent = message(result);
     }

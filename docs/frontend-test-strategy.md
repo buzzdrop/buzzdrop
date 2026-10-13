@@ -73,7 +73,7 @@ From [How are DOM fixtures rendered from the real Jinja templates?](https://gith
 - **Determinism:** fixed users, seed IDs, timestamps and session CSRF token; expiry dates far in the past or future, so nothing rendered depends on the current time (no `freezegun` needed). The drop list's relative times are computed in the browser from the page's injected clock (`IndexDeps.now`), which the index driver fixes at its `NOW`. The developer's `.env` is ignored. The generator fails if two renders differ. Only values that can't be controlled at the source are rewritten afterwards (e.g. `sha384-…` → `sha384-FIXTURE`).
 - **Stripped:** `<script src>` tags and the import map, which was added by [#166](https://github.com/buzzdrop/buzzdrop/issues/166) (tests import or `init()` the module themselves; `test_sri_in_templates.py` keeps covering script references). **Kept:** the JSON config blocks (`allowed-extensions-json`, `upload-endpoints-json`, `view-config-json`).
 - **States** (fixture names in brackets):
-  - `index`: anonymous (`anonymous`); logged-in with no files (`empty`); logged-in with files in each status: active, downloaded, expired, with private note, shared with them (`files`); admin (`admin`); user with `configured_notification_email` (`notification-email`)
+  - `index`: anonymous (`anonymous`); logged-in with no files (`empty`); logged-in with files in each status: active, downloaded, expired, with a memo, shared with them (`files`); admin (`admin`); user with `configured_notification_email` (`notification-email`)
   - `view`: file, text
   - `confirm_download`: file, text
   - `success`: file, text
@@ -171,7 +171,7 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
   - Dropzone: a disallowed extension shows the error and no chip; the selected-file chip; the error regions.
   - Copy-to-clipboard status.
   - Delete confirmation via `data-confirm-message`.
-  - Shared files: search, sort (newest upload first by default), pagination and their URL sync; the page controls hidden while everything fits on one page. Each status's label; a note titled by its private note, or by its time; plain words for a missing expiry, opening or address; times relative to the driver's fixed clock, with the full timestamp in the title. Copy link offered only on an active drop. Status refresh updates the row (status, opened time, address, Copy link withdrawn) and its search text (one row, answered by the driver).
+  - Shared files: search, sort (newest upload first by default), pagination and their URL sync; the page controls hidden while everything fits on one page. Each status's label; a note titled by its memo, or by its time; plain words for a missing expiry, opening or address; times relative to the driver's fixed clock, with the full timestamp in the title. Copy link offered only on an active drop. Status refresh updates the row (status, opened time, address, Copy link withdrawn) and its search text (one row, answered by the driver).
 - **View page (`pages/view/`):** the plaintext view for text notes, the copy-text button, the error messages (including those for 410, 429 and 404 from `/release`), the field filled from a well-formed fragment, Enter in the field decrypting without navigating, Decrypt enabled at once with no request sent before the password is proven (the ciphertext downloads only after a winning release), the attempts warning (and the field's description of it) going after the first try, the status line as a live region.
 - **Success page (`pages/success/`):** copy link, password and one-click link (with "Failed" when the clipboard is blocked or missing, while Copy link, which copies by selection, still works without a Clipboard API), password visibility toggle, the fields filled from a well-formed fragment and the one-click link shown with its fragment masked.
 - **Confirm page (`pages/confirm-download/`):** the fragment password carried across the confirm POST (one well-formed case).
@@ -183,7 +183,7 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
 
 ### JS integration (page modules + real `lib/crypto.js` + protocol fake)
 - **Two-phase upload, for file and for note:** begin → encrypt under H → upload with `file_id`, verifier and `receipt_hash` → progress updates → redirect to success.
-- **Share options sent on upload, for file and for note:** expiry, private note, notify-on-open, notification email. Asserted on the request bodies.
+- **Share options sent on upload, for file and for note:** expiry, memo, notify-on-open, notification email. Asserted on the request bodies.
 - **Upload error paths, file mode only:** begin fails → the retry runs a fresh begin; upload fails → the retry finishes the newly issued share, not the stale one; 413 shows its message and the UI unlocks.
 - **View:** release → ticketed download of the blob → decrypt → report the receipt, plus one upload → view round trip on one fake instance. 403 with `attempts_remaining`. The other `/release` statuses only pick a message and are DOM-tested.
 - **Share protocol (`features/share-protocol/`) on its own:** a successful open runs PBKDF2 once; a large note uploads and arrives whole; a server share of the wrong length is a refused handshake.

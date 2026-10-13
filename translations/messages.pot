@@ -199,10 +199,6 @@ msgid "Share note"
 msgstr ""
 
 #: templates/_composer_strings.html
-msgid "That file type is not allowed."
-msgstr ""
-
-#: templates/_composer_strings.html
 msgid "Choose a file to share."
 msgstr ""
 
@@ -216,6 +212,10 @@ msgstr ""
 
 #: templates/_composer_strings.html
 msgid "The drop is too large to send."
+msgstr ""
+
+#: templates/_composer_strings.html
+msgid "That file type is not allowed."
 msgstr ""
 
 #: templates/_composer_strings.html

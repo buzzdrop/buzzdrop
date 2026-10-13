@@ -213,10 +213,6 @@ msgid "Share note"
 msgstr "Wyślij notatkę"
 
 #: templates/_composer_strings.html
-msgid "That file type is not allowed."
-msgstr "Ten typ pliku jest niedozwolony."
-
-#: templates/_composer_strings.html
 msgid "Choose a file to share."
 msgstr "Wybierz plik do wysłania."
 
@@ -231,6 +227,10 @@ msgstr "Błąd sieci podczas wysyłania przesyłki. Spróbuj ponownie."
 #: templates/_composer_strings.html
 msgid "The drop is too large to send."
 msgstr "Przesyłka jest za duża, żeby ją wysłać."
+
+#: templates/_composer_strings.html
+msgid "That file type is not allowed."
+msgstr "Ten typ pliku jest niedozwolony."
 
 #: templates/_composer_strings.html
 msgid "Your session has expired. Reload the page and try again."
@@ -598,7 +598,7 @@ msgstr "Zobacz kod źródłowy"
 
 #: templates/index.html
 msgid "AES-GCM · PBKDF2, 600k iterations · Local or S3 storage · CLI included"
-msgstr "AES-GCM · PBKDF2, 600 tys. iteracji · Dysk lokalny lub S3 · CLI w zestawie"
+msgstr "AES-GCM · PBKDF2, 600 tys. iteracji · Dysk lokalny lub S3 · CLI w zestawie"
 
 #: templates/index.html
 msgid "What’s guaranteed"
@@ -621,7 +621,7 @@ msgid ""
 " share released exactly once, so a stolen ciphertext alone is dead bytes."
 " Buzzdrop stores ciphertext and metadata; it cannot read the drop."
 msgstr ""
-"Z twojego hasła przeglądarka wyprowadza połowę klucza przez PBKDF2 – 600 "
+"Z twojego hasła przeglądarka wyprowadza połowę klucza przez PBKDF2 – 600 "
 "000 iteracji – a samo hasło nigdy nie opuszcza urządzenia. Druga połowa "
 "to udział trzymany przez serwer i wydawany dokładnie raz, więc sam "
 "skradziony szyfrogram to martwe bajty. Buzzdrop przechowuje szyfrogram i "
@@ -680,11 +680,11 @@ msgstr ""
 
 #: templates/index.html
 msgid "How expiry deletes a drop"
-msgstr "Jak wygaśnięcie usuwa przesyłkę"
+msgstr "Jak wygasła przesyłka zostaje usunięta"
 
 #: templates/index.html
 msgid "You find out it happened"
-msgstr "Wiesz, kiedy to się stało"
+msgstr "Dowiesz się, że to się stało"
 
 #: templates/index.html
 msgid ""

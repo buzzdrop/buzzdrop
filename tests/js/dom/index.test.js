@@ -393,7 +393,7 @@ describe('index page', () => {
             expect(shareRow('locked.zip').getByText('Locked out')).toBeVisible();
         });
 
-        it('titles a text note by its private note, or else by its time', () => {
+        it('titles a text note by its memo, or else by its time', () => {
             const upload = openUploadPage({ sharesPerPage: 10 });
 
             expect(upload.sharesShown()).toContain('For the auditor');
