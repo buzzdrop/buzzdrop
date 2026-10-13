@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { formatNumber, formatPercent } from '../../static/js/lib/format.js';
+import { formatNumber, formatPercent, timeZoneName } from '../../static/js/lib/format.js';
 
 test('numbers follow the language', () => {
     assert.equal(formatNumber(12345, 'en'), '12,345');
@@ -19,4 +19,13 @@ test('percentages take a fraction and follow the language', () => {
 
 test('percentages are whole', () => {
     assert.equal(formatPercent(0.425, 'en'), '43%');
+});
+
+test('a time zone goes by its localized generic name', () => {
+    assert.equal(timeZoneName('en', 'Europe/Warsaw'), 'Central European Time');
+    assert.equal(timeZoneName('pl', 'Europe/Warsaw'), 'czas środkowoeuropejski');
+});
+
+test('a time zone Intl cannot name goes by its IANA name', () => {
+    assert.equal(timeZoneName('en', 'Not/A_Zone'), 'Not/A_Zone');
 });

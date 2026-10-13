@@ -103,7 +103,7 @@ STATUS_LABELS = {
 
 def _display_name(file_dict: dict, tz_name: str) -> str:
     """The drop's title in the list: every note is stored as 'Secret Note',
-    so a note goes by its private note, or failing that its time."""
+    so a note goes by its memo, or failing that its time."""
     if file_dict.get('type') != 'text':
         return file_dict.get('original_name') or ''
     note = (file_dict.get('private_note') or '').strip()
@@ -140,7 +140,7 @@ def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict:
           each with an offset-aware ISO twin (<field>_iso, None when unset)
         - status_key (a key of STATUS_LABELS; only 'active' is a live link)
           and status_display, its label
-        - display_name: the file name, or for a text note its private note,
+        - display_name: the file name, or for a text note its memo,
           else "Text note · HH:MM"
         - display_time_iso: that HH:MM as an ISO value, else None
     """

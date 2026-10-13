@@ -28,21 +28,21 @@ describe('index page', () => {
 
             await upload.switchToNote();
 
-            expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Text note');
-            expect(screen.getByLabelText('Secret text')).toBeVisible();
-            const noteTab = screen.getByRole('tab', { name: 'Text note' });
+            expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Note');
+            expect(screen.getByLabelText('Your note')).toBeVisible();
+            const noteTab = screen.getByRole('tab', { name: 'Note' });
             const fileTab = screen.getByRole('tab', { name: 'File' });
             expect(noteTab).toHaveAttribute('aria-selected', 'true');
             expect(noteTab).toHaveAttribute('tabindex', '0');
             expect(fileTab).toHaveAttribute('aria-selected', 'false');
             expect(fileTab).toHaveAttribute('tabindex', '-1');
-            expect(screen.getByRole('button', { name: 'Share note' })).toHaveTextContent('Share note');
+            expect(screen.getByRole('button', { name: 'Send note' })).toHaveTextContent('Send note');
         });
 
         it('arrow keys move between tabs and wrap; Home and End jump to the ends', async () => {
             const upload = openUploadPage();
             const fileTab = screen.getByRole('tab', { name: 'File' });
-            const noteTab = screen.getByRole('tab', { name: 'Text note' });
+            const noteTab = screen.getByRole('tab', { name: 'Note' });
             await upload.switchToFile();
 
             expect(await upload.press('ArrowRight')).toBe('handled');
@@ -210,26 +210,26 @@ describe('index page', () => {
         it('an empty note is refused inline, not with a dialog', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
 
-            await upload.shareMessage('');
+            await upload.sendNote('');
 
-            expect(screen.getByLabelText('Secret text')).toHaveAccessibleDescription('Write the note you want to share.');
+            expect(screen.getByLabelText('Your note')).toHaveAccessibleDescription('Write the note you want to send.');
             expect(upload.alerts()).toEqual([]);
             expect(upload.requestsSent()).toEqual([]);
         });
 
         it('writing the note clears the refusal', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
-            await upload.shareMessage('');
+            await upload.sendNote('');
 
-            await upload.writeMessage('the gate code');
+            await upload.writeNote('the gate code');
 
-            expect(screen.getByLabelText('Secret text')).not.toHaveAccessibleDescription();
+            expect(screen.getByLabelText('Your note')).not.toHaveAccessibleDescription();
         });
 
         it('a missing password is refused inline', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
 
-            await upload.shareMessage('the gate code', '');
+            await upload.sendNote('the gate code', '');
 
             expect(passwordField()).toHaveAccessibleDescription('Enter a password, or press Generate.');
             expect(passwordField()).toHaveFocus();
@@ -241,9 +241,9 @@ describe('index page', () => {
             const upload = openUploadPage({ account: 'no-shares' });
             await upload.enterPassword(SIX_WORDS);
 
-            await upload.share();
+            await upload.send();
 
-            expect(fileField()).toHaveAccessibleDescription('Choose a file to share.');
+            expect(fileField()).toHaveAccessibleDescription('Choose a file to send.');
             expect(upload.requestsSent()).toEqual([]);
         });
     });
@@ -253,20 +253,20 @@ describe('index page', () => {
             const upload = openUploadPage({ account: 'no-shares' });
             expect(queryProgressBar()).toBeNull();
 
-            await upload.shareMessage('the gate code', SIX_WORDS);
+            await upload.sendNote('the gate code', SIX_WORDS);
 
             expect(upload.progressShown()).toEqual(['0%', '50%', '100%']);
             expect(progressBar()).toHaveTextContent('100%');
-            expect(screen.queryByRole('button', { name: 'Share note' })).toBeNull();
+            expect(screen.queryByRole('button', { name: 'Send note' })).toBeNull();
         });
 
         it('a failed upload hides the bar and brings the button back', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
 
-            await upload.shareMessage('the gate code', SIX_WORDS, { server: 'failing' });
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'failing' });
 
             expect(queryProgressBar()).toBeNull();
-            expect(screen.getByRole('button', { name: 'Share note' })).toBeEnabled();
+            expect(screen.getByRole('button', { name: 'Send note' })).toBeEnabled();
         });
     });
 
@@ -287,7 +287,7 @@ describe('index page', () => {
             expect(screen.getByRole('checkbox', { name: /^Notify me when this is opened/ })).toBeEnabled();
             expect(screen.getByLabelText('Account email')).not.toBeVisible();
 
-            await upload.setShareOptions({ notify: true });
+            await upload.setSendOptions({ notify: true });
 
             expect(screen.getByLabelText('Account email')).toBeVisible();
             expect(screen.getByLabelText('Account email')).toHaveValue('notify@example.test');
@@ -393,7 +393,7 @@ describe('index page', () => {
             expect(shareRow('locked.zip').getByText('Locked out')).toBeVisible();
         });
 
-        it('titles a text note by its private note, or else by its time', () => {
+        it('titles a text note by its memo, or else by its time', () => {
             const upload = openUploadPage({ sharesPerPage: 10 });
 
             expect(upload.sharesShown()).toContain('For the auditor');

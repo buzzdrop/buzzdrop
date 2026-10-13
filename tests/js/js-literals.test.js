@@ -17,14 +17,22 @@ const JS_ROOT = new URL('../../static/js/', import.meta.url);
 
 const CONVERTED_MODULES = [
     'features/clipboard-feedback/clipboard-feedback.js',
+    'features/password-gate/password-gate.js',
+    'features/share-protocol/share-protocol.js',
     'lib/format.js',
+    'lib/passphrase.js',
     'lib/strings.js',
+    'pages/hero-flow/hero-flow-page.js',
+    'pages/index/index-page.js',
     'pages/language-menu/language-menu-page.js',
     'pages/success/success-page.js',
 ];
 
 const TEXT_PROPERTIES = new Set(['textContent', 'innerText', 'innerHTML', 'outerHTML', 'title', 'placeholder', 'alt']);
-const TEXT_ATTRIBUTE = /^(aria-.+|title|placeholder|alt)$/;
+// The aria attributes that hold words; the rest (aria-current, aria-checked…)
+// hold tokens.
+const TEXT_ATTRIBUTE = /^(aria-(label|valuetext|description|roledescription|placeholder)|title|placeholder|alt)$/;
+const TEXT_ARIA_PROPERTY = /^aria(Label|ValueText|Description|RoleDescription|Placeholder)$/;
 const LETTER = /\p{L}/u;
 
 /**
@@ -73,7 +81,7 @@ export function literalTextWrites(source) {
     simple(parse(source, { ecmaVersion: 'latest', sourceType: 'module', locations: true }), {
         AssignmentExpression(/** @type {any} */ node) {
             const name = propertyName(node.left);
-            if (name && (TEXT_PROPERTIES.has(name) || name.startsWith('aria')) && holdsLiteralText(node.right)) {
+            if (name && (TEXT_PROPERTIES.has(name) || TEXT_ARIA_PROPERTY.test(name)) && holdsLiteralText(node.right)) {
                 found.push(`line ${node.loc.start.line}: ${name}`);
             }
         },
@@ -110,6 +118,8 @@ test('the check catches literal text however it is written', () => {
         "field.placeholder = 'Password';": ['line 1: placeholder'],
         "bar.ariaValueText = 'Decrypting…';": ['line 1: ariaValueText'],
         "bar.setAttribute('aria-valuetext', 'Decrypting…');": ['line 1: aria-valuetext'],
+        "button.setAttribute('aria-label', 'Close');": ['line 1: aria-label'],
+        "button.ariaLabel = 'Close';": ['line 1: ariaLabel'],
         "bar.setAttribute('title', `Opened ${when}`);": ['line 1: title'],
         "deps.alert('Something went wrong');": ['line 1: alert()'],
         "alert('Something went wrong');": ['line 1: alert()'],
@@ -129,6 +139,8 @@ test('the check lets through text from elsewhere, and text with no words', () =>
         "label.textContent = shown ? strings.text('hide') : strings.text('show');",
         "bar.setAttribute('aria-valuenow', String(value));",
         "bar.setAttribute('data-step', 'decrypting');",
+        "step.setAttribute('aria-current', 'step');",
+        "item.ariaChecked = 'true';",
         "input.value = 'abc';",
     ];
     for (const source of allowed) {

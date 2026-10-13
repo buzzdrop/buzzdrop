@@ -1,0 +1,28 @@
+{# The words pages/index/ writes in the composer: the send button, the
+   inline refusals, the expiry field's time-zone hint, and what an upload
+   that failed says. `refusals` is keyed by the share protocol's
+   RefusalReason: the server's code (#285), or the page's own fallback. #}
+{# Translators: %(zone)s is the viewer's time zone as their browser names it, e.g. "Central European Time". #}
+{% set expiry_zone = script_gettext('In your time zone (%(zone)s).') %}
+{% set strings = {
+    'sendFile': _('Send file'),
+    'sendNote': _('Send note'),
+    'chooseFile': _('Choose a file to send.'),
+    'writeNote': _('Write the note you want to send.'),
+    'expiryZone': expiry_zone,
+    'unreachable': _('Network error while sending the drop. Please try again.'),
+    'refusals': {
+        'file_too_large': _('The drop is too large to send.'),
+        'type_not_allowed': _('That file type is not allowed.'),
+        'rate_limited': _('Too many requests. Please try again later.'),
+        'csrf_failed': _('Your session has expired. Reload the page and try again.'),
+        'invalid_expiry': _('Choose a valid expiry time.'),
+        'notifications_unconfigured': _('Open notifications are not configured on this server.'),
+        'account_email_missing': _('Configure an account email before enabling open notifications.'),
+        'account_email_invalid': _('Your configured account email is invalid.'),
+        'notification_email_mismatch': _('Open notifications can only be sent to your configured account email.'),
+        'handshake_refused': _('The server would not accept the drop. Please try again.'),
+        'send_failed': _('Could not send the drop. Please try again.'),
+        'reply_unreadable': _("The drop may have been sent, but the server's reply could not be read."),
+    },
+} %}

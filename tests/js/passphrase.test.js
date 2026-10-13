@@ -28,7 +28,7 @@ test('generated passphrase has 6 EFF words by default', () => {
 test('generated passphrases are strong and not blocked', () => {
     for (let i = 0; i < 10; i++) {
         const result = assessPassword(generatePassphrase());
-        assert.equal(result.level, 'strong');
+        assert.equal(result.strength, 'strong');
         assert.equal(result.blocked, false);
         assert.ok(result.bits >= STRONG_ENTROPY_BITS);
     }
@@ -43,7 +43,7 @@ test('common passwords are blocked, including leet variants', () => {
     for (const pw of ['password', 'P4ssw0rd!', 'qwerty123', 'letmein2024', 'buzzdrop']) {
         const result = assessPassword(pw);
         assert.equal(result.blocked, true, `${pw} should be blocked`);
-        assert.equal(result.level, 'weak');
+        assert.equal(result.strength, 'common');
     }
 });
 
@@ -69,11 +69,18 @@ test('typed EFF passphrase gets exact word-count credit', () => {
     const result = assessPassword('abacus-abdomen-abide-ability');
     // 4 * log2(7776) ≈ 51.7 bits -> fair, not blocked
     assert.equal(result.blocked, false);
+    assert.equal(result.strength, 'fair');
     assert.ok(Math.abs(result.bits - 4 * Math.log2(7776)) < 0.01);
 });
 
 test('empty password is not blocked but reports empty', () => {
     const result = assessPassword('');
-    assert.equal(result.level, 'empty');
+    assert.equal(result.strength, 'empty');
     assert.equal(result.blocked, false);
+});
+
+test('the assessment is data for the page to put into words', () => {
+    assert.deepEqual(Object.keys(assessPassword('q8Zt!w')).sort(), ['bits', 'blocked', 'strength']);
+    assert.equal(assessPassword('q8Zt!w').strength, 'weak');
+    assert.equal(assessPassword('correct horse').strength, 'fair');
 });

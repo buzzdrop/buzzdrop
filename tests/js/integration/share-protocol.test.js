@@ -109,37 +109,38 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
 
         const result = await createShare({ kind: 'text', bytes: new Uint8Array([1]) }, PASSWORD, NO_OPTIONS, createDeps(fake));
 
-        expect(result).toEqual({ kind: 'refused', message: 'The server would not accept the drop. Please try again.' });
+        expect(result).toEqual({ kind: 'refused', reason: 'handshake_refused' });
     });
 
-    // The page shows the message for the refusal's code; `error` is English
-    // for API clients and never reaches the screen (#285).
+    // The refusal carries the server's code for the page to put into words;
+    // `error` is English for API clients and never reaches the screen (#285).
+    // A code the page can't explain is a generic failure.
     it.each([
-        ['a known code', { error: 'File type not allowed', code: 'type_not_allowed' }, 'That file type is not allowed.'],
-        ['an unknown code', { error: 'Something new went wrong', code: 'something_new' }, 'Could not send the drop. Please try again.'],
-        ['no code', { error: 'Something old went wrong' }, 'Could not send the drop. Please try again.'],
-    ])('an upload refused with %s shows its own message', async (_, body, message) => {
+        ['a known code', { error: 'File type not allowed', code: 'type_not_allowed' }, 'type_not_allowed'],
+        ['an unknown code', { error: 'Something new went wrong', code: 'something_new' }, 'send_failed'],
+        ['no code', { error: 'Something old went wrong' }, 'send_failed'],
+    ])('an upload refused with %s carries its reason', async (_, body, reason) => {
         const fake = makeProtocolFake({ csrfToken: CSRF_TOKEN });
         fake.failNext('/upload', { status: 400, body });
 
         const result = await createShare({ kind: 'text', bytes: new Uint8Array([1]) }, PASSWORD, NO_OPTIONS, createDeps(fake));
 
-        expect(result).toEqual({ kind: 'refused', message });
+        expect(result).toEqual({ kind: 'refused', reason });
     });
 
     // The refusal is mapped like /upload's: a rate limit or an expired
     // session shows up at begin first, since begin is the first gated call.
     it.each([
-        ['a known code', 429, 'Too many requests. Please try again later.'],
-        ['an unknown code', { status: 400, body: { error: 'Something new went wrong', code: 'something_new' } }, 'The server would not accept the drop. Please try again.'],
-        ['no JSON body', { status: 502, body: '<html>Bad gateway</html>' }, 'The server would not accept the drop. Please try again.'],
-    ])('a handshake refused with %s shows its own message', async (_, failure, message) => {
+        ['a known code', 429, 'rate_limited'],
+        ['an unknown code', { status: 400, body: { error: 'Something new went wrong', code: 'something_new' } }, 'handshake_refused'],
+        ['no JSON body', { status: 502, body: '<html>Bad gateway</html>' }, 'handshake_refused'],
+    ])('a handshake refused with %s carries its reason', async (_, failure, reason) => {
         const fake = makeProtocolFake({ csrfToken: CSRF_TOKEN });
         fake.failNext('/upload/begin', failure);
 
         const result = await createShare({ kind: 'text', bytes: new Uint8Array([1]) }, PASSWORD, NO_OPTIONS, createDeps(fake));
 
-        expect(result).toEqual({ kind: 'refused', message });
+        expect(result).toEqual({ kind: 'refused', reason });
     });
 
     it('a handshake refused for an expired session says so', async () => {
@@ -148,6 +149,6 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
 
         const result = await createShare({ kind: 'text', bytes: new Uint8Array([1]) }, PASSWORD, NO_OPTIONS, deps);
 
-        expect(result).toEqual({ kind: 'refused', message: 'Your session has expired. Reload the page and try again.' });
+        expect(result).toEqual({ kind: 'refused', reason: 'csrf_failed' });
     });
 });

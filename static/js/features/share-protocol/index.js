@@ -7,6 +7,7 @@ export { claimShare, createShare } from './share-protocol.js';
  * @typedef {import('./share-protocol.js').ShareOptions} ShareOptions
  * @typedef {import('./share-protocol.js').CreateDeps} CreateDeps
  * @typedef {import('./share-protocol.js').CreateResult} CreateResult
+ * @typedef {import('./share-protocol.js').RefusalReason} RefusalReason
  * @typedef {import('./share-protocol.js').ClaimDeps} ClaimDeps
  * @typedef {import('./share-protocol.js').ClaimStep} ClaimStep
  * @typedef {import('./share-protocol.js').ClaimResult} ClaimResult

@@ -18,9 +18,31 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app.py
+#: app.py templates/_composer_strings.html
 msgid "Too many requests. Please try again later."
 msgstr "Zbyt wiele żądań. Spróbuj ponownie później."
+
+#: app.py
+msgid "Open notifications are not configured on this server"
+msgstr "Powiadomienia o otwarciu nie są skonfigurowane na tym serwerze"
+
+#: app.py
+msgid "Configure an account email before enabling open notifications"
+msgstr "Zanim włączysz powiadomienia o otwarciu, ustaw adres e-mail konta"
+
+#: app.py
+msgid "Your configured account email is invalid"
+msgstr "Adres e-mail ustawiony na koncie jest nieprawidłowy"
+
+#: app.py
+msgid "Open notifications can only be sent to your configured account email"
+msgstr ""
+"Powiadomienia o otwarciu można wysyłać tylko na adres e-mail ustawiony na"
+" koncie"
+
+#: app.py
+msgid "Drop too large"
+msgstr "Przesyłka jest za duża"
 
 #: app.py
 msgid "Page not found"
@@ -69,6 +91,46 @@ msgstr "Nieprawidłowe żądanie"
 #: app.py
 msgid "Logged out successfully"
 msgstr "Wylogowano"
+
+#: app.py
+msgid "Invalid key-release upload"
+msgstr "Nieprawidłowe wysyłanie przesyłki"
+
+#: app.py
+msgid "Unknown or already finalized key-release upload"
+msgstr "Nieznane albo już zakończone wysyłanie przesyłki"
+
+#: app.py
+msgid "Key-release share belongs to another user"
+msgstr "Ta przesyłka należy do innego użytkownika"
+
+#: app.py
+msgid ""
+"Expiry must be an ISO 8601 time with a time zone, e.g. "
+"2026-12-31T23:59+01:00"
+msgstr ""
+"Termin ważności musi być czasem ISO 8601 ze strefą czasową, np. "
+"2026-12-31T23:59+01:00"
+
+#: app.py
+msgid "Key-release upload was finalized elsewhere"
+msgstr "Wysyłanie tej przesyłki zakończono gdzie indziej"
+
+#: app.py
+msgid "Upload failed"
+msgstr "Nie udało się wysłać przesyłki"
+
+#: app.py
+msgid "No file part"
+msgstr "W formularzu nie ma pliku"
+
+#: app.py
+msgid "No selected file"
+msgstr "Nie wybrano pliku"
+
+#: app.py
+msgid "File type not allowed"
+msgstr "Niedozwolony typ pliku"
 
 #. a Copy button's label, flashed after a copy. Keep it short.
 #: templates/_clipboard_feedback_strings.html
@@ -135,6 +197,89 @@ msgstr "Skopiowano tekst do schowka."
 msgid "Your browser blocked clipboard access, so the text was not copied."
 msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano tekstu."
 
+#. %(zone)s is the viewer's time zone as their browser names it, e.g. "Central
+#. European Time".
+#: templates/_composer_strings.html
+#, python-format
+msgid "In your time zone (%(zone)s)."
+msgstr "W twojej strefie czasowej (%(zone)s)."
+
+#: templates/_composer_strings.html
+msgid "Send file"
+msgstr "Wyślij plik"
+
+#: templates/_composer_strings.html
+msgid "Send note"
+msgstr "Wyślij notatkę"
+
+#: templates/_composer_strings.html
+msgid "Choose a file to send."
+msgstr "Wybierz plik do wysłania."
+
+#: templates/_composer_strings.html
+msgid "Write the note you want to send."
+msgstr "Napisz notatkę, którą chcesz wysłać."
+
+#: templates/_composer_strings.html
+msgid "Network error while sending the drop. Please try again."
+msgstr "Błąd sieci podczas wysyłania przesyłki. Spróbuj ponownie."
+
+#: templates/_composer_strings.html
+msgid "The drop is too large to send."
+msgstr "Przesyłka jest za duża, żeby ją wysłać."
+
+#: templates/_composer_strings.html
+msgid "That file type is not allowed."
+msgstr "Ten typ pliku jest niedozwolony."
+
+#: templates/_composer_strings.html
+msgid "Your session has expired. Reload the page and try again."
+msgstr "Sesja wygasła. Odśwież stronę i spróbuj ponownie."
+
+#: templates/_composer_strings.html
+msgid "Choose a valid expiry time."
+msgstr "Wybierz poprawny termin ważności."
+
+#: templates/_composer_strings.html
+msgid "Open notifications are not configured on this server."
+msgstr "Powiadomienia o otwarciu nie są skonfigurowane na tym serwerze."
+
+#: templates/_composer_strings.html
+msgid "Configure an account email before enabling open notifications."
+msgstr "Zanim włączysz powiadomienia o otwarciu, ustaw adres e-mail konta."
+
+#: templates/_composer_strings.html
+msgid "Your configured account email is invalid."
+msgstr "Adres e-mail ustawiony na koncie jest nieprawidłowy."
+
+#: templates/_composer_strings.html
+msgid "Open notifications can only be sent to your configured account email."
+msgstr ""
+"Powiadomienia o otwarciu można wysyłać tylko na adres e-mail ustawiony na"
+" koncie."
+
+#: templates/_composer_strings.html
+msgid "The server would not accept the drop. Please try again."
+msgstr "Serwer nie przyjął przesyłki. Spróbuj ponownie."
+
+#: templates/_composer_strings.html
+msgid "Could not send the drop. Please try again."
+msgstr "Nie udało się wysłać przesyłki. Spróbuj ponownie."
+
+#: templates/_composer_strings.html
+msgid "The drop may have been sent, but the server's reply could not be read."
+msgstr ""
+"Przesyłka mogła zostać wysłana, ale nie udało się odczytać odpowiedzi "
+"serwera."
+
+#: templates/_hero_flow_strings.html
+msgid "Play walkthrough"
+msgstr "Odtwórz przykład"
+
+#: templates/_hero_flow_strings.html
+msgid "Pause walkthrough"
+msgstr "Wstrzymaj przykład"
+
 #. the language menu button's name; %(language)s is the current language in
 #. itself, e.g. "Polski".
 #: templates/_language_menu.html
@@ -142,19 +287,71 @@ msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano teks
 msgid "Language: %(language)s"
 msgstr "Język: %(language)s"
 
-#: templates/_success_strings.html
+#. %(reason)s is one of the strength messages, e.g. "Too weak (~30 bits). …".
+#: templates/_password_gate_strings.html
+#, python-format
+msgid "Password rejected: %(reason)s"
+msgstr "Hasło odrzucone: %(reason)s"
+
+#: templates/_password_gate_strings.html
+msgid "Weak"
+msgstr "Słabe"
+
+#: templates/_password_gate_strings.html
+msgid "Fair"
+msgstr "Wystarczające"
+
+#: templates/_password_gate_strings.html
+msgid "Strong"
+msgstr "Silne"
+
+#: templates/_password_gate_strings.html
+msgid "That password is on every cracker list ever published."
+msgstr "To hasło jest na każdej opublikowanej liście haseł do łamania."
+
+#: templates/_password_gate_strings.html
+#, python-format
+msgid "Too weak (~%(bits)s bits). Use Generate or a longer passphrase."
+msgstr ""
+"Za słabe (bity entropii: ~%(bits)s). Użyj „Wygeneruj” albo dłuższego "
+"hasła ze słów."
+
+#: templates/_password_gate_strings.html
+#, python-format
+msgid "Acceptable (~%(bits)s bits) — a generated 6-word passphrase is stronger."
+msgstr ""
+"Wystarczające (bity entropii: ~%(bits)s) – wygenerowane hasło z 6 słów "
+"jest silniejsze."
+
+#: templates/_password_gate_strings.html
+#, python-format
+msgid "Strong (~%(bits)s bits)."
+msgstr "Silne (bity entropii: ~%(bits)s)."
+
+#: templates/_password_gate_strings.html templates/_success_strings.html
 msgid "Show"
 msgstr "Pokaż"
 
-#: templates/_success_strings.html
+#: templates/_password_gate_strings.html templates/_success_strings.html
 msgid "Hide"
 msgstr "Ukryj"
 
+#: templates/_password_gate_strings.html
+msgid "Show password"
+msgstr "Pokaż hasło"
+
+#: templates/_password_gate_strings.html
+msgid "Hide password"
+msgstr "Ukryj hasło"
+
+#: templates/_password_gate_strings.html
+msgid "Enter a password, or press Generate."
+msgstr "Wpisz hasło albo naciśnij „Wygeneruj”."
+
 #: templates/base.html
 msgid ""
-"Buzzdrop: secure, one-time file sharing. Upload encrypted files or secret"
-" notes, send a link, and let them vanish as soon as the recipient "
-"downloads them."
+"Buzzdrop: secure, one-time file sharing. Encrypt files or notes, send a "
+"link, and let them vanish as soon as the recipient downloads them."
 msgstr ""
 "Buzzdrop: bezpieczne, jednorazowe przesyłanie plików. Wyślij zaszyfrowany"
 " plik albo notatkę, przekaż link i pozwól im zniknąć, gdy tylko odbiorca "
@@ -164,9 +361,9 @@ msgstr ""
 msgid "Buzzdrop: Secure, One-Time File Sharing"
 msgstr "Buzzdrop: bezpieczne, jednorazowe przesyłanie plików"
 
-#: templates/base.html
+#: templates/base.html templates/index.html
 msgid "One-time buzz"
-msgstr "Jednorazowy buzz"
+msgstr "Przesyłka jednorazowa"
 
 #: templates/base.html
 msgid "Manage Users"
@@ -212,17 +409,390 @@ msgstr "Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)"
 msgid "Go to Buzzdrop"
 msgstr "Przejdź do Buzzdropa"
 
+#: templates/index.html templates/success.html
+msgid "Send the link and the password through different channels."
+msgstr "Wyślij link i hasło różnymi kanałami."
+
+#: templates/index.html
+msgid "Secure handoff"
+msgstr "Bezpieczne przekazanie"
+
+#: templates/index.html
+msgid "Make it <span class=\"honey-text\">buzz</span>, then vanish."
+msgstr "Niech <span class=\"honey-text\">zabzyczy</span>, a potem zniknie."
+
+#: templates/index.html
+msgid ""
+"<strong>Encrypt a file or a note in your browser</strong>, send one link,"
+" and let the drop delete itself the moment it is downloaded. The contents"
+" are ciphertext to the server; details like the filename and your memo "
+"are not."
+msgstr ""
+"<strong>Zaszyfruj plik albo notatkę w przeglądarce</strong>, wyślij jeden"
+" link, a przesyłka usunie się sama, gdy tylko zostanie pobrana. Dla "
+"serwera treść to szyfrogram; szczegóły takie jak nazwa pliku czy twój "
+"dopisek – już nie."
+
+#: templates/index.html
+msgid "What are you sending?"
+msgstr "Co wysyłasz?"
+
+#: templates/index.html
+msgid "File"
+msgstr "Plik"
+
+#: templates/index.html
+msgid "Note"
+msgstr "Notatka"
+
+#: templates/index.html
+msgid ""
+"Drop a file here, or <span class=\"text-honey-300 underline decoration-"
+"honey-400/40 underline-offset-4\">browse</span>"
+msgstr ""
+"Upuść tu plik albo <span class=\"text-honey-300 underline decoration-"
+"honey-400/40 underline-offset-4\">wybierz go</span>"
+
+#: templates/index.html
+msgid "It is encrypted on this device before a single byte leaves it."
+msgstr ""
+"Zostanie zaszyfrowany na tym urządzeniu, zanim opuści je choćby jeden "
+"bajt."
+
+#: templates/index.html
+#, python-format
+msgid "Up to %(size)s"
+msgstr "Do %(size)s"
+
+#: templates/index.html
+msgid "Your note"
+msgstr "Treść notatki"
+
+#: templates/index.html
+msgid "Paste the note you want to protect with a one-time buzz…"
+msgstr "Wklej notatkę, którą chcesz wysłać jednorazowo…"
+
+#: templates/index.html
+msgid "Encrypted in the browser before it reaches the server."
+msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
+
+#: templates/index.html templates/login.html templates/success.html
+msgid "Password"
+msgstr "Hasło"
+
+#: templates/index.html
+msgid "Enter a strong password"
+msgstr "Wpisz silne hasło"
+
+#: templates/index.html
+msgid "Generate a 6-word passphrase (about 77 bits of entropy)"
+msgstr "Wygeneruj hasło z 6 słów (ok. 77 bitów entropii)"
+
+#: templates/index.html
+msgid "Generate"
+msgstr "Wygeneruj"
+
+#: templates/index.html templates/success.html
+msgid "Copy password"
+msgstr "Skopiuj hasło"
+
+#: templates/index.html templates/success.html
+msgid "Copy"
+msgstr "Skopiuj"
+
+#: templates/index.html
+msgid "Password strength"
+msgstr "Siła hasła"
+
+#: templates/index.html
+msgid "Send it through a different channel than the link."
+msgstr "Przekaż je innym kanałem niż link."
+
+#: templates/index.html
+msgid "Password clipboard"
+msgstr "Schowek – hasło"
+
+#: templates/index.html
+msgid "Expiry date <span class=\"text-slate-600\">(optional)</span>"
+msgstr "Termin ważności <span class=\"text-slate-600\">(opcjonalnie)</span>"
+
+#: templates/index.html
+msgid "Leave empty to keep the drop until it’s opened."
+msgstr "Zostaw puste, a przesyłka poczeka, aż ktoś ją otworzy."
+
+#: templates/index.html
+msgid "Memo <span class=\"text-slate-600\">(optional)</span>"
+msgstr "Dopisek <span class=\"text-slate-600\">(opcjonalnie)</span>"
+
+#: templates/index.html
+msgid "A reminder in your drop list"
+msgstr "Przypomnienie na twojej liście przesyłek"
+
+#: templates/index.html
+msgid "Only you see it. It isn’t encrypted."
+msgstr "Widzisz go tylko ty. Nie jest szyfrowany."
+
+#: templates/index.html
+msgid "Notify me when this is opened"
+msgstr "Powiadom mnie, gdy przesyłka zostanie otwarta"
+
+#: templates/index.html
+msgid ""
+"One email once the recipient decrypts it. Delivery failures are logged "
+"only."
+msgstr ""
+"Jeden e-mail, gdy odbiorca ją odszyfruje. Błędy doręczenia trafiają tylko"
+" do logów."
+
+#: templates/index.html
+msgid "Account email"
+msgstr "E-mail konta"
+
+#: templates/index.html
+msgid "Open notifications are sent only to this account email."
+msgstr "Powiadomienia o otwarciu trafiają tylko na ten adres e-mail konta."
+
+#: templates/index.html
+msgid "Notifications need an email on your account — ask your admin."
+msgstr ""
+"Powiadomienia wymagają adresu e-mail na koncie – poproś o niego "
+"administratora."
+
+#: templates/index.html
+msgid ""
+"Stored as ciphertext only, destroyed the moment the recipient downloads "
+"it."
+msgstr ""
+"Przechowywana tylko jako szyfrogram, niszczona w chwili, gdy odbiorca ją "
+"pobierze."
+
 #: templates/index.html
 msgid "Sending progress"
 msgstr "Postęp wysyłania"
 
+#: templates/index.html
+msgid ""
+"File sharing that stings&nbsp;— <span class=\"honey-text\">just "
+"once.</span>"
+msgstr ""
+"Przesyłanie plików, które żądli&nbsp;– <span class=\"honey-text\">tylko "
+"raz.</span>"
+
+#: templates/index.html
+msgid ""
+"Send a file or a note as a single link.<br>It opens once, then "
+"it’s&nbsp;gone."
+msgstr ""
+"Wyślij plik albo notatkę jako jeden link.<br>Otworzy się raz, a potem "
+"zniknie."
+
+#: templates/index.html
+msgid ""
+"<strong class=\"font-semibold text-slate-200\">We can’t read your files "
+"or notes:</strong> they’re encrypted before they leave your device."
+msgstr ""
+"<strong class=\"font-semibold text-slate-200\">Nie możemy czytać twoich "
+"plików ani notatek:</strong> są szyfrowane, zanim opuszczą twoje "
+"urządzenie."
+
+#: templates/index.html templates/login.html
+msgid "Enter the hive"
+msgstr "Wejdź do ula"
+
+#: templates/index.html
+msgid "View source"
+msgstr "Zobacz kod źródłowy"
+
+#: templates/index.html
+msgid "AES-GCM · PBKDF2, 600k iterations · Local or S3 storage · CLI included"
+msgstr "AES-GCM · PBKDF2, 600 tys. iteracji · Dysk lokalny lub S3 · CLI w zestawie"
+
+#: templates/index.html
+msgid "How a drop works"
+msgstr "Jak działa przesyłka"
+
+#: templates/index.html
+msgid "contract.pdf"
+msgstr "umowa.pdf"
+
+#: templates/index.html
+msgid "Wire details inside"
+msgstr "W środku dane do przelewu"
+
+#. the walkthrough's mock countdown, 24 hours. Keep it this short.
+#: templates/index.html
+msgid "24h"
+msgstr "24 h"
+
+#. an example expiry in the walkthrough's artwork, any date.
+#: templates/index.html
+msgid "Expires 12 Oct, 18:00"
+msgstr "Wygasa 12 paź, 18:00"
+
+#: templates/index.html
+msgid "Copied"
+msgstr "Skopiowano"
+
+#: templates/index.html
+msgid "You"
+msgstr "Ty"
+
+#: templates/index.html
+msgid "Them"
+msgstr "Odbiorca"
+
+#: templates/index.html
+msgid "Deleted from the server"
+msgstr "Usunięta z serwera"
+
+#: templates/index.html
+msgid "How Buzzdrop works, in detail"
+msgstr "Jak działa Buzzdrop, szczegółowo"
+
+#: templates/index.html
+msgid "What’s guaranteed"
+msgstr "Co jest gwarantowane"
+
+#: templates/index.html
+msgid "Four things you can rely on, each with a link to how it works."
+msgstr ""
+"Cztery rzeczy, na których możesz polegać, każda z linkiem do wyjaśnienia,"
+" jak działa."
+
+#: templates/index.html
+msgid "The server never sees your key"
+msgstr "Serwer nigdy nie widzi twojego klucza"
+
+#: templates/index.html
+msgid ""
+"Your password derives half the key in the browser via PBKDF2 — 600,000 "
+"iterations — and never leaves the device. The other half is a server-held"
+" share released exactly once, so a stolen ciphertext alone is dead bytes."
+" Buzzdrop stores ciphertext and metadata; it cannot read the drop."
+msgstr ""
+"Z twojego hasła przeglądarka wyprowadza połowę klucza przez PBKDF2 – 600 "
+"000 iteracji – a samo hasło nigdy nie opuszcza urządzenia. Druga połowa "
+"to udział trzymany przez serwer i wydawany dokładnie raz, więc sam "
+"skradziony szyfrogram to martwe bajty. Buzzdrop przechowuje szyfrogram i "
+"metadane; nie może odczytać przesyłki."
+
+#: templates/index.html
+msgid "How the key is split"
+msgstr "Jak dzielony jest klucz"
+
+#: templates/index.html
+msgid "The password opens it once"
+msgstr "Hasło otwiera ją raz"
+
+#: templates/index.html
+msgid ""
+"The recipient needs no account, only the link and the password, which "
+"they prove before anything downloads. A wrong guess gets no second "
+"attempt, and once the drop is open, nobody who finds the link later gets "
+"in."
+msgstr ""
+"Odbiorca nie potrzebuje konta, tylko linku i hasła, które potwierdza, "
+"zanim cokolwiek się pobierze. Po błędnym haśle nie ma drugiej próby, a "
+"gdy przesyłkę otwarto, nikt, kto później znajdzie link, już jej nie "
+"otworzy."
+
+#: templates/index.html
+#, python-format
+msgid ""
+"The recipient needs no account, only the link and the password, which "
+"they prove before anything downloads. After %(attempts)s wrong guesses "
+"the drop locks, and once the drop is open, nobody who finds the link "
+"later gets in."
+msgstr ""
+"Odbiorca nie potrzebuje konta, tylko linku i hasła, które potwierdza, "
+"zanim cokolwiek się pobierze. Po %(attempts)s błędnych próbach przesyłka "
+"zostaje zablokowana na stałe, a gdy przesyłkę otwarto, nikt, kto później "
+"znajdzie link, już jej nie otworzy."
+
+#: templates/index.html
+msgid "How the password is checked"
+msgstr "Jak sprawdzane jest hasło"
+
+#: templates/index.html
+msgid "An expiry is a hard cut-off"
+msgstr "Termin ważności to twarda granica"
+
+#: templates/index.html
+msgid ""
+"Give a drop a deadline and the link stops working once it passes. The "
+"attempt is refused and the copy swept away — whether or not anyone ever "
+"opened it."
+msgstr ""
+"Nadaj przesyłce termin ważności, a link przestanie działać, gdy minie. "
+"Próba otwarcia zostaje odrzucona, a kopia usunięta – niezależnie od tego,"
+" czy przesyłkę kiedykolwiek otwarto."
+
+#: templates/index.html
+msgid "How expiry deletes a drop"
+msgstr "Jak wygasła przesyłka zostaje usunięta"
+
+#: templates/index.html
+msgid "You find out it happened"
+msgstr "Dowiesz się, że to się stało"
+
+#: templates/index.html
+msgid ""
+"Buzzdrop records when the drop was fetched and from which IP, and can "
+"email you once, the moment the recipient decrypts it."
+msgstr ""
+"Buzzdrop zapisuje, kiedy i z jakiego adresu IP pobrano przesyłkę, i może "
+"wysłać ci jeden e-mail w chwili, gdy odbiorca ją odszyfruje."
+
+#: templates/index.html
+msgid "How decryption is reported"
+msgstr "Jak zgłaszane jest odszyfrowanie"
+
+#: templates/index.html
+msgid "Read the code. Then trust it."
+msgstr "Przeczytaj kod. Potem mu zaufaj."
+
+#: templates/index.html
+msgid ""
+"Buzzdrop is small enough to audit in an afternoon. Explore it, run it on "
+"your own box, or drop a star so more people find secure one-time sharing."
+msgstr ""
+"Buzzdrop jest na tyle mały, że przejrzysz go w jedno popołudnie. Zajrzyj "
+"do niego, uruchom go na własnym serwerze albo zostaw gwiazdkę, żeby "
+"więcej osób znalazło bezpieczne, jednorazowe przesyłanie."
+
+#: templates/index.html
+msgid "Full feature list and security notes live in the README."
+msgstr "Pełna lista funkcji i uwagi o bezpieczeństwie są w README."
+
+#: templates/index.html
+msgid ""
+"Grab the <code class=\"rounded-md border border-white/10 bg-hive-850 "
+"px-1.5 py-0.5 text-xs text-honey-200\">buzz</code> CLI to send encrypted "
+"drops from your terminal."
+msgstr ""
+"Pobierz CLI <code class=\"rounded-md border border-white/10 bg-hive-850 "
+"px-1.5 py-0.5 text-xs text-honey-200\">buzz</code>, żeby wysyłać "
+"zaszyfrowane przesyłki z terminala."
+
+#: templates/index.html
+msgid "Browse the source code (opens in new tab)"
+msgstr "Przeglądaj kod źródłowy (otwiera się w nowej karcie)"
+
+#: templates/index.html
+msgid "Browse the source code"
+msgstr "Przeglądaj kod źródłowy"
+
+#: templates/index.html
+msgid "Read the README (opens in new tab)"
+msgstr "Przeczytaj README (otwiera się w nowej karcie)"
+
+#: templates/index.html
+msgid "Read the README"
+msgstr "Przeczytaj README"
+
 #: templates/login.html
 msgid "Private access"
 msgstr "Dostęp prywatny"
-
-#: templates/login.html
-msgid "Enter the hive"
-msgstr "Wejdź do ula"
 
 #: templates/login.html
 msgid ""
@@ -236,17 +806,9 @@ msgstr ""
 msgid "Username"
 msgstr "Nazwa użytkownika"
 
-#: templates/login.html templates/success.html
-msgid "Password"
-msgstr "Hasło"
-
 #: templates/login.html
 msgid "Accounts are provisioned at deploy time through environment variables."
 msgstr "Konta zakłada się przy wdrożeniu, w zmiennych środowiskowych."
-
-#: templates/success.html
-msgid "Send the link and the password through different channels."
-msgstr "Wyślij link i hasło różnymi kanałami."
 
 #: templates/success.html
 msgid "Drop secured"
@@ -299,14 +861,6 @@ msgstr "Link"
 #: templates/success.html
 msgid "Copy link"
 msgstr "Skopiuj link"
-
-#: templates/success.html
-msgid "Copy"
-msgstr "Skopiuj"
-
-#: templates/success.html
-msgid "Copy password"
-msgstr "Skopiuj hasło"
 
 #: templates/success.html
 msgid "One-click link"

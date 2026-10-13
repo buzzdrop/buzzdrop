@@ -3,8 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { openLanguageMenuPage } from '../support/pages/language-menu.js';
 import { openGonePage, openLoginPage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
+import { openLandingPage, openUploadPage } from '../support/pages/upload.js';
 
-// Smoke tests for the pages served in Polish so far (#284, #286, #268):
+// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288):
 // the template's words, and the words a page script writes from its strings.
 
 /** Testing Library's text matching, minus collapsing a non-breaking space into a space. */
@@ -99,5 +100,80 @@ describe('in Polish', () => {
         await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Skopiuj hasło' })).toHaveTextContent('Błąd'));
         expect(screen.getByRole('status', { name: 'Schowek' }))
             .toHaveTextContent('Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano hasła.');
+    });
+
+    it('serves the landing page', () => {
+        openLandingPage({ language: 'pl' });
+
+        expect(screen.getByRole('heading', { level: 1, name: 'Przesyłanie plików, które żądli\u00a0– tylko raz.' }))
+            .toBeVisible();
+        expect(screen.getByRole('link', { name: 'Wejdź do ula' })).toBeVisible();
+        expect(screen.getByRole('heading', { name: 'Co jest gwarantowane' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Jak sprawdzane jest hasło' })).toBeVisible();
+    });
+
+    it('serves the landing walkthrough\'s artwork and play toggle in Polish', async () => {
+        const landing = openLandingPage({ language: 'pl' });
+
+        const walkthrough = screen.getByRole('region', { name: 'Jak działa przesyłka' });
+        expect(walkthrough).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Jak działa Buzzdrop, szczegółowo' })).toBeVisible();
+
+        await landing.pauseWalkthrough();
+        expect(screen.getByRole('button', { name: 'Odtwórz przykład' })).toBeVisible();
+        await landing.playWalkthrough();
+        expect(screen.getByRole('button', { name: 'Wstrzymaj przykład' })).toBeVisible();
+    });
+
+    it('serves the composer', () => {
+        openUploadPage({ account: 'no-shares', language: 'pl' });
+
+        expect(screen.getByRole('tab', { name: 'Plik' })).toBeVisible();
+        expect(screen.getByRole('tab', { name: 'Notatka' })).toBeVisible();
+        expect(screen.getByText('Do 100\u00a0MB', keepingNonBreakingSpaces)).toBeVisible();
+        expect(screen.getByLabelText('Dopisek (opcjonalnie)'))
+            .toHaveAccessibleDescription('Widzisz go tylko ty. Nie jest szyfrowany.');
+        expect(screen.getByRole('button', { name: 'Wyślij plik' })).toBeVisible();
+    });
+
+    it('names the viewer\'s time zone under the expiry in Polish', () => {
+        openUploadPage({ account: 'no-shares', language: 'pl' });
+
+        // The DOM tests run in New York (vitest.config.js).
+        expect(screen.getByLabelText('Termin ważności (opcjonalnie)'))
+            .toHaveAccessibleDescription('W\u00a0twojej strefie czasowej (czas wschodnioamerykański).');
+    });
+
+    it('rates and refuses a password in Polish, with the number in Polish', async () => {
+        const upload = openUploadPage({ account: 'no-shares', language: 'pl' });
+
+        await upload.sendNote('kod do bramy', 'q8Zt!w');
+
+        expect(screen.getByRole('meter', { name: 'Siła hasła' })).toHaveAttribute('aria-valuetext', 'Słabe');
+        expect(screen.getByLabelText('Hasło')).toHaveAccessibleDescription(
+            /^Hasło odrzucone: Za słabe \(bity entropii: ~\d+\)\. Użyj „Wygeneruj” albo dłuższego hasła ze słów\.$/);
+        expect(upload.requestsSent()).toEqual([]);
+    });
+
+    it('writes the composer script\'s words in Polish', async () => {
+        const upload = openUploadPage({ account: 'no-shares', language: 'pl' });
+
+        await upload.generatePassword();
+        expect(screen.getByRole('meter', { name: 'Siła hasła' })).toHaveAttribute('aria-valuetext', 'Silne');
+        expect(screen.getByRole('button', { name: 'Ukryj hasło' })).toHaveTextContent('Ukryj');
+
+        await upload.switchToNote();
+        expect(screen.getByRole('button', { name: 'Wyślij notatkę' })).toBeVisible();
+        await upload.send();
+        expect(screen.getByLabelText('Treść notatki'))
+            .toHaveAccessibleDescription('Napisz notatkę, którą chcesz wysłać.');
+    });
+
+    it('says in Polish why the server refused an upload', async () => {
+        const upload = openUploadPage({ account: 'no-shares', language: 'pl' });
+
+        await upload.sendNote('kod do bramy', undefined, { server: 'too-large' });
+
+        expect(upload.alerts()).toEqual(['Przesyłka jest za duża, żeby ją wysłać.']);
     });
 });

@@ -66,7 +66,7 @@ export function initSharedFilesList(root, deps) {
     };
     showRelativeTimes(list);
 
-    // A note without a private note is titled by its time: put that in the
+    // A note without a memo is titled by its time: put that in the
     // viewer's zone too, wherever the title appears. The search then finds
     // a row by the title and the times as shown.
     rows.forEach((row) => {

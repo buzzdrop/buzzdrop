@@ -19,6 +19,7 @@ import re
 from pathlib import Path
 
 from babel import Locale, UnknownLocaleError
+from babel.numbers import format_decimal
 from flask import current_app, g, has_request_context, request
 from flask_babel import Babel, get_locale, get_translations, refresh
 from flask_babel.speaklater import LazyString
@@ -141,6 +142,15 @@ def language_menu(current, return_path):
     }
 
 
+def format_size(size, language):
+    """
+    A size in bytes as binary megabytes, in the language's number format,
+    with a non-breaking space before the unit in every language (#266):
+    "100 MB", "1,5 MB".
+    """
+    return f'{format_decimal(size / 1024 / 1024, format="#,##0.#", locale=language)}\u00a0MB'
+
+
 def keep_polish_orphans_attached(text):
     """
     Join each standalone one-letter word (a, i, o, u, w, z) to the next
@@ -190,6 +200,15 @@ def pgettext(context, string, **variables):
     """``gettext`` for a word that needs a context to translate apart."""
     text = _translate_in_context(context, string)
     return text % variables if variables else text
+
+
+def script_gettext(string):
+    """
+    ``string`` translated for a page script, its ``%(name)s`` placeholders
+    left for ``lib/strings.js`` to fill (#265): the template's ``_()``
+    would fill them, and fail without values.
+    """
+    return _translate(string)
 
 
 def gettext_noop(string):
@@ -251,6 +270,8 @@ def init_app(app):
     app.before_request(_forget_language)
     app.jinja_env.policies['ext.i18n.trimmed'] = True
     app.jinja_env.globals['plural_forms'] = plural_forms
+    app.jinja_env.globals['format_size'] = format_size
+    app.jinja_env.globals['script_gettext'] = script_gettext
     app.jinja_env.install_gettext_callables(
         gettext=_translate,
         ngettext=_translate_plural,

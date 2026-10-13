@@ -266,7 +266,7 @@ def test_landing_hero_promises_what_the_doc_takes_away(client):
 
 
 def _guarantees(html):
-    match = re.search(r'What&rsquo;s guaranteed.*?</section>', html, re.S)
+    match = re.search(r'What’s guaranteed.*?</section>', html, re.S)
     assert match, 'no guarantees on the landing page'
     return match.group(0)
 

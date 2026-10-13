@@ -4,7 +4,7 @@ The user-facing account of what happens when you share a file or a note with Buz
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
-<!-- how-it-works-fingerprint: sha256:cf3b8f91a7d0d1df1aec4e446c64f152b5d619896d84b7de9b9a192aef99e2e1 -->
+<!-- how-it-works-fingerprint: sha256:f3f350d55d3b5e74a2ac5543fc7dc7ab93e29b5fbe05067561d2daac988ac33c -->
 
 > **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto, the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release defaults, and the server code that releases, serves, expires and deletes a drop (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc and the page against the change, fix whichever is now wrong, and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer page — keep in step" says the same for reviewers.
 
@@ -78,7 +78,7 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 
 - **Who acts:** the sender's browser or terminal, then the server.
 - **What crosses the wire:** `POST /upload` with the ciphertext, the `file_id`, `V` and `SHA-256(receipt)`, authenticated the same way as step 1. Only the account that ran step 1 may finish it.
-- **What the server sees:** the ciphertext and its approximate size, `V`, the receipt's hash, the expiry you chose, an optional private note to yourself, and for a file its original filename. It stores the ciphertext (on disk or in S3) and binds `V` to `H`.
+- **What the server sees:** the ciphertext and its approximate size, `V`, the receipt's hash, the expiry you chose, an optional memo to yourself, and for a file its original filename. It stores the ciphertext (on disk or in S3) and binds `V` to `H`.
 - **Never sees:** the password, `Kp` and the content.
 - **Why:** `V` lets the server check the password later without ever learning it. `V` can't be turned back into `Kp`.
 - **Content switch:** a file goes up as a multipart `file`, with its filename. A text note goes up as base64 in a `note_text` field, labelled "Secret Note".
@@ -152,7 +152,7 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 
 - **The ciphertext:** until it is downloaded, it expires, or the sender deletes it. Then it is deleted from storage.
 - **`H` and `V`:** until the release succeeds, the drop locks, it expires, or it is deleted. Whichever comes first destroys them. With `KEY_RELEASE_BURN_ON_LOCKOUT` off, a locked drop keeps them (refusing every attempt) until it expires or is deleted; the page says so when the server runs that way.
-- **The drop's record:** the filename (or "Secret Note"), the sender's account, when it was created, its expiry, when it was opened and from which IP address, whether decryption worked, the receipt's hash, and the sender's optional private note and notification address. Beside it stays what is left of the key share once `H` and `V` are gone (its `file_keys` row): the password's salt, the sending account, the count of wrong attempts and when it was released. All of it stays in the sender's list until the sender deletes it; there is no automatic purge.
+- **The drop's record:** the filename (or "Secret Note"), the sender's account, when it was created, its expiry, when it was opened and from which IP address, whether decryption worked, the receipt's hash, and the sender's optional memo and notification address. Beside it stays what is left of the key share once `H` and `V` are gone (its `file_keys` row): the password's salt, the sending account, the count of wrong attempts and when it was released. All of it stays in the sender's list until the sender deletes it; there is no automatic purge.
 - **Server logs:** every successful or wrong release attempt is logged with the requester's IP address. How long logs are kept is up to whoever runs the server.
 
 <a id="limits"></a>

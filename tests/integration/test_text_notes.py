@@ -101,7 +101,7 @@ def test_upload_text_note_with_expiry(client, app, files_store):
     assert '2025-12-31' in note_info['expiry_at']
 
 def test_upload_text_note_stores_private_note(client, files_store):
-    """Test text note upload stores a private note for the uploader."""
+    """Test text note upload stores a memo for the sender."""
     login_user(client, 'testuser', 'password')
 
     response = upload_note(

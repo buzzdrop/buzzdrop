@@ -41,6 +41,7 @@ KEYWORDS = {
     'lazy_gettext': None,
     'gettext_noop': None,
     'plural_forms': (1, 2),
+    'script_gettext': None,
 }
 COMMENT_TAGS = ('Translators:',)
 # A fixed date keeps the header from changing on every run.

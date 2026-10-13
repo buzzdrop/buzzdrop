@@ -19,7 +19,7 @@ const CSRF_TOKEN = 'fixture-csrf-token';
 const FILE_NAME = 'report.pdf';
 const FILE_BYTES = new TextEncoder().encode('%PDF-1.7 quarterly numbers');
 const NOTE = 'the gate code is 4711';
-const SHARE_OPTIONS = { expiry: '2099-01-31T12:00', privateNote: '  for the Q3 audit  ', notify: true };
+const SEND_OPTIONS = { expiry: '2099-01-31T12:00', memo: '  for the Q3 audit  ', notify: true };
 // PBKDF2 at 600k iterations runs once per encryption and once per check; the
 // driver waits up to REAL_CRYPTO_TIMEOUT for each upload to settle.
 const TEST_TIMEOUT = 30_000;
@@ -40,9 +40,9 @@ const successUrl = (fileId) => `/success/${fileId}#${encodeURIComponent(PASSWORD
  * @param {Mode} mode
  * @param {{ password?: string, server?: UploadServer }} [options]
  */
-const shareIn = (upload, mode, { password = PASSWORD, server } = {}) => (mode === 'text'
-    ? upload.shareMessage(NOTE, password, { server })
-    : upload.shareFile({ name: FILE_NAME, bytes: FILE_BYTES }, password, { server }));
+const sendIn = (upload, mode, { password = PASSWORD, server } = {}) => (mode === 'text'
+    ? upload.sendNote(NOTE, password, { server })
+    : upload.sendFile({ name: FILE_NAME, bytes: FILE_BYTES }, password, { server }));
 
 /**
  * @param {UploadPage} upload
@@ -100,7 +100,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
         it('begins, encrypts under the issued H, uploads with progress and goes to success', async () => {
             const upload = openUploadPage({ account: 'no-shares', crypto: 'real' });
 
-            await shareIn(upload, mode);
+            await sendIn(upload, mode);
 
             expect(upload.alerts()).toEqual([]);
             expect(upload.requestsSent().map(pathOf)).toEqual(['/upload/begin', '/upload']);
@@ -136,11 +136,11 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
             expect(upload.navigatedTo()).toEqual([successUrl(fileId)]);
         });
 
-        it('sends the share options', async () => {
+        it('sends the options', async () => {
             const upload = openUploadPage({ account: 'with-email', crypto: 'real' });
-            await upload.setShareOptions(SHARE_OPTIONS);
+            await upload.setSendOptions(SEND_OPTIONS);
 
-            await shareIn(upload, mode);
+            await sendIn(upload, mode);
 
             expect(upload.alerts()).toEqual([]);
             const [request] = requestsTo(upload, '/upload');
@@ -169,25 +169,25 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
     const ERROR_CASES = [
         { name: 'the server is too busy to begin', server: 'busy', reachesUpload: false },
         { name: 'the server fails the upload', server: 'failing', reachesUpload: true },
-        { name: 'the file is too large', server: 'too-large', message: 'The file is too large to send.', reachesUpload: true },
+        { name: 'the file is too large', server: 'too-large', message: 'The drop is too large to send.', reachesUpload: true },
     ];
 
     describe('upload errors', () => {
         it.each(ERROR_CASES)('$name: alerts, recovers and retries with a fresh share', async (errorCase) => {
             const upload = openUploadPage({ account: 'no-shares', crypto: 'real' });
 
-            await shareIn(upload, 'file', { server: errorCase.server });
+            await sendIn(upload, 'file', { server: errorCase.server });
 
             expect(upload.alerts()).toHaveLength(1);
             if (errorCase.message) expect(upload.alerts()).toEqual([errorCase.message]);
             expect(upload.navigatedTo()).toEqual([]);
             const failed = requestsTo(upload, '/upload');
             expect(failed).toHaveLength(errorCase.reachesUpload ? 1 : 0);
-            expect(screen.getByRole('button', { name: 'Share file' })).toBeEnabled();
-            expect(screen.getByRole('button', { name: 'Share file' })).toBeVisible();
+            expect(screen.getByRole('button', { name: 'Send file' })).toBeEnabled();
+            expect(screen.getByRole('button', { name: 'Send file' })).toBeVisible();
             expect(screen.queryByRole('progressbar', { name: 'Sending progress' })).toBeNull();
 
-            await upload.share();
+            await upload.send();
 
             // The retry begins again and finishes the share it was just
             // issued, not the one the failed attempt sent.
@@ -210,11 +210,11 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
     describe('security invariants', () => {
         it.each(MODES)('the password never reaches the server (%s)', async (mode) => {
             const upload = openUploadPage({ account: 'with-email', crypto: 'real' });
-            await upload.setShareOptions(SHARE_OPTIONS);
+            await upload.setSendOptions(SEND_OPTIONS);
 
             // A failed attempt first, so the retry path is on record too.
-            await shareIn(upload, mode, { server: 'too-large' });
-            await upload.share();
+            await sendIn(upload, mode, { server: 'too-large' });
+            await upload.send();
 
             expect(upload.alerts()).toHaveLength(1);
             expect(upload.requestsSent()).toHaveLength(4);
@@ -228,7 +228,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
         it.each(MODES)('a weak password is refused before any request (%s)', async (mode) => {
             const upload = openUploadPage({ account: 'no-shares', crypto: 'real' });
 
-            await shareIn(upload, mode, { password: PASSWORDS.weak });
+            await sendIn(upload, mode, { password: PASSWORDS.weak });
 
             expect(screen.getByLabelText('Password')).toHaveAccessibleDescription(/^Password rejected: /);
             expect(upload.requestsSent()).toEqual([]);
@@ -239,8 +239,8 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
         it('every session-authed mutation carries the CSRF token', async () => {
             const upload = openUploadPage({ account: 'no-shares', crypto: 'real' });
 
-            await shareIn(upload, 'file', { server: 'rate-limited' });
-            await shareIn(upload, 'text');
+            await sendIn(upload, 'file', { server: 'rate-limited' });
+            await sendIn(upload, 'text');
 
             expect(upload.requestsSent().map((request) => `${request.method} ${pathOf(request)}`)).toEqual([
                 'POST /upload/begin', 'POST /upload', 'POST /upload/begin', 'POST /upload',
@@ -259,8 +259,8 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
 
             // A failed attempt first: a page tempted to keep a share for the
             // retry would do it here.
-            await shareIn(upload, mode, { server: 'too-large' });
-            await upload.share();
+            await sendIn(upload, mode, { server: 'too-large' });
+            await upload.send();
 
             expect(upload.navigatedTo()).toHaveLength(1);
             expect(upload.sharesIssued()).toHaveLength(2);
