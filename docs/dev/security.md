@@ -9,7 +9,7 @@ Those attributes cover only entry files. So `base.html` also renders a `<script 
 - **Browser support:** import-map `integrity` needs Chromium 127+, Safari 18+ or Firefox 138+. Older browsers ignore the key and load the modules unchecked.
 - **What it protects:** as with entry scripts, the hashes come from the server's own files. This catches tampering in transit and in caches, not on the server.
 - **CSP:** the CSP allows that one inline block by its SHA-256, added per response by `set_security_headers`.
-- **Imports:** import every module through a relative specifier under `static/js`; `tests/integration/test_module_integrity.py` enforces it.
+- **Imports:** the SRI above holds only for imports that follow `static/js/CLAUDE.md` §Import rules.
 
 ## Authentication (`auth.py`)
 

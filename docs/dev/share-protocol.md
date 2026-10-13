@@ -25,8 +25,6 @@ The server renders the BKV3 envelope salt into the view page config, so nothing 
 4. The client fetches the ciphertext from `/download/<file_id>` with `X-Download-Ticket`, with progress from `Content-Length`. `finish` checks that the blob's salt matches the page's.
 5. The client derives `file_key`, decrypts, extracts the receipt and reports it to `/report_decryption`. That route validates `SHA-256(receipt)` and writes `decryption_success` once (the first valid report wins).
 
-**`BKV3` is the only supported format.** Legacy v1/v2 shares are rejected: a deliberate pre-production format break, with no backward compatibility.
-
 ## Routes
 
 - `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`
@@ -70,10 +68,4 @@ The landing page's hero walkthrough is its one short account of the flow (#271).
 - Its captions are `brief` in the same content file and must read word for word like the doc's "In brief" (`tests/integration/test_how_it_works.py`). They link on to `/how-it-works`.
 - Each "What's guaranteed" card links to the doc step that makes it true (`#step-…`, checked against the doc's step ids).
 
-`tests/unit/test_how_it_works_fingerprint.py` hashes the code that defines the flow:
-- the protocol contract and `lib/crypto.js`;
-- `cli/buzz`'s crypto, upload and passphrase functions;
-- the web app's passphrase length;
-- the `files`/`file_keys` schema and the key-release defaults.
-
-The doc carries that hash. The test fails until someone has re-read the doc and the page against the change and pasted the new hash from the test's message.
+`tests/unit/test_how_it_works_fingerprint.py` hashes the code that defines the flow. What it covers is listed in the doc's "Keeping this true" note and in the test's `WHOLE_FILES`. The doc carries that hash. The test fails until someone has re-read the doc and the page against the change and pasted the new hash from the test's message.

@@ -13,7 +13,7 @@
   - `PERMANENT_SESSION_LIFETIME`: seconds, default 28800
 - **Secrets:** `TOKEN_HASH_SECRET` is required in `FLASK_ENV=production` and must differ from `FLASK_SECRET_KEY`. Dev falls back to `FLASK_SECRET_KEY`.
 - **Database:** `DATABASE_URL`. The deprecated `DATABASE_PATH` maps to a `sqlite:///` fallback.
-- **Times:** `DEFAULT_TIMEZONE` (default `Europe/Warsaw`), used for notification emails only.
+- **Times:** `DEFAULT_TIMEZONE` (default `Europe/Warsaw`). Where it applies: root `CLAUDE.md`, *Timestamps are UTC*.
 - **Languages:** `DEFAULT_LANGUAGE` (default `en`) and `LANGUAGES` (default `en,pl`). Startup fails if the default isn't listed, or if a listed language other than `en` has no compiled catalog.
 - **Key release** (semantics in `docs/dev/share-protocol.md`):
   - `KEY_RELEASE_RATE_LIMIT`: default `10 per minute`, per `file_id`

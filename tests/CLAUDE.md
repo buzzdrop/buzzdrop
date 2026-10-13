@@ -24,7 +24,7 @@ DOM and JS-integration tests drive each page through its driver in `tests/js/sup
 
 ## Protocol contract
 
-The JS protocol fake (`tests/js/support/protocol-fake.js`) is held to responses recorded from `app.py`, but only for requests that a scenario sends. A new server response that nothing exercises passes every check silently. So when a response of `/upload/begin`, `/upload`, `/download`, `/release` or `/report_decryption` changes:
+The JS protocol fake (`tests/js/support/protocol-fake.js`) is held to responses recorded from `app.py`, but only for requests that a scenario sends. A new server response that nothing exercises passes every check silently. So when a response of one of the routes named in the root *Protocol contract — keep in step* invariant changes:
 
 1. Add or adjust a scenario in `tests/fixtures/protocol_scenarios.py`.
 2. Run `npm run fixtures`.
