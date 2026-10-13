@@ -138,7 +138,7 @@ describe('view page', () => {
         ['an unreachable server', { server: /** @type {const} */ ('unreachable') }, DEFAULT_PASSWORD,
             'Could not reach the server — check the connection and press Decrypt to retry.'],
         ['a decryption failure without a message', { share: /** @type {const} */ ('corrupted') }, DEFAULT_PASSWORD,
-            'Incorrect password or corrupted file. Ask the author to upload the file again.'],
+            'Incorrect password or corrupted drop. Ask the sender to send it again.'],
     ])('%s shows its message', async (_, options, password, message) => {
         const share = await openShare(options);
 
@@ -188,7 +188,7 @@ describe('view page', () => {
 
         expect(screen.getByText(/^You have one attempt/)).not.toBeVisible();
         expect(screen.getByRole('status')).toHaveTextContent(
-            'This share uses an unsupported format. Ask the author to upload it again.');
+            'This drop uses an unsupported format. Ask the sender to send it again.');
         expect(passwordField()).toBeDisabled();
         expect(decryptButton()).toBeDisabled();
     });

@@ -133,7 +133,7 @@ def test_responses_not_rendered_from_a_template_do_not_vary_by_language(client):
 def test_json_responses_stay_english(client):
     response = client.get('/api/does-not-exist', headers={'Accept-Language': 'pl'})
 
-    assert response.get_json() == {'error': 'Not found'}
+    assert response.get_json() == {'error': 'Not found', 'code': 'not_found'}
     assert 'Content-Language' not in response.headers
 
 

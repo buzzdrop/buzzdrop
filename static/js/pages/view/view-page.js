@@ -114,7 +114,7 @@ export async function initView(root, deps) {
     } catch {
         lockForm();
         status.textContent =
-            'This share uses an unsupported format. Ask the author to upload it again.';
+            'This drop uses an unsupported format. Ask the sender to send it again.';
         return;
     }
 
@@ -179,7 +179,7 @@ export async function initView(root, deps) {
                 missing: 'This share no longer exists — it was deleted, has expired, '
                     + 'or was locked by wrong password attempts.',
                 refused: 'The server refused to release the key.',
-                corrupted: 'Incorrect password or corrupted file. Ask the author to upload the file again.',
+                corrupted: 'Incorrect password or corrupted drop. Ask the sender to send it again.',
             }[result.reason];
         }
     }

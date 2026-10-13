@@ -47,8 +47,8 @@ const SERVER_SHARE_BYTES = 32;
  */
 
 /**
- * How creating a share ended. A refusal carries the server's own words when
- * it gave any.
+ * How creating a share ended. A refusal carries the page's message for the
+ * server's `code`, never the server's own words (#285).
  * @typedef {{ kind: 'created', fileId: string }
  *   | { kind: 'refused', message: string }
  *   | { kind: 'unreachable' }} CreateResult
@@ -84,18 +84,38 @@ const SERVER_SHARE_BYTES = 32;
 
 /**
  * What POST /upload/begin answers: the new share's id and the server share H
- * (hex).
+ * (hex) on success, `{error, code}` otherwise.
  * @typedef {object} UploadBeginResponse
  * @property {string} file_id
  * @property {string} h
+ * @property {string} [code]
  */
 
 /**
- * What POST /upload answers: the share's id on success, `{error}` otherwise.
+ * What POST /upload answers: the share's id on success, `{error, code}`
+ * otherwise. `error` is English for API clients; the page shows the message
+ * for `code` (#285).
  * @typedef {object} UploadResponse
  * @property {string} [file_id]
- * @property {string} [error]
+ * @property {string} [code]
  */
+
+// What the page says for each refusal of POST /upload/begin or /upload it
+// can explain; any other refusal is HANDSHAKE_REFUSED or SEND_FAILED.
+/** @type {Map<string | undefined, string>} */
+const UPLOAD_REFUSALS = new Map([
+    ['file_too_large', 'The file is too large to send.'],
+    ['type_not_allowed', 'That file type is not allowed.'],
+    ['rate_limited', 'Too many requests. Please try again later.'],
+    ['csrf_failed', 'Your session has expired. Reload the page and try again.'],
+    ['invalid_expiry', 'Choose a valid expiry time.'],
+    ['notifications_unconfigured', 'Open notifications are not configured on this server.'],
+    ['account_email_missing', 'Configure an account email before enabling open notifications.'],
+    ['account_email_invalid', 'Your configured account email is invalid.'],
+    ['notification_email_mismatch', 'Open notifications can only be sent to your configured account email.'],
+]);
+const SEND_FAILED = 'Could not send the drop. Please try again.';
+const HANDSHAKE_REFUSED = 'The server would not accept the drop. Please try again.';
 
 /**
  * What POST /release answers: `{h}` (the server share, hex) on a verifier
@@ -125,8 +145,15 @@ export async function createShare(payload, password, options, deps) {
     } catch {
         return { kind: 'unreachable' };
     }
-    const handshakeRefused = /** @type {const} */ ({ kind: 'refused', message: 'The server refused the upload handshake.' });
-    if (!begun.ok) return handshakeRefused;
+    const handshakeRefused = /** @type {const} */ ({ kind: 'refused', message: HANDSHAKE_REFUSED });
+    if (!begun.ok) {
+        /** @type {Partial<UploadBeginResponse> | null} */
+        let body = null;
+        try {
+            body = await begun.json();
+        } catch {}
+        return { kind: 'refused', message: UPLOAD_REFUSALS.get(body?.code) ?? HANDSHAKE_REFUSED };
+    }
     let fileId;
     let h;
     try {
@@ -359,9 +386,9 @@ function send(deps, form, headers) {
             if (xhr.status >= 200 && xhr.status < 300) {
                 resolve(body?.file_id
                     ? { kind: 'created', fileId: body.file_id }
-                    : { kind: 'refused', message: 'Upload succeeded but server returned invalid JSON' });
+                    : { kind: 'refused', message: "The drop may have been sent, but the server's reply could not be read." });
             } else {
-                resolve({ kind: 'refused', message: body?.error || 'Upload failed' });
+                resolve({ kind: 'refused', message: UPLOAD_REFUSALS.get(body?.code) ?? SEND_FAILED });
             }
         };
         xhr.onerror = () => resolve({ kind: 'unreachable' });

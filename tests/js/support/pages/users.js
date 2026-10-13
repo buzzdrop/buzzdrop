@@ -22,8 +22,9 @@ export const EXPIRES_AT = '2099-01-01T00:00:00+00:00';
 
 /**
  * @typedef {object} UsersOptions
- * @property {'ok' | 'forbidden'} [server] - forbidden: the server refuses the
- *   token, as it does a session that is no longer an admin's
+ * @property {'ok' | 'forbidden' | 'unexplained'} [server] - forbidden: the
+ *   server refuses the token, as it does a session that is no longer an
+ *   admin's; unexplained: it refuses with a code the page doesn't know
  */
 
 /**
@@ -48,9 +49,13 @@ export function openUsersPage({ server = 'ok' } = {}) {
             body: JSON.parse(String(init.body)),
         });
         await new Promise((resolve) => { held.push(() => resolve(undefined)); });
-        const [status, body] = server === 'ok'
-            ? [201, { token: TOKEN, expires_at: EXPIRES_AT }]
-            : [403, { error: 'Admin access required' }];
+        /** @type {Record<string, [number, object]>} */
+        const answers = {
+            ok: [201, { token: TOKEN, expires_at: EXPIRES_AT }],
+            forbidden: [403, { error: 'Admin access required to generate tokens for other users', code: 'admin_required' }],
+            unexplained: [500, { error: 'Something new went wrong', code: 'something_new' }],
+        };
+        const [status, body] = answers[server];
         return new window.Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
     };
     initUsers(window.document, { fetch });

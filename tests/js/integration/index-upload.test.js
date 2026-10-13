@@ -169,7 +169,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
     const ERROR_CASES = [
         { name: 'the server is too busy to begin', server: 'busy', reachesUpload: false },
         { name: 'the server fails the upload', server: 'failing', reachesUpload: true },
-        { name: 'the file is too large', server: 'too-large', message: 'File too large', reachesUpload: true },
+        { name: 'the file is too large', server: 'too-large', message: 'The file is too large to send.', reachesUpload: true },
     ];
 
     describe('upload errors', () => {

@@ -17,14 +17,23 @@ describe('users page', () => {
         expect(card().queryByRole('alert')).toBeNull();
     });
 
-    it('a server error shows its message', async () => {
+    it('a refusal shows the message for its code', async () => {
         const users = openUsersPage({ server: 'forbidden' });
 
         await users.generateToken('testuser');
 
-        expect(card().getByRole('alert')).toHaveTextContent('Admin access required');
+        expect(card().getByRole('alert')).toHaveTextContent('Only an admin can generate a token for another user.');
         expect(card().getByRole('textbox', { name: 'New API token' })).toHaveValue('');
         expect(card().getByRole('button', { name: 'Generate token' })).toBeEnabled();
+    });
+
+    it('a refusal with an unknown code shows a generic message, not the server\'s text', async () => {
+        const users = openUsersPage({ server: 'unexplained' });
+
+        await users.generateToken('testuser');
+
+        expect(card().getByRole('alert')).toHaveTextContent('Could not generate a token. Please try again.');
+        expect(card().queryByText(/Something new went wrong/)).toBeNull();
     });
 
     it('the request carries the CSRF header', async () => {
