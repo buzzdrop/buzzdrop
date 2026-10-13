@@ -587,11 +587,12 @@ _expiry_sweep_thread = start_expiry_sweep_thread(
 @app.errorhandler(RequestEntityTooLarge)
 def handle_large_file(error):
     """Return a user-friendly message when the uploaded file exceeds the limit."""
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if _is_api_request():
         return {'error': 'File too large', 'code': 'file_too_large'}, 413
-    # A note can be too large too.
+    # A note can be too large too. Back on the index page, so the flash shows
+    # at once rather than a bare English body.
     flash(_('Drop too large'))
-    return 'File too large', 413
+    return redirect(url_for('index'))
 
 
 def _is_api_request():

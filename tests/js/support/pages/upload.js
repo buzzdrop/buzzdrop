@@ -31,7 +31,7 @@ const SHARE_IDS = {
 };
 
 /** The composer's controls, as each language names them. */
-const WORDS = {
+const COMPOSER_WORDS = {
     en: {
         password: 'Password', fileField: 'Drop a file here, or browse', noteTab: 'Note', fileTab: 'File',
         noteField: 'Your note', generate: 'Generate', send: /^Send (file|note)$/,
@@ -225,7 +225,7 @@ export function openUploadPage({
     // Every value the upload bar shows while it is on screen.
     const progressShown = recordProgress(page);
 
-    const words = WORDS[language];
+    const words = COMPOSER_WORDS[language];
     const passwordField = () => screen.getByLabelText(words.password);
     const fileField = () => screen.getByLabelText(words.fileField);
     /** @param {ShareName} name */
@@ -254,7 +254,7 @@ export function openUploadPage({
         switchToNote: () => user.click(screen.getByRole('tab', { name: words.noteTab })),
         switchToFile: () => user.click(screen.getByRole('tab', { name: words.fileTab })),
         /** @param {string} text */
-        async writeMessage(text) {
+        async writeNote(text) {
             const field = screen.getByLabelText(words.noteField);
             await user.clear(field);
             if (text) await user.type(field, typeable(text));
@@ -296,21 +296,21 @@ export function openUploadPage({
         strengthBarFill: () => window.getComputedStyle(screen.getByRole('meter', { name: 'Password strength' }))
             .getPropertyValue('--strength-fill'),
         /**
-         * The optional share settings.
-         * @param {{ expiry?: string, privateNote?: string, notify?: boolean }} options
+         * The optional send settings.
+         * @param {{ expiry?: string, memo?: string, notify?: boolean }} options
          */
-        async setShareOptions({ expiry, privateNote, notify }) {
+        async setSendOptions({ expiry, memo, notify }) {
             if (expiry !== undefined) await user.type(screen.getByLabelText(/^Expiry date/), expiry);
-            if (privateNote !== undefined) await user.type(screen.getByLabelText(/^Memo/), typeable(privateNote));
+            if (memo !== undefined) await user.type(screen.getByLabelText(/^Memo/), typeable(memo));
             if (notify) await user.click(screen.getByRole('checkbox', { name: /^Notify me when this is opened/ }));
         },
         /**
-         * Press the share button and wait for the outcome: the page leaves for
+         * Press the send button and wait for the outcome: the page leaves for
          * the success page, alerts, or refuses the input inline (a missing
          * file, note or password, or a weak password).
          * @param {{ server?: UploadServer }} [options]
          */
-        async share({ server: situation = 'ok' } = {}) {
+        async send({ server: situation = 'ok' } = {}) {
             arrange(situation);
             const outcomes = navigations.length + alerts.length;
             await user.click(screen.getByRole('button', { name: words.send }));
@@ -318,28 +318,28 @@ export function openUploadPage({
                 || screen.queryAllByRole('alert').some((region) => region.textContent?.trim())).toBe(true), timeout);
         },
         /**
-         * Choose a file, enter the password and share it.
+         * Choose a file, enter the password and send it.
          * @param {string | UploadFile} file
          * @param {string} [password]
          * @param {{ server?: UploadServer }} [options]
          */
-        async shareFile(file, password = PASSWORDS.strong, options) {
+        async sendFile(file, password = PASSWORDS.strong, options) {
             await driver.switchToFile();
             await driver.selectFile(file);
             await driver.enterPassword(password);
-            await driver.share(options);
+            await driver.send(options);
         },
         /**
-         * Write a message, enter the password and share it.
+         * Write a note, enter the password and send it.
          * @param {string} text
          * @param {string} [password]
          * @param {{ server?: UploadServer }} [options]
          */
-        async shareMessage(text, password = PASSWORDS.strong, options) {
+        async sendNote(text, password = PASSWORDS.strong, options) {
             await driver.switchToNote();
-            await driver.writeMessage(text);
+            await driver.writeNote(text);
             await driver.enterPassword(password);
-            await driver.share(options);
+            await driver.send(options);
         },
         /**
          * Press a key where the focus is. 'handled' when the page took the

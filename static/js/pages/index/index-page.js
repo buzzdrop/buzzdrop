@@ -96,7 +96,8 @@ export function initIndex(root, deps) {
     const allowedExtensions = JSON.parse(required(root, '#allowed-extensions-json', 'script').text);
     const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
     const clipboardStrings = pageStrings.section('clipboard-feedback');
-    const strings = pageStrings.section('composer');
+    const composerStrings = pageStrings.section('composer');
+    const refusals = composerStrings.section('refusals');
     const { lang } = root.documentElement;
 
     /**
@@ -158,7 +159,7 @@ export function initIndex(root, deps) {
             if (isActive && focusTab) tabNode.focus();
         });
 
-        setShareAction(strings.text(shareModes[mode].action));
+        setShareAction(composerStrings.text(shareModes[mode].action));
     }
 
     function showFileUpload() {
@@ -247,7 +248,7 @@ export function initIndex(root, deps) {
     const expiryZone = root.getElementById('expiry-zone');
     if (expiryZone) {
         const zone = timeZoneName(lang, new Intl.DateTimeFormat().resolvedOptions().timeZone);
-        expiryZone.textContent = strings.text('expiryZone', { zone });
+        expiryZone.textContent = composerStrings.text('expiryZone', { zone });
         expiryZone.hidden = false;
     }
 
@@ -326,7 +327,7 @@ export function initIndex(root, deps) {
             return;
         }
         deps.alert(result.kind === 'refused'
-            ? strings.section('refusals').text(result.reason) : strings.text('unreachable'));
+            ? refusals.text(result.reason) : composerStrings.text('unreachable'));
         uploadInProgress = false;
         uploadBtn.disabled = false;
         uploadBtn.hidden = false;
@@ -353,7 +354,7 @@ export function initIndex(root, deps) {
     function rejectFile(input) {
         input.value = '';
         showSelectedFile(null);
-        showRefusal('file-error', strings.section('refusals').text('type_not_allowed'));
+        showRefusal('file-error', refusals.text('type_not_allowed'));
     }
 
     const dropzone = root.getElementById('dropzone');
@@ -420,7 +421,7 @@ export function initIndex(root, deps) {
             if (uploadInProgress) return;
             const file = required(root, '#file', 'input').files?.[0];
             if (!file) {
-                showRefusal('file-error', strings.text('chooseFile'));
+                showRefusal('file-error', composerStrings.text('chooseFile'));
                 return;
             }
             const password = acceptedPassword();
@@ -441,7 +442,7 @@ export function initIndex(root, deps) {
         const noteField = required(root, '#note-text', 'textarea');
         const noteText = noteField.value;
         if (!noteText) {
-            showRefusal('note-error', strings.text('writeNote'));
+            showRefusal('note-error', composerStrings.text('writeNote'));
             noteField.focus();
             return;
         }

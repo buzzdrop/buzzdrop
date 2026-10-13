@@ -698,8 +698,8 @@ msgstr ""
 #: templates/index.html
 msgid ""
 "Grab the <code class=\"rounded-md border border-white/10 bg-hive-850 "
-"px-1.5 py-0.5 text-xs text-honey-200\">buzz</code> CLI for encrypted "
-"uploads from your terminal."
+"px-1.5 py-0.5 text-xs text-honey-200\">buzz</code> CLI to send encrypted "
+"drops from your terminal."
 msgstr ""
 
 #: templates/index.html

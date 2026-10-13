@@ -101,6 +101,17 @@ def test_upload_too_large(client, app, key_release_upload, restore_config):
     assert_refused(response, 413, 'file_too_large', 'File too large')
 
 
+def test_upload_too_large_from_an_api_client(app, client, restore_config):
+    with app.app_context():
+        from tokens import generate_api_token
+        token = generate_api_token('testuser')
+    app.config['MAX_CONTENT_LENGTH'] = 64
+    response = client.post('/upload', data={'file': (io.BytesIO(b'x' * 128), 'big.bin')},
+                           headers={'Authorization': f'Bearer {token}'},
+                           content_type='multipart/form-data')
+    assert_refused(response, 413, 'file_too_large', 'File too large')
+
+
 @pytest.mark.parametrize('smtp_host, account, code, error', [
     (None, 'testuser:password:false', 'notifications_unconfigured',
      'Open notifications are not configured on this server'),

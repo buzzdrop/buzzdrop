@@ -210,7 +210,7 @@ describe('index page', () => {
         it('an empty note is refused inline, not with a dialog', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
 
-            await upload.shareMessage('');
+            await upload.sendNote('');
 
             expect(screen.getByLabelText('Your note')).toHaveAccessibleDescription('Write the note you want to send.');
             expect(upload.alerts()).toEqual([]);
@@ -219,9 +219,9 @@ describe('index page', () => {
 
         it('writing the note clears the refusal', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
-            await upload.shareMessage('');
+            await upload.sendNote('');
 
-            await upload.writeMessage('the gate code');
+            await upload.writeNote('the gate code');
 
             expect(screen.getByLabelText('Your note')).not.toHaveAccessibleDescription();
         });
@@ -229,7 +229,7 @@ describe('index page', () => {
         it('a missing password is refused inline', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
 
-            await upload.shareMessage('the gate code', '');
+            await upload.sendNote('the gate code', '');
 
             expect(passwordField()).toHaveAccessibleDescription('Enter a password, or press Generate.');
             expect(passwordField()).toHaveFocus();
@@ -241,7 +241,7 @@ describe('index page', () => {
             const upload = openUploadPage({ account: 'no-shares' });
             await upload.enterPassword(SIX_WORDS);
 
-            await upload.share();
+            await upload.send();
 
             expect(fileField()).toHaveAccessibleDescription('Choose a file to send.');
             expect(upload.requestsSent()).toEqual([]);
@@ -253,7 +253,7 @@ describe('index page', () => {
             const upload = openUploadPage({ account: 'no-shares' });
             expect(queryProgressBar()).toBeNull();
 
-            await upload.shareMessage('the gate code', SIX_WORDS);
+            await upload.sendNote('the gate code', SIX_WORDS);
 
             expect(upload.progressShown()).toEqual(['0%', '50%', '100%']);
             expect(progressBar()).toHaveTextContent('100%');
@@ -263,7 +263,7 @@ describe('index page', () => {
         it('a failed upload hides the bar and brings the button back', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
 
-            await upload.shareMessage('the gate code', SIX_WORDS, { server: 'failing' });
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'failing' });
 
             expect(queryProgressBar()).toBeNull();
             expect(screen.getByRole('button', { name: 'Send note' })).toBeEnabled();
@@ -287,7 +287,7 @@ describe('index page', () => {
             expect(screen.getByRole('checkbox', { name: /^Notify me when this is opened/ })).toBeEnabled();
             expect(screen.getByLabelText('Account email')).not.toBeVisible();
 
-            await upload.setShareOptions({ notify: true });
+            await upload.setSendOptions({ notify: true });
 
             expect(screen.getByLabelText('Account email')).toBeVisible();
             expect(screen.getByLabelText('Account email')).toHaveValue('notify@example.test');

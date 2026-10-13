@@ -147,7 +147,7 @@ describe('in Polish', () => {
     it('rates and refuses a password in Polish, with the number in Polish', async () => {
         const upload = openUploadPage({ account: 'no-shares', language: 'pl' });
 
-        await upload.shareMessage('kod do bramy', 'q8Zt!w');
+        await upload.sendNote('kod do bramy', 'q8Zt!w');
 
         expect(screen.getByRole('meter', { name: 'Siła hasła' })).toHaveAttribute('aria-valuetext', 'Słabe');
         expect(screen.getByLabelText('Hasło')).toHaveAccessibleDescription(
@@ -164,7 +164,7 @@ describe('in Polish', () => {
 
         await upload.switchToNote();
         expect(screen.getByRole('button', { name: 'Wyślij notatkę' })).toBeVisible();
-        await upload.share();
+        await upload.send();
         expect(screen.getByLabelText('Treść notatki'))
             .toHaveAccessibleDescription('Napisz notatkę, którą chcesz wysłać.');
     });
@@ -172,7 +172,7 @@ describe('in Polish', () => {
     it('says in Polish why the server refused an upload', async () => {
         const upload = openUploadPage({ account: 'no-shares', language: 'pl' });
 
-        await upload.shareMessage('kod do bramy', undefined, { server: 'too-large' });
+        await upload.sendNote('kod do bramy', undefined, { server: 'too-large' });
 
         expect(upload.alerts()).toEqual(['Przesyłka jest za duża, żeby ją wysłać.']);
     });

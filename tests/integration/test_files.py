@@ -142,8 +142,9 @@ def test_upload_file_too_large(client, app):
     data = {'file': (io.BytesIO(file_content), "large_file.txt"),
             'csrf_token': 'test-csrf-token'}
 
-    response_no_redirect = client.post(url_for('upload_file'), data=data, content_type='multipart/form-data')
-    assert response_no_redirect.status_code == 413 # Request Entity Too Large
+    response = client.post(url_for('upload_file'), data=data, content_type='multipart/form-data', follow_redirects=True)
+    assert b'Drop too large' in response.data
+    assert url_for('index') in response.request.path
 
     app.config['MAX_CONTENT_LENGTH'] = original_max_length # Reset
 

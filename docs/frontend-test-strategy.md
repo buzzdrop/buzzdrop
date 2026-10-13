@@ -242,7 +242,7 @@ From [Frontend tests: drive pages through user-behaviour helpers instead of setu
   | Module | Opens | Verbs (examples) |
   |---|---|---|
   | `page.js` | the core: a fixture in its own happy-dom window, Testing Library queries bound to it, a user-event session | `openPage`, `screen`, `waitUntil`, `typeable` |
-  | `upload.js` | `openUploadPage(options)` (index, logged in), `openLandingPage(options)` (index, anonymous, with the hero) | `switchToNote`, `writeMessage`, `selectFile`, `dropFile`, `enterPassword`, `generatePassword`, `showPassword`, `hidePassword`, `copyPassword`, `setShareOptions`, `share`, `shareFile`, `shareMessage`, `press`, `searchShares`, `sortSharesBy`, `nextSharesPage`, `copyShareLink`, `deleteShare`; `pauseWalkthrough`, `playWalkthrough`, `pointAtWalkthrough`, `moveAwayFromWalkthrough`, `leaveTab`, `returnToTab` |
+  | `upload.js` | `openUploadPage(options)` (index, logged in), `openLandingPage(options)` (index, anonymous, with the hero) | `switchToNote`, `writeNote`, `selectFile`, `dropFile`, `enterPassword`, `generatePassword`, `showPassword`, `hidePassword`, `copyPassword`, `setSendOptions`, `send`, `sendFile`, `sendNote`, `press`, `searchShares`, `sortSharesBy`, `nextSharesPage`, `copyShareLink`, `deleteShare`; `pauseWalkthrough`, `playWalkthrough`, `pointAtWalkthrough`, `moveAwayFromWalkthrough`, `leaveTab`, `returnToTab` |
   | `success.js` | `openSuccessPage(options)` (`type: 'file' \| 'message'`, `language: 'en' \| 'pl'`) | `copyShareLink`, `copyOneClickLink`, `copyPassword`, `revealPassword`, `hidePassword` |
   | `confirm.js` | `openConfirmPage(options)` | `proceedToView` |
   | `view.js` | `openShare(options)` | `decryptWithPassword`, `decryptWithEnter`, `copyMessage`, `finishDownload` |

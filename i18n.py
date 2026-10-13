@@ -146,8 +146,7 @@ def format_size(size, language):
     """
     A size in bytes as binary megabytes, in the language's number format,
     with a non-breaking space before the unit in every language (#266):
-    "100 MB", "1,5 MB". The browser, if it ever shows a size, follows the
-    same rules with ``Intl.NumberFormat``.
+    "100 MB", "1,5 MB".
     """
     return f'{format_decimal(size / 1024 / 1024, format="#,##0.#", locale=language)}\u00a0MB'
 
