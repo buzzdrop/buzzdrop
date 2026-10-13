@@ -109,15 +109,15 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
 
         const result = await createShare({ kind: 'text', bytes: new Uint8Array([1]) }, PASSWORD, NO_OPTIONS, createDeps(fake));
 
-        expect(result).toEqual({ kind: 'refused', message: 'The server refused the upload handshake.' });
+        expect(result).toEqual({ kind: 'refused', message: 'The server would not accept the drop. Please try again.' });
     });
 
     // The page shows the message for the refusal's code; `error` is English
     // for API clients and never reaches the screen (#285).
     it.each([
         ['a known code', { error: 'File type not allowed', code: 'type_not_allowed' }, 'That file type is not allowed.'],
-        ['an unknown code', { error: 'Something new went wrong', code: 'something_new' }, 'Upload failed'],
-        ['no code', { error: 'Something old went wrong' }, 'Upload failed'],
+        ['an unknown code', { error: 'Something new went wrong', code: 'something_new' }, 'Could not send the drop. Please try again.'],
+        ['no code', { error: 'Something old went wrong' }, 'Could not send the drop. Please try again.'],
     ])('an upload refused with %s shows its own message', async (_, body, message) => {
         const fake = makeProtocolFake({ csrfToken: CSRF_TOKEN });
         fake.failNext('/upload', { status: 400, body });
@@ -131,8 +131,8 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
     // session shows up at begin first, since begin is the first gated call.
     it.each([
         ['a known code', 429, 'Too many requests. Please try again later.'],
-        ['an unknown code', { status: 400, body: { error: 'Something new went wrong', code: 'something_new' } }, 'The server refused the upload handshake.'],
-        ['no JSON body', { status: 502, body: '<html>Bad gateway</html>' }, 'The server refused the upload handshake.'],
+        ['an unknown code', { status: 400, body: { error: 'Something new went wrong', code: 'something_new' } }, 'The server would not accept the drop. Please try again.'],
+        ['no JSON body', { status: 502, body: '<html>Bad gateway</html>' }, 'The server would not accept the drop. Please try again.'],
     ])('a handshake refused with %s shows its own message', async (_, failure, message) => {
         const fake = makeProtocolFake({ csrfToken: CSRF_TOKEN });
         fake.failNext('/upload/begin', failure);

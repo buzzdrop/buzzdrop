@@ -101,7 +101,7 @@ const SERVER_SHARE_BYTES = 32;
  */
 
 // What the page says for each refusal of POST /upload/begin or /upload it
-// can explain; any other refusal is HANDSHAKE_REFUSED or UPLOAD_FAILED.
+// can explain; any other refusal is HANDSHAKE_REFUSED or SEND_FAILED.
 /** @type {Map<string | undefined, string>} */
 const UPLOAD_REFUSALS = new Map([
     ['file_too_large', 'The file is too large to send.'],
@@ -114,8 +114,8 @@ const UPLOAD_REFUSALS = new Map([
     ['account_email_invalid', 'Your configured account email is invalid.'],
     ['notification_email_mismatch', 'Open notifications can only be sent to your configured account email.'],
 ]);
-const UPLOAD_FAILED = 'Upload failed';
-const HANDSHAKE_REFUSED = 'The server refused the upload handshake.';
+const SEND_FAILED = 'Could not send the drop. Please try again.';
+const HANDSHAKE_REFUSED = 'The server would not accept the drop. Please try again.';
 
 /**
  * What POST /release answers: `{h}` (the server share, hex) on a verifier
@@ -386,9 +386,9 @@ function send(deps, form, headers) {
             if (xhr.status >= 200 && xhr.status < 300) {
                 resolve(body?.file_id
                     ? { kind: 'created', fileId: body.file_id }
-                    : { kind: 'refused', message: 'Upload succeeded but server returned invalid JSON' });
+                    : { kind: 'refused', message: "The drop may have been sent, but the server's reply could not be read." });
             } else {
-                resolve({ kind: 'refused', message: UPLOAD_REFUSALS.get(body?.code) ?? UPLOAD_FAILED });
+                resolve({ kind: 'refused', message: UPLOAD_REFUSALS.get(body?.code) ?? SEND_FAILED });
             }
         };
         xhr.onerror = () => resolve({ kind: 'unreachable' });

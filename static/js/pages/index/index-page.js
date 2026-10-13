@@ -294,7 +294,7 @@ export function initIndex(root, deps) {
             });
         } catch (err) {
             const error = /** @type {Error | undefined} */ (err);
-            result = { kind: 'refused', message: error && error.message ? error.message : 'Upload failed' };
+            result = { kind: 'refused', message: error && error.message ? error.message : 'Could not send the drop. Please try again.' };
         }
 
         if (result.kind === 'created') {
@@ -304,7 +304,7 @@ export function initIndex(root, deps) {
             deps.navigate(buildOneClickLink(`/success/${result.fileId}`, password));
             return;
         }
-        deps.alert(result.kind === 'refused' ? result.message : 'Network error during upload');
+        deps.alert(result.kind === 'refused' ? result.message : 'Network error while sending the drop. Please try again.');
         uploadInProgress = false;
         uploadBtn.disabled = false;
         uploadBtn.hidden = false;
