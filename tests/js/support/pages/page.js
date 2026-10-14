@@ -57,6 +57,13 @@ export function cryptoFor(kind, stubOptions) {
  */
 
 /**
+ * The fixture of `name` in `language`: English has no suffix.
+ * @param {string} name
+ * @param {'en' | 'pl'} language
+ */
+export const inLanguage = (name, language) => (language === 'en' ? name : `${name}.${language}`);
+
+/**
  * The address a page is opened at.
  * @param {string} path
  * @param {AddressOptions} [options]

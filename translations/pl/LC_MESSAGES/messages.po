@@ -435,7 +435,7 @@ msgstr "Pobieranie klucza…"
 
 #: templates/_view_strings.html
 msgid "Downloading…"
-msgstr "Pobieranie…"
+msgstr "Pobieranie przesyłki…"
 
 #: templates/_view_strings.html
 msgid "Decrypting…"
@@ -447,7 +447,7 @@ msgstr "Ta przesyłka ma nieobsługiwany format. Poproś nadawcę o ponowne wys�
 
 #: templates/_view_strings.html
 msgid "Text decrypted successfully."
-msgstr "Odszyfrowano tekst."
+msgstr "Odszyfrowano notatkę."
 
 #: templates/_view_strings.html
 msgid "Download complete."
@@ -586,7 +586,7 @@ msgid ""
 " If the sender shared the password separately, have it ready."
 msgstr ""
 "Pierwsze poprawne hasło otwiera przesyłkę – potem nie ma jej już dla "
-"nikogo. Jeśli nadawca podał hasło osobno, przygotuj je."
+"nikogo. Jeśli hasło dostajesz osobno, przygotuj je."
 
 #: templates/confirm_download.html
 msgid "Proceed to view"

@@ -7,7 +7,7 @@ import { expect, vi } from 'vitest';
 import { bytesToHex } from '../../../../static/js/lib/hex.js';
 import { initView } from '../../../../static/js/pages/view/view-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
-import { DEFAULT_PASSWORD, addressOf, cryptoFor, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
+import { DEFAULT_PASSWORD, addressOf, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { DEFAULT_PASSWORD, screen } from './page.js';
 
@@ -145,7 +145,7 @@ export async function openShare({
     const shareSalt = bytesToHex(
         (backend.state.files.get(fileId)?.blob ?? new Uint8Array(20)).slice(4, 20));
     const words = WORDS[language];
-    const page = openPage(`${fixture}${language === 'en' ? '' : `.${language}`}`, {
+    const page = openPage(inLanguage(fixture, language), {
         path: addressOf(`/view/${fileId}/confirm`, { link, password, query }),
         clipboard,
         // As the server renders it for this share.

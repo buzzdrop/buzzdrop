@@ -284,10 +284,10 @@ describe('in Polish', () => {
 
         await share.decryptWithPassword(DEFAULT_PASSWORD);
 
-        expect(screen.getByRole('status')).toHaveTextContent('Odszyfrowano tekst.');
+        expect(screen.getByRole('status')).toHaveTextContent('Odszyfrowano notatkę.');
         expect(screen.getByRole('region', { name: 'Odszyfrowany tekst' })).toHaveTextContent(DEFAULT_MESSAGE);
-        expect(share.progressShown()).toEqual(['Sprawdzanie hasła…', 'Pobieranie klucza…', 'Pobieranie… 0%',
-            'Pobieranie… 100%', 'Odszyfrowywanie…']);
+        expect(share.progressShown()).toEqual(['Sprawdzanie hasła…', 'Pobieranie klucza…', 'Pobieranie przesyłki… 0%',
+            'Pobieranie przesyłki… 100%', 'Odszyfrowywanie…']);
     });
 
     it('serves the view page for a file reached by a one-click link', async () => {
@@ -309,6 +309,14 @@ describe('in Polish', () => {
         expect(screen.getByRole('status')).toHaveTextContent('Nieprawidłowe hasło. Zostały 2 próby.');
         await share.decryptWithPassword('wrong again');
         expect(screen.getByRole('status')).toHaveTextContent('Nieprawidłowe hasło. Została 1 próba.');
+    });
+
+    it('counts many attempts left in Polish', async () => {
+        const share = await openShare({ language: 'pl', maxAttempts: 6 });
+
+        expect(screen.getByText(/^Masz 6 prób – /)).toBeVisible();
+        await share.decryptWithPassword('wrong');
+        expect(screen.getByRole('status')).toHaveTextContent('Nieprawidłowe hasło. Zostało 5 prób.');
     });
 
     it('says in Polish that a lock is for good', async () => {

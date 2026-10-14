@@ -1,7 +1,7 @@
 // Page driver for the confirm page: the one-time "Proceed" step before the
 // share is downloaded (docs/frontend-test-strategy.md §7a).
 import { initConfirmDownload } from '../../../../static/js/pages/confirm-download/confirm-download-page.js';
-import { addressOf, openPage } from './page.js';
+import { addressOf, inLanguage, openPage } from './page.js';
 
 export { screen } from './page.js';
 
@@ -33,7 +33,7 @@ export const SHARE_PATH = FIXTURES.file.path;
  */
 export function openConfirmPage({ type = 'file', language = 'en', ...link } = {}) {
     const { fixture, path } = FIXTURES[type];
-    const page = openPage(`${fixture}${language === 'en' ? '' : `.${language}`}`, { path: addressOf(path, link) });
+    const page = openPage(inLanguage(fixture, language), { path: addressOf(path, link) });
     initConfirmDownload(page.window.document, {});
     return {
         /** The page's declared language, `<html lang>`. */
