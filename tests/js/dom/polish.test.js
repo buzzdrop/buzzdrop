@@ -62,7 +62,9 @@ describe('in Polish', () => {
     });
 
     it('serves the success page for a file', () => {
-        const success = openSuccessPage({ language: 'pl' });
+        // The one-click section only renders once the fragment supplied a
+        // password (#233).
+        const success = openSuccessPage({ language: 'pl', link: 'one-click' });
 
         expect(success.language()).toBe('pl');
         expect(screen.getByRole('heading', { level: 1, name: 'Plik jest w\u00a0ulu' })).toBeVisible();

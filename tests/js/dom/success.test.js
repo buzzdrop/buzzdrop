@@ -166,14 +166,26 @@ describe('success page', () => {
         expect(success.historyLength()).toBe(1);
     });
 
-    it('scrubs a mangled fragment and has no password to show or copy', () => {
+    it('without a password fragment swaps the password and one-click blocks for the note (#233)', () => {
+        const success = openSuccessPage();
+
+        // A reload or a typed URL: the password was shown once and is never
+        // stored, so the page says so instead of rendering empty fields.
+        expect(success.url()).toBe(PAGE_URL);
+        expect(screen.getByText(/never stored/)).toBeVisible();
+        expect(passwordField()).not.toBeVisible();
+        expect(screen.queryByRole('region', { name: 'One-click link' })).toBeNull();
+        // The share link alone is still there to copy.
+        expect(screen.getByLabelText('Link')).toBeVisible();
+        expect(copyLinkButton()).toBeEnabled();
+    });
+
+    it('scrubs a mangled fragment and shows the same no-password note', () => {
         const success = openSuccessPage({ link: 'mangled' });
 
         expect(success.url()).toBe(PAGE_URL);
-        expect(passwordField()).toHaveValue('');
-        expect(oneClickSection().getByText(SHARE_LINK)).not.toBeVisible();
-        expect(screen.getByRole('button', { name: 'Show' })).toBeDisabled();
-        expect(copyPasswordButton()).toBeDisabled();
-        expect(copyOneClickButton()).toBeDisabled();
+        expect(screen.getByText(/never stored/)).toBeVisible();
+        expect(passwordField()).not.toBeVisible();
+        expect(screen.queryByRole('region', { name: 'One-click link' })).toBeNull();
     });
 });

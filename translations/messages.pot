@@ -926,6 +926,13 @@ msgid "Link"
 msgstr ""
 
 #: templates/success.html
+msgid ""
+"The password is shown once, right after the upload, and is never stored. "
+"The link above still works — copy it here or from Your drops; if the "
+"password is lost, create a new drop."
+msgstr ""
+
+#: templates/success.html
 msgid "One-click link"
 msgstr ""
 
