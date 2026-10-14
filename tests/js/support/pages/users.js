@@ -32,7 +32,7 @@ export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
  */
 
 /** The card's buttons, as each language names them. */
-const BUTTONS = {
+const WORDS = {
     en: { generate: 'Generate token', copy: 'Copy token' },
     pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token' },
 };
@@ -74,7 +74,7 @@ export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
     /** @param {string} username */
     const card = (username) => within(screen.getByRole('region', { name: username }));
     /** @param {string} username */
-    const generateButton = (username) => card(username).getByRole('button', { name: BUTTONS[language].generate });
+    const generateButton = (username) => card(username).getByRole('button', { name: WORDS[language].generate });
 
     /**
      * Let the held token request through and wait for the page to settle.
@@ -106,6 +106,6 @@ export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
             await finishTokenRequest(username);
         },
         /** @param {string} username */
-        copyToken: (username) => user.click(card(username).getByRole('button', { name: BUTTONS[language].copy })),
+        copyToken: (username) => user.click(card(username).getByRole('button', { name: WORDS[language].copy })),
     };
 }

@@ -25,7 +25,17 @@ import { readStrings } from '../../lib/strings.js';
 
 // The refusals of POST /api/token the page can explain, each by its `code`
 // under the 'refusals' strings; any other refusal is the 'failed' string.
-const TOKEN_REFUSALS = new Set(['admin_required', 'unknown_user', 'csrf_failed', 'rate_limited']);
+const EXPLAINED_CODES = /** @type {const} */ (['admin_required', 'unknown_user', 'csrf_failed', 'rate_limited']);
+
+/** @typedef {typeof EXPLAINED_CODES[number]} ExplainedCode */
+
+/**
+ * @param {string | undefined} code
+ * @returns {code is ExplainedCode}
+ */
+function isExplained(code) {
+    return /** @type {readonly (string | undefined)[]} */ (EXPLAINED_CODES).includes(code);
+}
 
 /**
  * `fetch` is bound to the window: called unbound, as deps.fetch(...), the
@@ -45,10 +55,8 @@ export function initUsers(root, deps) {
     const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
     const clipboardStrings = pageStrings.section('clipboard-feedback');
     const strings = pageStrings.section('users');
-    /** @param {string | undefined} code - why POST /api/token refused */
-    const refusal = (code) => (code !== undefined && TOKEN_REFUSALS.has(code)
-        ? strings.section('refusals').text(code)
-        : strings.text('failed'));
+    /** @param {string | undefined} code - why POST /api/token refused; none without an answer */
+    const refusal = (code) => (isExplained(code) ? strings.section('refusals').text(code) : strings.text('failed'));
     // In the page's language and the viewer's zone: the server writes UTC.
     /** @type {import('../../lib/format.js').TimeFormat} */
     const format = { locale: root.documentElement.lang || 'en' };
@@ -85,7 +93,8 @@ export function initUsers(root, deps) {
             });
         } catch {
             // No answer at all (offline, server down). The browser's own
-            // message is English, so the page says its generic one below.
+            // message is English, so the page says its generic one below:
+            // with no body, there is no code.
         }
         /** @type {TokenResponse} */
         const body = resp ? await resp.json().catch(() => ({})) : {};
@@ -98,7 +107,7 @@ export function initUsers(root, deps) {
             expires.textContent = strings.text('expires', { time: inViewerZone(expiresAt, expiresAt) });
         } else {
             error.hidden = false;
-            error.textContent = resp ? refusal(body.code) : strings.text('failed');
+            error.textContent = refusal(body.code);
         }
     }
 
