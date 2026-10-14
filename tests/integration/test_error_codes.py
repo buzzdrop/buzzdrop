@@ -17,6 +17,7 @@ def login(client, username='testuser', password='password'):
     client.post(url_for('login'), data={'username': username, 'password': password})
     with client.session_transaction() as session:
         session['csrf_token'] = CSRF_TOKEN
+        session.pop('_flashes', None)
 
 
 def assert_refused(response, status, code, error):
@@ -46,11 +47,11 @@ def test_upload_with_invalid_key_material(client, key_release_upload):
     assert_refused(response, 400, 'invalid_upload', 'Invalid key-release upload')
 
 
-def post_upload(client, file_id):
-    """Finish ``file_id`` as the page's XHR does."""
+def post_upload(client, file_id, xhr=True):
+    """Finish ``file_id`` as the page's XHR does, or as a plain form post."""
     return client.post(
         '/upload', content_type='multipart/form-data',
-        headers={'X-Requested-With': 'XMLHttpRequest'},
+        headers={'X-Requested-With': 'XMLHttpRequest'} if xhr else {},
         data={'file': (io.BytesIO(b'x'), 'a.txt'), 'file_id': file_id,
               'key_verifier': 'cc' * 32, 'receipt_hash': 'dd' * 32,
               'csrf_token': CSRF_TOKEN})
@@ -148,6 +149,94 @@ def test_upload_rate_limited(client, app, key_release_upload, restore_config):
     key_release_upload()
     _id, _h, _r, response = key_release_upload()
     assert_refused(response, 429, 'rate_limited', 'Too many requests. Please try again later.')
+
+
+# --- /upload's flashes (a form post without the XHR header, #305) ----------
+#
+# The flash is worded from the code, in the glossary's words; the JSON
+# `error` above keeps its English for API clients.
+
+def flashed(client):
+    with client.session_transaction() as session:
+        return [message for _category, message in session.get('_flashes', [])]
+
+
+def assert_flashed(client, response, message):
+    assert response.status_code == 302
+    assert flashed(client) == [message]
+    assert 'upload' not in message.lower()
+
+
+def test_flash_for_invalid_key_material(client, key_release_upload):
+    login(client)
+    _id, _h, _r, response = key_release_upload(verifier='not-hex', xhr=False)
+    assert_flashed(client, response, 'The server would not accept the drop. Please try again.')
+
+
+def test_flash_for_a_finished_share(client, key_release_upload):
+    login(client)
+    file_id, _h, _r, _first = key_release_upload()
+    assert_flashed(client, post_upload(client, file_id, xhr=False),
+                   'The server would not accept the drop. Please try again.')
+
+
+def test_flash_for_another_accounts_share(client, key_share):
+    login(client)
+    other_id, _h = key_share(created_by='adminuser')
+    assert_flashed(client, post_upload(client, other_id, xhr=False),
+                   'The server would not accept the drop. Please try again.')
+
+
+def test_flash_for_a_zoneless_expiry(client, key_release_upload):
+    login(client)
+    _id, _h, _r, response = key_release_upload(data={'expiry': '2099-01-01T00:00'}, xhr=False)
+    assert_flashed(client, response, 'Choose a valid expiry time.')
+
+
+@pytest.mark.parametrize('content', [None, 'note'])
+def test_flash_for_a_drop_that_fails_to_store(client, key_release_upload, monkeypatch, content):
+    login(client)
+
+    def broken_save(*_args, **_kwargs):
+        raise OSError('disk full')
+    monkeypatch.setattr(app_module.storage, 'save', broken_save)
+    data = {'type': 'text', 'note_text': 'QkQ='} if content == 'note' else None
+    _id, _h, _r, response = key_release_upload(data=data, xhr=False)
+    assert_flashed(client, response, 'Could not send the drop. Please try again.')
+
+
+@pytest.mark.parametrize('smtp_host, account, data, message', [
+    (None, 'testuser:password:false', {},
+     'Open notifications are not configured on this server.'),
+    ('smtp.example.com', 'testuser:password:false', {},
+     'Configure an account email before enabling open notifications.'),
+    ('smtp.example.com', 'testuser:password:false:@example.com', {},
+     'Your configured account email is invalid.'),
+    ('smtp.example.com', 'testuser:password:false:testuser@example.com',
+     {'notification_email': 'other@example.com'},
+     'Open notifications can only be sent to your configured account email.'),
+])
+def test_flash_for_a_refused_open_notification(
+        client, app, key_release_upload, monkeypatch, restore_config,
+        smtp_host, account, data, message):
+    monkeypatch.setenv('FLASK_USER_1', account)
+    get_users.cache_clear()
+    login(client)
+    app.config.update({'SMTP_HOST': smtp_host, 'SMTP_FROM_EMAIL': 'buzzdrop@example.com'})
+    _id, _h, _r, response = key_release_upload(data={'notify_on_open': 'true', **data}, xhr=False)
+    assert_flashed(client, response, message)
+
+
+def test_flash_in_polish(client, key_release_upload, monkeypatch):
+    login(client)
+    client.set_cookie('lang', 'pl')
+
+    def broken_save(*_args, **_kwargs):
+        raise OSError('disk full')
+    monkeypatch.setattr(app_module.storage, 'save', broken_save)
+    _id, _h, _r, response = key_release_upload(xhr=False)
+    assert response.status_code == 302
+    assert flashed(client) == ['Nie udało się wysłać przesyłki. Spróbuj ponownie.']
 
 
 # --- /api/token (the users page) -------------------------------------------

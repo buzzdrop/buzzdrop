@@ -22,23 +22,35 @@ msgstr ""
 msgid "Too many requests. Please try again later."
 msgstr "Zbyt wiele żądań. Spróbuj ponownie później."
 
-#: app.py
-msgid "Open notifications are not configured on this server"
-msgstr "Powiadomienia o otwarciu nie są skonfigurowane na tym serwerze"
+#: app.py templates/_composer_strings.html
+msgid "The server would not accept the drop. Please try again."
+msgstr "Serwer nie przyjął przesyłki. Spróbuj ponownie."
 
-#: app.py
-msgid "Configure an account email before enabling open notifications"
-msgstr "Zanim włączysz powiadomienia o otwarciu, ustaw adres e-mail konta"
+#: app.py templates/_composer_strings.html
+msgid "Choose a valid expiry time."
+msgstr "Wybierz poprawny termin ważności."
 
-#: app.py
-msgid "Your configured account email is invalid"
-msgstr "Adres e-mail ustawiony na koncie jest nieprawidłowy"
+#: app.py templates/_composer_strings.html
+msgid "Could not send the drop. Please try again."
+msgstr "Nie udało się wysłać przesyłki. Spróbuj ponownie."
 
-#: app.py
-msgid "Open notifications can only be sent to your configured account email"
+#: app.py templates/_composer_strings.html
+msgid "Open notifications are not configured on this server."
+msgstr "Powiadomienia o otwarciu nie są skonfigurowane na tym serwerze."
+
+#: app.py templates/_composer_strings.html
+msgid "Configure an account email before enabling open notifications."
+msgstr "Zanim włączysz powiadomienia o otwarciu, ustaw adres e-mail konta."
+
+#: app.py templates/_composer_strings.html
+msgid "Your configured account email is invalid."
+msgstr "Adres e-mail ustawiony na koncie jest nieprawidłowy."
+
+#: app.py templates/_composer_strings.html
+msgid "Open notifications can only be sent to your configured account email."
 msgstr ""
 "Powiadomienia o otwarciu można wysyłać tylko na adres e-mail ustawiony na"
-" koncie"
+" koncie."
 
 #: app.py
 msgid "Drop too large"
@@ -87,34 +99,6 @@ msgstr "Nieprawidłowe żądanie"
 #: app.py
 msgid "Logged out successfully"
 msgstr "Wylogowano"
-
-#: app.py
-msgid "Invalid key-release upload"
-msgstr "Nieprawidłowe wysyłanie przesyłki"
-
-#: app.py
-msgid "Unknown or already finalized key-release upload"
-msgstr "Nieznane albo już zakończone wysyłanie przesyłki"
-
-#: app.py
-msgid "Key-release share belongs to another user"
-msgstr "Ta przesyłka należy do innego użytkownika"
-
-#: app.py
-msgid ""
-"Expiry must be an ISO 8601 time with a time zone, e.g. "
-"2026-12-31T23:59+01:00"
-msgstr ""
-"Termin ważności musi być czasem ISO 8601 ze strefą czasową, np. "
-"2026-12-31T23:59+01:00"
-
-#: app.py
-msgid "Key-release upload was finalized elsewhere"
-msgstr "Wysyłanie tej przesyłki zakończono gdzie indziej"
-
-#: app.py
-msgid "Upload failed"
-msgstr "Nie udało się wysłać przesyłki"
 
 #: app.py
 msgid "No file part"
@@ -272,36 +256,6 @@ msgstr "Ten typ pliku jest niedozwolony."
 #: templates/_composer_strings.html
 msgid "Your session has expired. Reload the page and try again."
 msgstr "Sesja wygasła. Odśwież stronę i spróbuj ponownie."
-
-#: templates/_composer_strings.html
-msgid "Choose a valid expiry time."
-msgstr "Wybierz poprawny termin ważności."
-
-#: templates/_composer_strings.html
-msgid "Open notifications are not configured on this server."
-msgstr "Powiadomienia o otwarciu nie są skonfigurowane na tym serwerze."
-
-#: templates/_composer_strings.html
-msgid "Configure an account email before enabling open notifications."
-msgstr "Zanim włączysz powiadomienia o otwarciu, ustaw adres e-mail konta."
-
-#: templates/_composer_strings.html
-msgid "Your configured account email is invalid."
-msgstr "Adres e-mail ustawiony na koncie jest nieprawidłowy."
-
-#: templates/_composer_strings.html
-msgid "Open notifications can only be sent to your configured account email."
-msgstr ""
-"Powiadomienia o otwarciu można wysyłać tylko na adres e-mail ustawiony na"
-" koncie."
-
-#: templates/_composer_strings.html
-msgid "The server would not accept the drop. Please try again."
-msgstr "Serwer nie przyjął przesyłki. Spróbuj ponownie."
-
-#: templates/_composer_strings.html
-msgid "Could not send the drop. Please try again."
-msgstr "Nie udało się wysłać przesyłki. Spróbuj ponownie."
 
 #: templates/_composer_strings.html
 msgid "The drop may have been sent, but the server's reply could not be read."
