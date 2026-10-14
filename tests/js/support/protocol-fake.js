@@ -128,7 +128,7 @@ export const EMITS = [
     ['/upload', 400, 'injected'],
     ['/upload', 409, 'state'], ['/upload', 413, 'injected'], ['/upload', 429, 'injected'],
     ['/download', 200, 'state'], ['/download', 403, 'state'],
-    ['/download', 404, 'state'], ['/download', 410, 'state'], ['/download', 429, 'injected'],
+    ['/download', 410, 'state'], ['/download', 429, 'injected'],
     ['/release', 200, 'state'], ['/release', 400, 'state'], ['/release', 403, 'state'],
     ['/release', 404, 'state'], ['/release', 410, 'state'], ['/release', 429, 'state'],
     ['/release', 429, 'injected'],
@@ -531,25 +531,23 @@ export function makeProtocolFake(opts = {}) {
     }
 
     /**
-     * claim_download_with_ticket: the blob answers a released share's
-     * ticket once; a live unreleased share is a bare 403 to everyone, a
-     * released one 'claimed' to everyone without the winner's ticket.
+     * claim_download_with_ticket: the ticket is checked before any state
+     * is told apart — a missing drop, an unreleased share and a wrong or
+     * spent ticket all answer the same bare 403, so nothing leaks (#240).
+     * Only the release winner's ticket reaches the outcomes below.
      * @param {string} fileId
      * @param {Record<string, string>} headers
      */
     async function download(fileId, headers) {
-        // The ticket is checked before the drop's state: only the release
-        // winner holds one, so without it everyone gets a uniform 403 —
-        // nothing leaks about whether the drop existed or how it died
-        // (#240).
         const rawTicket = headers['x-download-ticket'];
         const ticket = typeof rawTicket === 'string' ? rawTicket.trim().toLowerCase() : null;
-        if (!ticket) {
-            return json(403, { error: 'Forbidden' });
-        }
         const file = state.files.get(fileId);
-        if (!file) {
-            return json(404, { error: 'File not found' });
+        const key = state.keys.get(fileId);
+        const presented = ticket !== null && isKeyMaterial(ticket)
+            ? await sha256Hex(ticket) : null;
+        if (!file || !key || key.ticketHash === null
+                || presented !== key.ticketHash) {
+            return json(403, { error: 'Forbidden' });
         }
         if (file.downloaded) {
             return json(410, { error: 'This file has already been downloaded' });
@@ -558,19 +556,11 @@ export function makeProtocolFake(opts = {}) {
             expire(fileId, file);
             return json(410, { error: 'File has expired' });
         }
-        const key = state.keys.get(fileId);
         // A release nobody downloaded within the window expires the drop.
-        if (key && key.releasedAt !== null
+        if (key.releasedAt !== null
                 && Date.now() >= Date.parse(key.releasedAt) + downloadTtlSeconds * 1000) {
             expire(fileId, file);
             return json(410, { error: 'File has expired' });
-        }
-        if (!key || key.releasedAt === null) {
-            return json(403, { error: 'Forbidden' });
-        }
-        const presented = isKeyMaterial(ticket) ? await sha256Hex(/** @type {string} */ (ticket)) : null;
-        if (key.ticketHash === null || presented !== key.ticketHash) {
-            return json(410, { error: 'This drop has already been claimed' });
         }
         const blob = file.blob ?? new Uint8Array();
         file.downloaded = true;

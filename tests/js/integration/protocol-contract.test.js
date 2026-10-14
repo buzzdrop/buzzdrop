@@ -218,7 +218,7 @@ describe('fetch adapter', () => {
         expect(claimed.status).toBe(403);
 
         const served = await fake.fetch(`/download/${fileId}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-Download-Ticket': ticket },
+            headers: { 'X-Download-Ticket': ticket },
         });
         expect(served.status).toBe(200);
         expect(new Uint8Array(await served.arrayBuffer()).length).toBeGreaterThan(0);

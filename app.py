@@ -1298,15 +1298,10 @@ def download_file(file_id):
     is no longer the one-time claim, so fetching it early protects
     nothing. The ticket is consumed with the claim, before the body
     streams, and the blob is deleted after it: a transfer that breaks off
-    is not resumable — deliberately, no retry surface. Without a
-    ticket every drop answers a bare 403 — live, dead or imaginary,
-    always the same — since only the release winner holds one (#240);
-    the specific outcomes below remain for a ticket holder alone.
+    is not resumable — deliberately, no retry surface. Only the release
+    winner holds a ticket, so everyone else gets one uniform 403 —
+    whether the drop is live, dead or imaginary reveals nothing (#240).
     """
-    # The ticket is checked before the drop's state is touched: only the
-    # /release winner holds one, so everyone else gets one uniform answer
-    # that reveals nothing about whether the drop ever existed, opened or
-    # expired (#240) — a live drop looks identical to a dead one.
     ticket = request.headers.get('X-Download-Ticket')
     if isinstance(ticket, str):
         ticket = ticket.strip().lower()
@@ -1322,10 +1317,10 @@ def download_file(file_id):
         current_app.config['KEY_RELEASE_DOWNLOAD_TTL_SECONDS'])
     status = result['status']
 
-    if status == 'not_released':
+    # A missing drop, an unreleased share and a wrong or spent ticket are
+    # one 'forbidden' — the same answer the no-ticket gate above gives.
+    if status == 'forbidden':
         return {'error': 'Forbidden'}, 403
-    if status == 'bad_ticket':
-        return {'error': 'This drop has already been claimed'}, 410
     if status == 'already_downloaded':
         return {'error': 'This file has already been downloaded'}, 410
     if status == 'expired':
@@ -1335,8 +1330,6 @@ def download_file(file_id):
             except Exception:
                 pass
         return {'error': 'File has expired'}, 410
-    if status == 'missing':
-        return {'error': 'File not found'}, 404
 
     file_info = file_repo.get_by_id(file_id)
 

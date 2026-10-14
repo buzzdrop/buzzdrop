@@ -203,11 +203,12 @@ def test_download_file_already_downloaded(client, app, files_store, key_release_
     # A bare visit is the same uniform 403 as a never-existing drop.
     bare = client.get(url_for('download_file', file_id=file_id))
     assert bare.status_code == 403
-    # The spent ticket still distinguishes 'already downloaded' for its holder.
+    # The spent ticket gets the same uniform 403 — once its digest is
+    # consumed, its holder is indistinguishable from anyone else (#240).
     again = client.get(url_for('download_file', file_id=file_id),
                        headers=ticket_headers(ticket))
-    assert again.status_code == 410
-    assert 'already been downloaded' in again.get_json()['error']
+    assert again.status_code == 403
+    assert again.get_json() == {'error': 'Forbidden'}
 
 def test_view_file_success(client, app, files_store, key_release_upload):
     login_user(client, 'testuser', 'password')
