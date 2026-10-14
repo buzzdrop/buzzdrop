@@ -162,9 +162,12 @@ def render_all():
             files.create_key_share(record['id'], 'bb' * 32, created_by='testuser')
             files.bind_key_verifier(record['id'], SHARE_V, SHARE_SALT)
         view_path = f"/view/{record['id']}"
-        fixtures.append(_render(f'confirm_download--{kind}', _client(), 'GET', view_path))
-        fixtures.append(_render(f'view--{kind}', _client(), 'POST', f'{view_path}/confirm',
-                                data={'csrf_token': CSRF_TOKEN}))
+        for language in (None, 'pl'):
+            suffix = f'.{language}' if language else ''
+            fixtures.append(_render(f'confirm_download--{kind}{suffix}', _client(), 'GET', view_path,
+                                    language=language))
+            fixtures.append(_render(f'view--{kind}{suffix}', _client(), 'POST', f'{view_path}/confirm',
+                                    data={'csrf_token': CSRF_TOKEN}, language=language))
         fixtures.append(_render(f'success--{kind}', _client('testuser'), 'GET',
                                 f"/success/{record['id']}"))
         fixtures.append(_render(f'success--{kind}.pl', _client('testuser'), 'GET',

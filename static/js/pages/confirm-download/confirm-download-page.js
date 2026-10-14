@@ -6,6 +6,7 @@
 // page takes in turn. Nothing is persisted (no sessionStorage).
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
+import { readStrings } from '../../lib/strings.js';
 
 /**
  * @typedef {Record<string, never>} ConfirmDownloadDeps
@@ -31,8 +32,8 @@ export function initConfirmDownload(root, deps) {
     if (fragmentPassword) {
         const hint = root.getElementById('password-hint');
         if (hint) {
-            hint.textContent =
-                'This link already carries the key — continue and the drop goes BZZT.';
+            hint.textContent = readStrings(required(root, '#page-strings-json', 'script'))
+                .section('confirm-download').text('oneClickHint');
         }
         required(root, '#confirm-form', 'form').addEventListener('submit', function () {
             // Only wired up when there is a fragment password.

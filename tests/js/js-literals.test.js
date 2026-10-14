@@ -24,10 +24,12 @@ const CONVERTED_MODULES = [
     'lib/format.js',
     'lib/passphrase.js',
     'lib/strings.js',
+    'pages/confirm-download/confirm-download-page.js',
     'pages/hero-flow/hero-flow-page.js',
     'pages/index/index-page.js',
     'pages/language-menu/language-menu-page.js',
     'pages/success/success-page.js',
+    'pages/view/view-page.js',
 ];
 
 const TEXT_PROPERTIES = new Set(['textContent', 'innerText', 'innerHTML', 'outerHTML', 'title', 'placeholder', 'alt']);

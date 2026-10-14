@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from '_page_strings.html' import page_strings %}
+{% from '_confirm_download_strings.html' import strings as confirm_download_strings with context %}
 
 {% block content_width %}max-w-xl{% endblock %}
 
@@ -14,28 +16,28 @@
             </svg>
         </span>
 
-        <span class="eyebrow">One-time action</span>
+        <span class="eyebrow">{{ _('One-time action') }}</span>
 
         <h1 class="mt-5 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-            Ready to {% if file_type == 'text' %}view{% else %}download{% endif %}?
+            {% if file_type == 'text' %}{{ _('Ready to view?') }}{% else %}{{ _('Ready to download?') }}{% endif %}
         </h1>
 
-        <p class="mx-auto mt-3 max-w-sm text-sm text-slate-400">{% if file_type == 'text' %}A secret note{% else %}A shared file{% endif %} is waiting — its name is inside the encryption.</p>
+        <p class="mx-auto mt-3 max-w-sm text-sm text-slate-400">{% if file_type == 'text' %}{{ _('A secret note is waiting — its name is inside the encryption.') }}{% else %}{{ _('A shared file is waiting — its name is inside the encryption.') }}{% endif %}</p>
 
         <div class="alert-banner alert-banner-warning mt-7 text-left">
             <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
             </svg>
             <span>
-                <strong class="font-semibold">This {% if file_type == 'text' %}note{% else %}file{% endif %} can be opened once.</strong>
-                <span id="password-hint">The first correct password claims it — after that it's gone for everyone. If the sender shared the password separately, have it ready.</span>
+                <strong class="font-semibold">{% if file_type == 'text' %}{{ _('This note can be opened once.') }}{% else %}{{ _('This file can be opened once.') }}{% endif %}</strong>
+                <span id="password-hint">{% trans %}The first correct password claims it — after that it's gone for everyone. If the sender shared the password separately, have it ready.{% endtrans %}</span>
             </span>
         </div>
 
         <form id="confirm-form" method="POST" action="/view/{{ file_id }}/confirm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn-primary mt-7 w-full">
-                <span class="relative z-10">Proceed to {% if file_type == 'text' %}view{% else %}download{% endif %}</span>
+                <span class="relative z-10">{% if file_type == 'text' %}{{ _('Proceed to view') }}{% else %}{{ _('Proceed to download') }}{% endif %}</span>
                 <svg class="relative z-10 h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M3 10a1 1 0 0 1 1-1h9.586L9.293 4.707a1 1 0 0 1 1.414-1.414l6 6a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1-1.414-1.414L13.586 11H4a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
                 </svg>
@@ -44,9 +46,10 @@
 
         {# A new tab, so the reader keeps their place on the one-time path. #}
         <p class="mt-5 text-xs text-slate-500">
-            Curious what happens next, and what we can see? <a href="{{ url_for('how_it_works') }}" target="_blank" rel="noopener" aria-label="How it works (opens in new tab)" class="footer-link">How it works</a>
+            {{ _('Curious what happens next, and what we can see?') }} <a href="{{ url_for('how_it_works') }}" target="_blank" rel="noopener" aria-label="{{ _('How it works (opens in new tab)') }}" class="footer-link">{{ _('How it works') }}</a>
         </p>
 
+        {{ page_strings({'confirm-download': confirm_download_strings}) }}
         <script type="module" src="{{ url_for('static', filename='js/pages/confirm-download/entry.js') }}" integrity="{{ sri_hash('js/pages/confirm-download/entry.js') }}" crossorigin="anonymous"></script>
     </div>
 </div>

@@ -63,9 +63,7 @@ msgid "This drop is gone"
 msgstr ""
 
 #: app.py
-msgid ""
-"It was already opened, it expired, or it never existed. Ask the sender "
-"for a new one."
+msgid "Ask the sender for a new one."
 msgstr ""
 
 #: app.py
@@ -295,6 +293,10 @@ msgstr ""
 msgid "The drop may have been sent, but the server's reply could not be read."
 msgstr ""
 
+#: templates/_confirm_download_strings.html
+msgid "This link already carries the key — continue and the drop goes BZZT."
+msgstr ""
+
 #: templates/_hero_flow_strings.html
 msgid "Play walkthrough"
 msgstr ""
@@ -393,6 +395,74 @@ msgid_plural "Showing %(first)s–%(last)s of %(count)s drops"
 msgstr[0] ""
 msgstr[1] ""
 
+#. the recipient's wrong passwords locked the drop; the lock can't be lifted.
+#: templates/_view_strings.html
+msgid "Too many incorrect passwords — this drop is locked."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Checking password…"
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Getting key…"
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Downloading…"
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Decrypting…"
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "This drop uses an unsupported format. Ask the sender to send it again."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Text decrypted successfully."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Download complete."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Incorrect password."
+msgstr ""
+
+#: templates/_view_strings.html
+#, python-format
+msgid "Incorrect password. %(count)s attempt remaining."
+msgid_plural "Incorrect password. %(count)s attempts remaining."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "This drop has already been opened."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "This drop is gone. Ask the sender for a new one."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "The server refused to open this drop."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Incorrect password or corrupted drop. Ask the sender to send it again."
+msgstr ""
+
 #: templates/base.html
 msgid ""
 "Buzzdrop: secure, one-time file sharing. Encrypt files or notes, send a "
@@ -423,11 +493,11 @@ msgstr ""
 msgid "Each drop opens once, then it's gone."
 msgstr ""
 
-#: templates/base.html
+#: templates/base.html templates/confirm_download.html templates/view.html
 msgid "How it works (opens in new tab)"
 msgstr ""
 
-#: templates/base.html
+#: templates/base.html templates/confirm_download.html templates/view.html
 msgid "How it works"
 msgstr ""
 
@@ -445,6 +515,52 @@ msgstr ""
 
 #: templates/base.html
 msgid "AGPL-3.0 licence text (opens in new tab)"
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "One-time action"
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "Ready to view?"
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "Ready to download?"
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "A secret note is waiting — its name is inside the encryption."
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "A shared file is waiting — its name is inside the encryption."
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "This note can be opened once."
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "This file can be opened once."
+msgstr ""
+
+#: templates/confirm_download.html
+msgid ""
+"The first correct password claims it — after that it's gone for everyone."
+" If the sender shared the password separately, have it ready."
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "Proceed to view"
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "Proceed to download"
+msgstr ""
+
+#: templates/confirm_download.html
+msgid "Curious what happens next, and what we can see?"
 msgstr ""
 
 #: templates/error.html
@@ -507,6 +623,7 @@ msgid "Encrypted in the browser before it reaches the server."
 msgstr ""
 
 #: templates/index.html templates/login.html templates/success.html
+#: templates/view.html
 msgid "Password"
 msgstr ""
 
@@ -526,7 +643,7 @@ msgstr ""
 msgid "Copy password"
 msgstr ""
 
-#: templates/index.html templates/success.html
+#: templates/index.html templates/success.html templates/view.html
 msgid "Copy"
 msgstr ""
 
@@ -946,5 +1063,66 @@ msgstr ""
 
 #: templates/success.html
 msgid "Create another drop"
+msgstr ""
+
+#: templates/view.html
+msgid "Recipient step"
+msgstr ""
+
+#: templates/view.html
+msgid "Encrypted note"
+msgstr ""
+
+#: templates/view.html
+msgid "Encrypted file"
+msgstr ""
+
+#: templates/view.html
+msgid "Enter the password to reveal this note."
+msgstr ""
+
+#: templates/view.html
+msgid "Enter the password to decrypt and download."
+msgstr ""
+
+#: templates/view.html
+#, python-format
+msgid "You have one attempt — check the password before you continue."
+msgid_plural "You have %(num)s attempts — check the password before you continue."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/view.html
+msgid "Decrypt and view"
+msgstr ""
+
+#: templates/view.html
+msgid "Decrypt and download"
+msgstr ""
+
+#: templates/view.html
+msgid "Decryption progress"
+msgstr ""
+
+#: templates/view.html
+msgid "Your link included the password — just press Decrypt and download."
+msgstr ""
+
+#: templates/view.html
+msgid "Decrypted text"
+msgstr ""
+
+#: templates/view.html
+msgid "Copy it now — this page can’t be reopened."
+msgstr ""
+
+#: templates/view.html
+msgid "Copy text"
+msgstr ""
+
+#: templates/view.html
+msgid ""
+"Decryption happens entirely in your browser. Your password stays in your "
+"browser; only a derived check value is sent."
 msgstr ""
 

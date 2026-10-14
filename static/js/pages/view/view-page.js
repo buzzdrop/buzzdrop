@@ -15,6 +15,7 @@ import { createProgressBar } from '../../features/progress-bar/index.js';
 import { claimShare } from '../../features/share-protocol/index.js';
 import { hexToBytes } from '../../lib/hex.js';
 import * as shareCrypto from '../../lib/crypto.js';
+import { formatNumber } from '../../lib/format.js';
 import { takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
@@ -36,19 +37,6 @@ import { readStrings } from '../../lib/strings.js';
  * @property {'file' | 'text'} fileType
  * @property {string | null} salt - the BKV3 envelope salt, hex
  */
-
-/**
- * What the progress bar calls each step of opening the share. Only the
- * download reports a percentage; the rest are single Web Crypto calls or a
- * round trip, so the bar shows them busy.
- * @type {Record<import('../../features/share-protocol/index.js').ClaimStep, string>}
- */
-const STEP_NAMES = {
-    unlocking: 'Checking password…',
-    releasing: 'Getting key…',
-    downloading: 'Downloading…',
-    decrypting: 'Decrypting…',
-};
 
 /**
  * `fetch` is bound to the window: called unbound, as deps.fetch(...), the
@@ -90,7 +78,11 @@ export async function initView(root, deps) {
     const decryptBtn = required(root, '#decrypt-btn', 'button');
     const passInput = required(root, '#password-input', 'input');
     const status = required(root, '#status', 'p');
-    const clipboardStrings = readStrings(required(root, '#page-strings-json', 'script')).section('clipboard-feedback');
+    const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
+    const strings = pageStrings.section('view');
+    const clipboardStrings = pageStrings.section('clipboard-feedback');
+    // For the numbers in its words, like the plural forms readStrings picks.
+    const lang = root.documentElement.lang || 'en';
     const progress = createProgressBar(required(root, '#decryption-progress', 'div'));
     // Counts the attempts before the first one; after that the status line
     // says what is left, so the warning would only contradict it.
@@ -113,8 +105,7 @@ export async function initView(root, deps) {
         sealed = deps.crypto.openSalted(hexToBytes(typeof salt === 'string' ? salt : ''));
     } catch {
         lockForm();
-        status.textContent =
-            'This drop uses an unsupported format. Ask the sender to send it again.';
+        status.textContent = strings.text('unsupported');
         return;
     }
 
@@ -136,7 +127,7 @@ export async function initView(root, deps) {
             const text = new TextDecoder().decode(fileBytes);
             required(root, '#text-content', 'pre').textContent = text;
             required(root, '#text-display', 'div').style.display = 'block';
-            status.textContent = 'Text decrypted successfully.';
+            status.textContent = strings.text('textDecrypted');
             decryptForm.style.display = 'none';
 
             // The status line also reports the decryption, so the copy's
@@ -155,7 +146,7 @@ export async function initView(root, deps) {
             a.click();
             a.remove();
             URL.revokeObjectURL(a.href);
-            status.textContent = 'Download complete.';
+            status.textContent = strings.text('downloadComplete');
         }
     }
 
@@ -168,26 +159,26 @@ export async function initView(root, deps) {
         switch (result.kind) {
         case 'retry': {
             const { remaining } = result;
-            const suffix = remaining === null
-                ? ''
-                : ` ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`;
-            return `Incorrect password.${suffix}`;
+            return remaining === null
+                ? strings.text('incorrectPassword')
+                : strings.plural('attemptsRemaining', remaining, { count: formatNumber(remaining, lang) });
         }
         case 'unreachable':
-            return 'Could not reach the server — check the connection and press Decrypt to retry.';
+            return strings.text('unreachable');
+        case 'throttled':
+            return strings.text('throttled');
         case 'gone':
-            return {
-                claimed: 'This drop has already been opened.',
-                locked: 'Too many incorrect passwords — this drop is locked.',
-                // A 404 means the drop was gone before this attempt (e.g. a
-                // link holder locked it); our own lockout is 'locked'.
-                missing: 'This drop is gone — it was deleted, has expired, '
-                    + 'or was locked by incorrect passwords.',
-                refused: 'The server refused to open this drop.',
-                corrupted: 'Incorrect password or corrupted drop. Ask the sender to send it again.',
-            }[result.reason];
+            // 'missing' means the drop was gone before this attempt (deleted,
+            // expired, or locked by a link holder); our own lockout is 'locked'.
+            return strings.section('gone').text(result.reason);
         }
     }
+
+    /**
+     * What the progress bar calls a step of opening the share.
+     * @param {import('../../features/share-protocol/index.js').ClaimStep} step
+     */
+    const stepName = (step) => strings.section('steps').text(step);
 
     // Submitting the form (the Decrypt button or Enter in the field) attempts
     // the decryption in place; the form never navigates.
@@ -203,11 +194,13 @@ export async function initView(root, deps) {
         const result = await claimShare(sealed, password, {
             fetch: deps.fetch,
             urls: { release: releaseUrl, download: downloadUrl, report: reportDecryptionUrl },
+            // Only the download reports a percentage; the other steps are
+            // single Web Crypto calls or a round trip, so the bar shows them busy.
             onStep: (step) => {
-                if (step === 'downloading') progress.show(0, STEP_NAMES.downloading);
-                else progress.busy(STEP_NAMES[step]);
+                if (step === 'downloading') progress.show(0, stepName('downloading'));
+                else progress.busy(stepName(step));
             },
-            onProgress: (percent) => progress.show(percent, STEP_NAMES.downloading),
+            onProgress: (percent) => progress.show(percent, stepName('downloading')),
         });
         progress.hide();
         if (result.kind === 'opened') {
@@ -215,7 +208,7 @@ export async function initView(root, deps) {
             return;
         }
         status.textContent = failureMessage(result);
-        if (result.kind === 'retry' || result.kind === 'unreachable') {
+        if (result.kind === 'retry' || result.kind === 'unreachable' || result.kind === 'throttled') {
             decryptBtn.disabled = false;
             passInput.disabled = false;
             passInput.select();

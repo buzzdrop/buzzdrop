@@ -1,0 +1,31 @@
+{# The words pages/view/ writes: the progress bar's step names, the status
+   line once the password is in, and why a drop can't be opened, keyed by
+   the share protocol's `gone` reason; 'missing' never says why
+   (translations/pl/GLOSSARY.md, Gone). What the copy announces is
+   clipboard-feedback's (_clipboard_feedback_strings.html). #}
+{# Set apart only so the translators' note sits right above its message. #}
+{# Translators: the recipient's wrong passwords locked the drop; the lock can't be lifted. #}
+{% set locked = _('Too many incorrect passwords — this drop is locked.') %}
+{% set strings = {
+    'steps': {
+        'unlocking': _('Checking password…'),
+        'releasing': _('Getting key…'),
+        'downloading': _('Downloading…'),
+        'decrypting': _('Decrypting…'),
+    },
+    'unsupported': _('This drop uses an unsupported format. Ask the sender to send it again.'),
+    'textDecrypted': _('Text decrypted successfully.'),
+    'downloadComplete': _('Download complete.'),
+    'incorrectPassword': _('Incorrect password.'),
+    'attemptsRemaining': plural_forms('Incorrect password. %(count)s attempt remaining.',
+                                      'Incorrect password. %(count)s attempts remaining.'),
+    'unreachable': _('Could not reach the server — check the connection and try again.'),
+    'throttled': _('Too many tries in a short time — wait a minute and try again.'),
+    'gone': {
+        'claimed': _('This drop has already been opened.'),
+        'locked': locked,
+        'missing': _('This drop is gone. Ask the sender for a new one.'),
+        'refused': _('The server refused to open this drop.'),
+        'corrupted': _('Incorrect password or corrupted drop. Ask the sender to send it again.'),
+    },
+} %}

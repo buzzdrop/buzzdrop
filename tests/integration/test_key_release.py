@@ -444,6 +444,7 @@ def test_release_expired_file_is_410(client, files_store, file_record):
     response = client.post(
         url_for('release_key', file_id='exp-1'), json={'v': 'bb' * 32})
     assert response.status_code == 410
+    assert response.get_json()['code'] == 'expired'
     assert files_store.get_by_id('exp-1')['status'] == 'expired'
     # expiry destroys the share inside the same transaction — H is gone
     assert files_store.get_key_share('exp-1') is None

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from '_page_strings.html' import page_strings %}
 {% from '_clipboard_feedback_strings.html' import strings as clipboard_feedback_strings with context %}
+{% from '_view_strings.html' import strings as view_strings with context %}
 {% from '_progress_bar.html' import progress_bar %}
 
 {% block content_width %}max-w-xl{% endblock %}
@@ -19,49 +20,50 @@
                 </svg>
             </span>
 
-            <span class="eyebrow">Recipient step</span>
-            <h1 class="mt-5 wrap-break-word text-2xl font-semibold tracking-tight text-white">Encrypted {% if file_type == 'text' %}note{% else %}file{% endif %}</h1>
+            <span class="eyebrow">{{ _('Recipient step') }}</span>
+            <h1 class="mt-5 wrap-break-word text-2xl font-semibold tracking-tight text-white">{% if file_type == 'text' %}{{ _('Encrypted note') }}{% else %}{{ _('Encrypted file') }}{% endif %}</h1>
             <p id="status" class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400" role="status" aria-live="polite">
-                Enter the password to {% if file_type == 'text' %}reveal this note{% else %}decrypt and download{% endif %}.
+                {% if file_type == 'text' %}{{ _('Enter the password to reveal this note.') }}{% else %}{{ _('Enter the password to decrypt and download.') }}{% endif %}
             </p>
         </div>
 
         <form id="decrypt-form" class="mt-7 space-y-3">
             <div>
-                <label for="password-input" class="field-label">Password</label>
+                <label for="password-input" class="field-label">{{ _('Password') }}</label>
                 <input id="password-input" type="password" autocomplete="off" aria-describedby="attempts-warning" class="field-input text-center">
             </div>
             <p id="attempts-warning" class="field-help">
-                You have {% if max_attempts == 1 %}one attempt{% else %}{{ max_attempts }} attempts{% endif %} — check the password before you continue.
+                {{ ngettext('You have one attempt — check the password before you continue.',
+                            'You have %(num)s attempts — check the password before you continue.', max_attempts) }}
             </p>
             {# Disabled until pages/view/view-page.js handles submit: a
                native submit would GET this POST-only page. With the default
                button disabled, Enter in the field does nothing either. #}
             <button id="decrypt-btn" type="submit" class="btn-primary w-full" disabled>
-                <span class="relative z-10">{% if file_type == 'text' %}Decrypt and view{% else %}Decrypt and download{% endif %}</span>
+                <span class="relative z-10">{% if file_type == 'text' %}{{ _('Decrypt and view') }}{% else %}{{ _('Decrypt and download') }}{% endif %}</span>
             </button>
         </form>
 
         {# Each step of opening the share once Decrypt is pressed: busy while the
            password is checked, the key fetched and the file decrypted, the real
            percentage while the ticketed /download runs. Hidden otherwise. #}
-        {{ progress_bar('decryption-progress', 'Decryption progress', extra_class='mt-4') }}
+        {{ progress_bar('decryption-progress', _('Decryption progress'), extra_class='mt-4') }}
 
         {% if file_type != 'text' %}
         <p id="password-status" class="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-emerald-300" style="display: none;">
             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 1 0 1.414l-8 8a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L8 12.586l7.293-7.293a1 1 0 0 1 1.414 0Z" clip-rule="evenodd"/>
             </svg>
-            Your link included the password — just press Decrypt and download.
+            {% trans %}Your link included the password — just press Decrypt and download.{% endtrans %}
         </p>
         {% endif %}
 
         <div id="text-display" class="mt-7" style="display: none;">
-            <h2 id="text-display-heading" class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Decrypted text</h2>
+            <h2 id="text-display-heading" class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{{ _('Decrypted text') }}</h2>
             <div class="overflow-hidden rounded-2xl border border-white/[0.07] bg-hive-850/70">
                 <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
-                    <p class="text-xs text-honey-200/80">Copy it now — this page can’t be reopened.</p>
-                    <button id="copy-text-btn" type="button" aria-label="Copy text" class="btn-secondary shrink-0 px-3 py-1.5 text-xs">Copy</button>
+                    <p class="text-xs text-honey-200/80">{{ _('Copy it now — this page can’t be reopened.') }}</p>
+                    <button id="copy-text-btn" type="button" aria-label="{{ _('Copy text') }}" class="btn-secondary shrink-0 px-3 py-1.5 text-xs">{{ _('Copy') }}</button>
                 </div>
                 {# A named, focusable region: screen readers can jump to the note, and
                    keyboard users can scroll it once it outgrows max-h-96. #}
@@ -71,9 +73,9 @@
     </div>
 
     <p class="mt-6 text-center text-xs text-slate-600">
-        Decryption happens entirely in your browser. Your password stays in your browser; only a derived check value is sent.
+        {% trans %}Decryption happens entirely in your browser. Your password stays in your browser; only a derived check value is sent.{% endtrans %}
         {# A new tab: leaving this page would lose it, as it can't be reopened. #}
-        <a href="{{ url_for('how_it_works') }}" target="_blank" rel="noopener" aria-label="How it works (opens in new tab)" class="footer-link">How it works</a>
+        <a href="{{ url_for('how_it_works') }}" target="_blank" rel="noopener" aria-label="{{ _('How it works (opens in new tab)') }}" class="footer-link">{{ _('How it works') }}</a>
     </p>
 </div>
 <script id="view-config-json" type="application/json">{{ {
@@ -83,6 +85,6 @@
     'fileType': file_type,
     'salt': salt,
 } | tojson }}</script>
-{{ page_strings({'clipboard-feedback': clipboard_feedback_strings}) }}
+{{ page_strings({'clipboard-feedback': clipboard_feedback_strings, 'view': view_strings}) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/view/entry.js') }}" integrity="{{ sri_hash('js/pages/view/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}

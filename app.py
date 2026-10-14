@@ -678,9 +678,9 @@ def _drop_gone():
     reveals nothing about which, just as /release answers a uniform 404.
     (/download still flashes the reason; only /view is uniform.)
     """
+    # Like the text, which never says why (translations/pl/GLOSSARY.md, Gone).
     return _error_page(404, _('Dead link'), _('This drop is gone'),
-                       _('It was already opened, it expired, or it never existed. '
-                         'Ask the sender for a new one.'))
+                       _('Ask the sender for a new one.'))
 
 
 @app.route('/')
@@ -1465,7 +1465,7 @@ def confirm_view_file(file_id):
     if not file_info:
         return _drop_gone()
     if not _is_valid_csrf_token():
-        flash('Invalid request')
+        flash(_('Invalid request'))
         return redirect(url_for('view_file', file_id=file_id))
     # The client needs the envelope salt before it can prove the password
     # (V derives from it) — the ciphertext only comes after. The salt is
@@ -1553,7 +1553,9 @@ def release_key(file_id):
                 storage.delete(result['path'])
             except Exception:
                 pass
-        return {'error': 'File has expired'}, 410
+        # The code tells the page an expired drop from one already opened,
+        # which answers 410 too.
+        return {'error': 'File has expired', 'code': 'expired'}, 410
     # missing_file / missing_share / pending — nothing to release.
     return {'error': 'Not found'}, 404
 

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="fixture-csrf-token">
+    <meta name="theme-color" content="#07080B">
+    <meta name="description" content="Buzzdrop: bezpieczne, jednorazowe przesyłanie plików. Wyślij zaszyfrowany plik albo notatkę, przekaż link i pozwól im zniknąć, gdy tylko odbiorca je pobierze.">
+    <meta property="og:locale" content="pl_PL">
+    <title>Buzzdrop: bezpieczne, jednorazowe przesyłanie plików</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/css/app.css?v=sha384-FIXTURE">
+</head>
+<body class="min-h-full">
+    <!-- Ambient layers: warm light pooling at the top, drifting honeycomb lattice. -->
+    <div class="glow-field" aria-hidden="true"></div>
+    <div class="hex-veil" aria-hidden="true"></div>
+
+    <div class="relative z-10 flex min-h-screen flex-col">
+        <div class="topline" aria-hidden="true"></div>
+
+        <nav class="nav-shell">
+            <div class="container-shell">
+                
+                <div class="flex items-center justify-between gap-2 py-3 sm:gap-4 sm:py-4">
+                    <div class="flex shrink-0 items-center gap-1 sm:gap-5">
+                        <a href="/" class="group flex shrink-0 items-center gap-3">
+                            <span class="relative">
+                                <span class="absolute inset-0 animate-halo-pulse rounded-full bg-honey-400/30 blur-lg" aria-hidden="true"></span>
+                                <svg viewBox="0 0 40 40" class="relative h-10 w-10 transition-transform duration-500 group-hover:-rotate-6" role="img" aria-label="Buzzdrop">
+                                    <defs>
+                                        <linearGradient id="bd-honey" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="#FFE49B"/>
+                                            <stop offset="55%" stop-color="#FFB627"/>
+                                            <stop offset="100%" stop-color="#D97706"/>
+                                        </linearGradient>
+                                        <clipPath id="bd-drop">
+                                            <path d="M20 9s8 8.6 8 13.4a8 8 0 0 1-16 0C12 17.6 20 9 20 9Z"/>
+                                        </clipPath>
+                                    </defs>
+                                    <path d="M20 1.5 35.5 10.4v19.2L20 38.5 4.5 29.6V10.4z" fill="url(#bd-honey)" opacity=".15"/>
+                                    <path d="M20 1.5 35.5 10.4v19.2L20 38.5 4.5 29.6V10.4z" fill="none" stroke="url(#bd-honey)" stroke-width="1.5"/>
+                                    <path d="M20 9s8 8.6 8 13.4a8 8 0 0 1-16 0C12 17.6 20 9 20 9Z" fill="url(#bd-honey)"/>
+                                    <g clip-path="url(#bd-drop)" fill="#0B0D12" opacity=".85">
+                                        <rect x="10" y="19.4" width="20" height="2.3" rx="1.15"/>
+                                        <rect x="10" y="24.2" width="20" height="2.3" rx="1.15"/>
+                                    </g>
+                                </svg>
+                            </span>
+                            <span class="hidden sm:block">
+                                <span class="block text-lg font-semibold tracking-tight text-white">Buzz<span class="honey-text">drop</span></span>
+                                <span class="block text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Przesyłka jednorazowa</span>
+                            </span>
+                        </a>
+                        
+                    </div>
+                    <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                        
+
+                        
+                            <a href="/login" class="btn-secondary px-3 py-2 sm:px-4">Zaloguj</a>
+                        
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container-shell flex-1 py-10 sm:py-14">
+            
+            
+                
+            
+
+            
+<div class="mx-auto max-w-xl">
+    <div class="surface-card animate-zoom-in p-8 sm:p-10">
+        <div class="text-center">
+            <span class="relative mx-auto mb-6 block h-16 w-16">
+                <span class="absolute inset-0 animate-halo-pulse rounded-full bg-honey-400/25 blur-xl" aria-hidden="true"></span>
+                <svg viewBox="0 0 64 64" class="relative h-16 w-16 text-honey-300" fill="none" aria-hidden="true">
+                    <path d="M32 4 54 16.7v25.6L32 55 10 42.3V16.7z" stroke="currentColor" stroke-width="1.5" opacity=".4"/>
+                    <path d="M32 11 48 20.2v18.6L32 48l-16-9.2V20.2z" fill="currentColor" opacity=".08"/>
+                    <rect x="24" y="27.5" width="16" height="13" rx="3" stroke="currentColor" stroke-width="2.2"/>
+                    <path d="M27.5 27.5v-4.5a4.5 4.5 0 0 1 8.8-1.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+            </span>
+
+            <span class="eyebrow">Krok odbiorcy</span>
+            <h1 class="mt-5 wrap-break-word text-2xl font-semibold tracking-tight text-white">Zaszyfrowany plik</h1>
+            <p id="status" class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400" role="status" aria-live="polite">
+                Wpisz hasło, żeby odszyfrować i pobrać plik.
+            </p>
+        </div>
+
+        <form id="decrypt-form" class="mt-7 space-y-3">
+            <div>
+                <label for="password-input" class="field-label">Hasło</label>
+                <input id="password-input" type="password" autocomplete="off" aria-describedby="attempts-warning" class="field-input text-center">
+            </div>
+            <p id="attempts-warning" class="field-help">
+                Masz jedną próbę – sprawdź hasło, zanim przejdziesz dalej.
+            </p>
+            
+            <button id="decrypt-btn" type="submit" class="btn-primary w-full" disabled>
+                <span class="relative z-10">Odszyfruj i pobierz</span>
+            </button>
+        </form>
+
+        
+        <div id="decryption-progress" class="w-full mt-4" role="progressbar" aria-label="Postęp odszyfrowywania" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+    <p data-progress-step class="mb-2 text-sm text-slate-300" hidden></p>
+    <div class="flex items-center gap-3">
+        <div class="honey-track">
+            <div data-progress-fill class="honey-bar" style="width: 0%"></div>
+        </div>
+        <span data-progress-percent class="w-[5ch] shrink-0 text-right text-sm font-semibold tabular-nums text-honey-300">0%</span>
+    </div>
+</div>
+
+        
+        <p id="password-status" class="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-emerald-300" style="display: none;">
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 1 0 1.414l-8 8a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L8 12.586l7.293-7.293a1 1 0 0 1 1.414 0Z" clip-rule="evenodd"/>
+            </svg>
+            Link zawierał hasło – wystarczy nacisnąć „Odszyfruj i pobierz”.
+        </p>
+        
+
+        <div id="text-display" class="mt-7" style="display: none;">
+            <h2 id="text-display-heading" class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Odszyfrowany tekst</h2>
+            <div class="overflow-hidden rounded-2xl border border-white/[0.07] bg-hive-850/70">
+                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                    <p class="text-xs text-honey-200/80">Skopiuj go teraz – tej strony nie da się otworzyć ponownie.</p>
+                    <button id="copy-text-btn" type="button" aria-label="Skopiuj tekst" class="btn-secondary shrink-0 px-3 py-1.5 text-xs">Skopiuj</button>
+                </div>
+                
+                <pre id="text-content" role="region" aria-labelledby="text-display-heading" tabindex="0" class="max-h-96 overflow-y-auto whitespace-pre-wrap wrap-break-word px-4 py-4 font-mono text-sm leading-6 text-slate-200"></pre>
+            </div>
+        </div>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-slate-600">
+        Odszyfrowanie odbywa się w całości w twojej przeglądarce. Hasło jej nie opuszcza; wysyłana jest tylko wyprowadzona z niego wartość kontrolna.
+        
+        <a href="/how-it-works" target="_blank" rel="noopener" aria-label="Jak to działa (otwiera się w nowej karcie)" class="footer-link">Jak to działa</a>
+    </p>
+</div>
+<script id="view-config-json" type="application/json">{"downloadUrl": "/download/00000000-0000-4000-8000-0000000000f1", "fileType": "file", "releaseUrl": "/release/00000000-0000-4000-8000-0000000000f1", "reportDecryptionUrl": "/report_decryption/00000000-0000-4000-8000-0000000000f1", "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}</script>
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Skopiowano do schowka link do przesy\u0142ki.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku do przesy\u0142ki."}, "link": {"copied": "Skopiowano link do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku."}, "oneClickLink": {"copied": "Skopiowano link z\u00a0has\u0142em do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku z\u00a0has\u0142em."}, "password": {"copied": "Skopiowano has\u0142o do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano has\u0142a."}, "text": {"copied": "Skopiowano tekst do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tekstu."}, "token": {"copied": "Skopiowano token do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tokenu."}}, "copied": "Skopiowano!", "failed": "B\u0142\u0105d"}, "view": {"attemptsRemaining": {"few": "Nieprawid\u0142owe has\u0142o. Zosta\u0142y %(count)s pr\u00f3by.", "many": "Nieprawid\u0142owe has\u0142o. Zosta\u0142o %(count)s pr\u00f3b.", "one": "Nieprawid\u0142owe has\u0142o. Zosta\u0142a %(count)s pr\u00f3ba.", "other": "Nieprawid\u0142owe has\u0142o. Zosta\u0142o %(count)s pr\u00f3b."}, "downloadComplete": "Pobieranie zako\u0144czone.", "gone": {"claimed": "T\u0119 przesy\u0142k\u0119 ju\u017c otwarto.", "corrupted": "Nieprawid\u0142owe has\u0142o albo uszkodzona przesy\u0142ka. Popro\u015b nadawc\u0119 o\u00a0ponowne wys\u0142anie.", "locked": "Za du\u017co nieprawid\u0142owych hase\u0142 \u2013 przesy\u0142ka zablokowana na sta\u0142e.", "missing": "Tej przesy\u0142ki ju\u017c nie ma. Popro\u015b nadawc\u0119 o\u00a0now\u0105.", "refused": "Serwer odm\u00f3wi\u0142 otwarcia tej przesy\u0142ki."}, "incorrectPassword": "Nieprawid\u0142owe has\u0142o.", "steps": {"decrypting": "Odszyfrowywanie\u2026", "downloading": "Pobieranie przesy\u0142ki\u2026", "releasing": "Pobieranie klucza\u2026", "unlocking": "Sprawdzanie has\u0142a\u2026"}, "textDecrypted": "Odszyfrowano notatk\u0119.", "throttled": "Zbyt wiele pr\u00f3b w\u00a0kr\u00f3tkim czasie \u2013 odczekaj chwil\u0119 i\u00a0spr\u00f3buj ponownie.", "unreachable": "Nie uda\u0142o si\u0119 po\u0142\u0105czy\u0107 z\u00a0serwerem \u2013 sprawd\u017a po\u0142\u0105czenie i\u00a0spr\u00f3buj ponownie.", "unsupported": "Ta przesy\u0142ka ma nieobs\u0142ugiwany format. Popro\u015b nadawc\u0119 o\u00a0ponowne wys\u0142anie."}}</script>
+
+        </main>
+
+        <footer class="footer-shell">
+            <div class="container-shell flex flex-col gap-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                
+                
+                
+                <p class="flex items-start gap-2 sm:items-center">
+                    <span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400 sm:mt-0" aria-hidden="true"></span>
+                    <span>Każdą przesyłkę można otworzyć raz, potem znika.</span>
+                </p>
+                
+                <p class="text-slate-600 sm:ml-auto">
+                    
+                    
+                    <a href="/how-it-works" target="_blank" rel="noopener" aria-label="Jak to działa (otwiera się w nowej karcie)" class="footer-link">Jak to działa</a>
+                    
+                    &middot;
+                    Tworzony jawnie.
+                    <a href="https://github.com/buzzdrop/buzzdrop" target="_blank" rel="noopener noreferrer" aria-label="Kod źródłowy (otwiera się w nowej karcie)" class="footer-link"><svg aria-hidden="true" viewBox="0 0 24 24" class="mr-1 inline-block h-3.5 w-3.5 fill-current align-[-0.15em]"><path d="M12 1.5a10.5 10.5 0 0 0-3.32 20.46c.53.1.72-.23.72-.51v-1.78c-2.94.64-3.56-1.25-3.56-1.25-.48-1.2-1.16-1.52-1.16-1.52-.95-.65.07-.64.07-.64 1.05.08 1.6 1.08 1.6 1.08.94 1.6 2.46 1.14 3.06.87.09-.68.37-1.14.66-1.4-2.35-.27-4.82-1.17-4.82-5.23 0-1.16.42-2.1 1.09-2.84-.11-.27-.47-1.37.1-2.84 0 0 .89-.28 2.92 1.08a10.2 10.2 0 0 1 5.32 0c2.03-1.36 2.92-1.08 2.92-1.08.57 1.47.21 2.57.1 2.84.68.74 1.09 1.68 1.09 2.84 0 4.07-2.48 4.96-4.84 5.22.38.33.72.97.72 1.96v2.91c0 .28.19.62.73.51A10.5 10.5 0 0 0 12 1.5Z"/></svg>Kod źródłowy</a>
+                    (<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" aria-label="Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)" class="footer-link">AGPL-3.0</a>)
+                </p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

@@ -7,7 +7,7 @@ import { expect, vi } from 'vitest';
 import { bytesToHex } from '../../../../static/js/lib/hex.js';
 import { initView } from '../../../../static/js/pages/view/view-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
-import { DEFAULT_PASSWORD, addressOf, cryptoFor, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
+import { DEFAULT_PASSWORD, addressOf, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { DEFAULT_PASSWORD, screen } from './page.js';
 
@@ -24,6 +24,31 @@ const FIXTURES = {
     message: { fixture: 'view--text', fileId: '00000000-0000-4000-8000-0000000000f2' },
 };
 
+/** Picks among próba/próby/prób as the page's plural forms do. */
+const POLISH_PLURAL = new Intl.PluralRules('pl');
+
+/**
+ * What the page calls the controls a test uses, in each language, and how it
+ * counts the attempts before the first one.
+ */
+const WORDS = {
+    en: {
+        password: 'Password',
+        decrypt: /^Decrypt and /,
+        copyText: 'Copy text',
+        /** @param {number} count */
+        attempts: (count) => (count === 1 ? 'You have one attempt' : `You have ${count} attempts`),
+    },
+    pl: {
+        password: 'Hasło',
+        decrypt: /^Odszyfruj i\u00a0/,
+        copyText: 'Skopiuj tekst',
+        /** @param {number} count */
+        attempts: (count) => (count === 1 ? 'Masz jedną próbę'
+            : `Masz ${count} ${POLISH_PLURAL.select(count) === 'few' ? 'próby' : 'prób'}`),
+    },
+};
+
 /** The salt render_dom_fixtures.py writes into the fixtures' config. */
 const FIXTURE_SALT = 'aa'.repeat(16);
 
@@ -36,6 +61,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
 /**
  * @typedef {object} ShareOptions
  * @property {'file' | 'message'} [type]
+ * @property {'en' | 'pl'} [language] - the language the browser asked for
  * @property {import('./page.js').LinkKind} [link]
  * @property {string} [query] - a query string the link carries, e.g. 'x=1'
  * @property {string} [password] - the share's password
@@ -44,10 +70,12 @@ const WRONG_VERIFIER = 'f'.repeat(64);
  * @property {'done' | 'in-progress'} [download] - in-progress holds the
  *   download until finishDownload()
  * @property {'ok' | 'unsupported-format' | 'corrupted'} [share] - DOM layer only
- * @property {'ok' | 'claimed' | 'burned' | 'error' | 'unreachable'} [server] -
+ * @property {'ok' | 'claimed' | 'burned' | 'expired' | 'rate-limited' | 'error' | 'unreachable'} [server] -
  *   claimed: someone already decrypted it; burned: someone's wrong guesses
- *   locked it and the server destroyed its key share; error: the server
- *   fails the release; unreachable: the release never arrives
+ *   locked it and the server destroyed its key share; expired: its expiry
+ *   passed before anyone opened it; rate-limited: the server's rate limit
+ *   turns the next release away; error: the server fails the release;
+ *   unreachable: the release never arrives
  * @property {number} [maxAttempts] - wrong passwords allowed before the share
  *   locks (KEY_RELEASE_MAX_ATTEMPTS, 1 like the server's default)
  * @property {import('./page.js').CryptoKind} [crypto] - real in the JS-integration layer
@@ -64,6 +92,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
 
 /**
  * @typedef {object} ShareView
+ * @property {Page['language']} language
  * @property {Page['url']} url
  * @property {Page['historyLength']} historyLength
  * @property {Page['clipboardText']} clipboardText
@@ -91,6 +120,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
  */
 export async function openShare({
     type = 'message',
+    language = 'en',
     link = 'plain',
     query,
     password = DEFAULT_PASSWORD,
@@ -119,14 +149,14 @@ export async function openShare({
     // real salt — the verifier the page derives is wrong otherwise.
     const shareSalt = bytesToHex(
         (backend.state.files.get(fileId)?.blob ?? new Uint8Array(20)).slice(4, 20));
-    const page = openPage(fixture, {
+    const words = WORDS[language];
+    const page = openPage(inLanguage(fixture, language), {
         path: addressOf(`/view/${fileId}/confirm`, { link, password, query }),
         clipboard,
         // As the server renders it for this share.
         edit: (html) => replaceInFixture(
             replaceInFixture(replaceInFixture(html, fixtureId, fileId),
-                'You have one attempt',
-                maxAttempts === 1 ? 'You have one attempt' : `You have ${maxAttempts} attempts`),
+                words.attempts(1), words.attempts(maxAttempts)),
             FIXTURE_SALT, shareSalt),
     });
     const { window, screen, user } = page;
@@ -162,8 +192,8 @@ export async function openShare({
     await ready;
 
     const status = () => screen.getByRole('status');
-    const passwordField = () => screen.getByLabelText('Password');
-    const decryptButton = () => screen.getByRole('button', { name: /^Decrypt and / });
+    const passwordField = () => screen.getByLabelText(words.password);
+    const decryptButton = () => screen.getByRole('button', { name: words.decrypt });
 
     /**
      * Try a password and wait until the status line reports the outcome. It
@@ -186,6 +216,7 @@ export async function openShare({
     };
 
     return {
+        language: page.language,
         url: page.url,
         historyLength: page.historyLength,
         clipboardText: page.clipboardText,
@@ -198,7 +229,7 @@ export async function openShare({
         decryptWithEnter: (password) => attempt(async (field) => {
             await user.type(field, `${typeable(password)}{Enter}`);
         }),
-        copyMessage: () => user.click(screen.getByRole('button', { name: 'Copy text' })),
+        copyMessage: () => user.click(screen.getByRole('button', { name: words.copyText })),
         async finishDownload() {
             finishDownload();
             await ready;
@@ -247,6 +278,11 @@ async function arrange(backend, fileId, server, cryptoService, password, maxAtte
         await release(bytesToHex(verifier));
     } else if (server === 'burned') {
         for (let i = 0; i < maxAttempts; i += 1) await release(WRONG_VERIFIER);
+    } else if (server === 'expired') {
+        const file = backend.state.files.get(fileId);
+        if (file) file.expiryAt = new Date(0);
+    } else if (server === 'rate-limited') {
+        backend.failNext('/release', 429);
     } else if (server === 'error') {
         backend.failNext('/release', { status: 500, body: { error: 'Internal error' } });
     } else if (server === 'unreachable') {

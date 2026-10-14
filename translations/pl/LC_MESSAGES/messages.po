@@ -69,12 +69,8 @@ msgid "This drop is gone"
 msgstr "Tej przesyłki już nie ma"
 
 #: app.py
-msgid ""
-"It was already opened, it expired, or it never existed. Ask the sender "
-"for a new one."
-msgstr ""
-"Została już otwarta, wygasła albo nigdy nie istniała. Poproś nadawcę o "
-"nową."
+msgid "Ask the sender for a new one."
+msgstr "Poproś nadawcę o nową."
 
 #: app.py
 msgid "Logged in successfully"
@@ -313,6 +309,10 @@ msgstr ""
 "Przesyłka mogła zostać wysłana, ale nie udało się odczytać odpowiedzi "
 "serwera."
 
+#: templates/_confirm_download_strings.html
+msgid "This link already carries the key — continue and the drop goes BZZT."
+msgstr "Ten link zawiera już hasło – przejdź dalej, a przesyłka zrobi BZZT."
+
 #: templates/_hero_flow_strings.html
 msgid "Play walkthrough"
 msgstr "Odtwórz przykład"
@@ -416,6 +416,77 @@ msgstr[0] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłka"
 msgstr[1] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłki"
 msgstr[2] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłek"
 
+#. the recipient's wrong passwords locked the drop; the lock can't be lifted.
+#: templates/_view_strings.html
+msgid "Too many incorrect passwords — this drop is locked."
+msgstr "Za dużo nieprawidłowych haseł – przesyłka zablokowana na stałe."
+
+#: templates/_view_strings.html
+msgid "Checking password…"
+msgstr "Sprawdzanie hasła…"
+
+#: templates/_view_strings.html
+msgid "Getting key…"
+msgstr "Pobieranie klucza…"
+
+#: templates/_view_strings.html
+msgid "Downloading…"
+msgstr "Pobieranie przesyłki…"
+
+#: templates/_view_strings.html
+msgid "Decrypting…"
+msgstr "Odszyfrowywanie…"
+
+#: templates/_view_strings.html
+msgid "This drop uses an unsupported format. Ask the sender to send it again."
+msgstr "Ta przesyłka ma nieobsługiwany format. Poproś nadawcę o ponowne wysłanie."
+
+#: templates/_view_strings.html
+msgid "Text decrypted successfully."
+msgstr "Odszyfrowano notatkę."
+
+#: templates/_view_strings.html
+msgid "Download complete."
+msgstr "Pobieranie zakończone."
+
+#: templates/_view_strings.html
+msgid "Incorrect password."
+msgstr "Nieprawidłowe hasło."
+
+#: templates/_view_strings.html
+#, python-format
+msgid "Incorrect password. %(count)s attempt remaining."
+msgid_plural "Incorrect password. %(count)s attempts remaining."
+msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
+msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
+msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
+
+#: templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
+
+#: templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
+
+#: templates/_view_strings.html
+msgid "This drop has already been opened."
+msgstr "Tę przesyłkę już otwarto."
+
+#: templates/_view_strings.html
+msgid "This drop is gone. Ask the sender for a new one."
+msgstr "Tej przesyłki już nie ma. Poproś nadawcę o nową."
+
+#: templates/_view_strings.html
+msgid "The server refused to open this drop."
+msgstr "Serwer odmówił otwarcia tej przesyłki."
+
+#: templates/_view_strings.html
+msgid "Incorrect password or corrupted drop. Ask the sender to send it again."
+msgstr ""
+"Nieprawidłowe hasło albo uszkodzona przesyłka. Poproś nadawcę o ponowne "
+"wysłanie."
+
 #: templates/base.html
 msgid ""
 "Buzzdrop: secure, one-time file sharing. Encrypt files or notes, send a "
@@ -449,11 +520,11 @@ msgstr "Zaloguj"
 msgid "Each drop opens once, then it's gone."
 msgstr "Każdą przesyłkę można otworzyć raz, potem znika."
 
-#: templates/base.html
+#: templates/base.html templates/confirm_download.html templates/view.html
 msgid "How it works (opens in new tab)"
 msgstr "Jak to działa (otwiera się w nowej karcie)"
 
-#: templates/base.html
+#: templates/base.html templates/confirm_download.html templates/view.html
 msgid "How it works"
 msgstr "Jak to działa"
 
@@ -472,6 +543,54 @@ msgstr "Kod źródłowy"
 #: templates/base.html
 msgid "AGPL-3.0 licence text (opens in new tab)"
 msgstr "Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)"
+
+#: templates/confirm_download.html
+msgid "One-time action"
+msgstr "Jednorazowe otwarcie"
+
+#: templates/confirm_download.html
+msgid "Ready to view?"
+msgstr "Otworzyć notatkę?"
+
+#: templates/confirm_download.html
+msgid "Ready to download?"
+msgstr "Pobrać plik?"
+
+#: templates/confirm_download.html
+msgid "A secret note is waiting — its name is inside the encryption."
+msgstr "Czeka na ciebie notatka – jej nazwa też jest zaszyfrowana."
+
+#: templates/confirm_download.html
+msgid "A shared file is waiting — its name is inside the encryption."
+msgstr "Czeka na ciebie plik – jego nazwa też jest zaszyfrowana."
+
+#: templates/confirm_download.html
+msgid "This note can be opened once."
+msgstr "Tę notatkę można otworzyć tylko raz."
+
+#: templates/confirm_download.html
+msgid "This file can be opened once."
+msgstr "Ten plik można otworzyć tylko raz."
+
+#: templates/confirm_download.html
+msgid ""
+"The first correct password claims it — after that it's gone for everyone."
+" If the sender shared the password separately, have it ready."
+msgstr ""
+"Pierwsze poprawne hasło otwiera przesyłkę – potem nie ma jej już dla "
+"nikogo. Jeśli hasło dostajesz osobno, przygotuj je."
+
+#: templates/confirm_download.html
+msgid "Proceed to view"
+msgstr "Przejdź do notatki"
+
+#: templates/confirm_download.html
+msgid "Proceed to download"
+msgstr "Przejdź do pobierania"
+
+#: templates/confirm_download.html
+msgid "Curious what happens next, and what we can see?"
+msgstr "Ciekawi cię, co będzie dalej i co widzimy?"
 
 #: templates/error.html
 msgid "Go to Buzzdrop"
@@ -541,6 +660,7 @@ msgid "Encrypted in the browser before it reaches the server."
 msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
 
 #: templates/index.html templates/login.html templates/success.html
+#: templates/view.html
 msgid "Password"
 msgstr "Hasło"
 
@@ -560,7 +680,7 @@ msgstr "Wygeneruj"
 msgid "Copy password"
 msgstr "Skopiuj hasło"
 
-#: templates/index.html templates/success.html
+#: templates/index.html templates/success.html templates/view.html
 msgid "Copy"
 msgstr "Skopiuj"
 
@@ -1032,4 +1152,68 @@ msgstr "Skopiuj link z hasłem"
 #: templates/success.html
 msgid "Create another drop"
 msgstr "Wyślij kolejną przesyłkę"
+
+#: templates/view.html
+msgid "Recipient step"
+msgstr "Krok odbiorcy"
+
+#: templates/view.html
+msgid "Encrypted note"
+msgstr "Zaszyfrowana notatka"
+
+#: templates/view.html
+msgid "Encrypted file"
+msgstr "Zaszyfrowany plik"
+
+#: templates/view.html
+msgid "Enter the password to reveal this note."
+msgstr "Wpisz hasło, żeby wyświetlić tę notatkę."
+
+#: templates/view.html
+msgid "Enter the password to decrypt and download."
+msgstr "Wpisz hasło, żeby odszyfrować i pobrać plik."
+
+#: templates/view.html
+#, python-format
+msgid "You have one attempt — check the password before you continue."
+msgid_plural "You have %(num)s attempts — check the password before you continue."
+msgstr[0] "Masz jedną próbę – sprawdź hasło, zanim przejdziesz dalej."
+msgstr[1] "Masz %(num)s próby – sprawdź hasło, zanim przejdziesz dalej."
+msgstr[2] "Masz %(num)s prób – sprawdź hasło, zanim przejdziesz dalej."
+
+#: templates/view.html
+msgid "Decrypt and view"
+msgstr "Odszyfruj i wyświetl"
+
+#: templates/view.html
+msgid "Decrypt and download"
+msgstr "Odszyfruj i pobierz"
+
+#: templates/view.html
+msgid "Decryption progress"
+msgstr "Postęp odszyfrowywania"
+
+#: templates/view.html
+msgid "Your link included the password — just press Decrypt and download."
+msgstr "Link zawierał hasło – wystarczy nacisnąć „Odszyfruj i pobierz”."
+
+#: templates/view.html
+msgid "Decrypted text"
+msgstr "Odszyfrowany tekst"
+
+#: templates/view.html
+msgid "Copy it now — this page can’t be reopened."
+msgstr "Skopiuj go teraz – tej strony nie da się otworzyć ponownie."
+
+#: templates/view.html
+msgid "Copy text"
+msgstr "Skopiuj tekst"
+
+#: templates/view.html
+msgid ""
+"Decryption happens entirely in your browser. Your password stays in your "
+"browser; only a derived check value is sent."
+msgstr ""
+"Odszyfrowanie odbywa się w całości w twojej przeglądarce. Hasło jej nie "
+"opuszcza; wysyłana jest tylko wyprowadzona z niego wartość kontrolna."
 

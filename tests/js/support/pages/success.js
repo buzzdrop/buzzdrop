@@ -1,7 +1,7 @@
 // Page driver for the success page, where the uploader picks up the link and
 // password (docs/frontend-test-strategy.md §7a).
 import { initSuccess } from '../../../../static/js/pages/success/success-page.js';
-import { addressOf, openPage } from './page.js';
+import { addressOf, inLanguage, openPage } from './page.js';
 
 export { screen } from './page.js';
 
@@ -30,14 +30,13 @@ export const PAGE_PATH = '/success/00000000-0000-4000-8000-0000000000f1';
  * @param {SuccessOptions} [options]
  */
 export function openSuccessPage({ clipboard = 'ok', type = 'file', language = 'en', ...address } = {}) {
-    const fixture = `success--${type === 'message' ? 'text' : 'file'}${language === 'en' ? '' : `.${language}`}`;
+    const fixture = inLanguage(`success--${type === 'message' ? 'text' : 'file'}`, language);
     const page = openPage(fixture, { path: addressOf(PAGE_PATH, address), clipboard });
     const { window, screen, user } = page;
     initSuccess(window.document, {});
     const words = WORDS[language];
     return {
-        /** The page's declared language, `<html lang>`. */
-        language: () => window.document.documentElement.lang,
+        language: page.language,
         url: page.url,
         historyLength: page.historyLength,
         clipboardText: page.clipboardText,

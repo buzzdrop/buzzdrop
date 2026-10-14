@@ -10,7 +10,7 @@ import { expect, vi } from 'vitest';
 import { HOLD_MS, initHeroFlow } from '../../../../static/js/pages/hero-flow/hero-flow-page.js';
 import { initIndex } from '../../../../static/js/pages/index/index-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
-import { DEFAULT_PASSWORD, cryptoFor, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
+import { DEFAULT_PASSWORD, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { screen } from './page.js';
 
@@ -143,13 +143,6 @@ function indexDeps(fetch, crypto, xhr) {
 
 /** How long each walkthrough stage holds, in order. */
 export const WALKTHROUGH_HOLD_MS = HOLD_MS;
-
-/**
- * The fixture of `name` in `language`: English has no suffix.
- * @param {string} name
- * @param {'en' | 'pl'} language
- */
-const inLanguage = (name, language) => (language === 'en' ? name : `${name}.${language}`);
 
 /**
  * Open the landing page an anonymous visitor sees, with both its scripts.
