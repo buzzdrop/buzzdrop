@@ -1096,6 +1096,7 @@
               "Cache-Control": "no-store"
             },
             "json": {
+              "code": "expired",
               "error": "File has expired"
             }
           }

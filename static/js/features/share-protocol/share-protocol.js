@@ -79,13 +79,16 @@ const SERVER_SHARE_BYTES = 32;
 
 /**
  * How a password attempt on a share ended. `retry` means a wrong password
- * with attempts left (`remaining` when the server said how many); `gone`
+ * with attempts left (`remaining` when the server said how many); `throttled`
+ * means the server's rate limit turned the request away, so the same try can
+ * be made again later; `gone`
  * means the share can no longer be opened: claimed by someone already,
  * locked by this attempt, missing (deleted, expired or burned before this
  * attempt), refused by a failing server, or corrupted (the server released
  * its share, but the blob didn't decrypt with it).
  * @typedef {{ kind: 'opened', data: Bytes, receipt: Bytes, name: string }
  *   | { kind: 'retry', remaining: number | null }
+ *   | { kind: 'throttled' }
  *   | { kind: 'gone', reason: 'claimed' | 'locked' | 'missing' | 'refused' | 'corrupted' }
  *   | { kind: 'unreachable' }} ClaimResult
  */
@@ -145,6 +148,8 @@ function refused(code, otherwise) {
  * @property {string} [h]
  * @property {number} [attempts_remaining]
  * @property {string} [error]
+ * @property {string} [code] - `expired` on a 410 for an expired share;
+ *   `rate_limited` on the rate limit's 429
  */
 
 /**
@@ -208,8 +213,8 @@ export async function createShare(payload, password, options, deps) {
  * Prove `password` to /release, fetch the ciphertext with the ticket the
  * release minted, decrypt with the server share, and report the outcome to
  * /report_decryption: the receipt when it opened, a failure when the share
- * is gone or out of reach. A wrong password with attempts left reports
- * nothing. A share that already released — earlier attempt's download
+ * is gone or out of reach. A wrong password with attempts left, or a
+ * request the rate limit turned away, reports nothing. A share that already released — earlier attempt's download
  * failed — reuses the released material instead of spending another
  * release; the ticket recomputes from H.
  * @param {SealedShare} sealed - from openSalted(); mutated with `claim`
@@ -220,7 +225,7 @@ export async function createShare(payload, password, options, deps) {
 export async function claimShare(sealed, password, deps) {
     const result = await claim(sealed, password, deps);
     if (result.kind === 'opened') report(deps, result.receipt);
-    else if (result.kind !== 'retry') report(deps, null);
+    else if (result.kind !== 'retry' && result.kind !== 'throttled') report(deps, null);
     return result;
 }
 
@@ -284,10 +289,17 @@ async function release(verifier, deps) {
         const remaining = body.attempts_remaining;
         return { kind: 'retry', remaining: typeof remaining === 'number' ? remaining : null };
     }
-    if (response.status === 410) return { kind: 'gone', reason: 'claimed' };
-    if (response.status === 429) return { kind: 'gone', reason: 'locked' };
-    // A deleted file, an expired or burned share all answer a uniform 404;
-    // this attempt's own lockout gets the 429 above.
+    // An expired share is gone like a missing one; any other 410 means the
+    // key was released already.
+    if (response.status === 410) {
+        return { kind: 'gone', reason: body.code === 'expired' ? 'missing' : 'claimed' };
+    }
+    // The rate limit answers 429 too, but only it carries a code; a bare 429
+    // is this attempt's own lockout.
+    if (response.status === 429) {
+        return body.code === 'rate_limited' ? { kind: 'throttled' } : { kind: 'gone', reason: 'locked' };
+    }
+    // A deleted file, a burned or swept share all answer a uniform 404.
     if (response.status === 404) return { kind: 'gone', reason: 'missing' };
 
     if (!response.ok) return { kind: 'gone', reason: 'refused' };
@@ -321,6 +333,9 @@ async function fetchBlob(url, ticket, deps) {
 
     if (response.status === 403) return { kind: 'gone', reason: 'refused' };
     if (response.status === 404) return { kind: 'gone', reason: 'missing' };
+    // The released material is kept, so a try after the rate limit's 429
+    // downloads again without spending another release.
+    if (response.status === 429) return { kind: 'throttled' };
     // Claimed covers 'already claimed' (someone else won the release) and
     // 'already downloaded' (a retry after a complete download) alike.
     if (response.status === 410) return { kind: 'gone', reason: 'claimed' };

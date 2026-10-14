@@ -92,6 +92,7 @@ export function addressOf(path, { link = 'plain', password = DEFAULT_PASSWORD, q
  * @property {Screen} screen
  * @property {import('@testing-library/user-event').UserEvent} user
  * @property {() => string} url - the address bar
+ * @property {() => string} language - the page's declared language, `<html lang>`
  * @property {() => number} historyLength
  * @property {() => Promise<string>} clipboardText
  * @property {() => FormSubmission[]} formsSubmitted
@@ -214,6 +215,7 @@ export function openPage(fixture, { path = '/', reducedMotion = false, edit, cli
         screen: within(document.body),
         user,
         url: () => window.location.href,
+        language: () => document.documentElement.lang,
         historyLength: () => window.history.length,
         clipboardText: () => systemClipboard.readText(),
         formsSubmitted: () => [...submitted],

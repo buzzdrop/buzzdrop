@@ -63,9 +63,7 @@ msgid "This drop is gone"
 msgstr ""
 
 #: app.py
-msgid ""
-"It was already opened, it expired, or it never existed. Ask the sender "
-"for a new one."
+msgid "Ask the sender for a new one."
 msgstr ""
 
 #: app.py
@@ -442,9 +440,11 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: templates/_view_strings.html
-msgid ""
-"Could not reach the server — check the connection and press Decrypt to "
-"retry."
+msgid "Could not reach the server — check the connection and try again."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
 msgstr ""
 
 #: templates/_view_strings.html
@@ -452,9 +452,7 @@ msgid "This drop has already been opened."
 msgstr ""
 
 #: templates/_view_strings.html
-msgid ""
-"This drop is gone — it was deleted, has expired, or was locked by "
-"incorrect passwords."
+msgid "This drop is gone. Ask the sender for a new one."
 msgstr ""
 
 #: templates/_view_strings.html

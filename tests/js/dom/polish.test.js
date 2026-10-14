@@ -42,7 +42,7 @@ describe('in Polish', () => {
 
         expect(gone.language()).toBe('pl');
         expect(screen.getByRole('heading', { name: 'Tej przesyłki już nie ma' })).toBeVisible();
-        expect(screen.getByText('Została już otwarta, wygasła albo nigdy nie istniała. Poproś nadawcę o nową.')).toBeVisible();
+        expect(screen.getByText('Poproś nadawcę o nową.')).toBeVisible();
         expect(screen.getByRole('link', { name: 'Przejdź do Buzzdropa' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Zaloguj' })).toBeVisible();
     });
@@ -334,5 +334,33 @@ describe('in Polish', () => {
         await share.decryptWithPassword(DEFAULT_PASSWORD);
 
         expect(screen.getByRole('status')).toHaveTextContent('Tę przesyłkę już otwarto.');
+    });
+
+    it.each([
+        ['a drop locked before this try', { server: /** @type {const} */ ('burned') },
+            'Tej przesyłki już nie ma. Poproś nadawcę o nową.'],
+        ['an expired drop', { server: /** @type {const} */ ('expired') },
+            'Tej przesyłki już nie ma. Poproś nadawcę o nową.'],
+        ['a refused release', { server: /** @type {const} */ ('error') },
+            'Serwer odmówił otwarcia tej przesyłki.'],
+        ['a corrupted drop', { share: /** @type {const} */ ('corrupted') },
+            'Nieprawidłowe hasło albo uszkodzona przesyłka. Poproś nadawcę o ponowne wysłanie.'],
+        ['an unreachable server', { server: /** @type {const} */ ('unreachable') },
+            'Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie.'],
+        ['a rate-limited release', { server: /** @type {const} */ ('rate-limited') },
+            'Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie.'],
+    ])('says in Polish why %s cannot be opened', async (_, options, message) => {
+        const share = await openShare({ language: 'pl', ...options });
+
+        await share.decryptWithPassword(DEFAULT_PASSWORD);
+
+        expect(screen.getByRole('status')).toHaveTextContent(message);
+    });
+
+    it('says in Polish that a drop format is unsupported', async () => {
+        await openShare({ language: 'pl', share: 'unsupported-format' });
+
+        expect(screen.getByRole('status'))
+            .toHaveTextContent('Ta przesyłka ma nieobsługiwany format. Poproś nadawcę o ponowne wysłanie.');
     });
 });

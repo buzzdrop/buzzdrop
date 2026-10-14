@@ -132,11 +132,15 @@ describe('view page', () => {
         ['a wrong password on the last attempt', { maxAttempts: 1 }, WRONG_PASSWORD,
             'Too many incorrect passwords — this drop is locked.'],
         ['a burned share', { server: /** @type {const} */ ('burned') }, DEFAULT_PASSWORD,
-            'This drop is gone — it was deleted, has expired, or was locked by incorrect passwords.'],
+            'This drop is gone. Ask the sender for a new one.'],
+        ['an expired share', { server: /** @type {const} */ ('expired') }, DEFAULT_PASSWORD,
+            'This drop is gone. Ask the sender for a new one.'],
+        ['a rate-limited release', { server: /** @type {const} */ ('rate-limited') }, DEFAULT_PASSWORD,
+            'Too many tries in a short time — wait a minute and try again.'],
         ['a refused release', { server: /** @type {const} */ ('error') }, DEFAULT_PASSWORD,
             'The server refused to open this drop.'],
         ['an unreachable server', { server: /** @type {const} */ ('unreachable') }, DEFAULT_PASSWORD,
-            'Could not reach the server — check the connection and press Decrypt to retry.'],
+            'Could not reach the server — check the connection and try again.'],
         ['a decryption failure without a message', { share: /** @type {const} */ ('corrupted') }, DEFAULT_PASSWORD,
             'Incorrect password or corrupted drop. Ask the sender to send it again.'],
     ])('%s shows its message', async (_, options, password, message) => {
@@ -146,6 +150,17 @@ describe('view page', () => {
 
         expect(screen.getByRole('status')).toHaveTextContent(message);
         expect(queryProgressBar()).toBeNull();
+    });
+
+    it('a rate-limited release leaves the form open and reports nothing', async () => {
+        const share = await openShare({ server: 'rate-limited' });
+
+        await share.decryptWithPassword(DEFAULT_PASSWORD);
+        expect(passwordField()).toBeEnabled();
+        expect(share.reportsSent()).toEqual([]);
+
+        await share.decryptWithPassword(DEFAULT_PASSWORD);
+        expect(decryptedText()).toHaveTextContent(DEFAULT_MESSAGE);
     });
 
     it('a wrong password leaves the form open for another try', async () => {

@@ -36,8 +36,7 @@ export function openConfirmPage({ type = 'file', language = 'en', ...link } = {}
     const page = openPage(inLanguage(fixture, language), { path: addressOf(path, link) });
     initConfirmDownload(page.window.document, {});
     return {
-        /** The page's declared language, `<html lang>`. */
-        language: () => page.window.document.documentElement.lang,
+        language: page.language,
         url: page.url,
         historyLength: page.historyLength,
         /**

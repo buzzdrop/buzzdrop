@@ -81,7 +81,8 @@ export async function initView(root, deps) {
     const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
     const strings = pageStrings.section('view');
     const clipboardStrings = pageStrings.section('clipboard-feedback');
-    const lang = root.documentElement.lang;
+    // For the numbers in its words, like the plural forms readStrings picks.
+    const lang = root.documentElement.lang || 'en';
     const progress = createProgressBar(required(root, '#decryption-progress', 'div'));
     // Counts the attempts before the first one; after that the status line
     // says what is left, so the warning would only contradict it.
@@ -164,9 +165,11 @@ export async function initView(root, deps) {
         }
         case 'unreachable':
             return strings.text('unreachable');
+        case 'throttled':
+            return strings.text('throttled');
         case 'gone':
-            // 'missing' (a 404) means the drop was gone before this attempt
-            // (e.g. a link holder locked it); our own lockout is 'locked'.
+            // 'missing' means the drop was gone before this attempt (deleted,
+            // expired, or locked by a link holder); our own lockout is 'locked'.
             return strings.section('gone').text(result.reason);
         }
     }
@@ -205,7 +208,7 @@ export async function initView(root, deps) {
             return;
         }
         status.textContent = failureMessage(result);
-        if (result.kind === 'retry' || result.kind === 'unreachable') {
+        if (result.kind === 'retry' || result.kind === 'unreachable' || result.kind === 'throttled') {
             decryptBtn.disabled = false;
             passInput.disabled = false;
             passInput.select();

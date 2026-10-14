@@ -42,7 +42,7 @@ The server renders the BKV3 envelope salt into the view page config, so nothing 
   - Answers: 403 for a live unreleased share; 410 "claimed" for a released share without the winner's ticket; 410 "expired" once `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` have passed since the release; 410/404 for downloaded/expired/missing. An XHR gets JSON; a plain request gets a flash + redirect.
   - The ticket is consumed before the body streams, so a broken-off transfer cannot be resumed. This is deliberate: there is no re-download surface.
 - `/release/<file_id>` (POST): Server-gated key release. JSON `{v}` → `{h}` on a constant-time match inside one atomic `attempt_key_release` transaction.
-  - Answers: 403 on a wrong verifier; 410 after release or expiry; 429 on the attempt that locks the share; a uniform 404 when the file or share is missing, pending or burned. So with burn-on-lockout, calls after the lockout get 404.
+  - Answers: 403 on a wrong verifier; 410 after release or expiry (an expiry's carries `code: 'expired'`); 429 on the attempt that locks the share (no `code`, unlike the rate limit's 429 with `code: 'rate_limited'`); a uniform 404 when the file or share is missing, pending or burned. So with burn-on-lockout, calls after the lockout get 404.
   - Misses increment `attempts`; lockout comes at `KEY_RELEASE_MAX_ATTEMPTS` (burn is optional).
   - Rate-limited per `file_id`, not per IP. Sends `Cache-Control: no-store`.
 - `/report_decryption/<file_id>` (POST): Records whether client-side decryption succeeded. Requires the plaintext `receipt` matching the stored `receipt_hash` (403 otherwise), and only the first valid report takes effect. Unauthenticated but rate-limited per `file_id` via `REPORT_DECRYPTION_RATE_LIMIT`

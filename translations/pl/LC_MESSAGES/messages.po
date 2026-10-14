@@ -69,12 +69,8 @@ msgid "This drop is gone"
 msgstr "Tej przesyłki już nie ma"
 
 #: app.py
-msgid ""
-"It was already opened, it expired, or it never existed. Ask the sender "
-"for a new one."
-msgstr ""
-"Została już otwarta, wygasła albo nigdy nie istniała. Poproś nadawcę o "
-"nową."
+msgid "Ask the sender for a new one."
+msgstr "Poproś nadawcę o nową."
 
 #: app.py
 msgid "Logged in successfully"
@@ -466,24 +462,20 @@ msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
 msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
 
 #: templates/_view_strings.html
-msgid ""
-"Could not reach the server — check the connection and press Decrypt to "
-"retry."
-msgstr ""
-"Nie udało się połączyć z serwerem – sprawdź połączenie i naciśnij "
-"„Odszyfruj”, żeby spróbować ponownie."
+msgid "Could not reach the server — check the connection and try again."
+msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
+
+#: templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
 
 #: templates/_view_strings.html
 msgid "This drop has already been opened."
 msgstr "Tę przesyłkę już otwarto."
 
 #: templates/_view_strings.html
-msgid ""
-"This drop is gone — it was deleted, has expired, or was locked by "
-"incorrect passwords."
-msgstr ""
-"Tej przesyłki już nie ma – usunięto ją, wygasła albo zablokowano ją na "
-"stałe po nieprawidłowych hasłach."
+msgid "This drop is gone. Ask the sender for a new one."
+msgstr "Tej przesyłki już nie ma. Poproś nadawcę o nową."
 
 #: templates/_view_strings.html
 msgid "The server refused to open this drop."

@@ -24,6 +24,9 @@ const FIXTURES = {
     message: { fixture: 'view--text', fileId: '00000000-0000-4000-8000-0000000000f2' },
 };
 
+/** Picks among próba/próby/prób as the page's plural forms do. */
+const POLISH_PLURAL = new Intl.PluralRules('pl');
+
 /**
  * What the page calls the controls a test uses, in each language, and how it
  * counts the attempts before the first one.
@@ -40,9 +43,9 @@ const WORDS = {
         password: 'Hasło',
         decrypt: /^Odszyfruj i\u00a0/,
         copyText: 'Skopiuj tekst',
-        /** @param {number} count - 1 to 21, as no test needs more */
+        /** @param {number} count */
         attempts: (count) => (count === 1 ? 'Masz jedną próbę'
-            : `Masz ${count} ${count < 5 ? 'próby' : 'prób'}`),
+            : `Masz ${count} ${POLISH_PLURAL.select(count) === 'few' ? 'próby' : 'prób'}`),
     },
 };
 
@@ -67,10 +70,12 @@ const WRONG_VERIFIER = 'f'.repeat(64);
  * @property {'done' | 'in-progress'} [download] - in-progress holds the
  *   download until finishDownload()
  * @property {'ok' | 'unsupported-format' | 'corrupted'} [share] - DOM layer only
- * @property {'ok' | 'claimed' | 'burned' | 'error' | 'unreachable'} [server] -
+ * @property {'ok' | 'claimed' | 'burned' | 'expired' | 'rate-limited' | 'error' | 'unreachable'} [server] -
  *   claimed: someone already decrypted it; burned: someone's wrong guesses
- *   locked it and the server destroyed its key share; error: the server
- *   fails the release; unreachable: the release never arrives
+ *   locked it and the server destroyed its key share; expired: its expiry
+ *   passed before anyone opened it; rate-limited: the server's rate limit
+ *   turns the next release away; error: the server fails the release;
+ *   unreachable: the release never arrives
  * @property {number} [maxAttempts] - wrong passwords allowed before the share
  *   locks (KEY_RELEASE_MAX_ATTEMPTS, 1 like the server's default)
  * @property {import('./page.js').CryptoKind} [crypto] - real in the JS-integration layer
@@ -87,7 +92,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
 
 /**
  * @typedef {object} ShareView
- * @property {() => string} language - the page's declared language, `<html lang>`
+ * @property {Page['language']} language
  * @property {Page['url']} url
  * @property {Page['historyLength']} historyLength
  * @property {Page['clipboardText']} clipboardText
@@ -211,7 +216,7 @@ export async function openShare({
     };
 
     return {
-        language: () => window.document.documentElement.lang,
+        language: page.language,
         url: page.url,
         historyLength: page.historyLength,
         clipboardText: page.clipboardText,
@@ -273,6 +278,11 @@ async function arrange(backend, fileId, server, cryptoService, password, maxAtte
         await release(bytesToHex(verifier));
     } else if (server === 'burned') {
         for (let i = 0; i < maxAttempts; i += 1) await release(WRONG_VERIFIER);
+    } else if (server === 'expired') {
+        const file = backend.state.files.get(fileId);
+        if (file) file.expiryAt = new Date(0);
+    } else if (server === 'rate-limited') {
+        backend.failNext('/release', 429);
     } else if (server === 'error') {
         backend.failNext('/release', { status: 500, body: { error: 'Internal error' } });
     } else if (server === 'unreachable') {

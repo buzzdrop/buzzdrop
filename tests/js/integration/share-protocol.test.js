@@ -72,6 +72,33 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
         expect(fake.log.filter((request) => request.url.includes('/release/'))).toHaveLength(1);
     });
 
+    // The rate limit's 429 carries a code; the lockout's doesn't. A
+    // rate-limited try is not a lock, and reports nothing to the server.
+    it.each([['/release'], ['/download']])('a rate-limited %s can be tried again', async (route) => {
+        const fake = makeProtocolFake();
+        const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });
+        const sealed = saltedShare(fake, fileId);
+        fake.failNext(/** @type {'/release' | '/download'} */ (route), 429);
+
+        const first = await claimShare(sealed, PASSWORD, claimDeps(fake, fileId));
+        expect(first).toEqual({ kind: 'throttled' });
+        expect(fake.log.filter((request) => request.url.includes('/report_decryption/'))).toEqual([]);
+
+        const second = await claimShare(sealed, PASSWORD, claimDeps(fake, fileId));
+        expect(second.kind).toBe('opened');
+    });
+
+    it('an expired share is gone, not already opened', async () => {
+        const fake = makeProtocolFake();
+        const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });
+        const file = fake.state.files.get(fileId);
+        if (file) file.expiryAt = new Date(0);
+
+        const result = await claimShare(saltedShare(fake, fileId), PASSWORD, claimDeps(fake, fileId));
+
+        expect(result).toEqual({ kind: 'gone', reason: 'missing' });
+    });
+
     it('names each step of a claim as it starts; a retry skips to the download', async () => {
         const fake = makeProtocolFake();
         const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });

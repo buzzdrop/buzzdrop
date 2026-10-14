@@ -36,8 +36,7 @@ export function openSuccessPage({ clipboard = 'ok', type = 'file', language = 'e
     initSuccess(window.document, {});
     const words = WORDS[language];
     return {
-        /** The page's declared language, `<html lang>`. */
-        language: () => window.document.documentElement.lang,
+        language: page.language,
         url: page.url,
         historyLength: page.historyLength,
         clipboardText: page.clipboardText,

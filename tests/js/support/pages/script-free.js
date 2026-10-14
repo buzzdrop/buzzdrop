@@ -19,8 +19,7 @@ const GONE_PATH = '/view/00000000-0000-4000-8000-0000000000f1';
  */
 function opened(page) {
     return {
-        /** The page's declared language, `<html lang>`. */
-        language: () => page.window.document.documentElement.lang,
+        language: page.language,
         /** The document title the browser shows on the tab. */
         title: () => page.window.document.title,
     };

@@ -638,7 +638,7 @@ export function makeProtocolFake(opts = {}) {
         }
         if (isExpired(file)) {
             expire(fileId, file);
-            return json(410, { error: 'File has expired' });
+            return json(410, { error: 'File has expired', code: 'expired' });
         }
         if (key.v === v) {
             const h = /** @type {string} */ (key.h);
