@@ -134,3 +134,22 @@ def test_empty_source_code_url_falls_back_to_the_upstream_repository(value):
         env=env, capture_output=True, text=True, check=True,
         cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     assert result.stdout.strip() == 'https://github.com/buzzdrop/buzzdrop'
+
+
+def test_runtime_config_check_passes_on_the_shipped_config(app):
+    # Every key the routes read mid-request is present after from_object.
+    from config import check_runtime_config, REQUIRED_RUNTIME_KEYS
+    check_runtime_config(app.config)
+    for key in REQUIRED_RUNTIME_KEYS:
+        assert key in app.config
+
+
+def test_runtime_config_check_names_missing_keys():
+    # A config class (or a test app) missing a key the routes read would
+    # die as a 500 on first use; the startup check names it instead (#220).
+    from config import check_runtime_config, REQUIRED_RUNTIME_KEYS
+    loaded = {key: True for key in REQUIRED_RUNTIME_KEYS}
+    del loaded['KEY_RELEASE_BURN_ON_LOCKOUT']
+
+    with pytest.raises(ValueError, match='KEY_RELEASE_BURN_ON_LOCKOUT'):
+        check_runtime_config(loaded)

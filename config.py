@@ -327,6 +327,33 @@ class ProductionConfig(Config):
     REPORT_DECRYPTION_RATE_LIMIT = os.getenv('REPORT_DECRYPTION_RATE_LIMIT', '10 per minute')
 
 
+# Security-relevant keys the routes read straight from app.config (e.g.
+# current_app.config['KEY_RELEASE_MAX_ATTEMPTS'] in release_key). Validate()
+# inspects the config class, but app.config is what from_object actually
+# copied — a key missing there dies as a 500 on the first request that
+# reads it, so startup checks the loaded config instead (#220).
+REQUIRED_RUNTIME_KEYS = (
+    'KEY_RELEASE_MAX_ATTEMPTS',
+    'KEY_RELEASE_BURN_ON_LOCKOUT',
+    'KEY_RELEASE_RATE_LIMIT',
+    'KEY_RELEASE_DOWNLOAD_TTL_SECONDS',
+    'KEY_SHARE_PENDING_TTL_SECONDS',
+)
+
+
+def check_runtime_config(app_config) -> None:
+    """Fail at startup if a security-relevant key never made it into the
+    loaded app config.
+
+    Raises:
+        ValueError: naming every missing key.
+    """
+    missing = [key for key in REQUIRED_RUNTIME_KEYS if key not in app_config]
+    if missing:
+        raise ValueError(
+            'Missing required config keys: ' + ', '.join(missing))
+
+
 def get_config():
     """
     Get configuration based on FLASK_ENV environment variable.
