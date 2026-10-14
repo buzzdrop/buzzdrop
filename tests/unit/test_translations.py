@@ -272,8 +272,12 @@ def _drop_list(client):
             'downloaded_at': None, 'expiry_at': None, 'status': 'active', 'type': 'file'}
     store.insert({**base, 'id': str(uuid.uuid4()), 'original_name': 'secret.txt'})
     store.insert({**base, 'id': str(uuid.uuid4()), 'original_name': 'Secret Note', 'type': 'text'})
-    store.insert({**base, 'id': str(uuid.uuid4()), 'original_name': 'opened.txt',
-                  'downloaded_at': now_iso(), 'downloaded_by_ip': '203.0.113.7', 'expiry_at': now_iso()})
+    opened = {**base, 'downloaded_at': now_iso(), 'downloaded_by_ip': '203.0.113.7', 'expiry_at': now_iso()}
+    store.insert({**opened, 'id': str(uuid.uuid4()), 'original_name': 'opened.txt'})
+    store.insert({**opened, 'id': str(uuid.uuid4()), 'original_name': 'decrypted.txt', 'decryption_success': True})
+    store.insert({**opened, 'id': str(uuid.uuid4()), 'original_name': 'locked.txt', 'decryption_success': False})
+    store.insert({**base, 'id': str(uuid.uuid4()), 'original_name': 'expired.txt', 'status': 'expired',
+                  'expiry_at': now_iso()})
     client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
     return client.get(url_for('index'))
 
