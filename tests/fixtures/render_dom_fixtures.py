@@ -137,17 +137,18 @@ def render_all():
     fixtures.append(_render('index--empty', _client('testuser'), 'GET', '/'))
     fixtures.append(_render('index--admin', _client('adminuser'), 'GET', '/'))
     fixtures.append(_render('index--notification-email', _client('notifyuser'), 'GET', '/'))
+    # Polish (#268): one fixture per translated page, chosen the way a
+    # browser does, by Accept-Language.
+    fixtures.append(_render('index--anonymous.pl', _client(), 'GET', '/', language='pl'))
+    fixtures.append(_render('index--empty.pl', _client('testuser'), 'GET', '/', language='pl'))
 
     _reset(LISTED_FILES)
     fixtures.append(_render('index--files', _client('testuser'), 'GET', '/'))
+    fixtures.append(_render('index--files.pl', _client('testuser'), 'GET', '/', language='pl'))
 
     fixtures.append(_render('how_it_works--default', _client(), 'GET', '/how-it-works'))
 
-    # Polish (#268): one fixture per translated page, chosen the way a
-    # browser does, by Accept-Language.
     fixtures.append(_render('login--default.pl', _client(), 'GET', '/login', language='pl'))
-    fixtures.append(_render('index--anonymous.pl', _client(), 'GET', '/', language='pl'))
-    fixtures.append(_render('index--empty.pl', _client('testuser'), 'GET', '/', language='pl'))
     fixtures.append(_render('error--gone.pl', _client(), 'GET', f"/view/{SHARE_FILE['id']}",
                             status=404, language='pl'))
 

@@ -1,0 +1,20 @@
+{# The words features/shared-files/ writes in the drop list: the paging and
+   summary lines, a refreshed row's status and "Not yet", and a note's title
+   once its time is in the viewer's zone. `statuses` maps a status key to
+   its label (utils.status_labels, passed by the index route): the status
+   refresh reports a key, as the JSON stays English. The numbers are
+   formatted by the script (lib/format.js). #}
+{% set statuses = status_labels or {} %}
+{# Translators: the title of a note sent without a memo; %(time)s is when it was sent, e.g. "21:35". #}
+{% set note_title = script_gettext('Note · %(time)s') %}
+{# Translators: a Copy link button's accessible name; %(name)s is the drop's title. #}
+{% set copy_link_for = script_gettext('Copy link for %(name)s') %}
+{% set strings = {
+    'statuses': statuses,
+    'notYet': _('Not yet'),
+    'noteTitle': note_title,
+    'copyLinkFor': copy_link_for,
+    'noMatches': _('No matching drops'),
+    'page': script_gettext('Page %(page)s of %(total)s'),
+    'summary': plural_forms('Showing %(first)s–%(last)s of %(count)s drop', 'Showing %(first)s–%(last)s of %(count)s drops'),
+} %}

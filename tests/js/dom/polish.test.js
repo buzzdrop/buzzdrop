@@ -1,15 +1,18 @@
-import { getDefaultNormalizer } from '@testing-library/dom';
+import { getDefaultNormalizer, within } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
 import { openLanguageMenuPage } from '../support/pages/language-menu.js';
 import { openGonePage, openLoginPage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
 import { openLandingPage, openUploadPage } from '../support/pages/upload.js';
 
-// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288):
+// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288, #289):
 // the template's words, and the words a page script writes from its strings.
 
 /** Testing Library's text matching, minus collapsing a non-breaking space into a space. */
 const keepingNonBreakingSpaces = { normalizer: getDefaultNormalizer({ collapseWhitespace: false }) };
+
+/** A drop list row, by its drop's title. @param {string} name */
+const row = (name) => within(screen.getByRole('article', { name }));
 
 describe('in Polish', () => {
     it('serves the login page', () => {
@@ -175,5 +178,67 @@ describe('in Polish', () => {
         await upload.sendNote('kod do bramy', undefined, { server: 'too-large' });
 
         expect(upload.alerts()).toEqual(['Przesyłka jest za duża, żeby ją wysłać.']);
+    });
+
+    it('serves the drop list', async () => {
+        const upload = openUploadPage({ account: 'with-shares', language: 'pl', sharesPerPage: 10 });
+
+        expect(screen.getByRole('heading', { name: 'Twoje przesyłki' })).toBeVisible();
+        expect(screen.getByText('6 przesyłek')).toBeVisible();
+        expect(row('report.pdf').getByText('Aktywna')).toBeVisible();
+        expect(row('photo.png').getByText('Odszyfrowana')).toBeVisible();
+        expect(row('old.txt').getByText('Wygasła')).toBeVisible();
+        expect(row('locked.zip').getByText('Zablokowana')).toBeVisible();
+        expect(row('Notatka · 15:35').getByText('Bez terminu')).toBeVisible();
+        expect(row('report.pdf').getByText('Jeszcze nie')).toBeVisible();
+        expect(screen.getByRole('combobox', { name: 'Sortuj według' })).toHaveDisplayValue('Najnowsze wysłane');
+
+        expect(await upload.deleteShare('report.pdf', { confirm: false }))
+            .toEqual({ asked: ['Usunąć tę przesyłkę?'], deleted: false });
+    });
+
+    it('writes the drop list\'s times in Polish', () => {
+        openUploadPage({ account: 'with-shares', language: 'pl' });
+
+        // The viewer is in New York (vitest.config.js), where it is 06:00 on Jan 7.
+        expect(row('Notatka · 15:35').getByText('wczoraj')).toHaveAttribute('title', '6 sty 2025, 15:35 GMT-5');
+        expect(row('report.pdf').getByText('przedwczoraj')).toBeVisible();
+        expect(row('report.pdf').getByText('za 74 lata')).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Skopiuj link: Notatka · 15:35' })).toBeVisible();
+    });
+
+    it('counts the drop list\'s pages and drops in Polish', async () => {
+        const upload = openUploadPage({ account: 'with-shares', language: 'pl' });
+
+        // Six is a "many" count; four (the names with a dot) a "few" one.
+        expect(screen.getByText('Pokazano 1–5, łącznie 6 przesyłek')).toBeVisible();
+        expect(screen.getByText('Strona 1 z\u00a02', keepingNonBreakingSpaces)).toBeVisible();
+        await upload.nextSharesPage();
+        expect(screen.getByText('Pokazano 6–6, łącznie 6 przesyłek')).toBeVisible();
+
+        await upload.searchShares('.');
+        expect(screen.getByText('Pokazano 1–4, łącznie 4 przesyłki')).toBeVisible();
+
+        await upload.searchShares('photo');
+        expect(screen.getByText('Pokazano 1–1, łącznie 1 przesyłka')).toBeVisible();
+
+        await upload.searchShares('nic takiego');
+        expect(screen.getByText('Brak pasujących przesyłek')).toBeVisible();
+        expect(screen.getByText('Żadna przesyłka nie pasuje do wyszukiwania.')).toBeVisible();
+    });
+
+    it('names a refreshed status in Polish', async () => {
+        const upload = openUploadPage({
+            account: 'with-shares',
+            language: 'pl',
+            sharesPerPage: 2,
+            openedMeanwhile: [{ name: 'For the auditor', openedAt: '2025-01-07T10:00:00+01:00', openedFrom: '198.51.100.9' }],
+        });
+
+        await upload.nextSharesPage();
+
+        // The badge, and the label of the time it was opened.
+        await vi.waitFor(() => expect(row('For the auditor').getAllByText('Otwarta')).toHaveLength(2));
+        expect(row('For the auditor').getByText('2 godziny temu')).toBeVisible();
     });
 });

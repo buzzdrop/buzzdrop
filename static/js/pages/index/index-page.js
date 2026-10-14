@@ -493,5 +493,5 @@ export function initIndex(root, deps) {
     });
 
     // --- Shared Files Search & Pagination ---
-    initSharedFilesList(root, deps);
+    initSharedFilesList(root, { fetch: deps.fetch, now: deps.now, strings: pageStrings.section('shared-files') });
 }

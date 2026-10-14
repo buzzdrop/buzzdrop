@@ -20,9 +20,14 @@ export { screen } from './page.js';
  * @typedef {import('./page.js').Page} Page
  */
 
-/** The rows of the with-shares fixture, by name, newest upload first. */
+/**
+ * The rows of the with-shares fixture, by name, newest upload first. The
+ * note without a memo goes by its time, which the page writes in New York's
+ * zone (vitest.config.js) and in the page's language.
+ */
 const SHARE_IDS = {
-    'Text note · 15:35': '00000000-0000-4000-8000-000000000006',
+    'Note · 15:35': '00000000-0000-4000-8000-000000000006',
+    'Notatka · 15:35': '00000000-0000-4000-8000-000000000006',
     'report.pdf': '00000000-0000-4000-8000-000000000001',
     'For the auditor': '00000000-0000-4000-8000-000000000002',
     'photo.png': '00000000-0000-4000-8000-000000000003',
@@ -39,6 +44,18 @@ const COMPOSER_WORDS = {
     pl: {
         password: 'Hasło', fileField: 'Upuść tu plik albo wybierz go', noteTab: 'Notatka', fileTab: 'Plik',
         noteField: 'Treść notatki', generate: 'Wygeneruj', send: /^Wyślij (plik|notatkę)$/,
+    },
+};
+
+/** The drop list's controls, as each language names them. */
+const LIST_WORDS = {
+    en: {
+        search: 'Quick search', sort: 'Sort by', next: 'Next', previous: 'Previous', delete: 'Delete',
+        copyLinkFor: (/** @type {string} */ name) => `Copy link for ${name}`,
+    },
+    pl: {
+        search: 'Szybkie wyszukiwanie', sort: 'Sortuj według', next: 'Następna', previous: 'Poprzednia', delete: 'Usuń',
+        copyLinkFor: (/** @type {string} */ name) => `Skopiuj link: ${name}`,
     },
 };
 
@@ -89,7 +106,7 @@ export const PASSWORDS = {
  * @property {import('./page.js').CryptoKind} [crypto] - real in the JS-integration layer
  * @property {Fake} [backend] - the server uploads go to, when a test needs one it made
  * @property {'en' | 'pl'} [language] - the language the browser asked for; Polish is
- *   rendered for the no-shares account only
+ *   rendered for the no-shares and with-shares accounts
  */
 
 /**
@@ -206,7 +223,7 @@ export function openUploadPage({
                 id: SHARE_IDS[name],
                 status: 'active',
                 status_key: 'downloaded',
-                status_display: 'Downloaded',
+                status_display: 'Opened',
                 downloaded_at: displayTime(openedAt),
                 downloaded_at_iso: openedAt,
                 downloaded_by_ip: openedFrom,
@@ -226,6 +243,7 @@ export function openUploadPage({
     const progressShown = recordProgress(page);
 
     const words = COMPOSER_WORDS[language];
+    const listWords = LIST_WORDS[language];
     const passwordField = () => screen.getByLabelText(words.password);
     const fileField = () => screen.getByLabelText(words.fileField);
     /** @param {ShareName} name */
@@ -360,19 +378,19 @@ export function openUploadPage({
 
         /** @param {string} text */
         async searchShares(text) {
-            const field = screen.getByRole('searchbox', { name: 'Quick search' });
+            const field = screen.getByRole('searchbox', { name: listWords.search });
             await user.clear(field);
             await user.type(field, typeable(text));
         },
         /** @param {string} order - the option as the menu shows it */
-        sortSharesBy: (order) => user.selectOptions(screen.getByRole('combobox', { name: 'Sort by' }), order),
-        nextSharesPage: () => user.click(screen.getByRole('button', { name: 'Next' })),
-        previousSharesPage: () => user.click(screen.getByRole('button', { name: 'Previous' })),
+        sortSharesBy: (order) => user.selectOptions(screen.getByRole('combobox', { name: listWords.sort }), order),
+        nextSharesPage: () => user.click(screen.getByRole('button', { name: listWords.next })),
+        previousSharesPage: () => user.click(screen.getByRole('button', { name: listWords.previous })),
         /** The names of the shares on screen, in order. */
         sharesShown: () => screen.queryAllByRole('article').map((/** @type {HTMLElement} */ row) => computeAccessibleName(row)),
         /** @param {ShareName} name */
         copyShareLink: (name) => user.click(
-            within(shareRow(name)).getByRole('button', { name: `Copy link for ${name}` })),
+            within(shareRow(name)).getByRole('button', { name: listWords.copyLinkFor(name) })),
 
         /**
          * Press Delete on a share and answer the confirmation.
@@ -388,7 +406,7 @@ export function openUploadPage({
                 return confirm;
             };
             const before = page.formsSubmitted().length;
-            await user.click(within(shareRow(name)).getByRole('button', { name: 'Delete' }));
+            await user.click(within(shareRow(name)).getByRole('button', { name: listWords.delete }));
             return { asked, deleted: page.formsSubmitted().length > before };
         },
         /** The shares each status refresh asked about, by name. */

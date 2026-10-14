@@ -45,6 +45,7 @@ from utils import (
     format_file_timestamps,
     format_timestamp,
     enhance_file_display,
+    status_labels,
     allowed_file,
     get_client_ip,
     cleanup_orphaned_files,
@@ -697,7 +698,7 @@ def index():
         # Check expiry and format for display
         for f in user_files:
             check_and_handle_expiry(f)
-            enhance_file_display(f)
+            enhance_file_display(f, translate=_)
 
         # Get files shared with the current user
         shared_files = file_repo.get_shared_files(username)
@@ -709,6 +710,7 @@ def index():
             allowed_extensions=sorted(current_app.config.get('ALLOWED_EXTENSIONS')),
             max_content_length=current_app.config.get('MAX_CONTENT_LENGTH'),
             configured_notification_email=current_user.get('email'),
+            status_labels=status_labels(_),
         ))
         response.headers['Cache-Control'] = 'no-store'
         return response
@@ -1406,11 +1408,11 @@ def delete_file(file_id):
     file_info = file_repo.get_by_id(file_id)
 
     if not _is_valid_csrf_token():
-        flash('Invalid request')
+        flash(_('Invalid request'))
         return redirect(url_for('index'))
 
     if not file_info or file_info.get('uploaded_by') != current_username:
-        flash('File not found')
+        flash(_('Drop not found'))
         return redirect(url_for('index'))
 
     # Remove the file from storage if it hasn't been downloaded yet
@@ -1421,7 +1423,7 @@ def delete_file(file_id):
             pass
 
     file_repo.delete(file_id)
-    flash('File deleted successfully', 'success')
+    flash(_('Drop deleted'), 'success')
     return redirect(url_for('index'))
 
 

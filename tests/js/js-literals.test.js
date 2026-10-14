@@ -19,6 +19,8 @@ const CONVERTED_MODULES = [
     'features/clipboard-feedback/clipboard-feedback.js',
     'features/password-gate/password-gate.js',
     'features/share-protocol/share-protocol.js',
+    'features/shared-files/list.js',
+    'features/shared-files/shared-files.js',
     'lib/format.js',
     'lib/passphrase.js',
     'lib/strings.js',

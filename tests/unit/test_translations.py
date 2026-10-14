@@ -264,6 +264,24 @@ def _composer(client):
     return client.get(url_for('index'))
 
 
+def _drop_list(client):
+    """The composer with the drop list under it, one row per status."""
+    from app import get_files_store
+    store = get_files_store()
+    base = {'path': 'nonexistent', 'uploaded_by': 'testuser', 'created_at': now_iso(),
+            'downloaded_at': None, 'expiry_at': None, 'status': 'active', 'type': 'file'}
+    store.insert({**base, 'id': str(uuid.uuid4()), 'original_name': 'secret.txt'})
+    store.insert({**base, 'id': str(uuid.uuid4()), 'original_name': 'Secret Note', 'type': 'text'})
+    opened = {**base, 'downloaded_at': now_iso(), 'downloaded_by_ip': '203.0.113.7', 'expiry_at': now_iso()}
+    store.insert({**opened, 'id': str(uuid.uuid4()), 'original_name': 'opened.txt'})
+    store.insert({**opened, 'id': str(uuid.uuid4()), 'original_name': 'decrypted.txt', 'decryption_success': True})
+    store.insert({**opened, 'id': str(uuid.uuid4()), 'original_name': 'locked.txt', 'decryption_success': False})
+    store.insert({**base, 'id': str(uuid.uuid4()), 'original_name': 'expired.txt', 'status': 'expired',
+                  'expiry_at': now_iso()})
+    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    return client.get(url_for('index'))
+
+
 def _success_page(file_type):
     def render(client):
         from app import get_files_store
@@ -289,6 +307,7 @@ CONVERTED_PAGES = {
     'success, note': _success_page('text'),
     'landing page': _landing_page,
     'composer': _composer,
+    'drop list': _drop_list,
 }
 # Parts of a converted page that a later issue converts, as #id or .class.
 PENDING = {
