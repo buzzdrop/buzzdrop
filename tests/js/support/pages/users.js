@@ -4,7 +4,7 @@
 import { within } from '@testing-library/dom';
 import { expect } from 'vitest';
 import { initUsers } from '../../../../static/js/pages/users/users-page.js';
-import { openPage, waitUntil } from './page.js';
+import { inLanguage, openPage, waitUntil } from './page.js';
 
 export { screen } from './page.js';
 
@@ -23,18 +23,28 @@ export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
 
 /**
  * @typedef {object} UsersOptions
- * @property {'ok' | 'forbidden' | 'unexplained'} [server] - forbidden: the
- *   server refuses the token, as it does a session that is no longer an
- *   admin's; unexplained: it refuses with a code the page doesn't know
+ * @property {'ok' | 'forbidden' | 'unexplained' | 'signedOut' | 'unreachable'} [server] -
+ *   forbidden: the server refuses the token, as it does a session that is no
+ *   longer an admin's; unexplained: it refuses with a code the page doesn't
+ *   know; signedOut: the session has expired, so login_required redirects to
+ *   the login page and fetch, following it, gets that page with a 200;
+ *   unreachable: the request fails before any answer, as fetch does offline
+ * @property {'en' | 'pl'} [language] - the language the browser asked for
  */
+
+/** The card's buttons, as each language names them. */
+const WORDS = {
+    en: { generate: 'Generate token', copy: 'Copy token' },
+    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token' },
+};
 
 /**
  * Open the users page as the admin. Token requests are held until the driver
  * lets them through, so a test can look at the page while one is in flight.
  * @param {UsersOptions} [options]
  */
-export function openUsersPage({ server = 'ok' } = {}) {
-    const page = openPage('users--admin', { path: '/users' });
+export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
+    const page = openPage(inLanguage('users--admin', language), { path: '/users' });
     const { window, screen, user } = page;
     /** @type {SentRequest[]} */
     const sent = [];
@@ -50,7 +60,11 @@ export function openUsersPage({ server = 'ok' } = {}) {
             body: JSON.parse(String(init.body)),
         });
         await new Promise((resolve) => { held.push(() => resolve(undefined)); });
-        /** @type {Record<string, [number, object]>} */
+        if (server === 'unreachable') throw new window.TypeError('Failed to fetch');
+        if (server === 'signedOut') {
+            return new window.Response('<!DOCTYPE html><title>Login</title>', { status: 200, headers: { 'Content-Type': 'text/html' } });
+        }
+        /** @type {Record<Exclude<typeof server, 'unreachable' | 'signedOut'>, [number, object]>} */
         const answers = {
             ok: [201, { token: TOKEN, expires_at: EXPIRES_AT }],
             forbidden: [403, { error: 'Admin access required to generate tokens for other users', code: 'admin_required' }],
@@ -64,7 +78,7 @@ export function openUsersPage({ server = 'ok' } = {}) {
     /** @param {string} username */
     const card = (username) => within(screen.getByRole('region', { name: username }));
     /** @param {string} username */
-    const generateButton = (username) => card(username).getByRole('button', { name: 'Generate token' });
+    const generateButton = (username) => card(username).getByRole('button', { name: WORDS[language].generate });
 
     /**
      * Let the held token request through and wait for the page to settle.
@@ -77,6 +91,7 @@ export function openUsersPage({ server = 'ok' } = {}) {
     }
 
     return {
+        language: page.language,
         clipboardText: page.clipboardText,
         requestsSent: () => [...sent],
         /**
@@ -95,6 +110,6 @@ export function openUsersPage({ server = 'ok' } = {}) {
             await finishTokenRequest(username);
         },
         /** @param {string} username */
-        copyToken: (username) => user.click(card(username).getByRole('button', { name: 'Copy token' })),
+        copyToken: (username) => user.click(card(username).getByRole('button', { name: WORDS[language].copy })),
     };
 }

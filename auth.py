@@ -8,6 +8,9 @@ from functools import wraps, lru_cache
 from flask import g, session, flash, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Not `as _`: the decorators below unpack into `_`.
+from i18n import gettext
+
 
 def _is_bool_token(value: str) -> bool:
     return value.strip().lower() in {'true', 'false'}
@@ -186,7 +189,7 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         username, _ = _get_active_session_user()
         if not username:
-            flash('Please log in to access this page')
+            flash(gettext('Please log in to access this page'))
             return redirect(url_for('login'))
         return f(*args, **kwargs)
 
@@ -228,7 +231,7 @@ def api_auth_required(f):
         # No Bearer header: require session login
         username, _ = _get_active_session_user()
         if not username:
-            flash('Please log in to access this page')
+            flash(gettext('Please log in to access this page'))
             return redirect(url_for('login'))
         g.username = username
         return f(*args, **kwargs)
@@ -252,11 +255,11 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         username, user = _get_active_session_user()
         if not username:
-            flash('Please log in to access this page')
+            flash(gettext('Please log in to access this page'))
             return redirect(url_for('login'))
 
         if not user['is_admin']:
-            flash('Admin access required')
+            flash(gettext('Admin access required'))
             return redirect(url_for('index'))
         
         return f(*args, **kwargs)

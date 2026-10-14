@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from '_page_strings.html' import page_strings %}
 {% from '_clipboard_feedback_strings.html' import strings as clipboard_feedback_strings with context %}
+{% from '_users_strings.html' import strings as users_strings with context %}
 
 {% block content_width %}max-w-4xl{% endblock %}
 
@@ -11,34 +12,34 @@
 {% macro utc_time(stored, missing) %}{% if stored %}<time datetime="{{ stored|timestamp_iso or '' }}" translate="no">{{ stored|timestamp }}</time>{% else %}{{ missing }}{% endif %}{% endmacro %}
 <div class="mx-auto {{ self.content_width() }} space-y-8">
     <header class="animate-fade-up space-y-3">
-        <span class="eyebrow">Admin area</span>
-        <h1 class="text-3xl font-semibold tracking-tight text-white">User management</h1>
+        <span class="eyebrow">{{ _('Admin area') }}</span>
+        <h1 class="text-3xl font-semibold tracking-tight text-white">{{ _('User management') }}</h1>
     </header>
 
     <div class="alert-banner alert-banner-warning animate-fade-up delay-1">
         <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
         </svg>
-        <span>Users are managed through environment variables. To add or modify users, update the <code class="rounded-sm border border-white/10 bg-hive-850 px-1.5 py-0.5 text-xs">.env</code> file and redeploy.</span>
+        <span>{% trans %}Users are managed through environment variables. To add or modify users, update the <code class="rounded-sm border border-white/10 bg-hive-850 px-1.5 py-0.5 text-xs">.env</code> file and redeploy.{% endtrans %}</span>
     </div>
 
     <section class="surface-card animate-fade-up delay-2 p-6 sm:p-8">
-        <h2 class="text-lg font-semibold tracking-tight text-white">System users</h2>
+        <h2 class="text-lg font-semibold tracking-tight text-white">{{ _('System users') }}</h2>
         <div class="mt-5 space-y-3">
             {% for username, user in users.items() %}
             <article class="dashboard-item">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="hex-step text-xs">{{ username[0]|upper }}</span>
+                        <span class="hex-step text-xs" translate="no">{{ username[0]|upper }}</span>
                         <div>
                             <p class="text-sm font-semibold text-white">{{ username }}</p>
-                            <p class="mt-0.5 text-xs text-slate-500">Configured at deploy time through environment variables.</p>
+                            <p class="mt-0.5 text-xs text-slate-500">{{ _('Configured at deploy time through environment variables.') }}</p>
                         </div>
                     </div>
                     {% if user.is_admin %}
-                    <span class="status-badge status-badge-green">Admin</span>
+                    <span class="status-badge status-badge-green">{{ _('Admin') }}</span>
                     {% else %}
-                    <span class="status-badge status-badge-slate">User</span>
+                    <span class="status-badge status-badge-slate">{{ _('User') }}</span>
                     {% endif %}
                 </div>
             </article>
@@ -47,7 +48,7 @@
     </section>
 
     <section class="surface-card animate-fade-up delay-3 p-6 sm:p-8">
-        <h2 class="text-lg font-semibold tracking-tight text-white">Active API tokens</h2>
+        <h2 class="text-lg font-semibold tracking-tight text-white">{{ _('Active API tokens') }}</h2>
         <div class="mt-5 space-y-4">
             {% for username, user in users.items() %}
             {% set user_tokens = tokens_by_user.get(username, []) %}
@@ -55,18 +56,25 @@
                 <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
                         <h3 id="token-card-{{ loop.index }}" class="text-sm font-semibold text-white">{{ username }}</h3>
-                        <p class="text-xs text-slate-500">{{ 'Admin' if user.is_admin else 'User' }}</p>
+                        <p class="text-xs text-slate-500">{{ _('Admin') if user.is_admin else _('User') }}</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="{{ username }}">Generate token</button>
-                        <span class="status-badge status-badge-slate">{{ user_tokens|length }} token{{ '' if user_tokens|length == 1 else 's' }}</span>
+                        <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="{{ username }}">{{ _('Generate token') }}</button>
+                        <span class="status-badge status-badge-slate">{{ ngettext('%(num)s token', '%(num)s tokens', user_tokens|length) }}</span>
                     </div>
                 </div>
                 <div class="token-result border-b border-white/6 px-4 py-4" hidden>
-                    <p class="text-xs text-slate-400">New token for <span class="font-semibold text-white">{{ username }}</span> — shown once. Store it now.</p>
+                    <p class="text-xs text-slate-400">{% trans %}New token for <span class="font-semibold text-white">{{ username }}</span> — shown once. Store it now.{% endtrans %}</p>
                     <div class="copy-field mt-3">
-                        <input type="text" readonly aria-label="New API token" class="generated-token-input field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
-                        <button type="button" aria-label="Copy token" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5"><span class="copy-label">Copy</span></button>
+                        <input type="text" readonly aria-label="{{ _('New API token') }}" class="generated-token-input field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
+                        <button type="button" aria-label="{{ _('Copy token') }}" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5">
+                            <span class="btn-label">
+                                <span class="copy-label">{{ _('Copy') }}</span>
+                                <span class="btn-label-sizer" data-label="{{ _('Copy') }}" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.copied }}" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.failed }}" aria-hidden="true"></span>
+                            </span>
+                        </button>
                     </div>
                     <p class="token-expires mt-2 text-xs text-slate-500"></p>
                     <p class="token-error mt-2 text-xs text-red-400" role="alert" hidden></p>
@@ -76,22 +84,22 @@
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="border-b border-white/6">
-                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Created</th>
-                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Last used</th>
-                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Expires</th>
-                                <th class="px-4 py-3 text-right text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Actions</th>
+                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ _('Created') }}</th>
+                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ _('Last used') }}</th>
+                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ _('Expires') }}</th>
+                                <th class="px-4 py-3 text-right text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ _('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for token in user_tokens %}
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
                                 <td class="px-4 py-3 tabular-nums text-slate-300">{{ utc_time(token.created_at, '—') }}</td>
-                                <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.last_used_at, 'Never') }}</td>
-                                <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.expires_at, 'Never') }}</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.last_used_at, _('Never')) }}</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.expires_at, _('Never')) }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <form method="post" action="{{ url_for('revoke_api_token_route', token_id=token.id) }}" class="inline-block">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Revoke</button>
+                                        <button type="submit" class="btn-danger px-3 py-1.5 text-xs">{{ _('Revoke') }}</button>
                                     </form>
                                 </td>
                             </tr>
@@ -100,14 +108,14 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="px-4 py-4 text-sm text-slate-500">No active API tokens.</p>
+                <p class="px-4 py-4 text-sm text-slate-500">{{ _('No active API tokens.') }}</p>
                 {% endif %}
             </section>
             {% endfor %}
         </div>
-        <p id="copy-status" class="sr-only" role="status" aria-label="Clipboard"></p>
+        <p id="copy-status" class="sr-only" role="status" aria-label="{{ _('Clipboard') }}"></p>
     </section>
 </div>
-{{ page_strings({'clipboard-feedback': clipboard_feedback_strings}) }}
+{{ page_strings({'clipboard-feedback': clipboard_feedback_strings, 'users': users_strings}) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/users/entry.js') }}" integrity="{{ sri_hash('js/pages/users/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}

@@ -161,6 +161,7 @@ def render_all():
 
     _reset([], API_TOKENS)
     fixtures.append(_render('users--admin', _client('adminuser'), 'GET', '/users'))
+    fixtures.append(_render('users--admin.pl', _client('adminuser'), 'GET', '/users', language='pl'))
 
     for kind, record in (('file', SHARE_FILE), ('text', SHARE_TEXT)):
         _reset([record])

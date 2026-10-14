@@ -48,6 +48,24 @@ describe('users page', () => {
         expect(card().queryByText(/Something new went wrong/)).toBeNull();
     });
 
+    it('an unreachable server shows the generic message, not the browser\'s', async () => {
+        const users = openUsersPage({ server: 'unreachable' });
+
+        await users.generateToken('testuser');
+
+        expect(card().getByRole('alert')).toHaveTextContent('Could not generate a token. Please try again.');
+        expect(card().queryByText(/Failed to fetch/)).toBeNull();
+    });
+
+    it('a signed-out session shows the generic message, not an empty token', async () => {
+        const users = openUsersPage({ server: 'signedOut' });
+
+        await users.generateToken('testuser');
+
+        expect(card().getByRole('alert')).toHaveTextContent('Could not generate a token. Please try again.');
+        expect(card().getByRole('textbox', { name: 'New API token' })).toHaveValue('');
+    });
+
     it('the request carries the CSRF header', async () => {
         const users = openUsersPage();
 

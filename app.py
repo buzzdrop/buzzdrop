@@ -939,19 +939,19 @@ def revoke_api_token_route(token_id):
     if not token:
         if wants_json:
             return {'error': 'Token not found'}, 404
-        flash('API token not found')
+        flash(_('API token not found'))
         return redirect(url_for('manage_users' if current_user.get('is_admin', False) else 'index'))
 
     if token['username'] != current_username and not current_user.get('is_admin', False):
         if wants_json:
             return {'error': 'Admin access required to revoke tokens for other users'}, 403
-        flash('Admin access required')
+        flash(_('Admin access required'))
         return redirect(url_for('index'))
 
     if not _is_valid_csrf_token():
         if wants_json:
             return {'error': 'CSRF validation failed'}, 403
-        flash('Invalid request')
+        flash(_('Invalid request'))
         return redirect(url_for('manage_users' if current_user.get('is_admin', False) else 'index'))
 
     revoke_api_token_by_id(token_id)
@@ -959,7 +959,7 @@ def revoke_api_token_route(token_id):
     if wants_json:
         return {'status': 'revoked'}, 200
 
-    flash('API token revoked', 'success')
+    flash(_('API token revoked'), 'success')
     return redirect(url_for('manage_users' if current_user.get('is_admin', False) else 'index'))
 
 

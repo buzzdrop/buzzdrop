@@ -29,6 +29,7 @@ const CONVERTED_MODULES = [
     'pages/index/index-page.js',
     'pages/language-menu/language-menu-page.js',
     'pages/success/success-page.js',
+    'pages/users/users-page.js',
     'pages/view/view-page.js',
 ];
 
