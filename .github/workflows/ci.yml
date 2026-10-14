@@ -37,11 +37,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # One decoy per secret/state pattern in .dockerignore, some nested.
+      # One decoy per secret/state pattern in .dockerignore (each caught by
+      # exactly one line, so dropping a pattern turns the job red), plus a
+      # few for representative dev clutter.
       DECOYS: >-
         .env .env.local .envrc cli/.env
         buzzdrop.db buzzdrop.db-wal buzzdrop.db.bak tests/stray.db local.sqlite3 db.json
-        data/buzzdrop.db uploads/blob instance/config.py server.pem server.key
+        data/state.json uploads/blob instance/config.py server.pem server.key
         playwright-report/index.html test-results/trace.zip
         .claude/settings.json .venv/pyvenv.cfg node_modules/stray.js
     steps:
