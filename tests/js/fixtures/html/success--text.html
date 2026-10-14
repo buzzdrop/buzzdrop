@@ -177,7 +177,7 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div id="password-block">
                         <label for="password-display" class="field-label">Password</label>
                         <div class="copy-field">
                             <input type="password" id="password-display" readonly class="field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
@@ -205,7 +205,12 @@
                 </div>
             </section>
 
-            <section aria-labelledby="one-click-heading" class="rounded-2xl border border-white/[0.07] bg-white/2 p-5">
+            
+            <p id="no-password-note" class="rounded-2xl border border-white/[0.07] bg-white/2 p-5 text-xs leading-5 text-slate-400" hidden>
+                The password is shown once, right after the upload, and is never stored. The link above still works — copy it here or from Your drops; if the password is lost, create a new drop.
+            </p>
+
+            <section id="one-click-section" aria-labelledby="one-click-heading" class="rounded-2xl border border-white/[0.07] bg-white/2 p-5">
                 <h2 id="one-click-heading" class="text-sm font-semibold text-white">One-click link</h2>
                 <p class="mt-2 text-xs leading-5 text-slate-400">
                     The password rides along in the URL fragment. Convenient, but anyone holding the link holds the key — this trades away the two-channel separation recommended above.

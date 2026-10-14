@@ -44,6 +44,9 @@ export function initSuccess(root, deps) {
 
     // One region for the page announces every copy; the button flash is visual.
     const copyStatus = required(root, '#copy-status', 'p');
+    const passwordBlock = required(root, '#password-block', 'div');
+    const oneClickSection = required(root, '#one-click-section', 'section');
+    const noPasswordNote = required(root, '#no-password-note', 'p');
 
     /** The one-click link, once the fragment has supplied a password. */
     let oneClickLink = '';
@@ -102,5 +105,13 @@ export function initSuccess(root, deps) {
         oneClickLink = buildOneClickLink(shareLink.value, pwd);
         oneClickDisplay.hidden = false;
         copyOneClickBtn.disabled = false;
+    } else {
+        // No fragment — a reload, a typed URL or history: the password was
+        // shown once and never reaches the server, so rather than render
+        // empty fields the page swaps them for the note (#233). The share
+        // link stays; it is safe to copy alone.
+        passwordBlock.hidden = true;
+        oneClickSection.hidden = true;
+        noPasswordNote.hidden = false;
     }
 }

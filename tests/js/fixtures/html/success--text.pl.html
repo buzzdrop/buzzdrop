@@ -177,7 +177,7 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div id="password-block">
                         <label for="password-display" class="field-label">Hasło</label>
                         <div class="copy-field">
                             <input type="password" id="password-display" readonly class="field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
@@ -205,7 +205,12 @@
                 </div>
             </section>
 
-            <section aria-labelledby="one-click-heading" class="rounded-2xl border border-white/[0.07] bg-white/2 p-5">
+            
+            <p id="no-password-note" class="rounded-2xl border border-white/[0.07] bg-white/2 p-5 text-xs leading-5 text-slate-400" hidden>
+                Hasło pokazujemy tylko raz, zaraz po wysłaniu, i nigdzie go nie zapisujemy. Link powyżej nadal działa — skopiuj go stąd albo z listy „Twoje przesyłki”; jeśli hasło zaginęło, utwórz nową przesyłkę.
+            </p>
+
+            <section id="one-click-section" aria-labelledby="one-click-heading" class="rounded-2xl border border-white/[0.07] bg-white/2 p-5">
                 <h2 id="one-click-heading" class="text-sm font-semibold text-white">Link z hasłem</h2>
                 <p class="mt-2 text-xs leading-5 text-slate-400">
                     Hasło jest zapisane w adresie, po znaku #. To wygodne, ale kto ma ten link, ma też hasło – tracisz rozdzielenie na dwa kanały, zalecane powyżej.
