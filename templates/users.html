@@ -6,8 +6,9 @@
 
 {% block content %}
 {# Token times render in UTC as machine text (translate="no"); the page script
-   rewrites each in the viewer's zone and the page's language. #}
-{% macro utc_time(stored) %}<time datetime="{{ stored|timestamp_iso or '' }}" translate="no">{{ stored|timestamp }}</time>{% endmacro %}
+   rewrites each in the viewer's zone and the page's language. A missing time
+   shows `missing` instead. #}
+{% macro utc_time(stored, missing) %}{% if stored %}<time datetime="{{ stored|timestamp_iso or '' }}" translate="no">{{ stored|timestamp }}</time>{% else %}{{ missing }}{% endif %}{% endmacro %}
 <div class="mx-auto {{ self.content_width() }} space-y-8">
     <header class="animate-fade-up space-y-3">
         <span class="eyebrow">Admin area</span>
@@ -84,9 +85,9 @@
                         <tbody>
                             {% for token in user_tokens %}
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
-                                <td class="px-4 py-3 tabular-nums text-slate-300">{{ utc_time(token.created_at) }}</td>
-                                <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.last_used_at) if token.last_used_at else 'Never' }}</td>
-                                <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.expires_at) }}</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-300">{{ utc_time(token.created_at, '—') }}</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.last_used_at, 'Never') }}</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.expires_at, 'Never') }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <form method="post" action="{{ url_for('revoke_api_token_route', token_id=token.id) }}" class="inline-block">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

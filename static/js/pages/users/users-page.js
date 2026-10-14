@@ -53,9 +53,14 @@ export function initUsers(root, deps) {
     // In the page's language and the viewer's zone: the server writes UTC.
     /** @type {import('../../lib/format.js').TimeFormat} */
     const format = { locale: root.documentElement.lang || 'en' };
+    /**
+     * @param {string} iso - an offset-aware timestamp from the server
+     * @param {string} fallback - shown when `iso` doesn't parse
+     */
+    const inViewerZone = (iso, fallback) => fullTime(parseTimestamp(iso), format) ?? fallback;
 
     /** @type {NodeListOf<HTMLTimeElement>} */ (root.querySelectorAll('time[datetime]')).forEach((time) => {
-        time.textContent = fullTime(parseTimestamp(time.dateTime), format) ?? time.textContent;
+        time.textContent = inViewerZone(time.dateTime, time.textContent ?? '');
     });
 
     /** @param {HTMLButtonElement} button */
@@ -83,7 +88,7 @@ export function initUsers(root, deps) {
             // A 2xx always carries the token.
             input.value = /** @type {string} */ (body.token);
             const expiresAt = /** @type {string} */ (body.expires_at);
-            expires.textContent = `Expires ${fullTime(parseTimestamp(expiresAt), format) ?? expiresAt}. Reload to see it in the list below.`;
+            expires.textContent = `Expires ${inViewerZone(expiresAt, expiresAt)}. Reload to see it in the list below.`;
         } catch (err) {
             error.hidden = false;
             error.textContent = /** @type {Error} */ (err).message;
