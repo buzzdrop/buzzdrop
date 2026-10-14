@@ -230,6 +230,14 @@ def test_flash_for_a_refused_open_notification(
     assert_flashed(client, response, message)
 
 
+def test_flash_for_an_unmapped_code(client, key_release_upload, broken_storage, monkeypatch):
+    login(client)
+    flashes = {k: v for k, v in app_module.UPLOAD_REFUSAL_FLASHES.items() if k != 'upload_failed'}
+    monkeypatch.setattr(app_module, 'UPLOAD_REFUSAL_FLASHES', flashes)
+    _id, _h, _r, response = key_release_upload(xhr=False)
+    assert_flashed(client, response, 'The server would not accept the drop. Please try again.')
+
+
 def test_flash_in_polish(client, key_release_upload, broken_storage):
     login(client)
     client.set_cookie('lang', 'pl')

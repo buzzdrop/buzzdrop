@@ -90,7 +90,8 @@ limiter = Limiter(
 # What /upload flashes for each refusal `code` when the request isn't the
 # page's XHR (#305). The JSON `error` stays English for API clients, while
 # these follow the glossary (CONTEXT.md) and match the composer's
-# `refusals` in templates/_composer_strings.html.
+# `refusals` in templates/_composer_strings.html. A code missing here
+# falls back to the generic refusal, as the composer's does.
 _DROP_NOT_ACCEPTED = i18n.gettext_noop('The server would not accept the drop. Please try again.')
 UPLOAD_REFUSAL_FLASHES = {
     'invalid_upload': _DROP_NOT_ACCEPTED,
@@ -1133,7 +1134,7 @@ def upload_file():
     def _fail(error, code, status=400):
         if wants_json:
             return {'error': error, 'code': code}, status
-        flash(_(UPLOAD_REFUSAL_FLASHES[code]))
+        flash(_(UPLOAD_REFUSAL_FLASHES.get(code, _DROP_NOT_ACCEPTED)))
         return redirect(url_for('index'))
 
     try:
