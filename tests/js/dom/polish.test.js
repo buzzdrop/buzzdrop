@@ -1,11 +1,13 @@
 import { getDefaultNormalizer, within } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
+import { openConfirmPage } from '../support/pages/confirm.js';
 import { openLanguageMenuPage } from '../support/pages/language-menu.js';
 import { openGonePage, openLoginPage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
 import { openLandingPage, openUploadPage } from '../support/pages/upload.js';
+import { DEFAULT_MESSAGE, DEFAULT_PASSWORD, openShare } from '../support/pages/view.js';
 
-// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288, #289):
+// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288, #289, #290):
 // the template's words, and the words a page script writes from its strings.
 
 /** Testing Library's text matching, minus collapsing a non-breaking space into a space. */
@@ -240,5 +242,89 @@ describe('in Polish', () => {
         // The badge, and the label of the time it was opened.
         await vi.waitFor(() => expect(row('For the auditor').getAllByText('Otwarta')).toHaveLength(2));
         expect(row('For the auditor').getByText('2 godziny temu')).toBeVisible();
+    });
+
+    it('serves the confirm page for a file', () => {
+        const confirm = openConfirmPage({ language: 'pl' });
+
+        expect(confirm.language()).toBe('pl');
+        expect(screen.getByRole('heading', { level: 1, name: 'Pobrać plik?' })).toBeVisible();
+        expect(screen.getByText('Ten plik można otworzyć tylko raz.')).toBeVisible();
+        expect(screen.getByText(/^Pierwsze poprawne hasło otwiera przesyłkę/)).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Przejdź do pobierania' })).toBeVisible();
+    });
+
+    it('serves the confirm page for a note', () => {
+        openConfirmPage({ language: 'pl', type: 'message' });
+
+        expect(screen.getByRole('heading', { level: 1, name: 'Otworzyć notatkę?' })).toBeVisible();
+        expect(screen.getByText('Tę notatkę można otworzyć tylko raz.')).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Przejdź do notatki' })).toBeVisible();
+    });
+
+    it('says in Polish that a one-click link carries the password', () => {
+        openConfirmPage({ language: 'pl', link: 'one-click' });
+
+        expect(screen.getByText(/^Ten link zawiera już hasło/)).toBeVisible();
+    });
+
+    it('serves the view page for a note', async () => {
+        const share = await openShare({ language: 'pl' });
+
+        expect(share.language()).toBe('pl');
+        expect(screen.getByRole('heading', { level: 1, name: 'Zaszyfrowana notatka' })).toBeVisible();
+        expect(screen.getByRole('status')).toHaveTextContent('Wpisz hasło, żeby wyświetlić tę notatkę.');
+        expect(screen.getByLabelText('Hasło'))
+            .toHaveAccessibleDescription('Masz jedną próbę – sprawdź hasło, zanim przejdziesz dalej.');
+        expect(screen.getByRole('button', { name: 'Odszyfruj i\u00a0wyświetl' })).toBeVisible();
+    });
+
+    it('opens a note in Polish', async () => {
+        const share = await openShare({ language: 'pl' });
+
+        await share.decryptWithPassword(DEFAULT_PASSWORD);
+
+        expect(screen.getByRole('status')).toHaveTextContent('Odszyfrowano tekst.');
+        expect(screen.getByRole('region', { name: 'Odszyfrowany tekst' })).toHaveTextContent(DEFAULT_MESSAGE);
+        expect(share.progressShown()).toEqual(['Sprawdzanie hasła…', 'Pobieranie klucza…', 'Pobieranie… 0%',
+            'Pobieranie… 100%', 'Odszyfrowywanie…']);
+    });
+
+    it('serves the view page for a file reached by a one-click link', async () => {
+        const share = await openShare({ language: 'pl', type: 'file', link: 'one-click' });
+
+        expect(screen.getByRole('heading', { level: 1, name: 'Zaszyfrowany plik' })).toBeVisible();
+        expect(screen.getByText('Link zawierał hasło – wystarczy nacisnąć „Odszyfruj i pobierz”.')).toBeVisible();
+
+        await share.decryptWithPassword(DEFAULT_PASSWORD);
+
+        expect(screen.getByRole('status')).toHaveTextContent('Pobieranie zakończone.');
+    });
+
+    it('counts the attempts left in Polish', async () => {
+        const share = await openShare({ language: 'pl', maxAttempts: 3 });
+
+        expect(screen.getByText(/^Masz 3 próby/)).toBeVisible();
+        await share.decryptWithPassword('wrong');
+        expect(screen.getByRole('status')).toHaveTextContent('Nieprawidłowe hasło. Zostały 2 próby.');
+        await share.decryptWithPassword('wrong again');
+        expect(screen.getByRole('status')).toHaveTextContent('Nieprawidłowe hasło. Została 1 próba.');
+    });
+
+    it('says in Polish that a lock is for good', async () => {
+        const share = await openShare({ language: 'pl' });
+
+        await share.decryptWithPassword('wrong');
+
+        expect(screen.getByRole('status'))
+            .toHaveTextContent('Za dużo nieprawidłowych haseł – przesyłka zablokowana na stałe.');
+    });
+
+    it('says in Polish that someone else opened the drop', async () => {
+        const share = await openShare({ language: 'pl', server: 'claimed' });
+
+        await share.decryptWithPassword(DEFAULT_PASSWORD);
+
+        expect(screen.getByRole('status')).toHaveTextContent('Tę przesyłkę już otwarto.');
     });
 });

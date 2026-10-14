@@ -24,6 +24,28 @@ const FIXTURES = {
     message: { fixture: 'view--text', fileId: '00000000-0000-4000-8000-0000000000f2' },
 };
 
+/**
+ * What the page calls the controls a test uses, in each language, and how it
+ * counts the attempts before the first one.
+ */
+const WORDS = {
+    en: {
+        password: 'Password',
+        decrypt: /^Decrypt and /,
+        copyText: 'Copy text',
+        /** @param {number} count */
+        attempts: (count) => (count === 1 ? 'You have one attempt' : `You have ${count} attempts`),
+    },
+    pl: {
+        password: 'Hasło',
+        decrypt: /^Odszyfruj i\u00a0/,
+        copyText: 'Skopiuj tekst',
+        /** @param {number} count - 1 to 21, as no test needs more */
+        attempts: (count) => (count === 1 ? 'Masz jedną próbę'
+            : `Masz ${count} ${count < 5 ? 'próby' : 'prób'}`),
+    },
+};
+
 /** The salt render_dom_fixtures.py writes into the fixtures' config. */
 const FIXTURE_SALT = 'aa'.repeat(16);
 
@@ -36,6 +58,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
 /**
  * @typedef {object} ShareOptions
  * @property {'file' | 'message'} [type]
+ * @property {'en' | 'pl'} [language] - the language the browser asked for
  * @property {import('./page.js').LinkKind} [link]
  * @property {string} [query] - a query string the link carries, e.g. 'x=1'
  * @property {string} [password] - the share's password
@@ -64,6 +87,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
 
 /**
  * @typedef {object} ShareView
+ * @property {() => string} language - the page's declared language, `<html lang>`
  * @property {Page['url']} url
  * @property {Page['historyLength']} historyLength
  * @property {Page['clipboardText']} clipboardText
@@ -91,6 +115,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
  */
 export async function openShare({
     type = 'message',
+    language = 'en',
     link = 'plain',
     query,
     password = DEFAULT_PASSWORD,
@@ -119,14 +144,14 @@ export async function openShare({
     // real salt — the verifier the page derives is wrong otherwise.
     const shareSalt = bytesToHex(
         (backend.state.files.get(fileId)?.blob ?? new Uint8Array(20)).slice(4, 20));
-    const page = openPage(fixture, {
+    const words = WORDS[language];
+    const page = openPage(`${fixture}${language === 'en' ? '' : `.${language}`}`, {
         path: addressOf(`/view/${fileId}/confirm`, { link, password, query }),
         clipboard,
         // As the server renders it for this share.
         edit: (html) => replaceInFixture(
             replaceInFixture(replaceInFixture(html, fixtureId, fileId),
-                'You have one attempt',
-                maxAttempts === 1 ? 'You have one attempt' : `You have ${maxAttempts} attempts`),
+                words.attempts(1), words.attempts(maxAttempts)),
             FIXTURE_SALT, shareSalt),
     });
     const { window, screen, user } = page;
@@ -162,8 +187,8 @@ export async function openShare({
     await ready;
 
     const status = () => screen.getByRole('status');
-    const passwordField = () => screen.getByLabelText('Password');
-    const decryptButton = () => screen.getByRole('button', { name: /^Decrypt and / });
+    const passwordField = () => screen.getByLabelText(words.password);
+    const decryptButton = () => screen.getByRole('button', { name: words.decrypt });
 
     /**
      * Try a password and wait until the status line reports the outcome. It
@@ -186,6 +211,7 @@ export async function openShare({
     };
 
     return {
+        language: () => window.document.documentElement.lang,
         url: page.url,
         historyLength: page.historyLength,
         clipboardText: page.clipboardText,
@@ -198,7 +224,7 @@ export async function openShare({
         decryptWithEnter: (password) => attempt(async (field) => {
             await user.type(field, `${typeable(password)}{Enter}`);
         }),
-        copyMessage: () => user.click(screen.getByRole('button', { name: 'Copy text' })),
+        copyMessage: () => user.click(screen.getByRole('button', { name: words.copyText })),
         async finishDownload() {
             finishDownload();
             await ready;

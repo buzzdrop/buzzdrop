@@ -5,17 +5,39 @@ import { addressOf, openPage } from './page.js';
 
 export { screen } from './page.js';
 
-/** The share the fixture was rendered for. */
-export const SHARE_PATH = '/view/00000000-0000-4000-8000-0000000000f1';
+/** The Proceed button, as each language names it for each kind of share. */
+const PROCEED = {
+    en: { file: 'Proceed to download', message: 'Proceed to view' },
+    pl: { file: 'Przejdź do pobierania', message: 'Przejdź do notatki' },
+};
+
+/** The share each fixture was rendered for. */
+const FIXTURES = {
+    file: { fixture: 'confirm_download--file', path: '/view/00000000-0000-4000-8000-0000000000f1' },
+    message: { fixture: 'confirm_download--text', path: '/view/00000000-0000-4000-8000-0000000000f2' },
+};
+
+export const SHARE_PATH = FIXTURES.file.path;
 
 /**
- * Open the confirm page the way a share link lands on it.
- * @param {import('./page.js').AddressOptions} [link] - the share link
+ * @typedef {import('./page.js').AddressOptions & {
+ *   type?: 'file' | 'message',
+ *   language?: 'en' | 'pl',
+ * }} ConfirmOptions
  */
-export function openConfirmPage(link = {}) {
-    const page = openPage('confirm_download--file', { path: addressOf(SHARE_PATH, link) });
+
+/**
+ * Open the confirm page the way a share link lands on it. `type` is what
+ * was shared, and `language` the one the browser asked for.
+ * @param {ConfirmOptions} [options]
+ */
+export function openConfirmPage({ type = 'file', language = 'en', ...link } = {}) {
+    const { fixture, path } = FIXTURES[type];
+    const page = openPage(`${fixture}${language === 'en' ? '' : `.${language}`}`, { path: addressOf(path, link) });
     initConfirmDownload(page.window.document, {});
     return {
+        /** The page's declared language, `<html lang>`. */
+        language: () => page.window.document.documentElement.lang,
         url: page.url,
         historyLength: page.historyLength,
         /**
@@ -24,7 +46,7 @@ export function openConfirmPage(link = {}) {
          * @returns {Promise<string>}
          */
         async proceedToView() {
-            await page.user.click(page.screen.getByRole('button', { name: 'Proceed to download' }));
+            await page.user.click(page.screen.getByRole('button', { name: PROCEED[language][type] }));
             const submitted = page.formsSubmitted();
             if (submitted.length !== 1) throw new Error(`Proceed sent ${submitted.length} forms, not one`);
             return submitted[0].action;

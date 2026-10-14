@@ -1465,7 +1465,7 @@ def confirm_view_file(file_id):
     if not file_info:
         return _drop_gone()
     if not _is_valid_csrf_token():
-        flash('Invalid request')
+        flash(_('Invalid request'))
         return redirect(url_for('view_file', file_id=file_id))
     # The client needs the envelope salt before it can prove the password
     # (V derives from it) — the ciphertext only comes after. The salt is

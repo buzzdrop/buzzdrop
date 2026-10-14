@@ -296,6 +296,37 @@ def _success_page(file_type):
     return render
 
 
+def _openable_drop(file_type):
+    """A live drop of ``file_type`` whose link opens: its key share bound."""
+    from app import get_files_store
+    store = get_files_store()
+    file_id = str(uuid.uuid4())
+    store.insert({
+        'id': file_id, 'original_name': 'secret.txt', 'path': f'nonexistent/{file_id}',
+        'created_at': now_iso(), 'downloaded_at': None, 'uploaded_by': 'testuser',
+        'expiry_at': None, 'status': 'active', 'type': file_type,
+    })
+    store.create_key_share(file_id, 'bb' * 32, created_by='testuser')
+    store.bind_key_verifier(file_id, 'cc' * 32, 'aa' * 16)
+    return file_id
+
+
+def _confirm_page(file_type):
+    def render(client):
+        return client.get(url_for('view_file', file_id=_openable_drop(file_type)))
+    return render
+
+
+def _view_page(file_type):
+    def render(client):
+        file_id = _openable_drop(file_type)
+        with client.session_transaction() as session:
+            session['csrf_token'] = 'pseudo-locale-token'
+        return client.post(url_for('confirm_view_file', file_id=file_id),
+                           data={'csrf_token': 'pseudo-locale-token'})
+    return render
+
+
 # The pages converted so far; each i18n issue adds its own.
 CONVERTED_PAGES = {
     'login': _login_page,
@@ -308,6 +339,10 @@ CONVERTED_PAGES = {
     'landing page': _landing_page,
     'composer': _composer,
     'drop list': _drop_list,
+    'confirm, file': _confirm_page('file'),
+    'confirm, note': _confirm_page('text'),
+    'view, file': _view_page('file'),
+    'view, note': _view_page('text'),
 }
 # Parts of a converted page that a later issue converts, as #id or .class.
 PENDING = {
