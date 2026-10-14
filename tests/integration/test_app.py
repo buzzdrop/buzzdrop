@@ -259,6 +259,27 @@ def test_manage_users_page_for_admin(client, app, db_instance):
     assert b'password' not in page # The literal string 'password'
     assert b'adminpass' not in response.data # The literal string 'adminpass'
 
+
+def test_manage_users_token_without_times_shows_no_none(client, app, db_instance):
+    """A token row with no created_at has no expiry either (it never
+    expires): its cells read a dash and Never, not Python's None."""
+    login_user(client, 'adminuser', 'adminpass')
+    with app.app_context():
+        from app import get_backend
+        get_backend().tokens.insert({
+            'token_hash': 'ef' * 32,
+            'username': 'testuser',
+            'created_at': None,
+            'last_used_at': None,
+        })
+
+    response = client.get(url_for('manage_users'))
+    assert response.status_code == 200
+    row = re.search(rb'<tbody>.*?</tbody>', response.data, flags=re.S).group(0)
+    cells = [re.sub(rb'\s+', b' ', cell).strip()
+             for cell in re.findall(rb'<td[^>]*>(.*?)</td>', row, flags=re.S)[:3]]
+    assert cells == ['—'.encode(), b'Never', b'Never']
+
 # Removing placeholder tests as the template logic for empty lists is different
 # (it omits the section rather than showing a placeholder message within the section)
 # The test_index_logged_in_user_no_files already covers the "no files" scenario by asserting absence of the section.

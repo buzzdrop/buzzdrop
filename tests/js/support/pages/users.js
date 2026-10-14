@@ -9,7 +9,8 @@ import { openPage, waitUntil } from './page.js';
 export { screen } from './page.js';
 
 export const TOKEN = 'a'.repeat(64);
-export const EXPIRES_AT = '2099-01-01T00:00:00+00:00';
+// As app.py writes it: UTC, with microseconds.
+export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
 
 /**
  * A request the page sent, as fetch received it.

@@ -53,7 +53,7 @@ def format_timestamp(iso_timestamp: str, tz_name: str = WEB_TIMEZONE) -> str:
         return iso_timestamp
 
 
-def _iso_twin(iso_timestamp: str, tz_name: str) -> Optional[str]:
+def iso_twin(iso_timestamp: str, tz_name: str = WEB_TIMEZONE) -> Optional[str]:
     """An offset-aware ISO value to the second, which every browser's
     Date.parse reads (more than three fraction digits isn't portable)."""
     try:
@@ -86,7 +86,7 @@ def format_file_timestamps(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict
         # <time datetime>, sorting and the viewer's-zone text in the browser.
         file_dict[f'{field}_iso'] = None
         if file_dict.get(field):
-            file_dict[f'{field}_iso'] = _iso_twin(file_dict[field], tz_name)
+            file_dict[f'{field}_iso'] = iso_twin(file_dict[field], tz_name)
             file_dict[field] = format_timestamp(file_dict[field], tz_name)
 
     return file_dict
@@ -137,7 +137,7 @@ def _display_time_iso(file_dict: dict, tz_name: str) -> Optional[str]:
         return None
     if not file_dict.get('created_at'):
         return None
-    return _iso_twin(file_dict['created_at'], tz_name)
+    return iso_twin(file_dict['created_at'], tz_name)
 
 
 def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE,

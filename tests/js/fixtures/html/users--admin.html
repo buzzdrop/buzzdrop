@@ -130,6 +130,8 @@
             
 
             
+
+
 <div class="mx-auto max-w-4xl space-y-8">
     <header class="animate-fade-up space-y-3">
         <span class="eyebrow">Admin area</span>
@@ -208,7 +210,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="testuser">Generate token</button>
-                        <span class="status-badge status-badge-slate">1 token</span>
+                        <span class="status-badge status-badge-slate">2 tokens</span>
                     </div>
                 </div>
                 <div class="token-result border-b border-white/6 px-4 py-4" hidden>
@@ -234,9 +236,21 @@
                         <tbody>
                             
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
-                                <td class="px-4 py-3 tabular-nums text-slate-300">2025-01-01 11:00:00 UTC</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-300"><time datetime="2025-01-03T11:00:00+00:00" translate="no">2025-01-03 11:00:00 UTC</time></td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2025-01-06T08:30:00+00:00" translate="no">2025-01-06 08:30:00 UTC</time></td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
+                                <td class="px-4 py-3 text-right">
+                                    <form method="post" action="/api/tokens/2/revoke" class="inline-block">
+                                        <input type="hidden" name="csrf_token" value="fixture-csrf-token">
+                                        <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Revoke</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            
+                            <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
+                                <td class="px-4 py-3 tabular-nums text-slate-300"><time datetime="2025-01-01T11:00:00+00:00" translate="no">2025-01-01 11:00:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500">Never</td>
-                                <td class="px-4 py-3 tabular-nums text-slate-500">2099-01-01 00:00:00 UTC</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
                                     <form method="post" action="/api/tokens/1/revoke" class="inline-block">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
