@@ -118,7 +118,6 @@
               }
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -173,19 +172,18 @@
               }
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
             }
           },
           "response": {
-            "status": 410,
+            "status": 403,
             "headers": {
               "Content-Type": "application/json"
             },
             "json": {
-              "error": "This file has already been downloaded"
+              "error": "Forbidden"
             }
           }
         },
@@ -330,7 +328,6 @@
               }
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -1143,10 +1140,12 @@
             ]
           },
           "response": {
-            "status": 302,
+            "status": 403,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8",
-              "Location": "/"
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Forbidden"
             }
           }
         }
@@ -2175,7 +2174,7 @@
       },
       "steps": [
         {
-          "name": "missing-file",
+          "name": "ticketless-missing",
           "as": null,
           "request": {
             "method": "GET",
@@ -2185,15 +2184,17 @@
             ]
           },
           "response": {
-            "status": 302,
+            "status": 403,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8",
-              "Location": "/"
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Forbidden"
             }
           }
         },
         {
-          "name": "missing-file-xhr",
+          "name": "ticket-missing",
           "as": null,
           "request": {
             "method": "GET",
@@ -2202,16 +2203,16 @@
               "00000000-0000-4000-8000-00000000dead"
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest"
+              "X-Download-Ticket": "2222222222222222222222222222222222222222222222222222222222222222"
             }
           },
           "response": {
-            "status": 404,
+            "status": 403,
             "headers": {
               "Content-Type": "application/json"
             },
             "json": {
-              "error": "File not found"
+              "error": "Forbidden"
             }
           }
         },
@@ -2252,10 +2253,12 @@
             ]
           },
           "response": {
-            "status": 302,
+            "status": 403,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8",
-              "Location": "/"
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Forbidden"
             }
           }
         }
@@ -2355,31 +2358,6 @@
           }
         },
         {
-          "name": "no-ticket-xhr",
-          "as": null,
-          "request": {
-            "method": "GET",
-            "path": [
-              "/download/",
-              {
-                "$ref": "begin.file_id"
-              }
-            ],
-            "headers": {
-              "X-Requested-With": "XMLHttpRequest"
-            }
-          },
-          "response": {
-            "status": 403,
-            "headers": {
-              "Content-Type": "application/json"
-            },
-            "json": {
-              "error": "Forbidden"
-            }
-          }
-        },
-        {
           "name": "release",
           "as": null,
           "request": {
@@ -2421,40 +2399,16 @@
               }
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": "2222222222222222222222222222222222222222222222222222222222222222"
             }
           },
           "response": {
-            "status": 410,
+            "status": 403,
             "headers": {
               "Content-Type": "application/json"
             },
             "json": {
-              "error": "This drop has already been claimed"
-            }
-          }
-        },
-        {
-          "name": "bad-ticket-browser",
-          "as": null,
-          "request": {
-            "method": "GET",
-            "path": [
-              "/download/",
-              {
-                "$ref": "begin.file_id"
-              }
-            ],
-            "headers": {
-              "X-Download-Ticket": "2222222222222222222222222222222222222222222222222222222222222222"
-            }
-          },
-          "response": {
-            "status": 302,
-            "headers": {
-              "Content-Type": "text/html; charset=utf-8",
-              "Location": "/"
+              "error": "Forbidden"
             }
           }
         },
@@ -2470,7 +2424,6 @@
               }
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -2496,19 +2449,18 @@
               }
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
             }
           },
           "response": {
-            "status": 410,
+            "status": 403,
             "headers": {
               "Content-Type": "application/json"
             },
             "json": {
-              "error": "This file has already been downloaded"
+              "error": "Forbidden"
             }
           }
         }
@@ -2627,7 +2579,6 @@
               }
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -2655,19 +2606,18 @@
               }
             ],
             "headers": {
-              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
             }
           },
           "response": {
-            "status": 410,
+            "status": 403,
             "headers": {
               "Content-Type": "application/json"
             },
             "json": {
-              "error": "File has expired"
+              "error": "Forbidden"
             }
           }
         },

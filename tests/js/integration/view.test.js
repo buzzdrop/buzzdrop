@@ -58,9 +58,9 @@ describe('view page decryption', { timeout: TEST_TIMEOUT }, () => {
         await share.decryptWithPassword(PASSWORD);
         expect(await share.decryptionRecorded()).toBe(true);
 
-        const claimed = await share.backend.fetch(`/download/${share.fileId}`,
-            { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-        expect(claimed.status).toBe(410);
+        const claimed = await share.backend.fetch(`/download/${share.fileId}`);
+        // Without the spent ticket it's the uniform 403 again (#240).
+        expect(claimed.status).toBe(403);
     });
 
     it('opens a message the index page uploaded to the same server', async () => {

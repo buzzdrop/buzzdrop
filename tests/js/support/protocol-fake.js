@@ -127,8 +127,8 @@ export const EMITS = [
     ['/upload', 200, 'state'], ['/upload', 400, 'state'], ['/upload', 403, 'state'],
     ['/upload', 400, 'injected'],
     ['/upload', 409, 'state'], ['/upload', 413, 'injected'], ['/upload', 429, 'injected'],
-    ['/download', 200, 'state'], ['/download', 302, 'state'], ['/download', 403, 'state'],
-    ['/download', 404, 'state'], ['/download', 410, 'state'], ['/download', 429, 'injected'],
+    ['/download', 200, 'state'], ['/download', 403, 'state'],
+    ['/download', 410, 'state'], ['/download', 429, 'injected'],
     ['/release', 200, 'state'], ['/release', 400, 'state'], ['/release', 403, 'state'],
     ['/release', 404, 'state'], ['/release', 410, 'state'], ['/release', 429, 'state'],
     ['/release', 429, 'injected'],
@@ -260,15 +260,6 @@ function parseExpiry(value) {
  */
 function json(status, body) {
     return { status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
-}
-
-/** @returns {FakeResponse} */
-function redirectHome() {
-    return {
-        status: 302,
-        headers: { 'Content-Type': 'text/html; charset=utf-8', Location: '/' },
-        body: '',
-    };
 }
 
 /**
@@ -540,40 +531,36 @@ export function makeProtocolFake(opts = {}) {
     }
 
     /**
-     * claim_download_with_ticket: the blob answers a released share's
-     * ticket once; a live unreleased share is a bare 403 to everyone, a
-     * released one 'claimed' to everyone without the winner's ticket.
+     * claim_download_with_ticket: the ticket is checked before any state
+     * is told apart — a missing drop, an unreleased share and a wrong or
+     * spent ticket all answer the same bare 403, so nothing leaks (#240).
+     * Only the release winner's ticket reaches the outcomes below.
      * @param {string} fileId
      * @param {Record<string, string>} headers
      */
     async function download(fileId, headers) {
-        const xhr = headers['x-requested-with'] === 'XMLHttpRequest';
+        const rawTicket = headers['x-download-ticket'];
+        const ticket = typeof rawTicket === 'string' ? rawTicket.trim().toLowerCase() : null;
         const file = state.files.get(fileId);
-        if (!file) {
-            return xhr ? json(404, { error: 'File not found' }) : redirectHome();
+        const key = state.keys.get(fileId);
+        const presented = ticket !== null && isKeyMaterial(ticket)
+            ? await sha256Hex(ticket) : null;
+        if (!file || !key || key.ticketHash === null
+                || presented !== key.ticketHash) {
+            return json(403, { error: 'Forbidden' });
         }
         if (file.downloaded) {
-            return xhr ? json(410, { error: 'This file has already been downloaded' }) : redirectHome();
+            return json(410, { error: 'This file has already been downloaded' });
         }
         if (isExpired(file)) {
             expire(fileId, file);
-            return xhr ? json(410, { error: 'File has expired' }) : redirectHome();
+            return json(410, { error: 'File has expired' });
         }
-        const key = state.keys.get(fileId);
         // A release nobody downloaded within the window expires the drop.
-        if (key && key.releasedAt !== null
+        if (key.releasedAt !== null
                 && Date.now() >= Date.parse(key.releasedAt) + downloadTtlSeconds * 1000) {
             expire(fileId, file);
-            return xhr ? json(410, { error: 'File has expired' }) : redirectHome();
-        }
-        if (!key || key.releasedAt === null) {
-            return json(403, { error: 'Forbidden' });
-        }
-        const rawTicket = headers['x-download-ticket'];
-        const ticket = typeof rawTicket === 'string' ? rawTicket.trim().toLowerCase() : null;
-        const presented = isKeyMaterial(ticket) ? await sha256Hex(/** @type {string} */ (ticket)) : null;
-        if (key.ticketHash === null || presented !== key.ticketHash) {
-            return xhr ? json(410, { error: 'This drop has already been claimed' }) : redirectHome();
+            return json(410, { error: 'File has expired' });
         }
         const blob = file.blob ?? new Uint8Array();
         file.downloaded = true;

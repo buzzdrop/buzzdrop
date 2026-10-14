@@ -249,9 +249,10 @@ def test_release_mints_download_ticket(backend):
 def test_claim_download_with_ticket(backend):
     _bound_share(backend)
 
-    # Nothing to claim before a release — nobody holds a ticket.
+    # Nothing to claim before a release — nobody holds a ticket, and an
+    # unreleased share is indistinguishable from a missing drop (#240).
     result = backend.files.claim_download_with_ticket('f1', 'ee' * 32, '1.2.3.4')
-    assert result['status'] == 'not_released'
+    assert result['status'] == 'forbidden'
     assert backend.files.get_by_id('f1')['downloaded_at'] is None
 
     assert backend.files.attempt_key_release('f1', _V, 3, False)['status'] == 'ok'
@@ -259,10 +260,10 @@ def test_claim_download_with_ticket(backend):
 
     # A wrong ticket doesn't claim — and doesn't consume the real one.
     result = backend.files.claim_download_with_ticket('f1', 'ee' * 32, '1.2.3.4')
-    assert result['status'] == 'bad_ticket'
+    assert result['status'] == 'forbidden'
     assert backend.files.get_by_id('f1')['downloaded_at'] is None
     result = backend.files.claim_download_with_ticket('f1', None, '1.2.3.4')
-    assert result['status'] == 'bad_ticket'
+    assert result['status'] == 'forbidden'
 
     result = backend.files.claim_download_with_ticket('f1', ticket, '1.2.3.4')
     assert result['status'] == 'ok'
@@ -272,8 +273,10 @@ def test_claim_download_with_ticket(backend):
     # The claim consumed the ticket digest.
     assert backend.files.get_key_share('f1')['ticket_hash'] is None
 
+    # The spent ticket gets the same 'forbidden' as a wrong one — its
+    # holder is indistinguishable once the digest is consumed (#240).
     result = backend.files.claim_download_with_ticket('f1', ticket, '5.6.7.8')
-    assert result['status'] == 'already_downloaded'
+    assert result['status'] == 'forbidden'
 
 
 def test_claim_download_with_ticket_concurrent_single_winner(backend):
@@ -291,7 +294,7 @@ def test_claim_download_with_ticket_concurrent_single_winner(backend):
         ))
 
     assert results.count('ok') == 1
-    assert results.count('already_downloaded') == workers - 1
+    assert results.count('forbidden') == workers - 1
 
 
 def test_claim_download_with_ticket_honours_the_download_window(backend):
@@ -340,8 +343,10 @@ def test_expire_unclaimed_releases(backend):
 
 
 def test_claim_download_with_ticket_missing(backend):
+    # A ticketed call on a drop that isn't there is 'forbidden' like any
+    # other non-winner — the answer doesn't reveal the drop is missing.
     assert backend.files.claim_download_with_ticket(
-        'nope', 'ee' * 32, '1.2.3.4')['status'] == 'missing'
+        'nope', 'ee' * 32, '1.2.3.4')['status'] == 'forbidden'
 
 
 def test_key_share_get_missing(backend):

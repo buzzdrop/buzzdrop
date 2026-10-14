@@ -181,9 +181,12 @@ def test_download_file_success(client, app, files_store, key_release_upload, cla
 
 def test_download_file_not_found(client):
     login_user(client, 'testuser', 'password')
-    response = client.get(url_for('download_file', file_id='nonexistentid'), follow_redirects=True)
-    assert b'File not found' in response.data
-    assert url_for('index') in response.request.path
+    # Without a ticket the answer is one uniform 403 — nothing about
+    # whether the drop ever existed (#240), no redirect, no flash.
+    response = client.get(url_for('download_file', file_id='nonexistentid'))
+    assert response.status_code == 403
+    assert response.get_json() == {'error': 'Forbidden'}
+    assert 'Location' not in response.headers
 
 def test_download_file_already_downloaded(client, app, files_store, key_release_upload, claim_ticket):
     login_user(client, 'testuser', 'password')
@@ -193,12 +196,19 @@ def test_download_file_already_downloaded(client, app, files_store, key_release_
     file_id, _h, _rcpt, _resp = key_release_upload(
         data={'file': (io.BytesIO(file_content), file_name)})
     from conftest import ticket_headers
+    ticket = claim_ticket(file_id)
     client.get(url_for('download_file', file_id=file_id),
-               headers=ticket_headers(claim_ticket(file_id)))
+               headers=ticket_headers(ticket))
 
-    response = client.get(url_for('download_file', file_id=file_id), follow_redirects=True)
-    assert b'This file has already been downloaded' in response.data
-    assert url_for('index') in response.request.path
+    # A bare visit is the same uniform 403 as a never-existing drop.
+    bare = client.get(url_for('download_file', file_id=file_id))
+    assert bare.status_code == 403
+    # The spent ticket gets the same uniform 403 — once its digest is
+    # consumed, its holder is indistinguishable from anyone else (#240).
+    again = client.get(url_for('download_file', file_id=file_id),
+                       headers=ticket_headers(ticket))
+    assert again.status_code == 403
+    assert again.get_json() == {'error': 'Forbidden'}
 
 def test_view_file_success(client, app, files_store, key_release_upload):
     login_user(client, 'testuser', 'password')

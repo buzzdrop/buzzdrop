@@ -24,8 +24,10 @@ test('the uploader deletes a file and the link is dead', async ({ page, recipien
 
     await expectDeadLink(recipient, link);
 
-    await recipient.goto(shareUrl(link, 'download'));
-    await expect(flash(recipient)).toHaveText('File not found');
+    // /download without a ticket answers a uniform 403 — the same a
+    // live drop gives (#240).
+    const dl = await recipient.goto(shareUrl(link, 'download'));
+    expect(dl?.status()).toBe(403);
 
     // With the file deleted no salt is left to derive V from, so any
     // well-formed verifier will do. A key share that outlived its file would

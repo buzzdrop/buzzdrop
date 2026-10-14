@@ -676,15 +676,20 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         BEGIN IMMEDIATE transaction, so the read-check-claim cycle
         serializes like attempt_key_release.
 
+        The ticket is checked before any state is told apart: a missing
+        drop, an unreleased share and a wrong or spent ticket all answer
+        the same 'forbidden', so the response reveals nothing (#240).
+
         Returns a dict with ``status``:
-          'missing'            — no files row for file_id
-          'already_downloaded' — downloaded_at already stamped
-          'expired'            — file past expiry_at, or released at least
-                                 download_ttl_seconds ago (share row
+          'forbidden'          — no matching live ticket: the drop is
+                                 missing, its share was never released,
+                                 or the ticket is wrong or already spent
+          'already_downloaded' — downloaded_at already stamped (a racing
+                                 claim won)
+          'expired'            — ticket matched but the file is past
+                                 expiry_at, or the release is at least
+                                 download_ttl_seconds old (share row
                                  destroyed; ``path`` for blob cleanup)
-          'not_released'       — no share row, or its H was never released:
-                                 the blob cannot be legitimately fetched yet
-          'bad_ticket'         — share released but the ticket doesn't match
           'ok'                 — ticket matched; downloaded_at stamped and
                                  ticket_hash consumed
         """
@@ -700,8 +705,21 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                 (file_id,),
             ).fetchone()
 
-            if row is None:
-                result: Dict[str, Any] = {'status': 'missing'}
+            presented = (
+                _ticket_digest(ticket_hex)
+                if isinstance(ticket_hex, str)
+                and len(ticket_hex) == 64
+                and all(c in '0123456789abcdef' for c in ticket_hex)
+                else None
+            )
+            if (row is None or row['ticket_hash'] is None
+                    or presented is None
+                    or not secrets.compare_digest(
+                        row['ticket_hash'], presented)):
+                # Everyone without the winner's ticket gets one answer:
+                # missing drop, unreleased share, wrong or spent ticket
+                # are indistinguishable (#240).
+                result: Dict[str, Any] = {'status': 'forbidden'}
             elif row['downloaded_at'] is not None:
                 result = {'status': 'already_downloaded'}
             elif self._share_file_expired(row) or self._release_stale(
@@ -716,38 +734,22 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                     'DELETE FROM file_keys WHERE file_id = ?', (file_id,))
                 destroyed = True
                 result = {'status': 'expired', 'path': row['path']}
-            elif row['released_at'] is None:
-                # No share row, a pending share, or one never released —
-                # nobody holds a ticket for it.
-                result = {'status': 'not_released'}
             else:
-                presented = (
-                    _ticket_digest(ticket_hex)
-                    if isinstance(ticket_hex, str)
-                    and len(ticket_hex) == 64
-                    and all(c in '0123456789abcdef' for c in ticket_hex)
-                    else None
+                now = now_iso()
+                cursor = conn.execute(
+                    'UPDATE files SET downloaded_at = ?, '
+                    'downloaded_by_ip = ? '
+                    'WHERE id = ? AND downloaded_at IS NULL',
+                    (now, ip_address, file_id),
                 )
-                if (row['ticket_hash'] is None or presented is None
-                        or not secrets.compare_digest(
-                            row['ticket_hash'], presented)):
-                    result = {'status': 'bad_ticket'}
+                if cursor.rowcount:
+                    conn.execute(
+                        'UPDATE file_keys SET ticket_hash = NULL '
+                        'WHERE file_id = ?',
+                        (file_id,))
+                    result = {'status': 'ok'}
                 else:
-                    now = now_iso()
-                    cursor = conn.execute(
-                        'UPDATE files SET downloaded_at = ?, '
-                        'downloaded_by_ip = ? '
-                        'WHERE id = ? AND downloaded_at IS NULL',
-                        (now, ip_address, file_id),
-                    )
-                    if cursor.rowcount:
-                        conn.execute(
-                            'UPDATE file_keys SET ticket_hash = NULL '
-                            'WHERE file_id = ?',
-                            (file_id,))
-                        result = {'status': 'ok'}
-                    else:
-                        result = {'status': 'already_downloaded'}
+                    result = {'status': 'already_downloaded'}
             conn.execute('COMMIT')
         except Exception:
             conn.execute('ROLLBACK')

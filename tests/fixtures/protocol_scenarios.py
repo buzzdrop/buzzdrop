@@ -97,10 +97,10 @@ def upload_note(name='upload', share='begin'):
     }
 
 
-def download(name='download', share='begin', ticket=None, xhr=False):
-    headers = dict(XHR) if xhr else {}
-    if ticket is not None:
-        headers['X-Download-Ticket'] = ticket
+def download(name='download', share='begin', ticket=None):
+    # /download answers the ticket or nothing; X-Requested-With is dead
+    # there, so the step doesn't send it.
+    headers = {'X-Download-Ticket': ticket} if ticket is not None else {}
     step = {'name': name, 'method': 'GET', 'as': None,
             'path': ['/download/', file_id(share)]}
     if headers:
@@ -126,16 +126,16 @@ SCENARIOS = [
         # winning /release minted.
         'name': 'file-round-trip',
         'steps': [begin(), upload_file(), release(),
-                  download(ticket=ticket_of('release'), xhr=True),
+                  download(ticket=ticket_of('release')),
                   report(),
                   download('download-again',
-                           ticket=ticket_of('release'), xhr=True),
+                           ticket=ticket_of('release')),
                   release('release-again')],
     },
     {
         'name': 'note-round-trip',
         'steps': [begin(), upload_note(), release(),
-                  download(ticket=ticket_of('release'), xhr=True),
+                  download(ticket=ticket_of('release')),
                   report()],
     },
     {
@@ -233,25 +233,25 @@ SCENARIOS = [
     # --- Download / report edge cases --------------------------------------
     {
         'name': 'download-missing',
-        'steps': [download('missing-file', share=MISSING_ID),
-                  download('missing-file-xhr', share=MISSING_ID, xhr=True),
+        'steps': [download('ticketless-missing', share=MISSING_ID),
+                  # A ticket-shaped header on a drop that isn't there
+                  # gets the same uniform 403 — no state checks leak (#240).
+                  download('ticket-missing', share=MISSING_ID,
+                           ticket=WRONG_V),
                   begin('begin-unfinished'),
                   download('pending', share='begin-unfinished')],
     },
     {
-        # The blob is gated by the ticket the release mints: a bare GET on
-        # a live share is a uniform 403, a released share without the
-        # winner's ticket is 'claimed', and the claim consumes the ticket.
+        # The blob is gated by the ticket the release mints: without it —
+        # or with a wrong or spent one — the answer is one uniform 403
+        # whatever the drop's state (#240).
         'name': 'download-requires-ticket',
         'steps': [begin(), upload_file(),
                   download('no-ticket'),
-                  download('no-ticket-xhr', xhr=True),
                   release(),
-                  download('bad-ticket', ticket=WRONG_V, xhr=True),
-                  download('bad-ticket-browser', ticket=WRONG_V),
-                  download(ticket=ticket_of('release'), xhr=True),
-                  download('again', ticket=ticket_of('release'),
-                           xhr=True)],
+                  download('bad-ticket', ticket=WRONG_V),
+                  download(ticket=ticket_of('release')),
+                  download('again', ticket=ticket_of('release'))],
     },
     {
         # The ticket is honoured only within KEY_RELEASE_DOWNLOAD_TTL_SECONDS
@@ -260,8 +260,8 @@ SCENARIOS = [
         'name': 'download-window-closed',
         'config': {'KEY_RELEASE_DOWNLOAD_TTL_SECONDS': 0},
         'steps': [begin(), upload_file(), release(),
-                  download(ticket=ticket_of('release'), xhr=True),
-                  download('again', ticket=ticket_of('release'), xhr=True),
+                  download(ticket=ticket_of('release')),
+                  download('again', ticket=ticket_of('release')),
                   release('release-after')],
     },
     {

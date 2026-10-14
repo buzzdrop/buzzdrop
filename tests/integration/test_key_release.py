@@ -469,17 +469,16 @@ def test_release_then_ticketed_download(client, files_store, app):
     ticket = download_ticket(release.get_json()['h'])
     download = client.get(
         url_for('download_file', file_id=file_id),
-        headers={'X-Requested-With': 'XMLHttpRequest',
-                 'X-Download-Ticket': ticket})
+        headers={'X-Download-Ticket': ticket})
     assert download.status_code == 200
     assert download.data == b'real blob'
 
-    # The claim consumed the ticket: the same request again is done.
+    # The claim consumed the ticket: the same request again is the same
+    # uniform 403 as any ticketless call (#240).
     again = client.get(
         url_for('download_file', file_id=file_id),
-        headers={'X-Requested-With': 'XMLHttpRequest',
-                 'X-Download-Ticket': ticket})
-    assert again.status_code == 410
+        headers={'X-Download-Ticket': ticket})
+    assert again.status_code == 403
 
 
 def test_ticket_refused_after_download_window(client, files_store,
@@ -501,8 +500,7 @@ def test_ticket_refused_after_download_window(client, files_store,
     from conftest import download_ticket
     download = client.get(
         url_for('download_file', file_id=file_id),
-        headers={'X-Requested-With': 'XMLHttpRequest',
-                 'X-Download-Ticket': download_ticket(release.get_json()['h'])})
+        headers={'X-Download-Ticket': download_ticket(release.get_json()['h'])})
     assert download.status_code == 410
     assert download.get_json() == {'error': 'File has expired'}
     assert files_store.get_by_id(file_id)['status'] == 'expired'
@@ -609,8 +607,7 @@ def test_key_release_end_to_end(client, files_store, key_release_settings):
     from conftest import download_ticket
     download = client.get(
         url_for('download_file', file_id=file_id),
-        headers={'X-Requested-With': 'XMLHttpRequest',
-                 'X-Download-Ticket': download_ticket(release.get_json()['h'])})
+        headers={'X-Download-Ticket': download_ticket(release.get_json()['h'])})
     assert download.status_code == 200
     served = download.data
 
