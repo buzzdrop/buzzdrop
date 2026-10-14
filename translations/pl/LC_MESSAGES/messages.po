@@ -432,6 +432,8 @@ msgstr[0] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłka"
 msgstr[1] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłki"
 msgstr[2] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłek"
 
+#. shown under a new API token; %(time)s is when it expires, in the viewer's
+#. zone, e.g. "Dec 31, 2098, 19:00 CET".
 #: templates/_users_strings.html
 #, python-format
 msgid "Expires %(time)s. Reload to see it in the list below."

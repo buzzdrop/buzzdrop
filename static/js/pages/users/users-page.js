@@ -100,11 +100,11 @@ export function initUsers(root, deps) {
         const body = resp ? await resp.json().catch(() => ({})) : {};
         result.hidden = false;
         button.disabled = false;
-        if (resp?.ok) {
-            // A 2xx always carries the token.
-            input.value = /** @type {string} */ (body.token);
-            const expiresAt = /** @type {string} */ (body.expires_at);
-            expires.textContent = strings.text('expires', { time: inViewerZone(expiresAt, expiresAt) });
+        // A 2xx without a token is the login page: an expired session's
+        // request is redirected there, and fetch follows the redirect.
+        if (resp?.ok && body.token && body.expires_at) {
+            input.value = body.token;
+            expires.textContent = strings.text('expires', { time: inViewerZone(body.expires_at, body.expires_at) });
         } else {
             error.hidden = false;
             error.textContent = refusal(body.code);

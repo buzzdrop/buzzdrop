@@ -411,6 +411,8 @@ msgid_plural "Showing %(first)s–%(last)s of %(count)s drops"
 msgstr[0] ""
 msgstr[1] ""
 
+#. shown under a new API token; %(time)s is when it expires, in the viewer's
+#. zone, e.g. "Dec 31, 2098, 19:00 CET".
 #: templates/_users_strings.html
 #, python-format
 msgid "Expires %(time)s. Reload to see it in the list below."

@@ -377,8 +377,8 @@ CONVERTED_PAGES = {
     'view, file': _view_page('file'),
     'view, note': _view_page('text'),
     'users': _users_page,
-    'users, token revoked': _users_page_after_revoking(True),
-    'users, token not found': _users_page_after_revoking(False),
+    'users, token revoked': _users_page_after_revoking(token_exists=True),
+    'users, token not found': _users_page_after_revoking(token_exists=False),
     'users refused, logged out': _users_page_refused(as_user=False),
     'users refused, not an admin': _users_page_refused(as_user=True),
 }
