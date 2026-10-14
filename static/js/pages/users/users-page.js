@@ -23,16 +23,9 @@ import { readStrings } from '../../lib/strings.js';
  * @property {string} [code]
  */
 
-// What the page says for each refusal of POST /api/token it can explain; any
-// other refusal is TOKEN_FAILED.
-/** @type {Map<string | undefined, string>} */
-const TOKEN_REFUSALS = new Map([
-    ['admin_required', 'Only an admin can generate a token for another user.'],
-    ['unknown_user', 'That user no longer exists.'],
-    ['csrf_failed', 'Your session has expired. Reload the page and try again.'],
-    ['rate_limited', 'Too many requests. Please try again later.'],
-]);
-const TOKEN_FAILED = 'Could not generate a token. Please try again.';
+// The refusals of POST /api/token the page can explain, each by its `code`
+// under the 'refusals' strings; any other refusal is the 'failed' string.
+const TOKEN_REFUSALS = new Set(['admin_required', 'unknown_user', 'csrf_failed', 'rate_limited']);
 
 /**
  * `fetch` is bound to the window: called unbound, as deps.fetch(...), the
@@ -49,7 +42,13 @@ export function browserDeps() {
  */
 export function initUsers(root, deps) {
     const csrf = csrfToken(root);
-    const clipboardStrings = readStrings(required(root, '#page-strings-json', 'script')).section('clipboard-feedback');
+    const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
+    const clipboardStrings = pageStrings.section('clipboard-feedback');
+    const strings = pageStrings.section('users');
+    /** @param {string | undefined} code - why POST /api/token refused */
+    const refusal = (code) => (code !== undefined && TOKEN_REFUSALS.has(code)
+        ? strings.section('refusals').text(code)
+        : strings.text('failed'));
     // In the page's language and the viewer's zone: the server writes UTC.
     /** @type {import('../../lib/format.js').TimeFormat} */
     const format = { locale: root.documentElement.lang || 'en' };
@@ -73,8 +72,10 @@ export function initUsers(root, deps) {
 
         button.disabled = true;
         error.hidden = true;
+        /** @type {Response | null} */
+        let resp = null;
         try {
-            const resp = await deps.fetch('/api/token', {
+            resp = await deps.fetch('/api/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,19 +83,22 @@ export function initUsers(root, deps) {
                 },
                 body: JSON.stringify({ username: button.dataset.username }),
             });
-            /** @type {TokenResponse} */
-            const body = await resp.json().catch(() => ({}));
-            if (!resp.ok) throw new Error(TOKEN_REFUSALS.get(body.code) ?? TOKEN_FAILED);
+        } catch {
+            // No answer at all (offline, server down). The browser's own
+            // message is English, so the page says its generic one below.
+        }
+        /** @type {TokenResponse} */
+        const body = resp ? await resp.json().catch(() => ({})) : {};
+        result.hidden = false;
+        button.disabled = false;
+        if (resp?.ok) {
             // A 2xx always carries the token.
             input.value = /** @type {string} */ (body.token);
             const expiresAt = /** @type {string} */ (body.expires_at);
-            expires.textContent = `Expires ${inViewerZone(expiresAt, expiresAt)}. Reload to see it in the list below.`;
-        } catch (err) {
+            expires.textContent = strings.text('expires', { time: inViewerZone(expiresAt, expiresAt) });
+        } else {
             error.hidden = false;
-            error.textContent = /** @type {Error} */ (err).message;
-        } finally {
-            result.hidden = false;
-            button.disabled = false;
+            error.textContent = resp ? refusal(body.code) : strings.text('failed');
         }
     }
 
