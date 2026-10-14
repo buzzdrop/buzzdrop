@@ -270,7 +270,8 @@ def send_open_notification_email(file_info: dict) -> bool:
     file_info['notification_sent_at'] = now_iso()
     return True
 
-# Stored times as text in UTC, for server-rendered text (the token table).
+# Stored times as text in UTC, and as the offset-aware ISO twin the token
+# table's <time datetime> carries for the page script to show in the viewer's zone.
 app.add_template_filter(format_timestamp, 'timestamp')
 app.add_template_filter(iso_twin, 'timestamp_iso')
 

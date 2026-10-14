@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { clockTime, formatNumber, formatPercent, fullTime, relativeTime, timeZoneName } from '../../static/js/lib/format.js';
+import { clockTime, formatNumber, formatPercent, fullTime, parseTimestamp, relativeTime, timeZoneName } from '../../static/js/lib/format.js';
 
 test('numbers follow the language', () => {
     assert.equal(formatNumber(12345, 'en'), '12,345');
@@ -101,4 +101,12 @@ test('writes the full time and the clock time in the viewer\'s zone', () => {
     assert.equal(clockTime(then, WARSAW), '21:35');
     assert.equal(fullTime(Number.NaN, WARSAW), null);
     assert.equal(clockTime(Number.NaN, WARSAW), null);
+});
+
+test('a stored timestamp parses to the millisecond, whatever its fraction', () => {
+    // The server writes microseconds; Date.parse is only portable to three digits.
+    assert.equal(parseTimestamp('2099-01-01T00:00:00.123456+00:00'), Date.UTC(2099, 0, 1, 0, 0, 0, 123));
+    assert.equal(parseTimestamp('2025-01-06T20:35:00+01:00'), Date.UTC(2025, 0, 6, 19, 35));
+    assert.ok(Number.isNaN(parseTimestamp('')));
+    assert.ok(Number.isNaN(parseTimestamp('not a time')));
 });

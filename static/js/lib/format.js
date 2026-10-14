@@ -42,6 +42,17 @@ export function timeZoneName(lang, timeZone) {
     }
 }
 
+/**
+ * An ISO 8601 timestamp as epoch milliseconds. The server writes six fraction
+ * digits (timestamps.py), but Date.parse is only portable to three, so the
+ * rest are dropped first.
+ * @param {string} iso
+ * @returns {number} NaN when `iso` is not a valid time
+ */
+export function parseTimestamp(iso) {
+    return Date.parse(iso.replace(/(\.\d{3})\d+/, '$1'));
+}
+
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;

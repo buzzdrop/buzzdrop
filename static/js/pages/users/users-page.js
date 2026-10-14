@@ -4,7 +4,7 @@
 // so the result panel stays visible until the page is reloaded.
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
-import { fullTime } from '../../lib/format.js';
+import { fullTime, parseTimestamp } from '../../lib/format.js';
 import { required, requiredClosest } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
 
@@ -55,7 +55,7 @@ export function initUsers(root, deps) {
     const format = { locale: root.documentElement.lang || 'en' };
 
     /** @type {NodeListOf<HTMLTimeElement>} */ (root.querySelectorAll('time[datetime]')).forEach((time) => {
-        time.textContent = fullTime(Date.parse(time.dateTime), format) ?? time.textContent;
+        time.textContent = fullTime(parseTimestamp(time.dateTime), format) ?? time.textContent;
     });
 
     /** @param {HTMLButtonElement} button */
@@ -83,7 +83,7 @@ export function initUsers(root, deps) {
             // A 2xx always carries the token.
             input.value = /** @type {string} */ (body.token);
             const expiresAt = /** @type {string} */ (body.expires_at);
-            expires.textContent = `Expires ${fullTime(Date.parse(expiresAt), format) ?? expiresAt}. Reload to see it in the list below.`;
+            expires.textContent = `Expires ${fullTime(parseTimestamp(expiresAt), format) ?? expiresAt}. Reload to see it in the list below.`;
         } catch (err) {
             error.hidden = false;
             error.textContent = /** @type {Error} */ (err).message;
