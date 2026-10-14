@@ -193,13 +193,16 @@ def test_flash_for_a_zoneless_expiry(client, key_release_upload):
     assert_flashed(client, response, 'Choose a valid expiry time.')
 
 
-@pytest.mark.parametrize('content', [None, 'note'])
-def test_flash_for_a_drop_that_fails_to_store(client, key_release_upload, monkeypatch, content):
-    login(client)
-
+@pytest.fixture
+def broken_storage(monkeypatch):
     def broken_save(*_args, **_kwargs):
         raise OSError('disk full')
     monkeypatch.setattr(app_module.storage, 'save', broken_save)
+
+
+@pytest.mark.parametrize('content', [None, 'note'])
+def test_flash_for_a_drop_that_fails_to_store(client, key_release_upload, broken_storage, content):
+    login(client)
     data = {'type': 'text', 'note_text': 'QkQ='} if content == 'note' else None
     _id, _h, _r, response = key_release_upload(data=data, xhr=False)
     assert_flashed(client, response, 'Could not send the drop. Please try again.')
@@ -227,13 +230,9 @@ def test_flash_for_a_refused_open_notification(
     assert_flashed(client, response, message)
 
 
-def test_flash_in_polish(client, key_release_upload, monkeypatch):
+def test_flash_in_polish(client, key_release_upload, broken_storage):
     login(client)
     client.set_cookie('lang', 'pl')
-
-    def broken_save(*_args, **_kwargs):
-        raise OSError('disk full')
-    monkeypatch.setattr(app_module.storage, 'save', broken_save)
     _id, _h, _r, response = key_release_upload(xhr=False)
     assert response.status_code == 302
     assert flashed(client) == ['Nie udało się wysłać przesyłki. Spróbuj ponownie.']

@@ -91,10 +91,11 @@ limiter = Limiter(
 # page's XHR (#305). The JSON `error` stays English for API clients, while
 # these follow the glossary (CONTEXT.md) and match the composer's
 # `refusals` in templates/_composer_strings.html.
+_DROP_NOT_ACCEPTED = i18n.gettext_noop('The server would not accept the drop. Please try again.')
 UPLOAD_REFUSAL_FLASHES = {
-    'invalid_upload': i18n.gettext_noop('The server would not accept the drop. Please try again.'),
-    'share_unavailable': i18n.gettext_noop('The server would not accept the drop. Please try again.'),
-    'share_not_owned': i18n.gettext_noop('The server would not accept the drop. Please try again.'),
+    'invalid_upload': _DROP_NOT_ACCEPTED,
+    'share_unavailable': _DROP_NOT_ACCEPTED,
+    'share_not_owned': _DROP_NOT_ACCEPTED,
     'invalid_expiry': i18n.gettext_noop('Choose a valid expiry time.'),
     'upload_failed': i18n.gettext_noop('Could not send the drop. Please try again.'),
     'notifications_unconfigured': i18n.gettext_noop('Open notifications are not configured on this server.'),
@@ -107,14 +108,14 @@ UPLOAD_REFUSAL_FLASHES = {
 
 class NotificationPreferenceError(Exception):
     """
-    Safe validation error for uploader notification inputs. ``message`` is
+    Safe validation error for uploader notification inputs. ``error`` is
     the English JSON ``error``; a flash is worded from ``code``
     (``UPLOAD_REFUSAL_FLASHES``).
     """
 
-    def __init__(self, message: str, code: str):
-        super().__init__(message)
-        self.message = message
+    def __init__(self, error: str, code: str):
+        super().__init__(error)
+        self.error = error
         self.code = code
 
 
@@ -1127,18 +1128,18 @@ def upload_file():
     key_verifier = (request.form.get('key_verifier') or '').strip().lower() or None
     receipt_hash = (request.form.get('receipt_hash') or '').strip().lower() or None
 
-    # `message` is the JSON error and stays English for API clients; the
-    # flash is worded from `code` instead (#305).
-    def _fail(message, code, status=400):
+    # `error` stays English for API clients; the flash is worded from
+    # `code` (#305).
+    def _fail(error, code, status=400):
         if wants_json:
-            return {'error': message, 'code': code}, status
+            return {'error': error, 'code': code}, status
         flash(_(UPLOAD_REFUSAL_FLASHES[code]))
         return redirect(url_for('index'))
 
     try:
         notify_on_open, notification_email = _get_notification_preferences(g.username)
     except NotificationPreferenceError as exc:
-        return _fail(exc.message, exc.code)
+        return _fail(exc.error, exc.code)
 
     if (
         not file_id
