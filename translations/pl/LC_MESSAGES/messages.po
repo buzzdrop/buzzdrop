@@ -31,6 +31,10 @@ msgid "Choose a valid expiry time."
 msgstr "Wybierz poprawny termin ważności."
 
 #: app.py templates/_composer_strings.html
+msgid "That file type is not allowed."
+msgstr "Ten typ pliku jest niedozwolony."
+
+#: app.py templates/_composer_strings.html
 msgid "Could not send the drop. Please try again."
 msgstr "Nie udało się wysłać przesyłki. Spróbuj ponownie."
 
@@ -107,10 +111,6 @@ msgstr "W formularzu nie ma pliku"
 #: app.py
 msgid "No selected file"
 msgstr "Nie wybrano pliku"
-
-#: app.py
-msgid "File type not allowed"
-msgstr "Niedozwolony typ pliku"
 
 #: app.py
 msgid "Drop not found"
@@ -248,10 +248,6 @@ msgstr "Błąd sieci podczas wysyłania przesyłki. Spróbuj ponownie."
 #: templates/_composer_strings.html
 msgid "The drop is too large to send."
 msgstr "Przesyłka jest za duża, żeby ją wysłać."
-
-#: templates/_composer_strings.html
-msgid "That file type is not allowed."
-msgstr "Ten typ pliku jest niedozwolony."
 
 #: templates/_composer_strings.html
 msgid "Your session has expired. Reload the page and try again."

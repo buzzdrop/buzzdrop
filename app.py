@@ -98,6 +98,7 @@ UPLOAD_REFUSAL_FLASHES = {
     'share_unavailable': _DROP_NOT_ACCEPTED,
     'share_not_owned': _DROP_NOT_ACCEPTED,
     'invalid_expiry': i18n.gettext_noop('Choose a valid expiry time.'),
+    'type_not_allowed': i18n.gettext_noop('That file type is not allowed.'),
     'upload_failed': i18n.gettext_noop('Could not send the drop. Please try again.'),
     'notifications_unconfigured': i18n.gettext_noop('Open notifications are not configured on this server.'),
     'account_email_missing': i18n.gettext_noop('Configure an account email before enabling open notifications.'),
@@ -1294,10 +1295,7 @@ def upload_file():
             }
         return render_template('success.html', share_link=share_link, file_type='file')
     
-    flash(_('File type not allowed'))
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return {'error': 'File type not allowed', 'code': 'type_not_allowed'}, 400
-    return redirect(url_for('index'))
+    return _fail('File type not allowed', 'type_not_allowed')
 
 # Remove confirm_download route, logic moves to /view/<file_id> and /view/<file_id>/confirm
 

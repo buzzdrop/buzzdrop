@@ -27,6 +27,10 @@ msgid "Choose a valid expiry time."
 msgstr ""
 
 #: app.py templates/_composer_strings.html
+msgid "That file type is not allowed."
+msgstr ""
+
+#: app.py templates/_composer_strings.html
 msgid "Could not send the drop. Please try again."
 msgstr ""
 
@@ -100,10 +104,6 @@ msgstr ""
 
 #: app.py
 msgid "No selected file"
-msgstr ""
-
-#: app.py
-msgid "File type not allowed"
 msgstr ""
 
 #: app.py
@@ -237,10 +237,6 @@ msgstr ""
 
 #: templates/_composer_strings.html
 msgid "The drop is too large to send."
-msgstr ""
-
-#: templates/_composer_strings.html
-msgid "That file type is not allowed."
 msgstr ""
 
 #: templates/_composer_strings.html

@@ -130,7 +130,7 @@ def test_upload_file_disallowed_extension(client, app, key_share):
             'csrf_token': 'test-csrf-token',
     }
     response = client.post(url_for('upload_file'), data=data, content_type='multipart/form-data', follow_redirects=True)
-    assert b'File type not allowed' in response.data
+    assert b'That file type is not allowed.' in response.data
     assert url_for('index') in response.request.path
 
 def test_upload_file_too_large(client, app):

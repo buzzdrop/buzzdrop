@@ -83,6 +83,7 @@ def test_upload_of_a_disallowed_type(client, key_release_upload):
     login(client)
     _id, _h, _r, response = key_release_upload(filename='test.exe')
     assert_refused(response, 400, 'type_not_allowed', 'File type not allowed')
+    assert flashed(client) == []
 
 
 def test_upload_that_fails_to_store(client, key_release_upload, monkeypatch):
@@ -191,6 +192,12 @@ def test_flash_for_a_zoneless_expiry(client, key_release_upload):
     login(client)
     _id, _h, _r, response = key_release_upload(data={'expiry': '2099-01-01T00:00'}, xhr=False)
     assert_flashed(client, response, 'Choose a valid expiry time.')
+
+
+def test_flash_for_a_disallowed_type(client, key_release_upload):
+    login(client)
+    _id, _h, _r, response = key_release_upload(filename='test.exe', xhr=False)
+    assert_flashed(client, response, 'That file type is not allowed.')
 
 
 @pytest.fixture
