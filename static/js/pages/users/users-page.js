@@ -4,6 +4,7 @@
 // so the result panel stays visible until the page is reloaded.
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
+import { fullTime } from '../../lib/format.js';
 import { required, requiredClosest } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
 
@@ -49,6 +50,13 @@ export function browserDeps() {
 export function initUsers(root, deps) {
     const csrf = csrfToken(root);
     const clipboardStrings = readStrings(required(root, '#page-strings-json', 'script')).section('clipboard-feedback');
+    // In the page's language and the viewer's zone: the server writes UTC.
+    /** @type {import('../../lib/format.js').TimeFormat} */
+    const format = { locale: root.documentElement.lang || 'en' };
+
+    /** @type {NodeListOf<HTMLTimeElement>} */ (root.querySelectorAll('time[datetime]')).forEach((time) => {
+        time.textContent = fullTime(Date.parse(time.dateTime), format) ?? time.textContent;
+    });
 
     /** @param {HTMLButtonElement} button */
     async function generateToken(button) {
@@ -74,7 +82,8 @@ export function initUsers(root, deps) {
             if (!resp.ok) throw new Error(TOKEN_REFUSALS.get(body.code) ?? TOKEN_FAILED);
             // A 2xx always carries the token.
             input.value = /** @type {string} */ (body.token);
-            expires.textContent = `Expires ${body.expires_at}. Reload to see it in the list below.`;
+            const expiresAt = /** @type {string} */ (body.expires_at);
+            expires.textContent = `Expires ${fullTime(Date.parse(expiresAt), format) ?? expiresAt}. Reload to see it in the list below.`;
         } catch (err) {
             error.hidden = false;
             error.textContent = /** @type {Error} */ (err).message;

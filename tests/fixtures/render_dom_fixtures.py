@@ -73,12 +73,19 @@ LISTED_FILES = [
     _file('00000000-0000-4000-8000-000000000005', 'shared.docx',
           uploaded_by='adminuser', shared_with=['testuser']),
 ]
-# One existing token so the /users token table renders a row.
+# Two existing tokens so the /users token table renders a row that was used
+# and one that never was.
 API_TOKENS = [{
     'token_hash': 'cd' * 32,
     'username': 'testuser',
     'created_at': CREATED_AT,
     'last_used_at': None,
+    'expires_at': FUTURE,
+}, {
+    'token_hash': 'ce' * 32,
+    'username': 'testuser',
+    'created_at': '2025-01-03T11:00:00.000000+00:00',
+    'last_used_at': '2025-01-06T08:30:00.000000+00:00',
     'expires_at': FUTURE,
 }]
 SHARE_FILE = _file('00000000-0000-4000-8000-0000000000f1', 'contract.pdf')

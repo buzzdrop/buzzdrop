@@ -44,6 +44,7 @@ from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcno
 from utils import (
     format_file_timestamps,
     format_timestamp,
+    iso_twin,
     enhance_file_display,
     status_labels,
     allowed_file,
@@ -271,6 +272,7 @@ def send_open_notification_email(file_info: dict) -> bool:
 
 # Stored times as text in UTC, for server-rendered text (the token table).
 app.add_template_filter(format_timestamp, 'timestamp')
+app.add_template_filter(iso_twin, 'timestamp_iso')
 
 # The recipient's pages, the "drop is gone" page included: their language
 # is their browser's, and reloading one could lose the drop, so they offer

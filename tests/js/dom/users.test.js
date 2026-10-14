@@ -1,6 +1,6 @@
 import { within } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
-import { EXPIRES_AT, TOKEN, openUsersPage, screen } from '../support/pages/users.js';
+import { TOKEN, openUsersPage, screen } from '../support/pages/users.js';
 
 const card = () => within(screen.getByRole('region', { name: 'testuser' }));
 
@@ -13,8 +13,20 @@ describe('users page', () => {
         await users.finishTokenRequest('testuser');
 
         expect(card().getByRole('textbox', { name: 'New API token' })).toHaveValue(TOKEN);
-        expect(card().getByText(`Expires ${EXPIRES_AT}. Reload to see it in the list below.`)).toBeVisible();
+        // In the viewer's zone (TZ is America/New_York), not the raw ISO value.
+        expect(card().getByText('Expires Dec 31, 2098, 19:00 EST. Reload to see it in the list below.')).toBeVisible();
         expect(card().queryByRole('alert')).toBeNull();
+    });
+
+    it('the token table shows each time in the viewer\'s zone', () => {
+        openUsersPage();
+
+        const rows = within(card().getByRole('table')).getAllByRole('row').slice(1)
+            .map((row) => within(row).getAllByRole('cell').slice(0, 3).map((cell) => cell.textContent?.trim()));
+        expect(rows).toEqual([
+            ['Jan 3, 2025, 06:00 EST', 'Jan 6, 2025, 03:30 EST', 'Dec 31, 2098, 19:00 EST'],
+            ['Jan 1, 2025, 06:00 EST', 'Never', 'Dec 31, 2098, 19:00 EST'],
+        ]);
     });
 
     it('a refusal shows the message for its code', async () => {

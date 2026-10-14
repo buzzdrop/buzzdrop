@@ -123,7 +123,7 @@ def test_get_users_non_sequential_and_invalid_vars():
     assert len(users) == 2
 
 
-from utils import enhance_file_display, format_timestamp
+from utils import enhance_file_display, format_timestamp, iso_twin
 
 
 def test_status_display_downloaded_without_decryption_report():
@@ -187,6 +187,12 @@ def test_format_timestamp_in_a_named_zone_for_text_with_no_browser():
         == '2026-10-06 21:35:29 CEST'
     # A value still without an offset is UTC, as every stored value is.
     assert format_timestamp('2026-10-06T19:35:29') == '2026-10-06 19:35:29 UTC'
+
+
+def test_iso_twin_is_to_the_second_with_an_offset():
+    """<time datetime> on /users (#280): Date.parse reads it in every browser."""
+    assert iso_twin('2026-10-06T19:35:29.123456+00:00') == '2026-10-06T19:35:29+00:00'
+    assert iso_twin('not a time') is None
 
 
 def test_display_name_of_a_file_is_its_name():
