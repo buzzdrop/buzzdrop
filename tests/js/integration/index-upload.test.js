@@ -102,7 +102,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
 
             await sendIn(upload, mode);
 
-            expect(upload.alerts()).toEqual([]);
+            expect(upload.sendError()).toBe('');
             expect(upload.requestsSent().map(pathOf)).toEqual(['/upload/begin', '/upload']);
             expect(upload.sharesIssued()).toHaveLength(1);
             const [{ file_id: fileId, h }] = upload.sharesIssued();
@@ -142,7 +142,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
 
             await sendIn(upload, mode);
 
-            expect(upload.alerts()).toEqual([]);
+            expect(upload.sendError()).toBe('');
             const [request] = requestsTo(upload, '/upload');
             // Typed as New York wall-clock time (vitest.config.js pins the
             // zone), sent as the exact moment (#250).
@@ -158,7 +158,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
      * @typedef {object} ErrorCase
      * @property {string} name
      * @property {UploadServer} server
-     * @property {string} [message] - what the page alerts, pinned only for a file too large
+     * @property {string} [message] - what the page says under the send button, pinned only for a file too large
      * @property {boolean} reachesUpload - whether the failed attempt sends /upload
      */
     // File and note share the upload code, so the error paths run once, in
@@ -173,13 +173,13 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
     ];
 
     describe('upload errors', () => {
-        it.each(ERROR_CASES)('$name: alerts, recovers and retries with a fresh share', async (errorCase) => {
+        it.each(ERROR_CASES)('$name: says why under the button, recovers and retries with a fresh share', async (errorCase) => {
             const upload = openUploadPage({ account: 'no-shares', crypto: 'real' });
 
             await sendIn(upload, 'file', { server: errorCase.server });
 
-            expect(upload.alerts()).toHaveLength(1);
-            if (errorCase.message) expect(upload.alerts()).toEqual([errorCase.message]);
+            expect(upload.sendError()).not.toBe('');
+            if (errorCase.message) expect(upload.sendError()).toBe(errorCase.message);
             expect(upload.navigatedTo()).toEqual([]);
             const failed = requestsTo(upload, '/upload');
             expect(failed).toHaveLength(errorCase.reachesUpload ? 1 : 0);
@@ -190,8 +190,8 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
             await upload.send();
 
             // The retry begins again and finishes the share it was just
-            // issued, not the one the failed attempt sent.
-            expect(upload.alerts()).toHaveLength(1);
+            // issued, not the one the failed attempt sent. Its failure is gone.
+            expect(upload.sendError()).toBe('');
             expect(requestsTo(upload, '/upload/begin')).toHaveLength(2);
             const issued = upload.sharesIssued();
             const fresh = issued.at(-1);
@@ -214,9 +214,10 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
 
             // A failed attempt first, so the retry path is on record too.
             await sendIn(upload, mode, { server: 'too-large' });
+            expect(upload.sendError()).not.toBe('');
             await upload.send();
 
-            expect(upload.alerts()).toHaveLength(1);
+            expect(upload.sendError()).toBe('');
             expect(upload.requestsSent()).toHaveLength(4);
             for (const request of upload.requestsSent()) {
                 const text = await requestText(request);
@@ -233,7 +234,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
             expect(screen.getByLabelText('Password')).toHaveAccessibleDescription(/^Password rejected: /);
             expect(upload.requestsSent()).toEqual([]);
             expect(upload.navigatedTo()).toEqual([]);
-            expect(upload.alerts()).toEqual([]);
+            expect(upload.sendError()).toBe('');
         });
 
         it('every session-authed mutation carries the CSRF token', async () => {

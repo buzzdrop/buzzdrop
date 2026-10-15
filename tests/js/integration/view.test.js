@@ -66,7 +66,7 @@ describe('view page decryption', { timeout: TEST_TIMEOUT }, () => {
     it('opens a message the index page uploaded to the same server', async () => {
         const upload = openUploadPage({ account: 'no-shares', crypto: 'real' });
         await upload.sendNote(NOTE, PASSWORD);
-        expect(upload.alerts()).toEqual([]);
+        expect(upload.sendError()).toBe('');
         const [{ file_id: fileId }] = upload.sharesIssued();
 
         const share = await openShare({ crypto: 'real', uploaded: { backend: upload.backend, fileId } });

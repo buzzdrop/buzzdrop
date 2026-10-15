@@ -181,7 +181,8 @@ describe('in Polish', () => {
 
         await upload.sendNote('kod do bramy', undefined, { server: 'too-large' });
 
-        expect(upload.alerts()).toEqual(['Przesyłka jest za duża, żeby ją wysłać.']);
+        expect(upload.sendError()).toBe('Przesyłka jest za duża, żeby ją wysłać.');
+        expect(screen.getByText('Przesyłka jest za duża, żeby ją wysłać.')).toHaveRole('alert');
     });
 
     it('serves the drop list', async () => {
