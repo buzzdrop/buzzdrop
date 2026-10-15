@@ -5,7 +5,10 @@
 // variants live when a switch changes: the step on screen stays and replays
 // its animation, and the choice goes into the address so a view can be
 // linked. Without it, every step is shown and the switches submit the form.
+// The words it writes come from the page's strings (_how_it_works_strings.html).
 import { required, requiredWindow } from '../../lib/required.js';
+import { readStrings } from '../../lib/strings.js';
+import { formatNumber } from '../../lib/format.js';
 import { createPlayToggle } from '../../features/play-toggle/index.js';
 
 /**
@@ -26,10 +29,6 @@ const HOLD_MS = 7000;
 
 const SENDERS = ['web', 'cli'];
 const CONTENTS = ['file', 'text'];
-
-/** What the status line calls each choice. */
-const SENDER_NAMES = { web: 'the web app', cli: 'the buzz CLI' };
-const CONTENT_NAMES = { file: 'a file', text: 'a text note' };
 
 /**
  * @typedef {object} Choice
@@ -68,6 +67,8 @@ function choiceFrom(search) {
  */
 export function initHowItWorks(root, deps) {
     const window = requiredWindow(root);
+    const strings = readStrings(required(root, '#page-strings-json', 'script')).section('how-it-works');
+    const lang = root.documentElement.lang || 'en';
     const flow = required(root, '#hiw-flow', 'section');
     const steps = /** @type {HTMLElement[]} */ (Array.from(flow.querySelectorAll('.hiw-step')));
     const stepButtons = /** @type {HTMLButtonElement[]} */ (Array.from(flow.querySelectorAll('[data-step-id]')));
@@ -111,7 +112,9 @@ export function initHowItWorks(root, deps) {
             // The steps behind the reader, for the step list to tick off.
             button.classList.toggle('is-done', i < index);
         });
-        counter.textContent = `Step ${index + 1} of ${steps.length}`;
+        counter.textContent = strings.text('counter', {
+            step: formatNumber(index + 1, lang), steps: formatNumber(steps.length, lang),
+        });
         prev.disabled = index === 0;
         next.disabled = index === steps.length - 1;
     };
@@ -120,7 +123,8 @@ export function initHowItWorks(root, deps) {
     // under the current step, which starts over by itself as it moves to
     // another step's button.
     const toggle = createPlayToggle(play, flow, {
-        play: 'Play', pause: 'Pause', playTitle: 'Play the steps', pauseTitle: 'Pause',
+        play: strings.text('play'), pause: strings.text('pause'),
+        playTitle: strings.text('playTitle'), pauseTitle: strings.text('pauseTitle'),
     }, () => {
         showStep(current + 1);
         if (current === steps.length - 1) stopPlaying();
@@ -180,7 +184,8 @@ export function initHowItWorks(root, deps) {
         choice = normalizeChoice(sender, content);
         applyChoice();
         replay();
-        status.textContent = `Showing ${SENDER_NAMES[choice.sender]} sending ${CONTENT_NAMES[choice.content]}.`;
+        // One sentence per view, as languages don't build it from parts alike.
+        status.textContent = strings.section('showing').text(`${choice.sender}-${choice.content}`);
         const url = new URL(window.location.href);
         url.search = new URLSearchParams({ sender: choice.sender, content: choice.content }).toString();
         window.history.replaceState(window.history.state, '', url);

@@ -96,7 +96,7 @@ msgstr "Typ: %(type)s"
 msgid "Note"
 msgstr "Notatka"
 
-#: app.py templates/index.html
+#: app.py templates/how_it_works.html templates/index.html
 msgid "File"
 msgstr "Plik"
 
@@ -350,6 +350,1013 @@ msgstr "Odtwórz przykład"
 msgid "Pause walkthrough"
 msgstr "Wstrzymaj przykład"
 
+#: templates/_how_it_works_content.html
+msgid "Pick a file, or write a note."
+msgstr "Wybierz plik albo napisz notatkę."
+
+#: templates/_how_it_works_content.html
+msgid "Either one gets the same treatment."
+msgstr "Jedno i drugie jest chronione tak samo."
+
+#: templates/_how_it_works_content.html
+msgid "Set a password."
+msgstr "Ustaw hasło."
+
+#: templates/_how_it_works_content.html
+msgid "Your browser encrypts the drop before anything is uploaded."
+msgstr "Twoja przeglądarka szyfruje przesyłkę, zanim cokolwiek zostanie wysłane."
+
+#: templates/_how_it_works_content.html
+msgid "Add an expiry."
+msgstr "Dodaj termin ważności."
+
+#: templates/_how_it_works_content.html
+msgid "Optional. When it passes, the drop is deleted, opened or not."
+msgstr "Opcjonalnie. Gdy minie, przesyłka zostaje usunięta – otwarta czy nie."
+
+#: templates/_how_it_works_content.html
+msgid "Get one link."
+msgstr "Dostajesz jeden link."
+
+#: templates/_how_it_works_content.html
+msgid "It names the drop. On its own, it opens nothing."
+msgstr "Wskazuje przesyłkę. Sam niczego nie otwiera."
+
+#: templates/_how_it_works_content.html
+msgid "Send the link."
+msgstr "Wyślij link."
+
+#: templates/_how_it_works_content.html
+msgid "Send the password another way: a different app, a call."
+msgstr "Hasło przekaż inną drogą: w innej aplikacji, przez telefon."
+
+#: templates/_how_it_works_content.html
+msgid "They prove the password, once."
+msgstr "Odbiorca potwierdza hasło, raz."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Then the drop downloads once and is deleted from the server. It decrypts "
+"on their device."
+msgstr ""
+"Wtedy przesyłka pobiera się raz i zostaje usunięta z serwera. "
+"Odszyfrowuje się na urządzeniu odbiorcy."
+
+#: templates/_how_it_works_content.html
+msgid "Upload, phase 1"
+msgstr "Wysyłanie, etap 1"
+
+#: templates/_how_it_works_content.html
+msgid "Encrypt where you are"
+msgstr "Szyfrowanie na miejscu"
+
+#: templates/_how_it_works_content.html
+msgid "Upload, phase 2"
+msgstr "Wysyłanie, etap 2"
+
+#: templates/_how_it_works_content.html
+msgid "Share"
+msgstr "Przekazanie linku"
+
+#: templates/_how_it_works_content.html
+msgid "The recipient proves the password"
+msgstr "Odbiorca potwierdza hasło"
+
+#: templates/_how_it_works_content.html
+msgid "Download once"
+msgstr "Jednorazowe pobranie"
+
+#: templates/_how_it_works_content.html
+msgid "Decrypt in the browser"
+msgstr "Odszyfrowanie w przeglądarce"
+
+#: templates/_how_it_works_content.html
+msgid "Expiry and manual delete"
+msgstr "Wygaśnięcie i ręczne usunięcie"
+
+#: templates/_how_it_works_content.html
+msgid "Your browser"
+msgstr "Twoja przeglądarka"
+
+#: templates/_how_it_works_content.html
+msgid "Your terminal"
+msgstr "Twój terminal"
+
+#: templates/_how_it_works_content.html
+msgid "Buzzdrop server"
+msgstr "Serwer Buzzdropa"
+
+#: templates/_how_it_works_content.html
+msgid "Recipient’s browser"
+msgstr "Przeglądarka odbiorcy"
+
+#: templates/_how_it_works_content.html
+msgid "ciphertext + V"
+msgstr "szyfrogram + V"
+
+#: templates/_how_it_works_content.html
+msgid "Ciphertext, <code>V</code>, and the filename"
+msgstr "Szyfrogram, <code>V</code> i nazwę pliku"
+
+#: templates/_how_it_works_content.html
+msgid "Ciphertext, <code>V</code>"
+msgstr "Szyfrogram i <code>V</code>"
+
+#: templates/_how_it_works_content.html
+msgid "saving file"
+msgstr "zapisuje plik"
+
+#: templates/_how_it_works_content.html
+msgid "showing note"
+msgstr "pokazuje notatkę"
+
+#: templates/_how_it_works_content.html
+msgid "The password, <code>Kp</code> and the content"
+msgstr "Hasła, <code>Kp</code> ani treści"
+
+#: templates/_how_it_works_content.html
+msgid "begin"
+msgstr "start"
+
+#: templates/_how_it_works_content.html
+msgid "That an upload is starting"
+msgstr "Że zaczyna się wysyłanie"
+
+#: templates/_how_it_works_content.html
+msgid "The file or note, and the password"
+msgstr "Pliku, notatki ani hasła"
+
+#: templates/_how_it_works_content.html
+msgid "encrypting here"
+msgstr "szyfruje tutaj"
+
+#: templates/_how_it_works_content.html
+msgid "Nothing"
+msgstr "Nic"
+
+#: templates/_how_it_works_content.html
+msgid "link"
+msgstr "link"
+
+#: templates/_how_it_works_content.html
+msgid "password, another way"
+msgstr "hasło, inną drogą"
+
+#: templates/_how_it_works_content.html
+msgid "The password, and who you send the link to"
+msgstr "Hasła ani tego, komu wysyłasz link"
+
+#: templates/_how_it_works_content.html
+msgid "H, once"
+msgstr "H, raz"
+
+#: templates/_how_it_works_content.html
+msgid "<code>V</code> and an IP address"
+msgstr "<code>V</code> i adres IP"
+
+#: templates/_how_it_works_content.html
+msgid "The password"
+msgstr "Hasła"
+
+#: templates/_how_it_works_content.html
+msgid "ticket"
+msgstr "bilet"
+
+#: templates/_how_it_works_content.html
+msgid "ciphertext"
+msgstr "szyfrogram"
+
+#: templates/_how_it_works_content.html
+msgid "The ticket and an IP address"
+msgstr "Bilet i adres IP"
+
+#: templates/_how_it_works_content.html
+msgid "The content, and who the recipient is"
+msgstr "Treści ani tego, kim jest odbiorca"
+
+#: templates/_how_it_works_content.html
+msgid "receipt"
+msgstr "pokwitowanie"
+
+#: templates/_how_it_works_content.html
+msgid "That decryption worked"
+msgstr "Że odszyfrowanie się udało"
+
+#: templates/_how_it_works_content.html
+msgid "The content and the file key"
+msgstr "Treści ani klucza pliku"
+
+#: templates/_how_it_works_content.html
+msgid "<code>H</code> destroyed, ciphertext deleted"
+msgstr "Zniszczenie <code>H</code> i usunięcie szyfrogramu"
+
+#: templates/_how_it_works_content.html
+msgid "The content, then or ever"
+msgstr "Treści – ani wtedy, ani nigdy"
+
+#: templates/_how_it_works_content.html
+msgid "Text is off: the CLI sends files only."
+msgstr "Notatki są wyłączone: CLI wysyła tylko pliki."
+
+#: templates/_how_it_works_content.html
+msgid "What happens"
+msgstr "Co się dzieje"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"What happens when you share a file or a note: what runs where, what "
+"crosses the wire, and what our server can and can’t see at each moment."
+msgstr ""
+"Co się dzieje, gdy wysyłasz plik albo notatkę: co działa gdzie, co "
+"przechodzi przez sieć i co nasz serwer widzi, a czego nie, w każdej "
+"chwili."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Web app or CLI, file or text: it is the same protocol and the same "
+"crypto. Pick a view and the steps change to match."
+msgstr ""
+"Aplikacja w przeglądarce czy CLI, plik czy notatka: to ten sam protokół i"
+" ta sama kryptografia. Wybierz widok, a kroki się do niego dopasują."
+
+#: templates/_how_it_works_content.html
+msgid "What the server sees"
+msgstr "Co widzi serwer"
+
+#: templates/_how_it_works_content.html
+msgid "Everything that reaches us, set against what never does."
+msgstr "Wszystko, co do nas trafia, zestawione z tym, co nie trafia nigdy."
+
+#: templates/_how_it_works_content.html
+msgid "What we keep, and for how long"
+msgstr "Co przechowujemy i jak długo"
+
+#: templates/_how_it_works_content.html
+msgid "Limits"
+msgstr "Ograniczenia"
+
+#: templates/_how_it_works_content.html
+#, python-format
+msgid ""
+"A file’s name, timestamps and the IP address it was opened from. <a "
+"href=\"%(href)s\" class=\"footer-link\">%(link)s</a>."
+msgstr ""
+"Nazwa pliku, znaczniki czasu i adres IP, z którego przesyłkę otwarto. <a "
+"href=\"%(href)s\" class=\"footer-link\">%(link)s</a>."
+
+#: templates/_how_it_works_content.html
+msgid "We can’t read your files or notes"
+msgstr "Nie możemy odczytać twoich plików ani notatek"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"They are encrypted before they leave your device. The server only holds "
+"ciphertext and never sees the password."
+msgstr ""
+"Są szyfrowane, zanim opuszczą twoje urządzenie. Serwer przechowuje tylko "
+"szyfrogram i nigdy nie widzi hasła."
+
+#: templates/_how_it_works_content.html
+msgid "One time really means one time"
+msgstr "Jednorazowo znaczy naprawdę jednorazowo"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The server holds half of the key and gives it out once, only to someone "
+"who proves the password. Then it destroys it."
+msgstr ""
+"Serwer trzyma połowę klucza i wydaje ją raz, tylko komuś, kto potwierdzi "
+"hasło. Potem ją niszczy."
+
+#: templates/_how_it_works_content.html
+msgid "We do keep some metadata"
+msgstr "Przechowujemy jednak część metadanych"
+
+#: templates/_how_it_works_content.html
+msgid "Who acts"
+msgstr "Kto działa"
+
+#: templates/_how_it_works_content.html
+msgid "Your browser, then the server."
+msgstr "Twoja przeglądarka, potem serwer."
+
+#: templates/_how_it_works_content.html
+msgid "Your terminal (<code>buzz</code>), then the server."
+msgstr "Twój terminal (<code>buzz</code>), potem serwer."
+
+#: templates/_how_it_works_content.html
+msgid "What crosses the wire"
+msgstr "Co przechodzi przez sieć"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"A request to <code>POST /upload/begin</code>, signed in by your login "
+"session, with a CSRF token."
+msgstr ""
+"Żądanie <code>POST /upload/begin</code>, uwierzytelnione twoją sesją "
+"logowania, z tokenem CSRF."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"A request to <code>POST /upload/begin</code>, signed in by your API token"
+" in <code>Authorization: Bearer</code>."
+msgstr ""
+"Żądanie <code>POST /upload/begin</code>, uwierzytelnione twoim tokenem "
+"API w <code>Authorization: Bearer</code>."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The server answers with a fresh <code>file_id</code> and a random 32-byte"
+" key share <code>H</code>."
+msgstr ""
+"Serwer odpowiada nowym <code>file_id</code> i losową, 32-bajtową częścią "
+"klucza <code>H</code>."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"That your account is starting an upload. Nothing about the file or note "
+"yet."
+msgstr "Że twoje konto zaczyna wysyłanie. Na razie nic o pliku ani notatce."
+
+#: templates/_how_it_works_content.html
+msgid "Why"
+msgstr "Dlaczego"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The file key needs <code>H</code>, so <code>H</code> has to exist before "
+"anything is encrypted. The server keeps it: this is the half of the key "
+"it will hand out exactly once. An upload begun and never finished is "
+"swept once it is over an hour old, at the next upload or restart."
+msgstr ""
+"Klucz pliku wymaga <code>H</code>, więc <code>H</code> musi istnieć, "
+"zanim cokolwiek zostanie zaszyfrowane. Serwer go przechowuje: to ta "
+"połowa klucza, którą wyda dokładnie raz. Wysyłanie rozpoczęte i "
+"niedokończone zostaje usunięte, gdy ma ponad godzinę – przy następnym "
+"wysyłaniu albo restarcie."
+
+#: templates/_how_it_works_content.html
+msgid "Your browser, in the page’s JavaScript, alone."
+msgstr "Sama twoja przeglądarka, w JavaScripcie strony."
+
+#: templates/_how_it_works_content.html
+msgid "Your terminal, in the <code>buzz</code> CLI, alone."
+msgstr "Sam twój terminal, w CLI <code>buzz</code>."
+
+#: templates/_how_it_works_content.html
+msgid "Nothing crosses the wire."
+msgstr "Nic nie przechodzi przez sieć."
+
+#: templates/_how_it_works_content.html
+msgid "You type a password, or have the page generate a 6-word passphrase."
+msgstr "Wpisujesz hasło albo każesz stronie wygenerować hasło z 6 słów."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"<code>buzz</code> generates a 6-word passphrase unless you pass one with "
+"<code>-p</code>, and zips a folder (or, with <code>-z</code>, a file) "
+"first."
+msgstr ""
+"<code>buzz</code> generuje hasło z 6 słów, chyba że podasz własne przez "
+"<code>-p</code>, i najpierw pakuje do ZIP folder (albo, z "
+"<code>-z</code>, plik)."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The password goes through PBKDF2 with 600,000 iterations; from the result"
+" come two keys, <code>Kp</code> for encrypting and a verifier "
+"<code>V</code> for proving the password later. The file key is "
+"<code>HKDF(Kp ‖ H)</code>, so it needs both the password and the server’s"
+" share."
+msgstr ""
+"Hasło przechodzi przez PBKDF2 z 600 000 iteracji; z wyniku powstają dwa "
+"klucze: <code>Kp</code> do szyfrowania i weryfikator <code>V</code> do "
+"późniejszego potwierdzenia hasła. Klucz pliku to <code>HKDF(Kp ‖ "
+"H)</code>, więc wymaga i hasła, i części klucza z serwera."
+
+#: templates/_how_it_works_content.html
+msgid "A random receipt goes in front of the file, and AES-GCM encrypts the lot."
+msgstr "Przed plikiem trafia losowe pokwitowanie, a AES-GCM szyfruje całość."
+
+#: templates/_how_it_works_content.html
+msgid "A random receipt goes in front of the note, and AES-GCM encrypts the lot."
+msgstr "Przed notatką trafia losowe pokwitowanie, a AES-GCM szyfruje całość."
+
+#: templates/_how_it_works_content.html
+msgid "Where the code comes from"
+msgstr "Skąd pochodzi kod"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Our server sends it with the page. Subresource Integrity protects it in "
+"transit and in caches, not against a compromised server."
+msgstr ""
+"Nasz serwer wysyła go razem ze stroną. Subresource Integrity chroni go w "
+"drodze i w pamięciach podręcznych, ale nie przed przejętym serwerem."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"You installed <code>buzz</code> once from GitHub Releases, so a "
+"compromised server can’t swap it during an upload."
+msgstr ""
+"<code>buzz</code> instaluje się raz z GitHub Releases, więc przejęty "
+"serwer nie podmieni go podczas wysyłania."
+
+#: templates/_how_it_works_content.html
+msgid "Nothing. The password and <code>Kp</code> never leave your device."
+msgstr "Nic. Hasło i <code>Kp</code> nigdy nie opuszczają twojego urządzenia."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Ciphertext and <code>H</code> without the password can’t be decrypted, "
+"and neither can ciphertext and the password without <code>H</code>. The "
+"receipt is how the recipient will later prove they decrypted it."
+msgstr ""
+"Szyfrogramu i <code>H</code> bez hasła nie da się odszyfrować, tak samo "
+"jak szyfrogramu i hasła bez <code>H</code>. Pokwitowaniem odbiorca "
+"później udowodni, że odszyfrowanie się udało."
+
+#: templates/_how_it_works_content.html
+msgid "Your terminal, then the server."
+msgstr "Twój terminal, potem serwer."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"<code>POST /upload</code> with the ciphertext as a multipart "
+"<code>file</code>, plus the <code>file_id</code>, <code>V</code> and "
+"<code>SHA-256(receipt)</code>."
+msgstr ""
+"<code>POST /upload</code> z szyfrogramem jako multipartowe pole "
+"<code>file</code>, a do tego <code>file_id</code>, <code>V</code> i "
+"<code>SHA-256(receipt)</code>."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"<code>POST /upload</code> with the ciphertext, base64-encoded, in a "
+"<code>note_text</code> field, plus the <code>file_id</code>, "
+"<code>V</code> and <code>SHA-256(receipt)</code>."
+msgstr ""
+"<code>POST /upload</code> z szyfrogramem zakodowanym w base64 w polu "
+"<code>note_text</code>, a do tego <code>file_id</code>, <code>V</code> i "
+"<code>SHA-256(receipt)</code>."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"It is signed in by your session and CSRF token, and only the account that"
+" ran phase 1 may finish it."
+msgstr ""
+"Uwierzytelnia je twoja sesja i token CSRF, a dokończyć je może tylko "
+"konto, które wykonało etap 1."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"It is signed in by your API token (<code>Authorization: Bearer</code>), "
+"and only the account that ran phase 1 may finish it."
+msgstr ""
+"Uwierzytelnia je twój token API (<code>Authorization: Bearer</code>), a "
+"dokończyć je może tylko konto, które wykonało etap 1."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The ciphertext and its approximate size, <code>V</code>, the receipt’s "
+"hash, the expiry you chose, an optional memo to yourself, and <strong "
+"class=\"hiw-caveat\">the file’s original filename, in plain "
+"text</strong>."
+msgstr ""
+"Szyfrogram i jego przybliżony rozmiar, <code>V</code>, skrót "
+"pokwitowania, wybrany termin ważności, opcjonalny dopisek dla ciebie i "
+"<strong class=\"hiw-caveat\">oryginalna nazwa pliku, jawnym "
+"tekstem</strong>."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The ciphertext and its approximate size, <code>V</code>, the receipt’s "
+"hash, the expiry you chose, an optional memo to yourself, and the label "
+"“Secret Note”."
+msgstr ""
+"Szyfrogram i jego przybliżony rozmiar, <code>V</code>, skrót "
+"pokwitowania, wybrany termin ważności, opcjonalny dopisek dla ciebie i "
+"etykieta „Secret Note”."
+
+#: templates/_how_it_works_content.html
+msgid "It stores the ciphertext and binds <code>V</code> to <code>H</code>."
+msgstr "Zapisuje szyfrogram i wiąże <code>V</code> z <code>H</code>."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"<code>V</code> lets the server check the password later without ever "
+"learning it, and it can’t be turned back into <code>Kp</code>."
+msgstr ""
+"<code>V</code> pozwala serwerowi później sprawdzić hasło, nigdy go nie "
+"poznając, i nie da się z niego odtworzyć <code>Kp</code>."
+
+#: templates/_how_it_works_content.html
+msgid "You."
+msgstr "Ty."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Nothing to us. You send the link one way, and ideally the password "
+"another: a different app, a call."
+msgstr ""
+"Do nas nic. Link wysyłasz jedną drogą, a hasło najlepiej inną: w innej "
+"aplikacji, przez telefon."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Nothing. The link alone opens nothing: it names the drop, and the drop "
+"needs the password."
+msgstr ""
+"Nic. Sam link niczego nie otwiera: wskazuje przesyłkę, a przesyłka wymaga"
+" hasła."
+
+#: templates/_how_it_works_content.html
+msgid "The one-click link"
+msgstr "Link z hasłem"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The success page also offers a link with the password after the "
+"<code>#</code>."
+msgstr "Strona po wysłaniu podaje też link z hasłem po znaku <code>#</code>."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"<code>buzz</code> also offers a link with the password after the "
+"<code>#</code>."
+msgstr "<code>buzz</code> podaje też link z hasłem po znaku <code>#</code>."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Browsers never send that part to a server, so we still don’t see the "
+"password. But <strong class=\"hiw-caveat\">anyone who has that link can "
+"open the drop</strong>, and chat history, link previews and exports keep "
+"a copy. It’s convenient; sending link and password separately is "
+"stronger."
+msgstr ""
+"Przeglądarki nigdy nie wysyłają tej części do serwera, więc nadal nie "
+"widzimy hasła. Ale <strong class=\"hiw-caveat\">każdy, kto ma ten link, "
+"może otworzyć przesyłkę</strong>, a historia czatu, podglądy linków i "
+"eksporty zachowują jego kopię. To wygodne; osobne wysłanie linku i hasła "
+"jest bezpieczniejsze."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The recipient’s browser, then the server. The recipient needs no account,"
+" only the link and the password."
+msgstr ""
+"Przeglądarka odbiorcy, potem serwer. Odbiorca nie potrzebuje konta, tylko"
+" linku i hasła."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The browser derives <code>V</code> from the typed password and posts it "
+"to <code>POST /release</code>. Never the password."
+msgstr ""
+"Przeglądarka wyprowadza <code>V</code> z wpisanego hasła i wysyła je do "
+"<code>POST /release</code>. Nigdy samo hasło."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"<code>V</code>, and the recipient’s IP address, which it logs with a "
+"successful or wrong attempt. It compares <code>V</code> with the stored "
+"one in a single database transaction."
+msgstr ""
+"<code>V</code> i adres IP odbiorcy, który zapisuje w logu przy udanej i "
+"nieudanej próbie. Porównuje <code>V</code> z zapisanym w jednej "
+"transakcji bazy danych."
+
+#: templates/_how_it_works_content.html
+msgid "On a match"
+msgstr "Gdy się zgadza"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The server hands over <code>H</code>, once, and wipes <code>H</code> and "
+"<code>V</code> from its database. It keeps only a fingerprint of a one-"
+"time download ticket, which the browser works out from <code>H</code>."
+msgstr ""
+"Serwer wydaje <code>H</code>, raz, i wymazuje <code>H</code> oraz "
+"<code>V</code> ze swojej bazy. Zachowuje tylko odcisk jednorazowego "
+"biletu do pobrania, który przeglądarka wylicza z <code>H</code>."
+
+#: templates/_how_it_works_content.html
+msgid "On a wrong password"
+msgstr "Przy nieprawidłowym haśle"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"One wrong password locks the drop and destroys <code>H</code>, so nobody "
+"can open it after that, the recipient included."
+msgstr ""
+"Jedno nieprawidłowe hasło blokuje przesyłkę i niszczy <code>H</code>, "
+"więc nikt już jej potem nie otworzy, łącznie z odbiorcą."
+
+#: templates/_how_it_works_content.html
+#, python-format
+msgid ""
+"After %(attempts)s wrong passwords the drop locks and destroys "
+"<code>H</code>, so nobody can open it after that, the recipient included."
+msgstr ""
+"Po %(attempts)s nieprawidłowych hasłach przesyłka zostaje zablokowana, a "
+"<code>H</code> zniszczony, więc nikt już jej potem nie otworzy, łącznie z"
+" odbiorcą."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"One wrong password locks the drop, and the server refuses every later "
+"attempt."
+msgstr ""
+"Jedno nieprawidłowe hasło blokuje przesyłkę na stałe, a serwer odrzuca "
+"każdą kolejną próbę."
+
+#: templates/_how_it_works_content.html
+#, python-format
+msgid ""
+"After %(attempts)s wrong passwords the drop locks, and the server refuses"
+" every later attempt."
+msgstr ""
+"Po %(attempts)s nieprawidłowych hasłach przesyłka zostaje zablokowana na "
+"stałe, a serwer odrzuca każdą kolejną próbę."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"This is what makes one time real. Without <code>H</code> the ciphertext "
+"is dead bytes, and <code>H</code> comes out exactly once, after the "
+"password has been proven, in a transaction only one requester can win."
+msgstr ""
+"To dzięki temu jednorazowość jest prawdziwa. Bez <code>H</code> "
+"szyfrogram to martwe bajty, a <code>H</code> wychodzi dokładnie raz, po "
+"potwierdzeniu hasła, w transakcji, którą może wygrać tylko jeden "
+"zgłaszający."
+
+#: templates/_how_it_works_content.html
+msgid "The recipient’s browser, then the server."
+msgstr "Przeglądarka odbiorcy, potem serwer."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"<code>GET /download</code> with the ticket. The server streams the "
+"ciphertext back."
+msgstr ""
+"<code>GET /download</code> z biletem. Serwer odsyła szyfrogram "
+"strumieniem."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The ticket, and the recipient’s IP address, which it stores with the time"
+" of the download."
+msgstr "Bilet i adres IP odbiorcy, który zapisuje razem z czasem pobrania."
+
+#: templates/_how_it_works_content.html
+msgid "Then"
+msgstr "Potem"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The ticket is used up before the first byte goes out, and the ciphertext "
+"is deleted from storage once the stream ends, even if it broke off. A "
+"drop released but not downloaded within 10 minutes expires the same way."
+msgstr ""
+"Bilet zostaje zużyty, zanim wyjdzie pierwszy bajt, a szyfrogram zostaje "
+"usunięty z magazynu, gdy strumień się skończy, nawet jeśli się urwał. "
+"Przesyłka wydana, ale niepobrana w ciągu 10 minut, wygasa tak samo."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Only the browser that won the release can claim the ciphertext, and there"
+" is no second copy to come back for."
+msgstr ""
+"Szyfrogram może odebrać tylko przeglądarka, która wygrała wydanie klucza,"
+" i nie ma drugiej kopii, po którą można wrócić."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The browser builds the file key from <code>Kp</code> (from the password) "
+"and <code>H</code>, decrypts, and takes out the receipt."
+msgstr ""
+"Przeglądarka składa klucz pliku z <code>Kp</code> (z hasła) i "
+"<code>H</code>, odszyfrowuje i wyjmuje pokwitowanie."
+
+#: templates/_how_it_works_content.html
+msgid "The file is saved as a download."
+msgstr "Plik zapisuje się jako pobrany."
+
+#: templates/_how_it_works_content.html
+msgid "The note is shown on the page, with a Copy button."
+msgstr "Notatka pojawia się na stronie, z przyciskiem „Skopiuj”."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The receipt, to <code>POST /report_decryption</code>, so your list shows "
+"the drop as opened and, if you asked for it, you get an email."
+msgstr ""
+"Pokwitowanie, do <code>POST /report_decryption</code>, żeby twoja lista "
+"pokazała przesyłkę jako otwartą i żeby – jeśli o to prosisz – przyszedł "
+"do ciebie e-mail."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The receipt, which only matches its stored hash if the drop was really "
+"decrypted. It learns that decryption worked, never the content."
+msgstr ""
+"Pokwitowanie, które pasuje do zapisanego skrótu tylko wtedy, gdy "
+"przesyłkę naprawdę odszyfrowano. Serwer dowiaduje się, że odszyfrowanie "
+"się udało, ale nigdy nie poznaje treści."
+
+#: templates/_how_it_works_content.html
+msgid "The server, or you."
+msgstr "Serwer albo ty."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"When a drop’s expiry passes, or you delete it from your list, "
+"<code>H</code> is destroyed and the ciphertext is deleted from storage. "
+"Expiry is checked whenever the link is opened and on a timer (every five "
+"minutes by default). The database overwrites what it deletes, which "
+"reduces, but doesn’t rule out, traces of <code>H</code> left in its file."
+msgstr ""
+"Gdy termin ważności przesyłki minie albo usuniesz ją ze swojej listy, "
+"<code>H</code> zostaje zniszczony, a szyfrogram usunięty z magazynu. "
+"Termin ważności jest sprawdzany przy każdym otwarciu linku i cyklicznie "
+"(domyślnie co pięć minut). Baza danych nadpisuje to, co usuwa, co "
+"zmniejsza, ale nie wyklucza, ryzyko śladów <code>H</code> w jej pliku."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"<code>H</code> never outlives the drop. Even if deleting the ciphertext "
+"from storage failed, without <code>H</code> it can’t be decrypted."
+msgstr ""
+"<code>H</code> nigdy nie przetrwa przesyłki. Nawet gdyby usunięcie "
+"szyfrogramu z magazynu się nie powiodło, bez <code>H</code> nie da się go"
+" odszyfrować."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The <strong class=\"hiw-caveat\">original filename, in plain "
+"text</strong>. It is stored and shown in the sender’s drop list; the "
+"recipient never sees it on a page — the name they save the file under "
+"arrives inside the ciphertext."
+msgstr ""
+"<strong class=\"hiw-caveat\">Oryginalną nazwę pliku, jawnym "
+"tekstem</strong>. Jest zapisywana i widoczna na liście przesyłek nadawcy;"
+" odbiorca nigdy nie widzi jej na stronie – nazwa, pod którą zapisze plik,"
+" przychodzi wewnątrz szyfrogramu."
+
+#: templates/_how_it_works_content.html
+msgid "The label “Secret Note”"
+msgstr "Etykietę „Secret Note”"
+
+#: templates/_how_it_works_content.html
+msgid "Anything in the note"
+msgstr "Niczego z treści notatki"
+
+#: templates/_how_it_works_content.html
+msgid "Content"
+msgstr "Treść"
+
+#: templates/_how_it_works_content.html
+msgid "Ciphertext and its approximate size"
+msgstr "Szyfrogram i jego przybliżony rozmiar"
+
+#: templates/_how_it_works_content.html
+msgid "The plaintext"
+msgstr "Tekstu jawnego"
+
+#: templates/_how_it_works_content.html templates/index.html
+#: templates/login.html templates/success.html templates/view.html
+msgid "Password"
+msgstr "Hasło"
+
+#: templates/_how_it_works_content.html
+msgid "<code>V</code>, a one-way fingerprint of it"
+msgstr "<code>V</code>, jego jednokierunkowy odcisk"
+
+#: templates/_how_it_works_content.html
+msgid "The password, <code>Kp</code>, the file key"
+msgstr "Hasła, <code>Kp</code> ani klucza pliku"
+
+#: templates/_how_it_works_content.html
+msgid "Name"
+msgstr "Nazwa"
+
+#: templates/_how_it_works_content.html
+msgid "People"
+msgstr "Ludzie"
+
+#: templates/_how_it_works_content.html
+msgid "The sender’s account; the recipient’s IP address"
+msgstr "Konto nadawcy; adres IP odbiorcy"
+
+#: templates/_how_it_works_content.html
+msgid "Who the recipient is"
+msgstr "Tego, kim jest odbiorca"
+
+#: templates/_how_it_works_content.html
+msgid "The ciphertext"
+msgstr "Szyfrogram"
+
+#: templates/_how_it_works_content.html
+msgid "Until opened"
+msgstr "Do otwarcia"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Until it is downloaded, it expires, or the sender deletes it. Then it is "
+"deleted from storage."
+msgstr ""
+"Dopóki nie zostanie pobrany, nie wygaśnie albo nadawca go nie usunie. "
+"Wtedy zostaje usunięty z magazynu."
+
+#: templates/_how_it_works_content.html
+msgid "<code>H</code> and <code>V</code>"
+msgstr "<code>H</code> i <code>V</code>"
+
+#: templates/_how_it_works_content.html
+msgid "Until released"
+msgstr "Do wydania"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Until the release succeeds, the drop locks, it expires, or it is deleted,"
+" whichever comes first."
+msgstr ""
+"Do udanego wydania klucza, zablokowania przesyłki, jej wygaśnięcia albo "
+"usunięcia – zależnie od tego, co nastąpi pierwsze."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Until the release succeeds, it expires, or it is deleted, whichever comes"
+" first. A locked drop keeps them, refusing every attempt, until it "
+"expires or is deleted."
+msgstr ""
+"Do udanego wydania klucza, wygaśnięcia przesyłki albo jej usunięcia – "
+"zależnie od tego, co nastąpi pierwsze. Zablokowana przesyłka je "
+"zachowuje, odrzucając każdą próbę, dopóki nie wygaśnie albo nie zostanie "
+"usunięta."
+
+#: templates/_how_it_works_content.html
+msgid "The drop’s record"
+msgstr "Wpis o przesyłce"
+
+#: templates/_how_it_works_content.html
+msgid "Until you delete it"
+msgstr "Dopóki go nie usuniesz"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The filename (or “Secret Note”), the sender’s account, when it was "
+"created, its expiry, when it was opened and from which IP address, "
+"whether decryption worked, the receipt’s hash, and the sender’s optional "
+"memo and notification address; also the language it was sent in, which "
+"the notification is written in. Beside it, what is left of the key share "
+"once <code>H</code> and <code>V</code> are gone: the password’s salt, the"
+" count of wrong attempts and when it was released. All of it stays in the"
+" sender’s list until the sender deletes it; nothing purges it "
+"automatically."
+msgstr ""
+"Nazwa pliku (albo „Secret Note”), konto nadawcy, kiedy przesyłkę "
+"utworzono, jej termin ważności, kiedy i z jakiego adresu IP ją otwarto, "
+"czy odszyfrowanie się udało, skrót pokwitowania oraz opcjonalny dopisek "
+"nadawcy i adres do powiadomień; a także język, w którym ją wysłano i w "
+"którym jest pisane powiadomienie. Obok tego to, co zostaje z części "
+"klucza po usunięciu <code>H</code> i <code>V</code>: sól hasła, liczba "
+"nieudanych prób i czas wydania klucza. Wszystko to zostaje na liście "
+"nadawcy, dopóki nadawca tego nie usunie; nic nie czyści tego "
+"automatycznie."
+
+#: templates/_how_it_works_content.html
+msgid "Server logs"
+msgstr "Logi serwera"
+
+#: templates/_how_it_works_content.html
+msgid "Operator’s choice"
+msgstr "Decyduje operator"
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Every successful or wrong password attempt is logged with the requester’s"
+" IP address. How long logs are kept is up to whoever runs the server."
+msgstr ""
+"Każda udana i nieudana próba hasła trafia do logu z adresem IP "
+"zgłaszającego. Jak długo logi są przechowywane, zależy od tego, kto "
+"prowadzi serwer."
+
+#: templates/_how_it_works_content.html
+msgid "What Buzzdrop does not protect against. No design can fix these."
+msgstr "Przed czym Buzzdrop nie chroni. Żaden projekt tego nie naprawi."
+
+#: templates/_how_it_works_content.html
+msgid "The recipient can keep a copy."
+msgstr "Odbiorca może zachować kopię."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Once a file or note is decrypted, it can be saved, copied or "
+"photographed. One time means the key is handed out once, not that the "
+"content can’t be kept."
+msgstr ""
+"Odszyfrowany plik albo notatkę można zapisać, skopiować albo "
+"sfotografować. Jednorazowość oznacza, że klucz jest wydawany raz, a nie "
+"że treści nie da się zachować."
+
+#: templates/_how_it_works_content.html
+msgid "Whoever runs the server controls the code."
+msgstr "Kto prowadzi serwer, ten kontroluje kod."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"The web app’s encryption code comes from the server, and Subresource "
+"Integrity can’t help against the server itself: someone in control of it "
+"could serve code that leaks the password, or log <code>V</code> and "
+"<code>H</code>. The CLI’s code comes from GitHub Releases instead, but "
+"the recipient’s side always runs in a browser."
+msgstr ""
+"Kod szyfrujący aplikacji w przeglądarce pochodzi z serwera, a Subresource"
+" Integrity nie pomoże przeciw samemu serwerowi: ktoś, kto go kontroluje, "
+"mógłby podać kod, który wykrada hasło, albo zapisywać <code>V</code> i "
+"<code>H</code>. Kod CLI pochodzi za to z GitHub Releases, ale strona "
+"odbiorcy zawsze działa w przeglądarce."
+
+#: templates/_how_it_works_content.html
+msgid "Weak passwords."
+msgstr "Słabe hasła."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Someone who steals the database while a drop is waiting to be opened can "
+"try passwords against its <code>V</code> offline; the stored files aren’t"
+" needed for that. 600,000 PBKDF2 iterations make every guess slow; a long"
+" passphrase makes the search hopeless, a short password doesn’t."
+msgstr ""
+"Ktoś, kto ukradnie bazę danych, gdy przesyłka czeka na otwarcie, może "
+"sprawdzać hasła względem jej <code>V</code> offline; zapisane pliki nie "
+"są do tego potrzebne. 600 000 iteracji PBKDF2 spowalnia każdą próbę; przy"
+" długim haśle ze słów szukanie jest beznadziejne, przy krótkim haśle – "
+"nie."
+
+#: templates/_how_it_works_content.html
+msgid "A one-click link is the key."
+msgstr "Link z hasłem to klucz."
+
+#: templates/_how_it_works_content.html
+msgid "Whoever has it can open the drop."
+msgstr "Kto go ma, może otworzyć przesyłkę."
+
+#: templates/_how_it_works_content.html
+msgid "A wrong guess can destroy a drop."
+msgstr "Błędna próba może zniszczyć przesyłkę."
+
+#: templates/_how_it_works_content.html
+msgid "A wrong guess can lock a drop."
+msgstr "Błędna próba może zablokować przesyłkę."
+
+#: templates/_how_it_works_content.html
+msgid ""
+"Anyone with the link can spend the attempt and lock it, and then the real"
+" recipient can’t open it either."
+msgstr ""
+"Każdy, kto ma link, może wykorzystać jedyną próbę i ją zablokować, a "
+"wtedy prawdziwy odbiorca też jej nie otworzy."
+
+#: templates/_how_it_works_content.html
+#, python-format
+msgid ""
+"Anyone with the link can spend the %(attempts)s attempts and lock it, and"
+" then the real recipient can’t open it either."
+msgstr ""
+"Każdy, kto ma link, może wykorzystać limit %(attempts)s prób i ją "
+"zablokować, a wtedy prawdziwy odbiorca też jej nie otworzy."
+
+#: templates/_how_it_works_strings.html
+#, python-format
+msgid "Step %(step)s of %(steps)s"
+msgstr "Krok %(step)s z %(steps)s"
+
+#: templates/_how_it_works_strings.html
+msgid "Play"
+msgstr "Odtwórz"
+
+#: templates/_how_it_works_strings.html
+msgid "Pause"
+msgstr "Wstrzymaj"
+
+#: templates/_how_it_works_strings.html
+msgid "Play the steps"
+msgstr "Odtwórz kroki"
+
+#: templates/_how_it_works_strings.html
+msgid "Showing the web app sending a file."
+msgstr "Widok: aplikacja w przeglądarce wysyła plik."
+
+#: templates/_how_it_works_strings.html
+msgid "Showing the web app sending a text note."
+msgstr "Widok: aplikacja w przeglądarce wysyła notatkę."
+
+#: templates/_how_it_works_strings.html
+msgid "Showing the buzz CLI sending a file."
+msgstr "Widok: CLI buzz wysyła plik."
+
 #. the language menu button's name; %(language)s is the current language in
 #. itself, e.g. "Polski".
 #: templates/_language_menu.html
@@ -399,6 +1406,7 @@ msgid "Strong (~%(bits)s bits)."
 msgstr "Silne (bity entropii: ~%(bits)s)."
 
 #: templates/_password_gate_strings.html templates/_success_strings.html
+#: templates/how_it_works.html
 msgid "Show"
 msgstr "Pokaż"
 
@@ -640,6 +1648,87 @@ msgstr "Ciekawi cię, co będzie dalej i co widzimy?"
 msgid "Go to Buzzdrop"
 msgstr "Przejdź do Buzzdropa"
 
+#: templates/how_it_works.html
+msgid "Under the hood"
+msgstr "Od kuchni"
+
+#: templates/how_it_works.html
+msgid "How Buzzdrop <span class=\"honey-text\">works</span>"
+msgstr "Jak <span class=\"honey-text\">działa</span> Buzzdrop"
+
+#: templates/how_it_works.html
+msgid "Walk through it"
+msgstr "Przejdź krok po kroku"
+
+#: templates/how_it_works.html
+msgid "The flow"
+msgstr "Przebieg"
+
+#: templates/how_it_works.html
+msgid "Sender"
+msgstr "Nadawca"
+
+#: templates/how_it_works.html
+msgid "Web app"
+msgstr "Aplikacja w przeglądarce"
+
+#: templates/how_it_works.html
+msgid "buzz CLI"
+msgstr "CLI buzz"
+
+#: templates/how_it_works.html
+msgid "What you send"
+msgstr "Co wysyłasz"
+
+#: templates/how_it_works.html
+msgid "Text"
+msgstr "Notatka"
+
+#: templates/how_it_works.html
+msgid "Steps"
+msgstr "Kroki"
+
+#: templates/how_it_works.html
+#, python-format
+msgid "Step %(number)s:"
+msgstr "Krok %(number)s:"
+
+#: templates/how_it_works.html
+#, python-format
+msgid "Step %(number)s"
+msgstr "Krok %(number)s"
+
+#: templates/how_it_works.html
+msgid "Server sees:"
+msgstr "Serwer widzi:"
+
+#: templates/how_it_works.html
+msgid "Never sees:"
+msgstr "Nigdy nie widzi:"
+
+#: templates/how_it_works.html
+#, python-format
+msgid "%(count)s steps"
+msgstr "Kroków: %(count)s"
+
+#: templates/how_it_works.html
+msgctxt "step"
+msgid "Previous"
+msgstr "Wstecz"
+
+#: templates/how_it_works.html
+msgctxt "step"
+msgid "Next"
+msgstr "Dalej"
+
+#: templates/how_it_works.html
+msgid "Sees"
+msgstr "Widzi"
+
+#: templates/how_it_works.html
+msgid "Never sees"
+msgstr "Nigdy nie widzi"
+
 #: templates/index.html templates/success.html
 msgid "Send the link and the password through different channels."
 msgstr "Wyślij link i hasło różnymi kanałami."
@@ -698,11 +1787,6 @@ msgstr "Wklej notatkę, którą chcesz wysłać jednorazowo…"
 #: templates/index.html
 msgid "Encrypted in the browser before it reaches the server."
 msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
-
-#: templates/index.html templates/login.html templates/success.html
-#: templates/view.html
-msgid "Password"
-msgstr "Hasło"
 
 #: templates/index.html
 msgid "Enter a strong password"

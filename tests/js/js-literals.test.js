@@ -26,6 +26,7 @@ const CONVERTED_MODULES = [
     'lib/strings.js',
     'pages/confirm-download/confirm-download-page.js',
     'pages/hero-flow/hero-flow-page.js',
+    'pages/how-it-works/how-it-works-page.js',
     'pages/index/index-page.js',
     'pages/language-menu/language-menu-page.js',
     'pages/success/success-page.js',

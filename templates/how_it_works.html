@@ -6,6 +6,8 @@
    aria-hidden: the text below it says it all. #}
 
 {% import '_how_it_works_content.html' as c with context %}
+{% from '_page_strings.html' import page_strings %}
+{% from '_how_it_works_strings.html' import strings as how_it_works_strings with context %}
 {% from '_play_toggle.html' import play_toggle %}
 {% set show = c.show %}
 
@@ -65,12 +67,12 @@
 <div class="hiw mx-auto {{ self.content_width() }} space-y-20">
     <header class="grid items-center gap-10 lg:grid-cols-[1.15fr_1fr]">
         <div class="animate-fade-up space-y-6">
-            <span class="eyebrow">Under the hood</span>
-            <h1 class="hiw-title">How Buzzdrop <span class="honey-text">works</span></h1>
+            <span class="eyebrow">{{ _('Under the hood') }}</span>
+            <h1 class="hiw-title">{% trans %}How Buzzdrop <span class="honey-text">works</span>{% endtrans %}</h1>
             <p class="max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg">{{ c.intro }}</p>
             <div class="flex flex-wrap gap-3">
-                <a href="#hiw-flow" class="btn-primary"><span class="relative z-10">Walk through it</span></a>
-                <a href="#server-sees" class="btn-secondary">What the server sees</a>
+                <a href="#hiw-flow" class="btn-primary"><span class="relative z-10">{{ _('Walk through it') }}</span></a>
+                <a href="#server-sees" class="btn-secondary">{{ c.sees_heading }}</a>
             </div>
         </div>
         <ul class="animate-zoom-in delay-2 space-y-3">
@@ -89,39 +91,39 @@
     <section id="hiw-flow" class="hiw-flow" aria-labelledby="flow-heading">
         <div class="hiw-flow-head">
             <div class="max-w-md space-y-1.5">
-                <h2 id="flow-heading" class="section-title">The flow</h2>
+                <h2 id="flow-heading" class="section-title">{{ _('The flow') }}</h2>
                 <p class="section-lead">{{ c.flow_lead }}</p>
             </div>
             <form class="flex flex-wrap gap-x-6 gap-y-3" action="{{ url_for('how_it_works') }}" method="get">
                 <fieldset>
-                    <legend class="hiw-legend">Sender</legend>
+                    <legend class="hiw-legend">{{ _('Sender') }}</legend>
                     <div class="hiw-choice">
-                        <label><input type="radio" name="sender" value="web"{% if sender == 'web' %} checked{% endif %}>{{ icon('browser', 'h-4 w-4') }}<span>Web app</span></label>
-                        <label><input type="radio" name="sender" value="cli"{% if sender == 'cli' %} checked{% endif %}>{{ icon('terminal', 'h-4 w-4') }}<span>buzz CLI</span></label>
+                        <label><input type="radio" name="sender" value="web"{% if sender == 'web' %} checked{% endif %}>{{ icon('browser', 'h-4 w-4') }}<span>{{ _('Web app') }}</span></label>
+                        <label><input type="radio" name="sender" value="cli"{% if sender == 'cli' %} checked{% endif %}>{{ icon('terminal', 'h-4 w-4') }}<span>{{ _('buzz CLI') }}</span></label>
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend class="hiw-legend">What you send</legend>
+                    <legend class="hiw-legend">{{ _('What you send') }}</legend>
                     <div class="hiw-choice">
-                        <label><input type="radio" name="content" value="file"{% if content == 'file' %} checked{% endif %}>{{ icon('file', 'h-4 w-4') }}<span>File</span></label>
-                        <label><input type="radio" name="content" value="text"{% if content == 'text' %} checked{% endif %}{% if sender == 'cli' %} disabled aria-describedby="content-cli-hint"{% endif %}>{{ icon('note', 'h-4 w-4') }}<span>Text</span></label>
+                        <label><input type="radio" name="content" value="file"{% if content == 'file' %} checked{% endif %}>{{ icon('file', 'h-4 w-4') }}<span>{{ _('File') }}</span></label>
+                        <label><input type="radio" name="content" value="text"{% if content == 'text' %} checked{% endif %}{% if sender == 'cli' %} disabled aria-describedby="content-cli-hint"{% endif %}>{{ icon('note', 'h-4 w-4') }}<span>{{ _('Text') }}</span></label>
                     </div>
                     <p id="content-cli-hint" class="mt-1.5 text-xs text-slate-500"{% if sender != 'cli' %} hidden{% endif %}>{{ c.content_cli_hint }}</p>
                 </fieldset>
                 {# Without the page script, the switches apply on submit. #}
-                <noscript><button type="submit" class="btn-secondary self-end px-4 py-2">Show</button></noscript>
+                <noscript><button type="submit" class="btn-secondary self-end px-4 py-2">{{ _('Show') }}</button></noscript>
             </form>
         </div>
 
         <p id="hiw-choice-status" class="sr-only" role="status"></p>
 
         <div class="hiw-flow-body">
-            <nav aria-label="Steps" class="hiw-rail">
+            <nav aria-label="{{ _('Steps') }}" class="hiw-rail">
                 <ol>
                     {% for id, title in c.steps %}
                     <li><button type="button" class="hiw-rail-btn" data-step-id="{{ id }}" aria-controls="step-{{ id }}"{% if loop.first %} aria-current="step"{% endif %}>
                         <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">{{ loop.index }}</span>{{ icon('check', 'hiw-rail-check h-3.5 w-3.5') }}</span>
-                        <span class="sr-only">Step {{ loop.index }}: </span><span class="hiw-rail-title">{{ title }}</span>
+                        <span class="sr-only">{{ _('Step %(number)s:', number=loop.index) }} </span><span class="hiw-rail-title">{{ title }}</span>
                         <span class="hiw-stepper-progress" aria-hidden="true"></span>
                     </button></li>
                     {% endfor %}
@@ -148,10 +150,10 @@
                         </div>
 
                         <div class="hiw-step-head">
-                            <h3 id="step-{{ id }}-title" class="hiw-step-title"><span class="hiw-step-kicker">Step {{ loop.index }}</span> {{ title }}</h3>
+                            <h3 id="step-{{ id }}-title" class="hiw-step-title"><span class="hiw-step-kicker">{{ _('Step %(number)s', number=loop.index) }}</span> {{ title }}</h3>
                             <div class="hiw-lenses">
-                                <p class="hiw-lens is-{{ scene.lens[0] }}">{{ icon('eye-off' if scene.lens[0] == 'none' else 'eye', 'h-4 w-4 shrink-0') }}<span><span class="hiw-lens-label">Server sees:</span> {{ scene.lens[1]|safe }}</span></p>
-                                <p class="hiw-lens is-none">{{ icon('eye-off', 'h-4 w-4 shrink-0') }}<span><span class="hiw-lens-label">Never sees:</span> {{ scene.lens[2]|safe }}</span></p>
+                                <p class="hiw-lens is-{{ scene.lens[0] }}">{{ icon('eye-off' if scene.lens[0] == 'none' else 'eye', 'h-4 w-4 shrink-0') }}<span><span class="hiw-lens-label">{{ _('Server sees:') }}</span> {{ scene.lens[1]|safe }}</span></p>
+                                <p class="hiw-lens is-none">{{ icon('eye-off', 'h-4 w-4 shrink-0') }}<span><span class="hiw-lens-label">{{ _('Never sees:') }}</span> {{ scene.lens[2]|safe }}</span></p>
                             </div>
                         </div>
                         <div role="group" aria-label="{{ c.facts_label }}"><dl class="hiw-facts">{{ c.facts(id) }}</dl></div>
@@ -163,16 +165,16 @@
                    around Play and the bar on the current step count down. #}
                 <div class="hiw-controls">
                     <div class="flex min-w-0 items-center gap-3">
-                        {{ play_toggle('hiw-play', 'Play', title='Play the steps') }}
-                        <p id="hiw-counter" class="text-sm text-slate-400">{{ c.steps|length }} steps</p>
+                        {{ play_toggle('hiw-play', how_it_works_strings.play, title=how_it_works_strings.playTitle) }}
+                        <p id="hiw-counter" class="text-sm text-slate-400">{{ _('%(count)s steps', count=c.steps|length) }}</p>
                     </div>
                     <div class="flex shrink-0 gap-2">
-                        <button id="hiw-prev" type="button" aria-label="Previous" class="btn-secondary px-3 py-2 sm:px-4" hidden>
+                        <button id="hiw-prev" type="button" aria-label="{{ pgettext('step', 'Previous') }}" class="btn-secondary px-3 py-2 sm:px-4" hidden>
                             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 0 1-.02 1.06L8.83 10l3.94 3.71a.75.75 0 1 1-1.04 1.08l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 0 1 1.06.02Z" clip-rule="evenodd"/></svg>
-                            <span class="hidden sm:inline">Previous</span>
+                            <span class="hidden sm:inline">{{ pgettext('step', 'Previous') }}</span>
                         </button>
-                        <button id="hiw-next" type="button" aria-label="Next" class="btn-primary px-3 py-2 sm:px-4" hidden>
-                            <span class="relative z-10 hidden sm:inline">Next</span>
+                        <button id="hiw-next" type="button" aria-label="{{ pgettext('step', 'Next') }}" class="btn-primary px-3 py-2 sm:px-4" hidden>
+                            <span class="relative z-10 hidden sm:inline">{{ pgettext('step', 'Next') }}</span>
                             <svg class="relative z-10 h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.17 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd"/></svg>
                         </button>
                     </div>
@@ -192,11 +194,11 @@
                 <h3 class="hiw-sees-label">{{ label }}</h3>
                 <div class="hiw-sees-row is-seen">
                     {{ icon('eye', 'h-4 w-4 shrink-0') }}
-                    <p><span class="hiw-sees-kind">Sees</span> {{ seen|safe }}</p>
+                    <p><span class="hiw-sees-kind">{{ _('Sees') }}</span> {{ seen|safe }}</p>
                 </div>
                 <div class="hiw-sees-row is-unseen">
                     {{ icon('eye-off', 'h-4 w-4 shrink-0') }}
-                    <p><span class="hiw-sees-kind">Never sees</span> {{ unseen|safe }}</p>
+                    <p><span class="hiw-sees-kind">{{ _('Never sees') }}</span> {{ unseen|safe }}</p>
                 </div>
             </li>
             {% endfor %}
@@ -234,5 +236,6 @@
     </section>
 </div>
 
+{{ page_strings({'how-it-works': how_it_works_strings}) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/how-it-works/entry.js') }}" integrity="{{ sri_hash('js/pages/how-it-works/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}
