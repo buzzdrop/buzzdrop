@@ -18,20 +18,36 @@ msgstr ""
 msgid "Too many requests. Please try again later."
 msgstr ""
 
-#: app.py
-msgid "Open notifications are not configured on this server"
+#: app.py templates/_composer_strings.html
+msgid "The server would not accept the drop. Please try again."
 msgstr ""
 
-#: app.py
-msgid "Configure an account email before enabling open notifications"
+#: app.py templates/_composer_strings.html
+msgid "Choose a valid expiry time."
 msgstr ""
 
-#: app.py
-msgid "Your configured account email is invalid"
+#: app.py templates/_composer_strings.html
+msgid "That file type is not allowed."
 msgstr ""
 
-#: app.py
-msgid "Open notifications can only be sent to your configured account email"
+#: app.py templates/_composer_strings.html
+msgid "Could not send the drop. Please try again."
+msgstr ""
+
+#: app.py templates/_composer_strings.html
+msgid "Open notifications are not configured on this server."
+msgstr ""
+
+#: app.py templates/_composer_strings.html
+msgid "Configure an account email before enabling open notifications."
+msgstr ""
+
+#: app.py templates/_composer_strings.html
+msgid "Your configured account email is invalid."
+msgstr ""
+
+#: app.py templates/_composer_strings.html
+msgid "Open notifications can only be sent to your configured account email."
 msgstr ""
 
 #: app.py
@@ -95,41 +111,11 @@ msgid "API token revoked"
 msgstr ""
 
 #: app.py
-msgid "Invalid key-release upload"
-msgstr ""
-
-#: app.py
-msgid "Unknown or already finalized key-release upload"
-msgstr ""
-
-#: app.py
-msgid "Key-release share belongs to another user"
-msgstr ""
-
-#: app.py
-msgid ""
-"Expiry must be an ISO 8601 time with a time zone, e.g. "
-"2026-12-31T23:59+01:00"
-msgstr ""
-
-#: app.py
-msgid "Key-release upload was finalized elsewhere"
-msgstr ""
-
-#: app.py
-msgid "Upload failed"
-msgstr ""
-
-#: app.py
 msgid "No file part"
 msgstr ""
 
 #: app.py
 msgid "No selected file"
-msgstr ""
-
-#: app.py
-msgid "File type not allowed"
 msgstr ""
 
 #: app.py
@@ -269,40 +255,8 @@ msgstr ""
 msgid "The drop is too large to send."
 msgstr ""
 
-#: templates/_composer_strings.html
-msgid "That file type is not allowed."
-msgstr ""
-
 #: templates/_composer_strings.html templates/_users_strings.html
 msgid "Your session has expired. Reload the page and try again."
-msgstr ""
-
-#: templates/_composer_strings.html
-msgid "Choose a valid expiry time."
-msgstr ""
-
-#: templates/_composer_strings.html
-msgid "Open notifications are not configured on this server."
-msgstr ""
-
-#: templates/_composer_strings.html
-msgid "Configure an account email before enabling open notifications."
-msgstr ""
-
-#: templates/_composer_strings.html
-msgid "Your configured account email is invalid."
-msgstr ""
-
-#: templates/_composer_strings.html
-msgid "Open notifications can only be sent to your configured account email."
-msgstr ""
-
-#: templates/_composer_strings.html
-msgid "The server would not accept the drop. Please try again."
-msgstr ""
-
-#: templates/_composer_strings.html
-msgid "Could not send the drop. Please try again."
 msgstr ""
 
 #: templates/_composer_strings.html

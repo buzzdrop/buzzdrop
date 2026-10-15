@@ -88,16 +88,37 @@ limiter = Limiter(
 )
 
 
+# What /upload flashes for each refusal `code` when the request isn't the
+# page's XHR (#305). The JSON `error` stays English for API clients, while
+# these follow the glossary (CONTEXT.md) and match the composer's
+# `refusals` in templates/_composer_strings.html. A code missing here
+# falls back to the generic refusal, as the composer's does.
+_DROP_NOT_ACCEPTED = i18n.gettext_noop('The server would not accept the drop. Please try again.')
+UPLOAD_REFUSAL_FLASHES = {
+    'invalid_upload': _DROP_NOT_ACCEPTED,
+    'share_unavailable': _DROP_NOT_ACCEPTED,
+    'share_not_owned': _DROP_NOT_ACCEPTED,
+    'invalid_expiry': i18n.gettext_noop('Choose a valid expiry time.'),
+    'type_not_allowed': i18n.gettext_noop('That file type is not allowed.'),
+    'upload_failed': i18n.gettext_noop('Could not send the drop. Please try again.'),
+    'notifications_unconfigured': i18n.gettext_noop('Open notifications are not configured on this server.'),
+    'account_email_missing': i18n.gettext_noop('Configure an account email before enabling open notifications.'),
+    'account_email_invalid': i18n.gettext_noop('Your configured account email is invalid.'),
+    'notification_email_mismatch': i18n.gettext_noop(
+        'Open notifications can only be sent to your configured account email.'),
+}
+
+
 class NotificationPreferenceError(Exception):
     """
-    Safe validation error for uploader notification inputs. ``message`` is
-    English, marked with ``gettext_noop``: it is the JSON ``error``, and is
-    translated only where it is flashed.
+    Safe validation error for uploader notification inputs. ``error`` is
+    the English JSON ``error``; a flash is worded from ``code``
+    (``UPLOAD_REFUSAL_FLASHES``).
     """
 
-    def __init__(self, message: str, code: str):
-        super().__init__(message)
-        self.message = message
+    def __init__(self, error: str, code: str):
+        super().__init__(error)
+        self.error = error
         self.code = code
 
 
@@ -177,7 +198,7 @@ def _get_notification_preferences(username: str) -> tuple[bool, str | None]:
         return False, None
 
     if not _notifications_configured():
-        raise NotificationPreferenceError(i18n.gettext_noop('Open notifications are not configured on this server'),
+        raise NotificationPreferenceError('Open notifications are not configured on this server',
                                          'notifications_unconfigured')
 
     user = get_users().get(username, {})
@@ -185,15 +206,15 @@ def _get_notification_preferences(username: str) -> tuple[bool, str | None]:
     requested_email = (request.form.get('notification_email') or '').strip()
 
     if not configured_email:
-        raise NotificationPreferenceError(i18n.gettext_noop('Configure an account email before enabling open notifications'),
+        raise NotificationPreferenceError('Configure an account email before enabling open notifications',
                                          'account_email_missing')
 
     if not _is_valid_notification_email(configured_email):
-        raise NotificationPreferenceError(i18n.gettext_noop('Your configured account email is invalid'),
+        raise NotificationPreferenceError('Your configured account email is invalid',
                                          'account_email_invalid')
 
     if requested_email and requested_email != configured_email:
-        raise NotificationPreferenceError(i18n.gettext_noop('Open notifications can only be sent to your configured account email'),
+        raise NotificationPreferenceError('Open notifications can only be sent to your configured account email',
                                          'notification_email_mismatch')
 
     return True, configured_email
@@ -1112,25 +1133,25 @@ def upload_file():
     key_verifier = (request.form.get('key_verifier') or '').strip().lower() or None
     receipt_hash = (request.form.get('receipt_hash') or '').strip().lower() or None
 
-    # `message` is English, marked with gettext_noop: the JSON error stays
-    # English, and the flash is translated.
-    def _fail(message, code, status=400):
+    # `error` stays English for API clients; the flash is worded from
+    # `code` (#305).
+    def _fail(error, code, status=400):
         if wants_json:
-            return {'error': message, 'code': code}, status
-        flash(_(message))
+            return {'error': error, 'code': code}, status
+        flash(_(UPLOAD_REFUSAL_FLASHES.get(code, _DROP_NOT_ACCEPTED)))
         return redirect(url_for('index'))
 
     try:
         notify_on_open, notification_email = _get_notification_preferences(g.username)
     except NotificationPreferenceError as exc:
-        return _fail(exc.message, exc.code)
+        return _fail(exc.error, exc.code)
 
     if (
         not file_id
         or not _is_valid_key_material(key_verifier)
         or not _is_valid_key_material(receipt_hash)
     ):
-        return _fail(i18n.gettext_noop('Invalid key-release upload'), 'invalid_upload')
+        return _fail('Invalid key-release upload', 'invalid_upload')
     share = file_repo.get_key_share(file_id)
     if (
         share is None
@@ -1138,12 +1159,12 @@ def upload_file():
         or share.get('released_at') is not None
         or file_repo.get_by_id(file_id) is not None
     ):
-        return _fail(i18n.gettext_noop('Unknown or already finalized key-release upload'),
+        return _fail('Unknown or already finalized key-release upload',
                      'share_unavailable', 409)
     # Owner binding: only the account that ran /upload/begin may finish
     # it — a leaked pending file_id must not let someone else claim it.
     if share.get('created_by') != g.username:
-        return _fail(i18n.gettext_noop('Key-release share belongs to another user'), 'share_not_owned', 403)
+        return _fail('Key-release share belongs to another user', 'share_not_owned', 403)
 
     # An expiry names an exact moment (the browser sends toISOString()); a
     # wall-clock time alone would be read in the server's zone (#250).
@@ -1154,8 +1175,8 @@ def upload_file():
         try:
             expiry_iso = parse_expiry(expiry_raw)
         except ValueError:
-            return _fail(i18n.gettext_noop('Expiry must be an ISO 8601 time with a time zone, '
-                                           'e.g. 2026-12-31T23:59+01:00'), 'invalid_expiry')
+            return _fail('Expiry must be an ISO 8601 time with a time zone, '
+                         'e.g. 2026-12-31T23:59+01:00', 'invalid_expiry')
 
     if upload_type == 'text' and note_text:
         # Handle text note upload
@@ -1172,7 +1193,7 @@ def upload_file():
         # Binding V atomically claims the pending share — a racing second
         # finish loses here, before any blob or record is written.
         if not file_repo.bind_key_verifier(unique_id, key_verifier, salt_hex):
-            return _fail(i18n.gettext_noop('Key-release upload was finalized elsewhere'),
+            return _fail('Key-release upload was finalized elsewhere',
                          'share_unavailable', 409)
 
         # Compensation: a bound share with no file record is dangling —
@@ -1199,7 +1220,7 @@ def upload_file():
                 except Exception:
                     pass
             file_repo.burn_key_share(unique_id)
-            return _fail(i18n.gettext_noop('Upload failed'), 'upload_failed', 500)
+            return _fail('Upload failed', 'upload_failed', 500)
 
         share_link = url_for('view_file', file_id=unique_id, _external=True)
         if wants_json:
@@ -1239,7 +1260,7 @@ def upload_file():
         # Binding V atomically claims the pending share — a racing second
         # finish loses here, before any blob or record is written.
         if not file_repo.bind_key_verifier(unique_id, key_verifier, salt_hex):
-            return _fail(i18n.gettext_noop('Key-release upload was finalized elsewhere'),
+            return _fail('Key-release upload was finalized elsewhere',
                          'share_unavailable', 409)
 
         # Compensation: a bound share with no file record is dangling —
@@ -1266,7 +1287,7 @@ def upload_file():
                 except Exception:
                     pass
             file_repo.burn_key_share(unique_id)
-            return _fail(i18n.gettext_noop('Upload failed'), 'upload_failed', 500)
+            return _fail('Upload failed', 'upload_failed', 500)
 
         share_link = url_for('view_file', file_id=unique_id, _external=True)
         if wants_json:
@@ -1277,10 +1298,7 @@ def upload_file():
             }
         return render_template('success.html', share_link=share_link, file_type='file')
     
-    flash(_('File type not allowed'))
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return {'error': 'File type not allowed', 'code': 'type_not_allowed'}, 400
-    return redirect(url_for('index'))
+    return _fail('File type not allowed', 'type_not_allowed')
 
 # Remove confirm_download route, logic moves to /view/<file_id> and /view/<file_id>/confirm
 
