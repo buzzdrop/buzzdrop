@@ -168,6 +168,7 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
   - The generate-passphrase button.
   - The password's Show/Hide and Copy: both disabled while the field is empty; Show reveals and Hide masks; a generated passphrase is shown; Copy flashes "Copied!", or "Failed" when the clipboard is blocked or missing, and its status region announces it.
   - Missing input refused inline, with no dialog and no request: an empty note, a missing password, no file chosen.
+  - A refused upload said under the send button (`role="alert"`, the button's description), with no dialog; pressing send clears it, before any upload starts and on a retry that succeeds (#325).
   - Open notifications: an account without an email has the box disabled and is told why; with one, the account email shows once the box is ticked.
   - Dropzone: a disallowed extension shows the error and no chip; the selected-file chip; the error regions.
   - Copy-to-clipboard status.

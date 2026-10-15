@@ -214,6 +214,7 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
 
             // A failed attempt first, so the retry path is on record too.
             await sendIn(upload, mode, { server: 'too-large' });
+            expect(upload.sendError()).not.toBe('');
             await upload.send();
 
             expect(upload.sendError()).toBe('');

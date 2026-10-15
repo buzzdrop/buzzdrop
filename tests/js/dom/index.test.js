@@ -289,6 +289,19 @@ describe('index page', () => {
             expect(upload.sendError()).toBe('');
             expect(upload.navigatedTo()).toHaveLength(1);
         });
+
+        it('the last failure goes when send is pressed, before any upload starts', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'too-large' });
+            const requests = upload.requestsSent().length;
+
+            await upload.writeNote('');
+            await upload.send();
+
+            expect(upload.sendError()).toBe('');
+            expect(screen.queryByText('The drop is too large to send.')).not.toBeInTheDocument();
+            expect(upload.requestsSent()).toHaveLength(requests);
+        });
     });
 
     describe('open notifications', () => {
