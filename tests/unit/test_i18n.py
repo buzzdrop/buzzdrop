@@ -4,6 +4,7 @@ check on LANGUAGES/DEFAULT_LANGUAGE, the plural forms handed to page
 scripts, and the rule that flashed text is translated eagerly.
 """
 import ast
+from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 
@@ -227,3 +228,15 @@ def test_flashed_text_is_translated_eagerly(module):
 ])
 def test_format_size_in_binary_megabytes_with_the_languages_numbers(size, language, expected):
     assert i18n.format_size(size, language) == expected
+
+
+@pytest.mark.parametrize('zone, language, expected', [
+    ('Europe/Warsaw', 'pl', '6 sty 2025, 21:35 CET'),
+    ('Europe/Warsaw', 'en', 'Jan 6, 2025, 21:35 GMT+01:00'),
+    ('America/New_York', 'en', 'Jan 6, 2025, 15:35 EST'),
+    ('America/New_York', 'pl', '6 sty 2025, 15:35 GMT-05:00'),
+    ('UTC', 'pl', '6 sty 2025, 20:35 UTC'),
+])
+def test_format_full_time_names_the_zone_in_the_languages_format(zone, language, expected):
+    moment = datetime(2025, 1, 6, 20, 35, tzinfo=timezone.utc)
+    assert i18n.format_full_time(moment, zone, language) == expected

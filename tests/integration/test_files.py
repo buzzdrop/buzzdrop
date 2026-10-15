@@ -7,7 +7,8 @@ import io # For creating dummy file content for uploads
 from datetime import datetime, timedelta
 from timestamps import utcnow
 from auth import get_users
-from utils import format_timestamp
+from timestamps import parse_timestamp
+import i18n
 # Fixtures: 'app', 'client', 'db_instance', 'files_store' from conftest.py
 # Test users from conftest.py: 'testuser:password:false', 'adminuser:adminpass:true'
 
@@ -441,9 +442,11 @@ def test_report_decryption_sends_notification_once(client, app, files_store, mon
     assert 'Decryption status: successful' in sent_messages[0][2]
     # An email has no browser to show the time in the reader's zone: it is
     # written in DEFAULT_TIMEZONE, not UTC and not the host's zone (#250).
-    opened = format_timestamp(files_store.get_by_id(file_id)['downloaded_at'],
-                              app.config['DEFAULT_TIMEZONE'])
-    assert re.search(r' CES?T$', opened)
+    # Its zone is named; English has no short name for Warsaw's (#293).
+    opened = i18n.format_full_time(
+        parse_timestamp(files_store.get_by_id(file_id)['downloaded_at']),
+        app.config['DEFAULT_TIMEZONE'], 'en')
+    assert re.search(r' GMT\+0[12]:00$', opened)
     assert f'Opened at: {opened}' in sent_messages[0][2]
 
 

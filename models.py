@@ -78,6 +78,9 @@ class FileRepository:
             'notification_sent_at': file_data.get('notification_sent_at'),
             'notification_claimed_at': file_data.get('notification_claimed_at'),
             'receipt_hash': file_data.get('receipt_hash'),
+            # The language the drop-opened email is written in (#293); it
+            # has no column and lands in the backend's `extra` overflow.
+            'language': file_data.get('language'),
         }
 
         # Opt-in recipient metadata: only a truthy flag is persisted (it

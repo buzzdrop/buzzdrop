@@ -53,7 +53,7 @@ from utils import (
 )
 from models import FileRepository
 import i18n
-from i18n import gettext as _
+from i18n import gettext as _, pgettext
 
 app = Flask(__name__)
 
@@ -243,6 +243,45 @@ def _send_email(recipient: str, subject: str, body: str):
         server.send_message(message)
 
 
+def _open_notification_text(file_info: dict, language: str):
+    """The drop-opened email's subject and body, in the current locale."""
+    decryption_success = file_info.get('decryption_success')
+    if decryption_success is True:
+        # Translators: the drop-opened email's "Decryption status" value.
+        decryption_status = pgettext('decryption status', 'successful')
+    elif decryption_success is False:
+        # Translators: the drop-opened email's "Decryption status" value.
+        decryption_status = pgettext('decryption status', 'failed')
+    else:
+        # Translators: the drop-opened email's "Decryption status" value: the
+        # recipient's browser never said whether decryption worked.
+        decryption_status = pgettext('decryption status', 'not reported')
+
+    is_note = file_info.get('type') == 'text'
+    # Email subjects are not private (notification previews, provider
+    # logs) — the filename stays out of the subject line, period.
+    subject = _('Buzzdrop note opened') if is_note else _('Buzzdrop file opened')
+    opened_at = parse_timestamp(file_info.get('downloaded_at')) or utcnow()
+    lines = [
+        _('Your drop was opened.'),
+        '',
+        _('Type: %(type)s', type=_('Note') if is_note else _('File')),
+    ]
+    # A note has no name of its own.
+    if not is_note:
+        lines.append(_('Original name: %(name)s', name=file_info.get('original_name') or ''))
+    lines += [
+        # An email has no browser to localize it: DEFAULT_TIMEZONE, named.
+        # Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35 CET".
+        _('Opened at: %(time)s', time=i18n.format_full_time(
+            opened_at, current_app.config['DEFAULT_TIMEZONE'], language)),
+        _('Decryption status: %(status)s', status=decryption_status),
+        '',
+        _('Buzzdrop intentionally omits recipient-sensitive details from this notification.'),
+    ]
+    return subject, '\n'.join(lines)
+
+
 def send_open_notification_email(file_info: dict) -> bool:
     if (
         not file_info.get('notify_on_open')
@@ -251,33 +290,17 @@ def send_open_notification_email(file_info: dict) -> bool:
     ):
         return False
 
+    # Written in the sender's language, the one their upload was served
+    # in, unless the server no longer serves it (#293). Rendered before the
+    # claim, so a failure here can't leave the send claimed.
+    language = file_info.get('language')
+    if language not in current_app.config['LANGUAGES']:
+        language = current_app.config['DEFAULT_LANGUAGE']
+    with i18n.in_language(language):
+        subject, body = _open_notification_text(file_info, language)
+
     if not file_repo.claim_notification_send(file_info['id']):
         return False
-
-    decryption_success = file_info.get('decryption_success')
-    if decryption_success is True:
-        decryption_status = 'successful'
-    elif decryption_success is False:
-        decryption_status = 'failed'
-    else:
-        decryption_status = 'not reported'
-
-    share_type = 'Secret Note' if file_info.get('type') == 'text' else 'File'
-    original_name = file_info.get('original_name') or ('Secret Note' if share_type == 'Secret Note' else 'Shared file')
-    # Email subjects are not private (notification previews, provider
-    # logs) — the filename stays out of the subject line, period.
-    subject = f'Buzzdrop {share_type.lower()} opened'
-    body = '\n'.join([
-        'Your Buzzdrop share was opened.',
-        '',
-        f'Type: {share_type}',
-        f'Original name: {original_name}',
-        # An email has no browser to localize it: DEFAULT_TIMEZONE.
-        f'Opened at: {format_timestamp(file_info.get("downloaded_at") or now_iso(), current_app.config["DEFAULT_TIMEZONE"])}',
-        f'Decryption status: {decryption_status}',
-        '',
-        'Buzzdrop intentionally omits recipient-sensitive details from this notification.',
-    ])
 
     try:
         _send_email(file_info['notification_email'], subject, body)
@@ -1141,6 +1164,13 @@ def upload_file():
         flash(_(UPLOAD_REFUSAL_FLASHES.get(code, _DROP_NOT_ACCEPTED)))
         return redirect(url_for('index'))
 
+    # The language the drop-opened email is written in (#293): the page's,
+    # or the default for a Bearer client, which has no page language.
+    if request.headers.get('Authorization'):
+        language = current_app.config['DEFAULT_LANGUAGE']
+    else:
+        language = i18n.current_language()
+
     try:
         notify_on_open, notification_email = _get_notification_preferences(g.username)
     except NotificationPreferenceError as exc:
@@ -1212,6 +1242,7 @@ def upload_file():
                 'notify_on_open': notify_on_open,
                 'notification_email': notification_email,
                 'receipt_hash': receipt_hash,
+                'language': language,
             }, file_id=unique_id)
         except Exception:
             if file_path is not None:
@@ -1279,6 +1310,7 @@ def upload_file():
                 'notify_on_open': notify_on_open,
                 'notification_email': notification_email,
                 'receipt_hash': receipt_hash,
+                'language': language,
             }, file_id=unique_id)
         except Exception:
             if file_path is not None:

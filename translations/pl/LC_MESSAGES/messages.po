@@ -56,6 +56,73 @@ msgstr ""
 "Powiadomienia o otwarciu można wysyłać tylko na adres e-mail ustawiony na"
 " koncie."
 
+#. Translators: the drop-opened email's "Decryption status" value.
+#: app.py
+msgctxt "decryption status"
+msgid "successful"
+msgstr "udane"
+
+#. Translators: the drop-opened email's "Decryption status" value.
+#: app.py
+msgctxt "decryption status"
+msgid "failed"
+msgstr "nieudane"
+
+#. Translators: the drop-opened email's "Decryption status" value: the
+#. recipient's browser never said whether decryption worked.
+#: app.py
+msgctxt "decryption status"
+msgid "not reported"
+msgstr "nie zgłoszono"
+
+#: app.py
+msgid "Buzzdrop note opened"
+msgstr "Buzzdrop: otwarto notatkę"
+
+#: app.py
+msgid "Buzzdrop file opened"
+msgstr "Buzzdrop: otwarto plik"
+
+#: app.py
+msgid "Your drop was opened."
+msgstr "Twoją przesyłkę otwarto."
+
+#: app.py
+#, python-format
+msgid "Type: %(type)s"
+msgstr "Typ: %(type)s"
+
+#: app.py templates/index.html utils.py
+msgid "Note"
+msgstr "Notatka"
+
+#: app.py templates/index.html
+msgid "File"
+msgstr "Plik"
+
+#: app.py
+#, python-format
+msgid "Original name: %(name)s"
+msgstr "Nazwa pliku: %(name)s"
+
+#. Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35
+#. CET".
+#: app.py
+#, python-format
+msgid "Opened at: %(time)s"
+msgstr "Otwarto: %(time)s"
+
+#: app.py
+#, python-format
+msgid "Decryption status: %(status)s"
+msgstr "Odszyfrowanie: %(status)s"
+
+#: app.py
+msgid ""
+"Buzzdrop intentionally omits recipient-sensitive details from this "
+"notification."
+msgstr "Buzzdrop celowo pomija w tym powiadomieniu szczegóły dotyczące odbiorcy."
+
 #: app.py
 msgid "Drop too large"
 msgstr "Przesyłka jest za duża"
@@ -164,10 +231,6 @@ msgstr "Wygasła"
 #, python-format
 msgid "Note · %(time)s"
 msgstr "Notatka · %(time)s"
-
-#: templates/index.html utils.py
-msgid "Note"
-msgstr "Notatka"
 
 #. a Copy button's label, flashed after a copy. Keep it short.
 #: templates/_clipboard_feedback_strings.html
@@ -604,10 +667,6 @@ msgstr ""
 #: templates/index.html
 msgid "What are you sending?"
 msgstr "Co wysyłasz?"
-
-#: templates/index.html
-msgid "File"
-msgstr "Plik"
 
 #: templates/index.html
 msgid ""
