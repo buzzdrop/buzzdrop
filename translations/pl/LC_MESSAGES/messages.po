@@ -753,12 +753,16 @@ msgid "Where the code comes from"
 msgstr "Skąd pochodzi kod"
 
 #: templates/_how_it_works_content.html
+#, python-format
 msgid ""
-"Our server sends it with the page. Subresource Integrity protects it in "
-"transit and in caches, not against a compromised server."
+"Our server sends it with the page. <a href=\"%(href)s\" class=\"footer-"
+"link\">Subresource Integrity</a> protects it in transit and in caches, "
+"not against a compromised server."
 msgstr ""
-"Nasz serwer wysyła go razem ze stroną. Subresource Integrity chroni go w "
-"drodze i w pamięciach podręcznych, ale nie przed przejętym serwerem."
+"Nasz serwer wysyła go razem ze stroną. <a href=\"%(href)s\" class"
+"=\"footer-link\">Subresource Integrity</a> (sprawdzanie, czy przeglądarka"
+" dostała dokładnie ten plik, który miała dostać) chroni go w drodze i w "
+"pamięciach podręcznych, ale nie przed przejętym serwerem."
 
 #: templates/_how_it_works_content.html
 msgid ""

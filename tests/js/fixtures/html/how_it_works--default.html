@@ -319,7 +319,7 @@
     <span data-show="content:file">A random receipt goes in front of the file, and AES-GCM encrypts the lot.</span><span data-show="content:text" hidden>A random receipt goes in front of the note, and AES-GCM encrypts the lot.</span>
 </dd>
 <dt>Where the code comes from</dt>
-<dd><span data-show="sender:web">Our server sends it with the page. Subresource Integrity protects it in transit and in caches, not against a compromised server.</span><span data-show="sender:cli" hidden>You installed <code>buzz</code> once from GitHub Releases, so a compromised server can’t swap it during an upload.</span></dd>
+<dd><span data-show="sender:web">Our server sends it with the page. <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity" class="footer-link">Subresource Integrity</a> protects it in transit and in caches, not against a compromised server.</span><span data-show="sender:cli" hidden>You installed <code>buzz</code> once from GitHub Releases, so a compromised server can’t swap it during an upload.</span></dd>
 <dt>What the server sees</dt>
 <dd>Nothing. The password and <code>Kp</code> never leave your device.</dd>
 <dt>Why</dt>

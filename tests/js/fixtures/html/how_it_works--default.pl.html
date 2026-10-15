@@ -319,7 +319,7 @@
     <span data-show="content:file">Przed plikiem trafia losowe pokwitowanie, a AES-GCM szyfruje całość.</span><span data-show="content:text" hidden>Przed notatką trafia losowe pokwitowanie, a AES-GCM szyfruje całość.</span>
 </dd>
 <dt>Skąd pochodzi kod</dt>
-<dd><span data-show="sender:web">Nasz serwer wysyła go razem ze stroną. Subresource Integrity chroni go w drodze i w pamięciach podręcznych, ale nie przed przejętym serwerem.</span><span data-show="sender:cli" hidden><code>buzz</code> instaluje się raz z GitHub Releases, więc przejęty serwer nie podmieni go podczas wysyłania.</span></dd>
+<dd><span data-show="sender:web">Nasz serwer wysyła go razem ze stroną. <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity" class="footer-link">Subresource Integrity</a> (sprawdzanie, czy przeglądarka dostała dokładnie ten plik, który miała dostać) chroni go w drodze i w pamięciach podręcznych, ale nie przed przejętym serwerem.</span><span data-show="sender:cli" hidden><code>buzz</code> instaluje się raz z GitHub Releases, więc przejęty serwer nie podmieni go podczas wysyłania.</span></dd>
 <dt>Co widzi serwer</dt>
 <dd>Nic. Hasło i <code>Kp</code> nigdy nie opuszczają twojego urządzenia.</dd>
 <dt>Dlaczego</dt>

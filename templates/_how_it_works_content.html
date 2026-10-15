@@ -122,7 +122,7 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
     <span {{ show('content', 'file') }}>{% trans %}A random receipt goes in front of the file, and AES-GCM encrypts the lot.{% endtrans %}</span><span {{ show('content', 'text') }}>{% trans %}A random receipt goes in front of the note, and AES-GCM encrypts the lot.{% endtrans %}</span>
 </dd>
 <dt>{{ _('Where the code comes from') }}</dt>
-<dd><span {{ show('sender', 'web') }}>{% trans %}Our server sends it with the page. Subresource Integrity protects it in transit and in caches, not against a compromised server.{% endtrans %}</span><span {{ show('sender', 'cli') }}>{% trans %}You installed <code>buzz</code> once from GitHub Releases, so a compromised server can’t swap it during an upload.{% endtrans %}</span></dd>
+<dd><span {{ show('sender', 'web') }}>{% trans href='https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity' %}Our server sends it with the page. <a href="{{ href }}" class="footer-link">Subresource Integrity</a> protects it in transit and in caches, not against a compromised server.{% endtrans %}</span><span {{ show('sender', 'cli') }}>{% trans %}You installed <code>buzz</code> once from GitHub Releases, so a compromised server can’t swap it during an upload.{% endtrans %}</span></dd>
 <dt>{{ _('What the server sees') }}</dt>
 <dd>{% trans %}Nothing. The password and <code>Kp</code> never leave your device.{% endtrans %}</dd>
 <dt>{{ _('Why') }}</dt>
