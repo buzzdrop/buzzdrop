@@ -36,7 +36,7 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
     ('upload-begin', _('Upload, phase 1')),
     ('encrypt', _('Encrypt where you are')),
     ('upload-finish', _('Upload, phase 2')),
-    ('share', _('Share')),
+    ('share', pgettext('how-it-works step', 'Share')),
     ('release', _('The recipient proves the password')),
     ('download', _('Download once')),
     ('decrypt', _('Decrypt in the browser')),
@@ -62,19 +62,19 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 {% set opened %}<span {{ show('content', 'file') }}>{{ _('saving file') }}</span><span {{ show('content', 'text') }}>{{ _('showing note') }}</span>{% endset %}
 {% set never_sees_content = _('The password, <code>Kp</code> and the content') %}
 {% set scenes = {
-    'upload-begin': {'lit': ['sender', 'server'], 'left': [('out', _('begin')), ('back', file_id_and_h)],
+    'upload-begin': {'lit': ['sender', 'server'], 'left': [('out', pgettext('how-it-works diagram', 'begin')), ('back', file_id_and_h)],
                      'lens': ('some', _('That an upload is starting'), _('The file or note, and the password'))},
     'encrypt': {'lit': ['sender'], 'local': ('sender', _('encrypting here')),
                 'lens': ('none', _('Nothing'), never_sees_content)},
-    'upload-finish': {'lit': ['sender', 'server'], 'left': [('out', ciphertext_up), ('back', _('link'))],
+    'upload-finish': {'lit': ['sender', 'server'], 'left': [('out', ciphertext_up), ('back', pgettext('how-it-works diagram', 'link'))],
                       'lens': ('some', lens_upload, never_sees_content)},
-    'share': {'lit': ['sender', 'recipient'], 'bypass': (_('link'), _('password, another way')),
+    'share': {'lit': ['sender', 'recipient'], 'bypass': (pgettext('how-it-works diagram', 'link'), _('password, another way')),
               'lens': ('none', _('Nothing'), _('The password, and who you send the link to'))},
     'release': {'lit': ['server', 'recipient'], 'right': [('back', v_only), ('out', _('H, once'))],
                 'lens': ('some', _('<code>V</code> and an IP address'), _('The password'))},
-    'download': {'lit': ['server', 'recipient'], 'right': [('back', _('ticket')), ('out', _('ciphertext'))],
+    'download': {'lit': ['server', 'recipient'], 'right': [('back', pgettext('how-it-works diagram', 'ticket')), ('out', pgettext('how-it-works diagram', 'ciphertext'))],
                  'lens': ('some', _('The ticket and an IP address'), _('The content, and who the recipient is'))},
-    'decrypt': {'lit': ['server', 'recipient'], 'right': [('back', _('receipt'))], 'local': ('recipient', opened),
+    'decrypt': {'lit': ['server', 'recipient'], 'right': [('back', pgettext('how-it-works diagram', 'receipt'))], 'local': ('recipient', opened),
                 'lens': ('some', _('That decryption worked'), _('The content and the file key'))},
     'expiry': {'lit': ['server'], 'burn': True,
                'lens': ('burn', _('<code>H</code> destroyed, ciphertext deleted'), _('The content, then or ever'))},
@@ -175,7 +175,7 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 <dd>{% trans %}<code>GET /download</code> with the ticket. The server streams the ciphertext back.{% endtrans %}</dd>
 <dt>{{ _('What the server sees') }}</dt>
 <dd>{% trans %}The ticket, and the recipient’s IP address, which it stores with the time of the download.{% endtrans %}</dd>
-<dt>{{ _('Then') }}</dt>
+<dt>{{ pgettext('how-it-works step', 'Then') }}</dt>
 <dd>{% trans %}The ticket is used up before the first byte goes out, and the ciphertext is deleted from storage once the stream ends, even if it broke off. A drop released but not downloaded within 10 minutes expires the same way.{% endtrans %}</dd>
 <dt>{{ _('Why') }}</dt>
 <dd>{% trans %}Only the browser that won the release can claim the ciphertext, and there is no second copy to come back for.{% endtrans %}</dd>
@@ -202,10 +202,10 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 {% set name_seen %}<span {{ show('content', 'file') }}>{% trans %}The <strong class="hiw-caveat">original filename, in plain text</strong>. It is stored and shown in the sender’s drop list; the recipient never sees it on a page — the name they save the file under arrives inside the ciphertext.{% endtrans %}</span><span {{ show('content', 'text') }}>{% trans %}The label “Secret Note”{% endtrans %}</span>{% endset %}
 {% set name_unseen %}<span {{ show('content', 'file') }}>&mdash;</span><span {{ show('content', 'text') }}>{{ _('Anything in the note') }}</span>{% endset %}
 {% set sees_rows = [
-    (_('Content'), _('Ciphertext and its approximate size'), _('The plaintext')),
+    (pgettext('what the server sees', 'Content'), _('Ciphertext and its approximate size'), _('The plaintext')),
     (_('Password'), _('<code>V</code>, a one-way fingerprint of it'), _('The password, <code>Kp</code>, the file key')),
-    (_('Name'), name_seen, name_unseen),
-    (_('People'), _('The sender’s account; the recipient’s IP address'), _('Who the recipient is')),
+    (pgettext('what the server sees', 'Name'), name_seen, name_unseen),
+    (pgettext('what the server sees', 'People'), _('The sender’s account; the recipient’s IP address'), _('Who the recipient is')),
 ] %}
 
 {# What we keep: what, how long (in brief), and the whole of it. #}

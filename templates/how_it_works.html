@@ -106,7 +106,7 @@
                     <legend class="hiw-legend">{{ _('What you send') }}</legend>
                     <div class="hiw-choice">
                         <label><input type="radio" name="content" value="file"{% if content == 'file' %} checked{% endif %}>{{ icon('file', 'h-4 w-4') }}<span>{{ _('File') }}</span></label>
-                        <label><input type="radio" name="content" value="text"{% if content == 'text' %} checked{% endif %}{% if sender == 'cli' %} disabled aria-describedby="content-cli-hint"{% endif %}>{{ icon('note', 'h-4 w-4') }}<span>{{ _('Text') }}</span></label>
+                        <label><input type="radio" name="content" value="text"{% if content == 'text' %} checked{% endif %}{% if sender == 'cli' %} disabled aria-describedby="content-cli-hint"{% endif %}>{{ icon('note', 'h-4 w-4') }}<span>{{ pgettext('what you send', 'Text') }}</span></label>
                     </div>
                     <p id="content-cli-hint" class="mt-1.5 text-xs text-slate-500"{% if sender != 'cli' %} hidden{% endif %}>{{ c.content_cli_hint }}</p>
                 </fieldset>

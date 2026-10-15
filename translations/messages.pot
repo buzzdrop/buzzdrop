@@ -401,6 +401,7 @@ msgid "Upload, phase 2"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works step"
 msgid "Share"
 msgstr ""
 
@@ -461,6 +462,7 @@ msgid "The password, <code>Kp</code> and the content"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "begin"
 msgstr ""
 
@@ -481,6 +483,7 @@ msgid "Nothing"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "link"
 msgstr ""
 
@@ -505,10 +508,12 @@ msgid "The password"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "ticket"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "ciphertext"
 msgstr ""
 
@@ -521,6 +526,7 @@ msgid "The content, and who the recipient is"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "receipt"
 msgstr ""
 
@@ -906,6 +912,7 @@ msgid ""
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works step"
 msgid "Then"
 msgstr ""
 
@@ -984,6 +991,7 @@ msgid "Anything in the note"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "what the server sees"
 msgid "Content"
 msgstr ""
 
@@ -1009,10 +1017,12 @@ msgid "The password, <code>Kp</code>, the file key"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "what the server sees"
 msgid "Name"
 msgstr ""
 
 #: templates/_how_it_works_content.html
+msgctxt "what the server sees"
 msgid "People"
 msgstr ""
 
@@ -1503,6 +1513,7 @@ msgid "What you send"
 msgstr ""
 
 #: templates/how_it_works.html
+msgctxt "what you send"
 msgid "Text"
 msgstr ""
 

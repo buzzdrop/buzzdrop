@@ -314,7 +314,7 @@
 <dd><span data-show="sender:web">Sama twoja przeglądarka, w JavaScripcie strony.</span><span data-show="sender:cli" hidden>Sam twój terminal, w CLI <code>buzz</code>.</span> Nic nie przechodzi przez sieć.</dd>
 <dt>Co się dzieje</dt>
 <dd>
-    <span data-show="sender:web">Wpisujesz hasło albo każesz stronie wygenerować hasło z 6 słów.</span><span data-show="sender:cli" hidden><code>buzz</code> generuje hasło z 6 słów, chyba że podasz własne przez <code>-p</code>, i najpierw pakuje do ZIP folder (albo, z <code>-z</code>, plik).</span>
+    <span data-show="sender:web">Wpisujesz hasło albo każesz stronie wygenerować 6-wyrazowe hasło ze słów.</span><span data-show="sender:cli" hidden><code>buzz</code> generuje 6-wyrazowe hasło ze słów, chyba że podasz własne przez <code>-p</code>, i najpierw pakuje do ZIP folder (albo, z <code>-z</code>, plik).</span>
     Hasło przechodzi przez PBKDF2 z 600 000 iteracji; z wyniku powstają dwa klucze: <code>Kp</code> do szyfrowania i weryfikator <code>V</code> do późniejszego potwierdzenia hasła. Klucz pliku to <code>HKDF(Kp ‖ H)</code>, więc wymaga i hasła, i części klucza z serwera.
     <span data-show="content:file">Przed plikiem trafia losowe pokwitowanie, a AES-GCM szyfruje całość.</span><span data-show="content:text" hidden>Przed notatką trafia losowe pokwitowanie, a AES-GCM szyfruje całość.</span>
 </dd>
@@ -510,7 +510,7 @@
 <dt>Potem</dt>
 <dd>Bilet zostaje zużyty, zanim wyjdzie pierwszy bajt, a szyfrogram zostaje usunięty z magazynu, gdy strumień się skończy, nawet jeśli się urwał. Przesyłka wydana, ale niepobrana w ciągu 10 minut, wygasa tak samo.</dd>
 <dt>Dlaczego</dt>
-<dd>Szyfrogram może odebrać tylko przeglądarka, która wygrała wydanie klucza, i nie ma drugiej kopii, po którą można wrócić.</dd>
+<dd>Szyfrogram może pobrać tylko przeglądarka, która wygrała wydanie klucza, i nie ma drugiej kopii, po którą można wrócić.</dd>
 </dl></div>
                     </article>
                     

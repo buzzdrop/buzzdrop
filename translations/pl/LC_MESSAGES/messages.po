@@ -415,6 +415,7 @@ msgid "Upload, phase 2"
 msgstr "Wysyłanie, etap 2"
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works step"
 msgid "Share"
 msgstr "Przekazanie linku"
 
@@ -475,6 +476,7 @@ msgid "The password, <code>Kp</code> and the content"
 msgstr "Hasła, <code>Kp</code> ani treści"
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "begin"
 msgstr "start"
 
@@ -495,6 +497,7 @@ msgid "Nothing"
 msgstr "Nic"
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "link"
 msgstr "link"
 
@@ -519,10 +522,12 @@ msgid "The password"
 msgstr "Hasła"
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "ticket"
 msgstr "bilet"
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "ciphertext"
 msgstr "szyfrogram"
 
@@ -535,6 +540,7 @@ msgid "The content, and who the recipient is"
 msgstr "Treści ani tego, kim jest odbiorca"
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works diagram"
 msgid "receipt"
 msgstr "pokwitowanie"
 
@@ -709,7 +715,7 @@ msgstr "Nic nie przechodzi przez sieć."
 
 #: templates/_how_it_works_content.html
 msgid "You type a password, or have the page generate a 6-word passphrase."
-msgstr "Wpisujesz hasło albo każesz stronie wygenerować hasło z 6 słów."
+msgstr "Wpisujesz hasło albo każesz stronie wygenerować 6-wyrazowe hasło ze słów."
 
 #: templates/_how_it_works_content.html
 msgid ""
@@ -717,8 +723,8 @@ msgid ""
 "<code>-p</code>, and zips a folder (or, with <code>-z</code>, a file) "
 "first."
 msgstr ""
-"<code>buzz</code> generuje hasło z 6 słów, chyba że podasz własne przez "
-"<code>-p</code>, i najpierw pakuje do ZIP folder (albo, z "
+"<code>buzz</code> generuje 6-wyrazowe hasło ze słów, chyba że podasz "
+"własne przez <code>-p</code>, i najpierw pakuje do ZIP folder (albo, z "
 "<code>-z</code>, plik)."
 
 #: templates/_how_it_works_content.html
@@ -1009,6 +1015,7 @@ msgid ""
 msgstr "Bilet i adres IP odbiorcy, który zapisuje razem z czasem pobrania."
 
 #: templates/_how_it_works_content.html
+msgctxt "how-it-works step"
 msgid "Then"
 msgstr "Potem"
 
@@ -1027,8 +1034,8 @@ msgid ""
 "Only the browser that won the release can claim the ciphertext, and there"
 " is no second copy to come back for."
 msgstr ""
-"Szyfrogram może odebrać tylko przeglądarka, która wygrała wydanie klucza,"
-" i nie ma drugiej kopii, po którą można wrócić."
+"Szyfrogram może pobrać tylko przeglądarka, która wygrała wydanie klucza, "
+"i nie ma drugiej kopii, po którą można wrócić."
 
 #: templates/_how_it_works_content.html
 msgid ""
@@ -1112,6 +1119,7 @@ msgid "Anything in the note"
 msgstr "Niczego z treści notatki"
 
 #: templates/_how_it_works_content.html
+msgctxt "what the server sees"
 msgid "Content"
 msgstr "Treść"
 
@@ -1137,10 +1145,12 @@ msgid "The password, <code>Kp</code>, the file key"
 msgstr "Hasła, <code>Kp</code> ani klucza pliku"
 
 #: templates/_how_it_works_content.html
+msgctxt "what the server sees"
 msgid "Name"
 msgstr "Nazwa"
 
 #: templates/_how_it_works_content.html
+msgctxt "what the server sees"
 msgid "People"
 msgstr "Ludzie"
 
@@ -1681,6 +1691,7 @@ msgid "What you send"
 msgstr "Co wysyłasz"
 
 #: templates/how_it_works.html
+msgctxt "what you send"
 msgid "Text"
 msgstr "Notatka"
 
