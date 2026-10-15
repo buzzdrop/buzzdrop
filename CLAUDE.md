@@ -32,7 +32,7 @@ npm run fixtures                   # regenerate DOM fixtures + protocol contract
 python translations/catalogs.py    # extract/update/compile gettext catalogs
 ```
 
-CI fails while the DOM fixtures, the protocol contract or the catalogs are stale, or while a Polish entry is missing or fuzzy. The pre-commit hook in `.githooks/` (enabled by `npm install`) runs the catalogs and then the fixtures for commits that touch `templates/`, `db/`, `translations/` or the root Python modules. E2E (Playwright against the Docker image): `tests/CLAUDE.md`.
+CI fails while the DOM fixtures, the protocol contract, the catalogs or the compiled `static/css/app.css` (`npm run build:css`) are stale, or while a Polish entry is missing or fuzzy. The pre-commit hook in `.githooks/` (enabled by `npm install`) runs the catalogs and then the fixtures for commits that touch `templates/`, `db/`, `translations/` or the root Python modules. E2E (Playwright against the Docker image): `tests/CLAUDE.md`.
 
 ## Where things live
 

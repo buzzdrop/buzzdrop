@@ -33,6 +33,10 @@ jobs:
         run: npm run test:unit
       - name: Run JS DOM tests
         run: npm run test:dom
+      - name: Check app.css is up to date
+        run: |
+          npm run build:css
+          git diff --exit-code static/css/app.css || { echo '::error::app.css is stale; run npm run build:css and commit the result'; exit 1; }
 
   build:
     runs-on: ubuntu-latest

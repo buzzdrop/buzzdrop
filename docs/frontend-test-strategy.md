@@ -325,7 +325,7 @@ All gating CI lives in `ci.yml`. **`build-test.yml` is deleted** (it duplicated 
 
 | Job | Needs | Does |
 |---|---|---|
-| `js-fast` | — | `setup-node` (`.nvmrc`, `cache: npm`) → `npm ci` → `npm run typecheck` → `npm run test:unit` → `npm run test:dom` |
+| `js-fast` | — | `setup-node` (`.nvmrc`, `cache: npm`) → `npm ci` → `npm run typecheck` → `npm run test:unit` → `npm run test:dom` → `npm run build:css` + `git diff --exit-code static/css/app.css` |
 | `build` | — | plant decoy `.env`/DB/upload files → `docker build -t buzzdrop-test .` → fail if a decoy is in the image (`.dockerignore`, #163) → `docker save` → upload the image as an artifact |
 | `pytest` | `build` | `docker load` → pytest in the image → `db.json` migration smoke test → **DOM-fixture drift check** → **protocol-contract drift check** |
 | `e2e` | `build` | `docker load` → `setup-node` + `npm ci` → `npx playwright install --with-deps chromium firefox webkit` (no browser cache) → `E2E_IMAGE=buzzdrop-test npx playwright test` |
