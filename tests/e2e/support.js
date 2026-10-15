@@ -16,6 +16,64 @@ import { bytesToHex } from '../../static/js/lib/hex.js';
 export const USER = { username: 'e2e', password: 'e2e-login-password' };
 
 /**
+ * The UI text the shared steps find elements by. Journeys run in English
+ * (§4), so every step defaults to EN; the Polish journey (#294) passes PL.
+ * @typedef {{
+ *   username: string, password: string, login: string, sendFile: string,
+ *   noteTab: string, noteBody: string, sendNote: string,
+ *   proceed: RegExp, decrypt: RegExp, noteDecrypted: string, decryptedText: string,
+ * }} UiText
+ */
+
+/** @type {UiText} */
+export const EN = {
+    username: 'Username',
+    password: 'Password',
+    login: 'Login',
+    sendFile: 'Send file',
+    noteTab: 'Note',
+    noteBody: 'Your note',
+    sendNote: 'Send note',
+    proceed: /^Proceed to /,
+    decrypt: /^Decrypt and /,
+    noteDecrypted: 'Text decrypted successfully.',
+    decryptedText: 'Decrypted text',
+};
+
+/** @type {UiText} */
+export const PL = {
+    username: 'Nazwa użytkownika',
+    password: 'Hasło',
+    login: 'Zaloguj',
+    sendFile: 'Wyślij plik',
+    noteTab: 'Notatka',
+    noteBody: 'Treść notatki',
+    sendNote: 'Wyślij notatkę',
+    proceed: /^Przejdź do /,
+    decrypt: /^Odszyfruj i /,
+    noteDecrypted: 'Odszyfrowano notatkę.',
+    decryptedText: 'Odszyfrowany tekst',
+};
+
+/**
+ * The header's language menu button, named in the language the page is in.
+ * @param {Page} page
+ */
+export function languageButton(page) {
+    return page.getByRole('navigation').getByRole('button', { name: /^(Language|Język): / });
+}
+
+/**
+ * The page is served in a language: the document's own, not only its text.
+ * @param {Page} page
+ * @param {string} lang - e.g. 'en', 'pl'
+ */
+export async function expectLanguage(page, lang) {
+    // <html> has no role to find it by; its lang is what a screen reader reads.
+    await expect(page.locator('html')).toHaveAttribute('lang', lang);
+}
+
+/**
  * A file with every byte value, under a unique name, so a decrypt that is
  * off by one byte, a text decoding or a truncation shows up.
  * @returns {FilePayload}
@@ -30,16 +88,17 @@ export function uniqueFile() {
 
 /**
  * @param {Page} page
+ * @param {UiText} [text]
  */
-export async function logIn(page) {
+export async function logIn(page, text = EN) {
     await page.goto('/login');
-    await page.getByLabel('Username').fill(USER.username);
-    await page.getByLabel('Password').fill(USER.password);
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByLabel(text.username).fill(USER.username);
+    await page.getByLabel(text.password).fill(USER.password);
+    await page.getByRole('button', { name: text.login }).click();
     // Module scripts run before DOMContentLoaded: from then on the composer's
     // listeners are wired, and a click is not lost on a half-booted page.
     await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('button', { name: 'Send file' })).toBeVisible();
+    await expect(page.getByRole('button', { name: text.sendFile })).toBeVisible();
 }
 
 /**
@@ -62,13 +121,14 @@ export async function shareFile(page, file, password) {
  * @param {Page} page
  * @param {string} text
  * @param {string} password
+ * @param {UiText} [ui]
  * @returns {Promise<string>}
  */
-export async function shareNote(page, text, password) {
-    await page.getByRole('tab', { name: 'Note' }).click();
-    await page.getByLabel('Your note').fill(text);
-    await page.getByLabel('Password', { exact: true }).fill(password);
-    await page.getByRole('button', { name: 'Send note' }).click();
+export async function shareNote(page, text, password, ui = EN) {
+    await page.getByRole('tab', { name: ui.noteTab }).click();
+    await page.getByLabel(ui.noteBody).fill(text);
+    await page.getByLabel(ui.password, { exact: true }).fill(password);
+    await page.getByRole('button', { name: ui.sendNote }).click();
     return shareLink(page);
 }
 
@@ -113,10 +173,11 @@ export async function oneClickLink(page) {
  * The ciphertext isn't fetched here — only a proven password releases it,
  * so the helper returns nothing.
  * @param {Page} page - the confirm page
+ * @param {UiText} [text]
  */
-export async function proceedToView(page) {
-    await page.getByRole('button', { name: /^Proceed to / }).click();
-    await expect(decryptButton(page)).toBeEnabled();
+export async function proceedToView(page, text = EN) {
+    await page.getByRole('button', { name: text.proceed }).click();
+    await expect(decryptButton(page, text)).toBeEnabled();
 }
 
 /**
@@ -147,17 +208,19 @@ export async function openShare(page, link) {
 /**
  * The view page's password field.
  * @param {Page} page
+ * @param {UiText} [text]
  */
-export function passwordField(page) {
-    return page.getByLabel('Password');
+export function passwordField(page, text = EN) {
+    return page.getByLabel(text.password);
 }
 
 /**
  * The view page's Decrypt button, for files and notes alike.
  * @param {Page} page
+ * @param {UiText} [text]
  */
-export function decryptButton(page) {
-    return page.getByRole('button', { name: /^Decrypt and / });
+export function decryptButton(page, text = EN) {
+    return page.getByRole('button', { name: text.decrypt });
 }
 
 /**
@@ -182,10 +245,12 @@ export async function decryptWithPassword(page, password) {
  * Types the password and presses Enter in the field.
  * @param {Page} page - the view page
  * @param {string} password
+ * @param {UiText} [text]
  */
-export async function decryptWithEnter(page, password) {
-    await passwordField(page).fill(password);
-    await passwordField(page).press('Enter');
+export async function decryptWithEnter(page, password, text = EN) {
+    const field = passwordField(page, text);
+    await field.fill(password);
+    await field.press('Enter');
 }
 
 /**
@@ -209,12 +274,13 @@ export async function decryptFile(page, password) {
  * trimming slip shows.
  * @param {Page} page - the view page
  * @param {string} password
+ * @param {UiText} [text]
  * @returns {Promise<string | null>}
  */
-export async function decryptMessage(page, password) {
-    await decryptWithEnter(page, password);
-    await expect(shareStatus(page)).toHaveText('Text decrypted successfully.');
-    return page.getByRole('region', { name: 'Decrypted text' }).textContent();
+export async function decryptMessage(page, password, text = EN) {
+    await decryptWithEnter(page, password, text);
+    await expect(shareStatus(page)).toHaveText(text.noteDecrypted);
+    return page.getByRole('region', { name: text.decryptedText }).textContent();
 }
 
 /**
