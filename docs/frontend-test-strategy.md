@@ -200,6 +200,7 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
 7. Login → upload → logout (session and CSRF over real HTTP).
 8. The header stays one row at 375px and 320px, logged out and logged in, with no sideways scroll (#232), the language button included (#287).
 9. The language menu (#287): Tab, Enter and the arrows pick Polski, Space opens it too, and the choice holds on the next page; Escape gives focus back to the button; with JavaScript off the menu still switches the language.
+10. Polish (#294, §7c): under a `pl-PL` browser, a note makes its round trip with the Polish UI checked at each step, the recipient's confirm and view pages have no language menu, and a switch to English in the menu holds across pages.
 
 Hard-to-produce failures (410 edge cases, 429) are mocked per test with `page.route()`. There is no separate mocked-server E2E mode.
 
@@ -277,11 +278,11 @@ From [How do tests and CI work under i18n?](https://github.com/buzzdrop/buzzdrop
 - **Catalog checks** (pytest, `tests/unit/test_translations.py`): `.pot` drift, `.po` sync, stale `.mo`, strict completeness (untranslated or fuzzy fails), no obsolete entries, placeholder and inline-tag parity.
 - **Pseudo-locale check** (same file): a test-only locale `xx`, built in memory at test time and never committed or enableable, wraps every translation in markers. Each page on its `CONVERTED_PAGES` list is rendered in it, and visible text or an `aria-label`, `title`, `placeholder` or `alt` outside the markers fails, except brand names, user data, numbers, links the server renders and text inside a `translate="no"` element (the language menu's names and code, each in its own language, #287). The list grows with each i18n issue: the login, error and "drop is gone" pages (#284), the success page for a file and a note (#286), the confirm and view pages for a file and a note (#290), the users page, alone, with each of its flashes, and where it sends someone who may not see it (#292).
 - **JS-literal check** (`tests/js/js-literals.test.js`, `node --test`): JS holds no user-facing text (#265). For each module on its opt-in `CONVERTED_MODULES` list, it parses the source (acorn) and fails on a string or template literal with words written straight into `textContent`, `innerText`/`innerHTML`, `title`, `placeholder`, `alt`, an `aria…` property or attribute (`setAttribute`), or `alert()`, including through `?:`, `||`, `&&`, `??` and `+`. A literal reaching the write through a variable or a function argument is not seen. Its own cases pin what it catches and lets through. The list grows with each i18n issue: `lib/strings.js`, `lib/format.js`, `features/clipboard-feedback/` and `pages/success/` (#286), `pages/language-menu/` (#287), `features/shared-files/` (#289), `pages/confirm-download/` and `pages/view/` (#290), `pages/users/` (#292).
-- **Polish E2E** (`tests/e2e/polish.spec.js`, all three browsers), added once the send and open pages are translated:
+- **Polish E2E** (`tests/e2e/polish.spec.js`, all three browsers, journey 10 in §7):
   1. The browser locale is `pl-PL`, so `Accept-Language` negotiation is exercised.
   2. A text note makes the full round trip (send, open, decrypt) with the Polish UI checked.
   3. Switching to English with `POST /language` persists across pages.
-  4. The switcher is unavailable after the drop is opened.
+  4. The switcher is absent from the recipient's pages (confirm and view).
 
 ## 8. E2E harness and test profile
 
