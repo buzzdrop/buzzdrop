@@ -203,7 +203,7 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 {% set name_unseen %}<span {{ show('content', 'file') }}>&mdash;</span><span {{ show('content', 'text') }}>{{ _('Anything in the note') }}</span>{% endset %}
 {% set sees_rows = [
     (pgettext('what the server sees', 'Content'), _('Ciphertext and its approximate size'), _('The plaintext')),
-    (_('Password'), _('<code>V</code>, a one-way fingerprint of it'), _('The password, <code>Kp</code>, the file key')),
+    (pgettext('what the server sees', 'Password'), _('<code>V</code>, a one-way fingerprint of it'), _('The password, <code>Kp</code>, the file key')),
     (pgettext('what the server sees', 'Name'), name_seen, name_unseen),
     (pgettext('what the server sees', 'People'), _('The sender’s account; the recipient’s IP address'), _('Who the recipient is')),
 ] %}

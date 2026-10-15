@@ -1131,8 +1131,8 @@ msgstr "Szyfrogram i jego przybliżony rozmiar"
 msgid "The plaintext"
 msgstr "Tekstu jawnego"
 
-#: templates/_how_it_works_content.html templates/index.html
-#: templates/login.html templates/success.html templates/view.html
+#: templates/_how_it_works_content.html
+msgctxt "what the server sees"
 msgid "Password"
 msgstr "Hasło"
 
@@ -1319,15 +1319,15 @@ msgstr "Błędna próba może zniszczyć przesyłkę."
 
 #: templates/_how_it_works_content.html
 msgid "A wrong guess can lock a drop."
-msgstr "Błędna próba może zablokować przesyłkę."
+msgstr "Błędna próba może zablokować przesyłkę na stałe."
 
 #: templates/_how_it_works_content.html
 msgid ""
 "Anyone with the link can spend the attempt and lock it, and then the real"
 " recipient can’t open it either."
 msgstr ""
-"Każdy, kto ma link, może wykorzystać jedyną próbę i ją zablokować, a "
-"wtedy prawdziwy odbiorca też jej nie otworzy."
+"Każdy, kto ma link, może wykorzystać jedyną próbę i zablokować ją na "
+"stałe, a wtedy prawdziwy odbiorca też jej nie otworzy."
 
 #: templates/_how_it_works_content.html
 #, python-format
@@ -1335,8 +1335,8 @@ msgid ""
 "Anyone with the link can spend the %(attempts)s attempts and lock it, and"
 " then the real recipient can’t open it either."
 msgstr ""
-"Każdy, kto ma link, może wykorzystać limit %(attempts)s prób i ją "
-"zablokować, a wtedy prawdziwy odbiorca też jej nie otworzy."
+"Każdy, kto ma link, może wykorzystać limit %(attempts)s prób i zablokować"
+" ją na stałe, a wtedy prawdziwy odbiorca też jej nie otworzy."
 
 #: templates/_how_it_works_strings.html
 #, python-format
@@ -1798,6 +1798,11 @@ msgstr "Wklej notatkę, którą chcesz wysłać jednorazowo…"
 #: templates/index.html
 msgid "Encrypted in the browser before it reaches the server."
 msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
+
+#: templates/index.html templates/login.html templates/success.html
+#: templates/view.html
+msgid "Password"
+msgstr "Hasło"
 
 #: templates/index.html
 msgid "Enter a strong password"

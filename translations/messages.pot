@@ -1003,8 +1003,8 @@ msgstr ""
 msgid "The plaintext"
 msgstr ""
 
-#: templates/_how_it_works_content.html templates/index.html
-#: templates/login.html templates/success.html templates/view.html
+#: templates/_how_it_works_content.html
+msgctxt "what the server sees"
 msgid "Password"
 msgstr ""
 
@@ -1611,6 +1611,11 @@ msgstr ""
 
 #: templates/index.html
 msgid "Encrypted in the browser before it reaches the server."
+msgstr ""
+
+#: templates/index.html templates/login.html templates/success.html
+#: templates/view.html
+msgid "Password"
 msgstr ""
 
 #: templates/index.html

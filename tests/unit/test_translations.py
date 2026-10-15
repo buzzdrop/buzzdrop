@@ -28,7 +28,7 @@ import catalogs  # noqa: E402
 
 LANGUAGES = catalogs.languages()
 PLACEHOLDER = re.compile(r'%\(\w+\)\w')
-INLINE_TAG = re.compile(r'</?(?:a|code|strong|em)\b[^>]*>')
+INLINE_TAG = re.compile(r'</?(?:a|code|strong|em|span)\b[^>]*>')
 
 
 @pytest.fixture(scope='module')
