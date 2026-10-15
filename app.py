@@ -243,8 +243,8 @@ def _send_email(recipient: str, subject: str, body: str):
         server.send_message(message)
 
 
-def _open_notification_text(file_info: dict, language: str):
-    """The drop-opened email's subject and body, in the current locale."""
+def _open_notification_text(file_info: dict):
+    """The drop-opened email's subject and body, in the current language."""
     decryption_success = file_info.get('decryption_success')
     if decryption_success is True:
         # Translators: the drop-opened email's "Decryption status" value.
@@ -274,7 +274,7 @@ def _open_notification_text(file_info: dict, language: str):
         # An email has no browser to localize it: DEFAULT_TIMEZONE, named.
         # Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35 CET".
         _('Opened at: %(time)s', time=i18n.format_full_time(
-            opened_at, current_app.config['DEFAULT_TIMEZONE'], language)),
+            opened_at, current_app.config['DEFAULT_TIMEZONE'], i18n.current_language())),
         _('Decryption status: %(status)s', status=decryption_status),
         '',
         _('Buzzdrop intentionally omits recipient-sensitive details from this notification.'),
@@ -293,11 +293,8 @@ def send_open_notification_email(file_info: dict) -> bool:
     # Written in the sender's language, the one their upload was served
     # in, unless the server no longer serves it (#293). Rendered before the
     # claim, so a failure here can't leave the send claimed.
-    language = file_info.get('language')
-    if language not in current_app.config['LANGUAGES']:
-        language = current_app.config['DEFAULT_LANGUAGE']
-    with i18n.in_language(language):
-        subject, body = _open_notification_text(file_info, language)
+    with i18n.in_language(i18n.served_language(file_info.get('language'))):
+        subject, body = _open_notification_text(file_info)
 
     if not file_repo.claim_notification_send(file_info['id']):
         return False
@@ -643,11 +640,16 @@ def handle_large_file(error):
     return redirect(url_for('index'))
 
 
+def _is_bearer_request():
+    """True when an API client authenticates with a token (``api_auth_required``)."""
+    return request.headers.get('Authorization', '').startswith('Bearer ')
+
+
 def _is_api_request():
     """True when the client expects JSON rather than an HTML page."""
     return (
         request.path.startswith('/api/')
-        or request.headers.get('Authorization', '').startswith('Bearer ')
+        or _is_bearer_request()
         or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     )
 
@@ -1166,7 +1168,7 @@ def upload_file():
 
     # The language the drop-opened email is written in (#293): the page's,
     # or the default for a Bearer client, which has no page language.
-    if request.headers.get('Authorization'):
+    if _is_bearer_request():
         language = current_app.config['DEFAULT_LANGUAGE']
     else:
         language = i18n.current_language()

@@ -20,7 +20,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from babel import Locale, UnknownLocaleError
-from babel.dates import format_date, format_datetime, get_timezone_gmt
+from babel.dates import format_date, format_datetime
 from babel.numbers import format_decimal
 from flask import current_app, g, has_request_context, request
 from flask_babel import Babel, force_locale, get_locale, get_translations, refresh
@@ -111,6 +111,13 @@ def current_language():
     return str(get_locale() or current_app.config['DEFAULT_LANGUAGE'])
 
 
+def served_language(language):
+    """``language`` if this server serves it, else ``DEFAULT_LANGUAGE``."""
+    if language in current_app.config['LANGUAGES']:
+        return language
+    return current_app.config['DEFAULT_LANGUAGE']
+
+
 def in_language(language):
     """
     A context in which translations and formats are ``language``'s, not
@@ -162,6 +169,14 @@ def format_size(size, language):
     return f'{format_decimal(size / 1024 / 1024, format="#,##0.#", locale=language)}\u00a0MB'
 
 
+def _short_gmt(offset):
+    """A UTC offset the way ``Intl`` writes it with no zone name: "GMT+1", "GMT+5:30"."""
+    minutes = int(offset.total_seconds()) // 60
+    sign = '-' if minutes < 0 else '+'
+    hours, minutes = divmod(abs(minutes), 60)
+    return f'GMT{sign}{hours}' + (f':{minutes:02d}' if minutes else '')
+
+
 def format_full_time(moment, tz_name, language):
     """
     A time in full, in ``tz_name`` and named by it, in the language's date
@@ -172,8 +187,8 @@ def format_full_time(moment, tz_name, language):
     locale = Locale.parse(language)
     local = moment.astimezone(ZoneInfo(tz_name))
     zone = format_datetime(local, 'z', locale=locale)
-    if zone[:1] in '+-':  # no short name in this language: "GMT+01:00", not "+0100"
-        zone = get_timezone_gmt(local, 'long', locale=locale)
+    if zone[:1] in '+-':  # no short name in this language: "GMT+1", as Intl writes it
+        zone = _short_gmt(local.utcoffset())
     time = f"{format_datetime(local, 'HH:mm', locale=locale)} {zone}"
     return locale.datetime_formats['medium'].format(time, format_date(local, 'medium', locale=locale))
 
