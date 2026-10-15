@@ -1,0 +1,17 @@
+{# The words pages/how-it-works/ writes: the step counter, the play toggle,
+   named by what pressing it does, and the status line that says which view
+   a switch picked, one sentence per view that exists (the CLI sends files
+   only, #247). The template renders the play labels too, before the script
+   runs. #}
+{% set strings = {
+    'counter': script_gettext('Step %(step)s of %(steps)s'),
+    'play': _('Play'),
+    'pause': _('Pause'),
+    'playTitle': _('Play the steps'),
+    'pauseTitle': _('Pause'),
+    'showing': {
+        'web-file': _('Showing the web app sending a file.'),
+        'web-text': _('Showing the web app sending a text note.'),
+        'cli-file': _('Showing the buzz CLI sending a file.'),
+    },
+} %}

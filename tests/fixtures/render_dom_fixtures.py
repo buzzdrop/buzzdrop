@@ -154,6 +154,7 @@ def render_all():
     fixtures.append(_render('index--files.pl', _client('testuser'), 'GET', '/', language='pl'))
 
     fixtures.append(_render('how_it_works--default', _client(), 'GET', '/how-it-works'))
+    fixtures.append(_render('how_it_works--default.pl', _client(), 'GET', '/how-it-works', language='pl'))
 
     fixtures.append(_render('login--default.pl', _client(), 'GET', '/login', language='pl'))
     fixtures.append(_render('error--gone.pl', _client(), 'GET', f"/view/{SHARE_FILE['id']}",

@@ -1,6 +1,7 @@
 import { getDefaultNormalizer, within } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
 import { openConfirmPage } from '../support/pages/confirm.js';
+import { openHowItWorks } from '../support/pages/how-it-works.js';
 import { openLanguageMenuPage } from '../support/pages/language-menu.js';
 import { openGonePage, openLoginPage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
@@ -8,7 +9,7 @@ import { openLandingPage, openUploadPage } from '../support/pages/upload.js';
 import { openUsersPage } from '../support/pages/users.js';
 import { DEFAULT_MESSAGE, DEFAULT_PASSWORD, openShare } from '../support/pages/view.js';
 
-// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288, #289, #290, #292):
+// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288, #289, #290, #291, #292):
 // the template's words, and the words a page script writes from its strings.
 
 /** Testing Library's text matching, minus collapsing a non-breaking space into a space. */
@@ -130,6 +131,43 @@ describe('in Polish', () => {
         expect(screen.getByRole('button', { name: 'Odtwórz przykład' })).toBeVisible();
         await landing.playWalkthrough();
         expect(screen.getByRole('button', { name: 'Wstrzymaj przykład' })).toBeVisible();
+    });
+
+    it('tells the landing walkthrough in Polish', () => {
+        openLandingPage({ language: 'pl' });
+
+        const walkthrough = within(screen.getByRole('region', { name: 'Jak działa przesyłka' }));
+        expect(walkthrough.getByText('Ustaw hasło.')).toBeInTheDocument();
+        expect(walkthrough.getByText('Odbiorca potwierdza hasło, raz.')).toBeInTheDocument();
+    });
+
+    it('serves the how-it-works page', () => {
+        const page = openHowItWorks({ language: 'pl' });
+
+        expect(page.language()).toBe('pl');
+        expect(screen.getByRole('heading', { level: 1, name: 'Jak działa Buzzdrop' })).toBeVisible();
+        expect(screen.getByRole('article')).toHaveAccessibleName('Krok 1 Wysyłanie, etap 1');
+        expect(screen.getByRole('heading', { name: 'Co widzi serwer' })).toBeVisible();
+        expect(screen.getByRole('heading', { name: 'Ograniczenia' })).toBeVisible();
+        expect(screen.getByText('Jedno nieprawidłowe hasło blokuje przesyłkę i\u00a0niszczy', { exact: false, ...keepingNonBreakingSpaces }))
+            .toBeInTheDocument();
+    });
+
+    it('writes the how-it-works page script\'s words in Polish', async () => {
+        vi.useFakeTimers();
+        const page = openHowItWorks({ language: 'pl' });
+        expect(screen.getByText('Krok 1 z\u00a08', keepingNonBreakingSpaces)).toBeVisible();
+
+        await page.nextStep();
+        expect(screen.getByRole('article')).toHaveAccessibleName('Krok 2 Szyfrowanie na miejscu');
+        expect(screen.getByText('Krok 2 z\u00a08', keepingNonBreakingSpaces)).toBeVisible();
+
+        await page.chooseSender('CLI buzz');
+        expect(screen.getByRole('status')).toHaveTextContent('Widok: CLI buzz wysyła plik.');
+        expect(screen.getByText('Notatki są wyłączone: CLI wysyła tylko pliki.')).toBeVisible();
+
+        await page.play();
+        expect(screen.getByRole('button', { name: 'Wstrzymaj' })).toBeVisible();
     });
 
     it('serves the composer', () => {

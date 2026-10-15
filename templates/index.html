@@ -7,7 +7,7 @@
 {% from '_shared_files_strings.html' import strings as shared_files_strings with context %}
 {% from '_play_toggle.html' import play_toggle %}
 {% from '_progress_bar.html' import progress_bar %}
-{% from '_how_it_works_content.html' import brief %}
+{% from '_how_it_works_content.html' import brief with context %}
 
 {# A walkthrough caption, in the words /how-it-works and its doc keep true. #}
 {% macro flow_cap(index) -%}

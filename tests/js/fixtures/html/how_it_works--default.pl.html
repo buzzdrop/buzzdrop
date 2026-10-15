@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="fixture-csrf-token">
+    <meta name="theme-color" content="#07080B">
+    <meta name="description" content="Buzzdrop: bezpieczne, jednorazowe przesyłanie plików. Wyślij zaszyfrowany plik albo notatkę, przekaż link i pozwól im zniknąć, gdy tylko odbiorca je pobierze.">
+    <meta property="og:locale" content="pl_PL">
+    <title>Buzzdrop: bezpieczne, jednorazowe przesyłanie plików</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/css/app.css?v=sha384-FIXTURE">
+</head>
+<body class="min-h-full">
+    <!-- Ambient layers: warm light pooling at the top, drifting honeycomb lattice. -->
+    <div class="glow-field" aria-hidden="true"></div>
+    <div class="hex-veil" aria-hidden="true"></div>
+
+    <div class="relative z-10 flex min-h-screen flex-col">
+        <div class="topline" aria-hidden="true"></div>
+
+        <nav class="nav-shell">
+            <div class="container-shell">
+                
+                <div class="flex items-center justify-between gap-2 py-3 sm:gap-4 sm:py-4">
+                    <div class="flex shrink-0 items-center gap-1 sm:gap-5">
+                        <a href="/" class="group flex shrink-0 items-center gap-3">
+                            <span class="relative">
+                                <span class="absolute inset-0 animate-halo-pulse rounded-full bg-honey-400/30 blur-lg" aria-hidden="true"></span>
+                                <svg viewBox="0 0 40 40" class="relative h-10 w-10 transition-transform duration-500 group-hover:-rotate-6" role="img" aria-label="Buzzdrop">
+                                    <defs>
+                                        <linearGradient id="bd-honey" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="#FFE49B"/>
+                                            <stop offset="55%" stop-color="#FFB627"/>
+                                            <stop offset="100%" stop-color="#D97706"/>
+                                        </linearGradient>
+                                        <clipPath id="bd-drop">
+                                            <path d="M20 9s8 8.6 8 13.4a8 8 0 0 1-16 0C12 17.6 20 9 20 9Z"/>
+                                        </clipPath>
+                                    </defs>
+                                    <path d="M20 1.5 35.5 10.4v19.2L20 38.5 4.5 29.6V10.4z" fill="url(#bd-honey)" opacity=".15"/>
+                                    <path d="M20 1.5 35.5 10.4v19.2L20 38.5 4.5 29.6V10.4z" fill="none" stroke="url(#bd-honey)" stroke-width="1.5"/>
+                                    <path d="M20 9s8 8.6 8 13.4a8 8 0 0 1-16 0C12 17.6 20 9 20 9Z" fill="url(#bd-honey)"/>
+                                    <g clip-path="url(#bd-drop)" fill="#0B0D12" opacity=".85">
+                                        <rect x="10" y="19.4" width="20" height="2.3" rx="1.15"/>
+                                        <rect x="10" y="24.2" width="20" height="2.3" rx="1.15"/>
+                                    </g>
+                                </svg>
+                            </span>
+                            <span class="hidden sm:block">
+                                <span class="block text-lg font-semibold tracking-tight text-white">Buzz<span class="honey-text">drop</span></span>
+                                <span class="block text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Przesyłka jednorazowa</span>
+                            </span>
+                        </a>
+                        
+                    </div>
+                    <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                        
+
+<details id="language-menu" class="relative shrink-0">
+    <summary id="language-menu-button" role="button" aria-haspopup="menu" aria-controls="language-menu-list"
+             
+             aria-label="Język: Polski"
+             class="btn-ghost lang-menu-button">
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.5"><circle cx="10" cy="10" r="7.5"/><path d="M2.5 10h15M10 2.5c2.2 2.3 3.2 4.8 3.2 7.5s-1 5.2-3.2 7.5c-2.2-2.3-3.2-4.8-3.2-7.5s1-5.2 3.2-7.5Z"/></svg>
+        <span translate="no" class="text-xs uppercase tracking-wider">pl</span>
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="hidden h-3 w-3 fill-current sm:block"><path d="M5.5 7.5 10 12l4.5-4.5z"/></svg>
+    </summary>
+    <div id="language-menu-list" role="menu" aria-labelledby="language-menu-button" class="lang-menu-list">
+        
+        <form method="post" action="/language" role="none">
+            <input type="hidden" name="csrf_token" value="fixture-csrf-token">
+            <input type="hidden" name="lang" value="en">
+            <input type="hidden" name="next" value="/how-it-works">
+            <button type="submit" role="menuitemradio" aria-checked="false" lang="en" translate="no" class="lang-menu-item">
+                <span>English</span>
+                
+            </button>
+        </form>
+        
+        <form method="post" action="/language" role="none">
+            <input type="hidden" name="csrf_token" value="fixture-csrf-token">
+            <input type="hidden" name="lang" value="pl">
+            <input type="hidden" name="next" value="/how-it-works">
+            <button type="submit" role="menuitemradio" aria-checked="true" lang="pl" translate="no" class="lang-menu-item">
+                <span>Polski</span>
+                <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 shrink-0 fill-current"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
+            </button>
+        </form>
+        
+    </div>
+</details>
+
+                        
+                            <a href="/login" class="btn-secondary px-3 py-2 sm:px-4">Zaloguj</a>
+                        
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container-shell flex-1 py-10 sm:py-14">
+            
+            
+                
+            
+
+            
+<div class="hiw mx-auto max-w-6xl space-y-20">
+    <header class="grid items-center gap-10 lg:grid-cols-[1.15fr_1fr]">
+        <div class="animate-fade-up space-y-6">
+            <span class="eyebrow">Od kuchni</span>
+            <h1 class="hiw-title">Jak <span class="honey-text">działa</span> Buzzdrop</h1>
+            <p class="max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg">Co się dzieje, gdy wysyłasz plik albo notatkę: co działa gdzie, co przechodzi przez sieć i co nasz serwer widzi, a czego nie, w każdej chwili.</p>
+            <div class="flex flex-wrap gap-3">
+                <a href="#hiw-flow" class="btn-primary"><span class="relative z-10">Przejdź krok po kroku</span></a>
+                <a href="#server-sees" class="btn-secondary">Co widzi serwer</a>
+            </div>
+        </div>
+        <ul class="animate-zoom-in delay-2 space-y-3">
+            
+            <li class="hiw-promise">
+                <span class="hiw-promise-icon"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></svg></span>
+                <div>
+                    <h2 class="text-sm font-semibold text-white">Nie możemy odczytać twoich plików ani notatek</h2>
+                    <p class="mt-1 text-sm leading-relaxed text-slate-400">Są szyfrowane, zanim opuszczą twoje urządzenie. Serwer przechowuje tylko szyfrogram i nigdy nie widzi hasła.</p>
+                </div>
+            </li>
+            
+            <li class="hiw-promise">
+                <span class="hiw-promise-icon"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="12" r="4"/><path d="M12.5 12H21M17.5 12v3M20.5 12v2"/></svg></span>
+                <div>
+                    <h2 class="text-sm font-semibold text-white">Jednorazowo znaczy naprawdę jednorazowo</h2>
+                    <p class="mt-1 text-sm leading-relaxed text-slate-400">Serwer trzyma połowę klucza i wydaje ją raz, tylko komuś, kto potwierdzi hasło. Potem ją niszczy.</p>
+                </div>
+            </li>
+            
+            <li class="hiw-promise">
+                <span class="hiw-promise-icon"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg></span>
+                <div>
+                    <h2 class="text-sm font-semibold text-white">Przechowujemy jednak część metadanych</h2>
+                    <p class="mt-1 text-sm leading-relaxed text-slate-400">Nazwa pliku, znaczniki czasu i adres IP, z którego przesyłkę otwarto. <a href="#what-we-keep" class="footer-link">Co przechowujemy i jak długo</a>.</p>
+                </div>
+            </li>
+            
+        </ul>
+    </header>
+
+    <section id="hiw-flow" class="hiw-flow" aria-labelledby="flow-heading">
+        <div class="hiw-flow-head">
+            <div class="max-w-md space-y-1.5">
+                <h2 id="flow-heading" class="section-title">Przebieg</h2>
+                <p class="section-lead">Aplikacja w przeglądarce czy CLI, plik czy notatka: to ten sam protokół i ta sama kryptografia. Wybierz widok, a kroki się do niego dopasują.</p>
+            </div>
+            <form class="flex flex-wrap gap-x-6 gap-y-3" action="/how-it-works" method="get">
+                <fieldset>
+                    <legend class="hiw-legend">Nadawca</legend>
+                    <div class="hiw-choice">
+                        <label><input type="radio" name="sender" value="web" checked><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg><span>Aplikacja w przeglądarce</span></label>
+                        <label><input type="radio" name="sender" value="cli"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg><span>CLI buzz</span></label>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend class="hiw-legend">Co wysyłasz</legend>
+                    <div class="hiw-choice">
+                        <label><input type="radio" name="content" value="file" checked><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg><span>Plik</span></label>
+                        <label><input type="radio" name="content" value="text"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6l-4 3.5V17H6a2 2 0 0 1-2-2z"/><path d="M8 9h8M8 12.5h5"/></svg><span>Notatka</span></label>
+                    </div>
+                    <p id="content-cli-hint" class="mt-1.5 text-xs text-slate-500" hidden>Notatki są wyłączone: CLI wysyła tylko pliki.</p>
+                </fieldset>
+                
+                <noscript><button type="submit" class="btn-secondary self-end px-4 py-2">Pokaż</button></noscript>
+            </form>
+        </div>
+
+        <p id="hiw-choice-status" class="sr-only" role="status"></p>
+
+        <div class="hiw-flow-body">
+            <nav aria-label="Kroki" class="hiw-rail">
+                <ol>
+                    
+                    <li><button type="button" class="hiw-rail-btn" data-step-id="upload-begin" aria-controls="step-upload-begin" aria-current="step">
+                        <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">1</span><svg class="hiw-rail-check h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg></span>
+                        <span class="sr-only">Krok 1: </span><span class="hiw-rail-title">Wysyłanie, etap 1</span>
+                        <span class="hiw-stepper-progress" aria-hidden="true"></span>
+                    </button></li>
+                    
+                    <li><button type="button" class="hiw-rail-btn" data-step-id="encrypt" aria-controls="step-encrypt">
+                        <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">2</span><svg class="hiw-rail-check h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg></span>
+                        <span class="sr-only">Krok 2: </span><span class="hiw-rail-title">Szyfrowanie na miejscu</span>
+                        <span class="hiw-stepper-progress" aria-hidden="true"></span>
+                    </button></li>
+                    
+                    <li><button type="button" class="hiw-rail-btn" data-step-id="upload-finish" aria-controls="step-upload-finish">
+                        <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">3</span><svg class="hiw-rail-check h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg></span>
+                        <span class="sr-only">Krok 3: </span><span class="hiw-rail-title">Wysyłanie, etap 2</span>
+                        <span class="hiw-stepper-progress" aria-hidden="true"></span>
+                    </button></li>
+                    
+                    <li><button type="button" class="hiw-rail-btn" data-step-id="share" aria-controls="step-share">
+                        <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">4</span><svg class="hiw-rail-check h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg></span>
+                        <span class="sr-only">Krok 4: </span><span class="hiw-rail-title">Przekazanie linku</span>
+                        <span class="hiw-stepper-progress" aria-hidden="true"></span>
+                    </button></li>
+                    
+                    <li><button type="button" class="hiw-rail-btn" data-step-id="release" aria-controls="step-release">
+                        <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">5</span><svg class="hiw-rail-check h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg></span>
+                        <span class="sr-only">Krok 5: </span><span class="hiw-rail-title">Odbiorca potwierdza hasło</span>
+                        <span class="hiw-stepper-progress" aria-hidden="true"></span>
+                    </button></li>
+                    
+                    <li><button type="button" class="hiw-rail-btn" data-step-id="download" aria-controls="step-download">
+                        <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">6</span><svg class="hiw-rail-check h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg></span>
+                        <span class="sr-only">Krok 6: </span><span class="hiw-rail-title">Jednorazowe pobranie</span>
+                        <span class="hiw-stepper-progress" aria-hidden="true"></span>
+                    </button></li>
+                    
+                    <li><button type="button" class="hiw-rail-btn" data-step-id="decrypt" aria-controls="step-decrypt">
+                        <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">7</span><svg class="hiw-rail-check h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg></span>
+                        <span class="sr-only">Krok 7: </span><span class="hiw-rail-title">Odszyfrowanie w przeglądarce</span>
+                        <span class="hiw-stepper-progress" aria-hidden="true"></span>
+                    </button></li>
+                    
+                    <li><button type="button" class="hiw-rail-btn" data-step-id="expiry" aria-controls="step-expiry">
+                        <span class="hiw-rail-num" aria-hidden="true"><span class="hiw-rail-digit">8</span><svg class="hiw-rail-check h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg></span>
+                        <span class="sr-only">Krok 8: </span><span class="hiw-rail-title">Wygaśnięcie i ręczne usunięcie</span>
+                        <span class="hiw-stepper-progress" aria-hidden="true"></span>
+                    </button></li>
+                    
+                </ol>
+            </nav>
+
+            <div class="min-w-0">
+                <div id="hiw-steps" aria-live="polite">
+                    
+                    
+                    <article id="step-upload-begin" class="hiw-step is-active" aria-labelledby="step-upload-begin-title">
+                        <div class="hiw-scene" aria-hidden="true">
+                            
+                            <span class="hiw-actor is-lit" data-node="sender">
+    <span class="hiw-actor-icon"><span data-show="sender:web"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span><span data-show="sender:cli" hidden><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg></span></span>
+    <span class="hiw-actor-label"><span data-show="sender:web">Twoja przeglądarka</span><span data-show="sender:cli" hidden>Twój terminal</span></span>
+</span>
+                            <span class="hiw-wire"><span class="hiw-packet is-out">start</span><span class="hiw-packet is-back"><span translate="no">file_id + H</span></span></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="server">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="7" rx="2"/><rect x="4" y="13.5" width="16" height="7" rx="2"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5.5M11 17h5.5"/></svg></span>
+    <span class="hiw-actor-label">Serwer Buzzdropa</span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-idle" data-node="recipient">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span>
+    <span class="hiw-actor-label">Przeglądarka odbiorcy</span>
+</span>
+                            
+                            
+                            
+                        </div>
+
+                        <div class="hiw-step-head">
+                            <h3 id="step-upload-begin-title" class="hiw-step-title"><span class="hiw-step-kicker">Krok 1</span> Wysyłanie, etap 1</h3>
+                            <div class="hiw-lenses">
+                                <p class="hiw-lens is-some"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg><span><span class="hiw-lens-label">Serwer widzi:</span> Że zaczyna się wysyłanie</span></p>
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Nigdy nie widzi:</span> Pliku, notatki ani hasła</span></p>
+                            </div>
+                        </div>
+                        <div role="group" aria-label="Co się dzieje"><dl class="hiw-facts">
+<dt>Kto działa</dt>
+<dd><span data-show="sender:web">Twoja przeglądarka, potem serwer.</span><span data-show="sender:cli" hidden>Twój terminal (<code>buzz</code>), potem serwer.</span></dd>
+<dt>Co przechodzi przez sieć</dt>
+<dd><span data-show="sender:web">Żądanie <code>POST /upload/begin</code>, uwierzytelnione twoją sesją logowania, z tokenem CSRF.</span><span data-show="sender:cli" hidden>Żądanie <code>POST /upload/begin</code>, uwierzytelnione twoim tokenem API w <code>Authorization: Bearer</code>.</span> Serwer odpowiada nowym <code>file_id</code> i losową, 32-bajtową częścią klucza <code>H</code>.</dd>
+<dt>Co widzi serwer</dt>
+<dd>Że twoje konto zaczyna wysyłanie. Na razie nic o pliku ani notatce.</dd>
+<dt>Dlaczego</dt>
+<dd>Klucz pliku wymaga <code>H</code>, więc <code>H</code> musi istnieć, zanim cokolwiek zostanie zaszyfrowane. Serwer go przechowuje: to ta połowa klucza, którą wyda dokładnie raz. Wysyłanie rozpoczęte i niedokończone zostaje usunięte, gdy ma ponad godzinę – przy następnym wysyłaniu albo restarcie.</dd>
+</dl></div>
+                    </article>
+                    
+                    
+                    <article id="step-encrypt" class="hiw-step" aria-labelledby="step-encrypt-title">
+                        <div class="hiw-scene" aria-hidden="true">
+                            
+                            <span class="hiw-actor is-lit" data-node="sender">
+    <span class="hiw-actor-icon"><span data-show="sender:web"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span><span data-show="sender:cli" hidden><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg></span></span>
+    <span class="hiw-actor-label"><span data-show="sender:web">Twoja przeglądarka</span><span data-show="sender:cli" hidden>Twój terminal</span></span><span class="hiw-actor-doing">szyfruje tutaj</span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-idle" data-node="server">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="7" rx="2"/><rect x="4" y="13.5" width="16" height="7" rx="2"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5.5M11 17h5.5"/></svg></span>
+    <span class="hiw-actor-label">Serwer Buzzdropa</span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-idle" data-node="recipient">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span>
+    <span class="hiw-actor-label">Przeglądarka odbiorcy</span>
+</span>
+                            
+                            
+                            
+                        </div>
+
+                        <div class="hiw-step-head">
+                            <h3 id="step-encrypt-title" class="hiw-step-title"><span class="hiw-step-kicker">Krok 2</span> Szyfrowanie na miejscu</h3>
+                            <div class="hiw-lenses">
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Serwer widzi:</span> Nic</span></p>
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Nigdy nie widzi:</span> Hasła, <code>Kp</code> ani treści</span></p>
+                            </div>
+                        </div>
+                        <div role="group" aria-label="Co się dzieje"><dl class="hiw-facts">
+<dt>Kto działa</dt>
+<dd><span data-show="sender:web">Sama twoja przeglądarka, w JavaScripcie strony.</span><span data-show="sender:cli" hidden>Sam twój terminal, w CLI <code>buzz</code>.</span> Nic nie przechodzi przez sieć.</dd>
+<dt>Co się dzieje</dt>
+<dd>
+    <span data-show="sender:web">Wpisujesz hasło albo każesz stronie wygenerować 6-wyrazowe hasło ze słów.</span><span data-show="sender:cli" hidden><code>buzz</code> generuje 6-wyrazowe hasło ze słów, chyba że podasz własne przez <code>-p</code>, i najpierw pakuje do ZIP folder (albo, z <code>-z</code>, plik).</span>
+    Hasło przechodzi przez PBKDF2 z 600 000 iteracji; z wyniku powstają dwa klucze: <code>Kp</code> do szyfrowania i weryfikator <code>V</code> do późniejszego potwierdzenia hasła. Klucz pliku to <code>HKDF(Kp ‖ H)</code>, więc wymaga i hasła, i części klucza z serwera.
+    <span data-show="content:file">Przed plikiem trafia losowe pokwitowanie, a AES-GCM szyfruje całość.</span><span data-show="content:text" hidden>Przed notatką trafia losowe pokwitowanie, a AES-GCM szyfruje całość.</span>
+</dd>
+<dt>Skąd pochodzi kod</dt>
+<dd><span data-show="sender:web">Nasz serwer wysyła go razem ze stroną. <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity" class="footer-link">Subresource Integrity</a> (sprawdzanie, czy przeglądarka dostała dokładnie ten plik, który miała dostać) chroni go w drodze i w pamięciach podręcznych, ale nie przed przejętym serwerem.</span><span data-show="sender:cli" hidden><code>buzz</code> instaluje się raz z GitHub Releases, więc przejęty serwer nie podmieni go podczas wysyłania.</span></dd>
+<dt>Co widzi serwer</dt>
+<dd>Nic. Hasło i <code>Kp</code> nigdy nie opuszczają twojego urządzenia.</dd>
+<dt>Dlaczego</dt>
+<dd>Szyfrogramu i <code>H</code> bez hasła nie da się odszyfrować, tak samo jak szyfrogramu i hasła bez <code>H</code>. Pokwitowaniem odbiorca później udowodni, że odszyfrowanie się udało.</dd>
+</dl></div>
+                    </article>
+                    
+                    
+                    <article id="step-upload-finish" class="hiw-step" aria-labelledby="step-upload-finish-title">
+                        <div class="hiw-scene" aria-hidden="true">
+                            
+                            <span class="hiw-actor is-lit" data-node="sender">
+    <span class="hiw-actor-icon"><span data-show="sender:web"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span><span data-show="sender:cli" hidden><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg></span></span>
+    <span class="hiw-actor-label"><span data-show="sender:web">Twoja przeglądarka</span><span data-show="sender:cli" hidden>Twój terminal</span></span>
+</span>
+                            <span class="hiw-wire"><span class="hiw-packet is-out"><span data-show="content:file">szyfrogram + V</span><span data-show="content:text" hidden translate="no">note_text + V</span></span><span class="hiw-packet is-back">link</span></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="server">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="7" rx="2"/><rect x="4" y="13.5" width="16" height="7" rx="2"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5.5M11 17h5.5"/></svg></span>
+    <span class="hiw-actor-label">Serwer Buzzdropa</span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-idle" data-node="recipient">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span>
+    <span class="hiw-actor-label">Przeglądarka odbiorcy</span>
+</span>
+                            
+                            
+                            
+                        </div>
+
+                        <div class="hiw-step-head">
+                            <h3 id="step-upload-finish-title" class="hiw-step-title"><span class="hiw-step-kicker">Krok 3</span> Wysyłanie, etap 2</h3>
+                            <div class="hiw-lenses">
+                                <p class="hiw-lens is-some"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg><span><span class="hiw-lens-label">Serwer widzi:</span> <span data-show="content:file">Szyfrogram, <code>V</code> i nazwę pliku</span><span data-show="content:text" hidden>Szyfrogram i <code>V</code></span></span></p>
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Nigdy nie widzi:</span> Hasła, <code>Kp</code> ani treści</span></p>
+                            </div>
+                        </div>
+                        <div role="group" aria-label="Co się dzieje"><dl class="hiw-facts">
+<dt>Kto działa</dt>
+<dd><span data-show="sender:web">Twoja przeglądarka, potem serwer.</span><span data-show="sender:cli" hidden>Twój terminal, potem serwer.</span></dd>
+<dt>Co przechodzi przez sieć</dt>
+<dd><span data-show="content:file"><code>POST /upload</code> z szyfrogramem w polu <code>file</code> żądania multipart, a do tego <code>file_id</code>, <code>V</code> i <code>SHA-256(receipt)</code>.</span><span data-show="content:text" hidden><code>POST /upload</code> z szyfrogramem zakodowanym w base64 w polu <code>note_text</code>, a do tego <code>file_id</code>, <code>V</code> i <code>SHA-256(receipt)</code>.</span> <span data-show="sender:web">Uwierzytelnia je twoja sesja i token CSRF, a dokończyć je może tylko konto, które wykonało etap 1.</span><span data-show="sender:cli" hidden>Uwierzytelnia je twój token API (<code>Authorization: Bearer</code>), a dokończyć je może tylko konto, które wykonało etap 1.</span></dd>
+<dt>Co widzi serwer</dt>
+<dd><span data-show="content:file">Szyfrogram i jego przybliżony rozmiar, <code>V</code>, skrót pokwitowania, wybrany termin ważności, opcjonalny dopisek dla ciebie i <strong class="hiw-caveat">oryginalna nazwa pliku, jawnym tekstem</strong>.</span><span data-show="content:text" hidden>Szyfrogram i jego przybliżony rozmiar, <code>V</code>, skrót pokwitowania, wybrany termin ważności, opcjonalny dopisek dla ciebie i etykieta „Secret Note”.</span> Zapisuje szyfrogram i wiąże <code>V</code> z <code>H</code>.</dd>
+<dt>Dlaczego</dt>
+<dd><code>V</code> pozwala serwerowi później sprawdzić hasło, nigdy go nie poznając, i nie da się z niego odtworzyć <code>Kp</code>.</dd>
+</dl></div>
+                    </article>
+                    
+                    
+                    <article id="step-share" class="hiw-step" aria-labelledby="step-share-title">
+                        <div class="hiw-scene" aria-hidden="true">
+                            
+                            <span class="hiw-actor is-lit" data-node="sender">
+    <span class="hiw-actor-icon"><span data-show="sender:web"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span><span data-show="sender:cli" hidden><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg></span></span>
+    <span class="hiw-actor-label"><span data-show="sender:web">Twoja przeglądarka</span><span data-show="sender:cli" hidden>Twój terminal</span></span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-idle" data-node="server">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="7" rx="2"/><rect x="4" y="13.5" width="16" height="7" rx="2"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5.5M11 17h5.5"/></svg></span>
+    <span class="hiw-actor-label">Serwer Buzzdropa</span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="recipient">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span>
+    <span class="hiw-actor-label">Przeglądarka odbiorcy</span>
+</span>
+                            
+                            
+                            
+                            <span class="hiw-bypass">
+                                <span class="hiw-packet is-out">link</span>
+                                <span class="hiw-packet is-out is-later">hasło, inną drogą</span>
+                            </span>
+                            
+                        </div>
+
+                        <div class="hiw-step-head">
+                            <h3 id="step-share-title" class="hiw-step-title"><span class="hiw-step-kicker">Krok 4</span> Przekazanie linku</h3>
+                            <div class="hiw-lenses">
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Serwer widzi:</span> Nic</span></p>
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Nigdy nie widzi:</span> Hasła ani tego, komu wysyłasz link</span></p>
+                            </div>
+                        </div>
+                        <div role="group" aria-label="Co się dzieje"><dl class="hiw-facts">
+<dt>Kto działa</dt>
+<dd>Ty.</dd>
+<dt>Co przechodzi przez sieć</dt>
+<dd>Do nas nic. Link wysyłasz jedną drogą, a hasło najlepiej inną: w innej aplikacji, przez telefon.</dd>
+<dt>Co widzi serwer</dt>
+<dd>Nic. Sam link niczego nie otwiera: wskazuje przesyłkę, a przesyłka wymaga hasła.</dd>
+<dt>Link z hasłem</dt>
+<dd><span data-show="sender:web">Strona po wysłaniu podaje też link z hasłem po znaku <code>#</code>.</span><span data-show="sender:cli" hidden><code>buzz</code> podaje też link z hasłem po znaku <code>#</code>.</span> Przeglądarki nigdy nie wysyłają tej części do serwera, więc nadal nie widzimy hasła. Ale <strong class="hiw-caveat">każdy, kto ma ten link, może otworzyć przesyłkę</strong>, a historia czatu, podglądy linków i eksporty zachowują jego kopię. To wygodne; osobne wysłanie linku i hasła jest bezpieczniejsze.</dd>
+</dl></div>
+                    </article>
+                    
+                    
+                    <article id="step-release" class="hiw-step" aria-labelledby="step-release-title">
+                        <div class="hiw-scene" aria-hidden="true">
+                            
+                            <span class="hiw-actor is-idle" data-node="sender">
+    <span class="hiw-actor-icon"><span data-show="sender:web"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span><span data-show="sender:cli" hidden><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg></span></span>
+    <span class="hiw-actor-label"><span data-show="sender:web">Twoja przeglądarka</span><span data-show="sender:cli" hidden>Twój terminal</span></span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="server">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="7" rx="2"/><rect x="4" y="13.5" width="16" height="7" rx="2"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5.5M11 17h5.5"/></svg></span>
+    <span class="hiw-actor-label">Serwer Buzzdropa</span>
+</span>
+                            <span class="hiw-wire"><span class="hiw-packet is-back"><span translate="no">V</span></span><span class="hiw-packet is-out">H, raz</span></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="recipient">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span>
+    <span class="hiw-actor-label">Przeglądarka odbiorcy</span>
+</span>
+                            
+                            
+                            
+                        </div>
+
+                        <div class="hiw-step-head">
+                            <h3 id="step-release-title" class="hiw-step-title"><span class="hiw-step-kicker">Krok 5</span> Odbiorca potwierdza hasło</h3>
+                            <div class="hiw-lenses">
+                                <p class="hiw-lens is-some"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg><span><span class="hiw-lens-label">Serwer widzi:</span> <code>V</code> i adres IP</span></p>
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Nigdy nie widzi:</span> Hasła</span></p>
+                            </div>
+                        </div>
+                        <div role="group" aria-label="Co się dzieje"><dl class="hiw-facts">
+<dt>Kto działa</dt>
+<dd>Przeglądarka odbiorcy, potem serwer. Odbiorca nie potrzebuje konta, tylko linku i hasła.</dd>
+<dt>Co przechodzi przez sieć</dt>
+<dd>Przeglądarka wyprowadza <code>V</code> z wpisanego hasła i wysyła je do <code>POST /release</code>. Nigdy samo hasło.</dd>
+<dt>Co widzi serwer</dt>
+<dd><code>V</code> i adres IP odbiorcy, który zapisuje w logu przy udanej i nieudanej próbie. Porównuje <code>V</code> z zapisanym w jednej transakcji bazy danych.</dd>
+<dt>Gdy się zgadza</dt>
+<dd>Serwer wydaje <code>H</code>, raz, i wymazuje <code>H</code> oraz <code>V</code> ze swojej bazy. Zachowuje tylko odcisk jednorazowego biletu do pobrania, który przeglądarka wylicza z <code>H</code>.</dd>
+<dt>Przy nieprawidłowym haśle</dt>
+<dd>Jedno nieprawidłowe hasło blokuje przesyłkę i niszczy <code>H</code>, więc nikt już jej potem nie otworzy, łącznie z odbiorcą.</dd>
+<dt>Dlaczego</dt>
+<dd>To dzięki temu jednorazowość jest prawdziwa. Bez <code>H</code> szyfrogram to martwe bajty, a <code>H</code> wychodzi dokładnie raz, po potwierdzeniu hasła, w transakcji, którą może wygrać tylko jeden zgłaszający.</dd>
+</dl></div>
+                    </article>
+                    
+                    
+                    <article id="step-download" class="hiw-step" aria-labelledby="step-download-title">
+                        <div class="hiw-scene" aria-hidden="true">
+                            
+                            <span class="hiw-actor is-idle" data-node="sender">
+    <span class="hiw-actor-icon"><span data-show="sender:web"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span><span data-show="sender:cli" hidden><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg></span></span>
+    <span class="hiw-actor-label"><span data-show="sender:web">Twoja przeglądarka</span><span data-show="sender:cli" hidden>Twój terminal</span></span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="server">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="7" rx="2"/><rect x="4" y="13.5" width="16" height="7" rx="2"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5.5M11 17h5.5"/></svg></span>
+    <span class="hiw-actor-label">Serwer Buzzdropa</span>
+</span>
+                            <span class="hiw-wire"><span class="hiw-packet is-back">bilet</span><span class="hiw-packet is-out">szyfrogram</span></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="recipient">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span>
+    <span class="hiw-actor-label">Przeglądarka odbiorcy</span>
+</span>
+                            
+                            
+                            
+                        </div>
+
+                        <div class="hiw-step-head">
+                            <h3 id="step-download-title" class="hiw-step-title"><span class="hiw-step-kicker">Krok 6</span> Jednorazowe pobranie</h3>
+                            <div class="hiw-lenses">
+                                <p class="hiw-lens is-some"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg><span><span class="hiw-lens-label">Serwer widzi:</span> Bilet i adres IP</span></p>
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Nigdy nie widzi:</span> Treści ani tego, kim jest odbiorca</span></p>
+                            </div>
+                        </div>
+                        <div role="group" aria-label="Co się dzieje"><dl class="hiw-facts">
+<dt>Kto działa</dt>
+<dd>Przeglądarka odbiorcy, potem serwer.</dd>
+<dt>Co przechodzi przez sieć</dt>
+<dd><code>GET /download</code> z biletem. Serwer odsyła szyfrogram strumieniem.</dd>
+<dt>Co widzi serwer</dt>
+<dd>Bilet i adres IP odbiorcy, który zapisuje razem z czasem pobrania.</dd>
+<dt>Potem</dt>
+<dd>Bilet zostaje zużyty, zanim wyjdzie pierwszy bajt, a szyfrogram zostaje usunięty z magazynu, gdy strumień się skończy, nawet jeśli się urwał. Przesyłka wydana, ale niepobrana w ciągu 10 minut, wygasa tak samo.</dd>
+<dt>Dlaczego</dt>
+<dd>Szyfrogram może pobrać tylko przeglądarka, która wygrała wydanie klucza, i nie ma drugiej kopii, po którą można wrócić.</dd>
+</dl></div>
+                    </article>
+                    
+                    
+                    <article id="step-decrypt" class="hiw-step" aria-labelledby="step-decrypt-title">
+                        <div class="hiw-scene" aria-hidden="true">
+                            
+                            <span class="hiw-actor is-idle" data-node="sender">
+    <span class="hiw-actor-icon"><span data-show="sender:web"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span><span data-show="sender:cli" hidden><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg></span></span>
+    <span class="hiw-actor-label"><span data-show="sender:web">Twoja przeglądarka</span><span data-show="sender:cli" hidden>Twój terminal</span></span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="server">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="7" rx="2"/><rect x="4" y="13.5" width="16" height="7" rx="2"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5.5M11 17h5.5"/></svg></span>
+    <span class="hiw-actor-label">Serwer Buzzdropa</span>
+</span>
+                            <span class="hiw-wire"><span class="hiw-packet is-back">pokwitowanie</span></span>
+                            
+                            <span class="hiw-actor is-lit" data-node="recipient">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span>
+    <span class="hiw-actor-label">Przeglądarka odbiorcy</span><span class="hiw-actor-doing"><span data-show="content:file">zapisuje plik</span><span data-show="content:text" hidden>pokazuje notatkę</span></span>
+</span>
+                            
+                            
+                            
+                        </div>
+
+                        <div class="hiw-step-head">
+                            <h3 id="step-decrypt-title" class="hiw-step-title"><span class="hiw-step-kicker">Krok 7</span> Odszyfrowanie w przeglądarce</h3>
+                            <div class="hiw-lenses">
+                                <p class="hiw-lens is-some"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg><span><span class="hiw-lens-label">Serwer widzi:</span> Że odszyfrowanie się udało</span></p>
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Nigdy nie widzi:</span> Treści ani klucza pliku</span></p>
+                            </div>
+                        </div>
+                        <div role="group" aria-label="Co się dzieje"><dl class="hiw-facts">
+<dt>Kto działa</dt>
+<dd>Przeglądarka odbiorcy, potem serwer.</dd>
+<dt>Co się dzieje</dt>
+<dd>Przeglądarka składa klucz pliku z <code>Kp</code> (z hasła) i <code>H</code>, odszyfrowuje i wyjmuje pokwitowanie. <span data-show="content:file">Plik zapisuje się jako pobrany.</span><span data-show="content:text" hidden>Notatka pojawia się na stronie, z przyciskiem „Skopiuj”.</span></dd>
+<dt>Co przechodzi przez sieć</dt>
+<dd>Pokwitowanie, do <code>POST /report_decryption</code>, żeby twoja lista pokazała przesyłkę jako otwartą i żeby – jeśli o to prosisz – przyszedł do ciebie e-mail.</dd>
+<dt>Co widzi serwer</dt>
+<dd>Pokwitowanie, które pasuje do zapisanego skrótu tylko wtedy, gdy przesyłkę naprawdę odszyfrowano. Serwer dowiaduje się, że odszyfrowanie się udało, ale nigdy nie poznaje treści.</dd>
+</dl></div>
+                    </article>
+                    
+                    
+                    <article id="step-expiry" class="hiw-step" aria-labelledby="step-expiry-title">
+                        <div class="hiw-scene" aria-hidden="true">
+                            
+                            <span class="hiw-actor is-idle" data-node="sender">
+    <span class="hiw-actor-icon"><span data-show="sender:web"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span><span data-show="sender:cli" hidden><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 10 3 2.5L7 15"/><path d="M12.5 15H17"/></svg></span></span>
+    <span class="hiw-actor-label"><span data-show="sender:web">Twoja przeglądarka</span><span data-show="sender:cli" hidden>Twój terminal</span></span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-burning" data-node="server">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="7" rx="2"/><rect x="4" y="13.5" width="16" height="7" rx="2"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5.5M11 17h5.5"/></svg></span>
+    <span class="hiw-actor-label">Serwer Buzzdropa</span>
+</span>
+                            <span class="hiw-wire is-idle"></span>
+                            
+                            <span class="hiw-actor is-idle" data-node="recipient">
+    <span class="hiw-actor-icon"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3 9h18"/><path d="M6 6.75h.01M8.5 6.75h.01M11 6.75h.01"/></svg></span>
+    <span class="hiw-actor-label">Przeglądarka odbiorcy</span>
+</span>
+                            
+                            
+                            
+                        </div>
+
+                        <div class="hiw-step-head">
+                            <h3 id="step-expiry-title" class="hiw-step-title"><span class="hiw-step-kicker">Krok 8</span> Wygaśnięcie i ręczne usunięcie</h3>
+                            <div class="hiw-lenses">
+                                <p class="hiw-lens is-burn"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg><span><span class="hiw-lens-label">Serwer widzi:</span> Zniszczenie <code>H</code> i usunięcie szyfrogramu</span></p>
+                                <p class="hiw-lens is-none"><svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg><span><span class="hiw-lens-label">Nigdy nie widzi:</span> Treści – ani wtedy, ani nigdy</span></p>
+                            </div>
+                        </div>
+                        <div role="group" aria-label="Co się dzieje"><dl class="hiw-facts">
+<dt>Kto działa</dt>
+<dd>Serwer albo ty.</dd>
+<dt>Co się dzieje</dt>
+<dd>Gdy termin ważności przesyłki minie albo usuniesz ją ze swojej listy, <code>H</code> zostaje zniszczony, a szyfrogram usunięty z magazynu. Termin ważności jest sprawdzany przy każdym otwarciu linku i cyklicznie (domyślnie co pięć minut). Baza danych nadpisuje to, co usuwa, co zmniejsza, ale nie wyklucza, ryzyko śladów <code>H</code> w jej pliku.</dd>
+<dt>Dlaczego</dt>
+<dd><code>H</code> nigdy nie przetrwa przesyłki. Nawet gdyby usunięcie szyfrogramu z magazynu się nie powiodło, bez <code>H</code> nie da się go odszyfrować.</dd>
+</dl></div>
+                    </article>
+                    
+                </div>
+
+                
+                <div class="hiw-controls">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <button id="hiw-play" type="button" class="play-toggle" aria-label="Odtwórz" title="Odtwórz kroki" hidden>
+    <span class="play-toggle-ring" aria-hidden="true"><svg viewBox="0 0 48 48">
+        <circle class="play-toggle-track" cx="24" cy="24" r="22"/>
+        <circle class="play-toggle-fill" cx="24" cy="24" r="22" pathLength="100"/>
+        <circle class="play-toggle-done" cx="24" cy="24" r="22"/>
+    </svg></span>
+    <span data-icon="play" class="relative translate-x-px" aria-hidden="true"><svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M6 3.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L7.5 2.94A1 1 0 0 0 6 3.8Z"/></svg></span>
+    <span data-icon="pause" class="relative" aria-hidden="true" hidden><svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><rect x="4.5" y="3" width="4" height="14" rx="1.2"/><rect x="11.5" y="3" width="4" height="14" rx="1.2"/></svg></span>
+</button>
+                        <p id="hiw-counter" class="text-sm text-slate-400">Kroków: 8</p>
+                    </div>
+                    <div class="flex shrink-0 gap-2">
+                        <button id="hiw-prev" type="button" aria-label="Wstecz" class="btn-secondary px-3 py-2 sm:px-4" hidden>
+                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 0 1-.02 1.06L8.83 10l3.94 3.71a.75.75 0 1 1-1.04 1.08l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 0 1 1.06.02Z" clip-rule="evenodd"/></svg>
+                            <span class="hidden sm:inline">Wstecz</span>
+                        </button>
+                        <button id="hiw-next" type="button" aria-label="Dalej" class="btn-primary px-3 py-2 sm:px-4" hidden>
+                            <span class="relative z-10 hidden sm:inline">Dalej</span>
+                            <svg class="relative z-10 h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.17 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="server-sees" class="space-y-8" aria-labelledby="server-sees-heading">
+        <div class="max-w-2xl space-y-2">
+            <h2 id="server-sees-heading" class="section-title">Co widzi serwer</h2>
+            <p class="section-lead">Wszystko, co do nas trafia, zestawione z tym, co nie trafia nigdy.</p>
+        </div>
+        <ul class="grid gap-4 md:grid-cols-2">
+            
+            <li class="hiw-sees">
+                <h3 class="hiw-sees-label">Treść</h3>
+                <div class="hiw-sees-row is-seen">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg>
+                    <p><span class="hiw-sees-kind">Widzi</span> Szyfrogram i jego przybliżony rozmiar</p>
+                </div>
+                <div class="hiw-sees-row is-unseen">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg>
+                    <p><span class="hiw-sees-kind">Nigdy nie widzi</span> Tekstu jawnego</p>
+                </div>
+            </li>
+            
+            <li class="hiw-sees">
+                <h3 class="hiw-sees-label">Hasło</h3>
+                <div class="hiw-sees-row is-seen">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg>
+                    <p><span class="hiw-sees-kind">Widzi</span> <code>V</code>, jego jednokierunkowy odcisk</p>
+                </div>
+                <div class="hiw-sees-row is-unseen">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg>
+                    <p><span class="hiw-sees-kind">Nigdy nie widzi</span> Hasła, <code>Kp</code> ani klucza pliku</p>
+                </div>
+            </li>
+            
+            <li class="hiw-sees">
+                <h3 class="hiw-sees-label">Nazwa</h3>
+                <div class="hiw-sees-row is-seen">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg>
+                    <p><span class="hiw-sees-kind">Widzi</span> <span data-show="content:file"><strong class="hiw-caveat">Oryginalną nazwę pliku, jawnym tekstem</strong>. Jest zapisywana i widoczna na liście przesyłek nadawcy; odbiorca nigdy nie widzi jej na stronie – nazwa, pod którą zapisze plik, przychodzi wewnątrz szyfrogramu.</span><span data-show="content:text" hidden>Etykietę „Secret Note”</span></p>
+                </div>
+                <div class="hiw-sees-row is-unseen">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg>
+                    <p><span class="hiw-sees-kind">Nigdy nie widzi</span> <span data-show="content:file">&mdash;</span><span data-show="content:text" hidden>Niczego z treści notatki</span></p>
+                </div>
+            </li>
+            
+            <li class="hiw-sees">
+                <h3 class="hiw-sees-label">Ludzie</h3>
+                <div class="hiw-sees-row is-seen">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/></svg>
+                    <p><span class="hiw-sees-kind">Widzi</span> Konto nadawcy; adres IP odbiorcy</p>
+                </div>
+                <div class="hiw-sees-row is-unseen">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.3 3.1M6.3 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.2-1"/><path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9"/><path d="m3 3 18 18"/></svg>
+                    <p><span class="hiw-sees-kind">Nigdy nie widzi</span> Tego, kim jest odbiorca</p>
+                </div>
+            </li>
+            
+        </ul>
+    </section>
+
+    <section id="what-we-keep" class="space-y-8" aria-labelledby="what-we-keep-heading">
+        <h2 id="what-we-keep-heading" class="section-title">Co przechowujemy i jak długo</h2>
+        <ul class="grid gap-4 md:grid-cols-2">
+            
+            <li class="hiw-keep">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="text-base font-semibold text-white">Szyfrogram</h3>
+                    <span class="hiw-badge"><svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Do otwarcia</span>
+                </div>
+                <p class="mt-3 text-sm leading-relaxed text-slate-400">Dopóki nie zostanie pobrany, nie wygaśnie albo nadawca go nie usunie. Wtedy zostaje usunięty z magazynu.</p>
+            </li>
+            
+            <li class="hiw-keep">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="text-base font-semibold text-white"><code>H</code> i <code>V</code></h3>
+                    <span class="hiw-badge"><svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Do wydania</span>
+                </div>
+                <p class="mt-3 text-sm leading-relaxed text-slate-400">Do udanego wydania klucza, zablokowania przesyłki, jej wygaśnięcia albo usunięcia – zależnie od tego, co nastąpi pierwsze.</p>
+            </li>
+            
+            <li class="hiw-keep">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="text-base font-semibold text-white">Wpis o przesyłce</h3>
+                    <span class="hiw-badge"><svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Dopóki go nie usuniesz</span>
+                </div>
+                <p class="mt-3 text-sm leading-relaxed text-slate-400">Nazwa pliku (albo „Secret Note”), konto nadawcy, kiedy przesyłkę utworzono, jej termin ważności, kiedy i z jakiego adresu IP ją otwarto, czy odszyfrowanie się udało, skrót pokwitowania oraz opcjonalny dopisek nadawcy i adres do powiadomień; a także język, w którym ją wysłano i w którym jest pisane powiadomienie. Obok tego to, co zostaje z części klucza po usunięciu <code>H</code> i <code>V</code>: sól hasła, liczba nieudanych prób i czas wydania klucza. Wszystko to zostaje na liście nadawcy, dopóki nadawca tego nie usunie; nic nie czyści tego automatycznie.</p>
+            </li>
+            
+            <li class="hiw-keep">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="text-base font-semibold text-white">Logi serwera</h3>
+                    <span class="hiw-badge"><svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Decyduje operator</span>
+                </div>
+                <p class="mt-3 text-sm leading-relaxed text-slate-400">Każda udana i nieudana próba hasła trafia do logu z adresem IP zgłaszającego. Jak długo logi są przechowywane, zależy od tego, kto prowadzi serwer.</p>
+            </li>
+            
+        </ul>
+    </section>
+
+    <section id="limits" class="space-y-8" aria-labelledby="limits-heading">
+        <div class="max-w-2xl space-y-2">
+            <h2 id="limits-heading" class="section-title">Ograniczenia</h2>
+            <p class="section-lead">Przed czym Buzzdrop nie chroni. Żaden projekt tego nie naprawi.</p>
+        </div>
+        <ul class="hiw-limits">
+            
+            <li>
+                <span class="hiw-limit-icon"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.3 2.6 17.6A2 2 0 0 0 4.3 20.6h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v4M12 17h.01"/></svg></span>
+                <p><strong class="text-white">Odbiorca może zachować kopię.</strong> Odszyfrowany plik albo notatkę można zapisać, skopiować albo sfotografować. Jednorazowość oznacza, że klucz jest wydawany raz, a nie że treści nie da się zachować.</p>
+            </li>
+            
+            <li>
+                <span class="hiw-limit-icon"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.3 2.6 17.6A2 2 0 0 0 4.3 20.6h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v4M12 17h.01"/></svg></span>
+                <p><strong class="text-white">Kto prowadzi serwer, ten kontroluje kod.</strong> Kod szyfrujący aplikacji w przeglądarce pochodzi z serwera, a Subresource Integrity nie pomoże przeciw samemu serwerowi: ktoś, kto go kontroluje, mógłby podać kod, który wykrada hasło, albo zapisywać <code>V</code> i <code>H</code>. Kod CLI pochodzi za to z GitHub Releases, ale strona odbiorcy zawsze działa w przeglądarce.</p>
+            </li>
+            
+            <li>
+                <span class="hiw-limit-icon"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.3 2.6 17.6A2 2 0 0 0 4.3 20.6h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v4M12 17h.01"/></svg></span>
+                <p><strong class="text-white">Słabe hasła.</strong> Ktoś, kto ukradnie bazę danych, gdy przesyłka czeka na otwarcie, może sprawdzać hasła względem jej <code>V</code> offline; zapisane pliki nie są do tego potrzebne. 600 000 iteracji PBKDF2 spowalnia każdą próbę; przy długim haśle ze słów szukanie jest beznadziejne, przy krótkim haśle – nie.</p>
+            </li>
+            
+            <li>
+                <span class="hiw-limit-icon"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.3 2.6 17.6A2 2 0 0 0 4.3 20.6h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v4M12 17h.01"/></svg></span>
+                <p><strong class="text-white">Link z hasłem to klucz.</strong> Kto go ma, może otworzyć przesyłkę.</p>
+            </li>
+            
+            <li>
+                <span class="hiw-limit-icon"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.3 2.6 17.6A2 2 0 0 0 4.3 20.6h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v4M12 17h.01"/></svg></span>
+                <p><strong class="text-white">Błędna próba może zniszczyć przesyłkę.</strong> Każdy, kto ma link, może wykorzystać jedyną próbę i zablokować ją na stałe, a wtedy prawdziwy odbiorca też jej nie otworzy.</p>
+            </li>
+            
+        </ul>
+    </section>
+</div>
+
+<script id="page-strings-json" type="application/json">{"how-it-works": {"counter": "Krok %(step)s z\u00a0%(steps)s", "pause": "Wstrzymaj", "pauseTitle": "Wstrzymaj", "play": "Odtw\u00f3rz", "playTitle": "Odtw\u00f3rz kroki", "showing": {"cli-file": "Widok: CLI buzz wysy\u0142a plik.", "web-file": "Widok: aplikacja w\u00a0przegl\u0105darce wysy\u0142a plik.", "web-text": "Widok: aplikacja w\u00a0przegl\u0105darce wysy\u0142a notatk\u0119."}}}</script>
+
+        </main>
+
+        <footer class="footer-shell">
+            <div class="container-shell flex flex-col gap-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                
+                
+                
+                <p class="flex items-start gap-2 sm:items-center">
+                    <span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400 sm:mt-0" aria-hidden="true"></span>
+                    <span>Każdą przesyłkę można otworzyć raz, potem znika.</span>
+                </p>
+                
+                <p class="text-slate-600 sm:ml-auto">
+                    
+                    
+                    <a href="/how-it-works" class="footer-link" aria-current="page">Jak to działa</a>
+                    
+                    &middot;
+                    Tworzony jawnie.
+                    <a href="https://github.com/buzzdrop/buzzdrop" target="_blank" rel="noopener noreferrer" aria-label="Kod źródłowy (otwiera się w nowej karcie)" class="footer-link"><svg aria-hidden="true" viewBox="0 0 24 24" class="mr-1 inline-block h-3.5 w-3.5 fill-current align-[-0.15em]"><path d="M12 1.5a10.5 10.5 0 0 0-3.32 20.46c.53.1.72-.23.72-.51v-1.78c-2.94.64-3.56-1.25-3.56-1.25-.48-1.2-1.16-1.52-1.16-1.52-.95-.65.07-.64.07-.64 1.05.08 1.6 1.08 1.6 1.08.94 1.6 2.46 1.14 3.06.87.09-.68.37-1.14.66-1.4-2.35-.27-4.82-1.17-4.82-5.23 0-1.16.42-2.1 1.09-2.84-.11-.27-.47-1.37.1-2.84 0 0 .89-.28 2.92 1.08a10.2 10.2 0 0 1 5.32 0c2.03-1.36 2.92-1.08 2.92-1.08.57 1.47.21 2.57.1 2.84.68.74 1.09 1.68 1.09 2.84 0 4.07-2.48 4.96-4.84 5.22.38.33.72.97.72 1.96v2.91c0 .28.19.62.73.51A10.5 10.5 0 0 0 12 1.5Z"/></svg>Kod źródłowy</a>
+                    (<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" aria-label="Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)" class="footer-link">AGPL-3.0</a>)
+                </p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
