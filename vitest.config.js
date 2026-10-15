@@ -15,7 +15,9 @@ export default defineConfig({
         env: { TZ: 'America/New_York' },
         coverage: {
             provider: 'v8',
-            include: ['static/js/**'],
+            // Scripts only: v8 tries to parse every file it includes, and
+            // static/js/ also holds docs (CLAUDE.md, #331).
+            include: ['static/js/**/*.js'],
             // Never imported by tests: the page entry scripts (tests import
             // the page module instead) and the passphrase wordlist, which is data.
             exclude: ['static/js/pages/*/entry.js', 'static/js/lib/eff-wordlist.js'],
