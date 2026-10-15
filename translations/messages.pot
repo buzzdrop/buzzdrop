@@ -373,12 +373,8 @@ msgstr ""
 msgid "Hide"
 msgstr ""
 
-#: templates/_password_gate_strings.html
+#: templates/_password_gate_strings.html templates/_success_strings.html
 msgid "Show password"
-msgstr ""
-
-#: templates/_password_gate_strings.html
-msgid "Hide password"
 msgstr ""
 
 #: templates/_password_gate_strings.html

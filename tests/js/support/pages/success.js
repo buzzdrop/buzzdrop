@@ -7,8 +7,8 @@ export { screen } from './page.js';
 
 /** The buttons a user presses, as each language names them. */
 const WORDS = {
-    en: { copyLink: 'Copy link', copyOneClickLink: 'Copy one-click link', copyPassword: 'Copy password', show: 'Show', hide: 'Hide' },
-    pl: { copyLink: 'Skopiuj link', copyOneClickLink: 'Skopiuj link z\u00a0hasłem', copyPassword: 'Skopiuj hasło', show: 'Pokaż', hide: 'Ukryj' },
+    en: { copyLink: 'Copy link', copyOneClickLink: 'Copy one-click link', copyPassword: 'Copy password', showPassword: 'Show password' },
+    pl: { copyLink: 'Skopiuj link', copyOneClickLink: 'Skopiuj link z\u00a0hasłem', copyPassword: 'Skopiuj hasło', showPassword: 'Pokaż hasło' },
 };
 
 /** The share the fixture was rendered for, and the page's address. */
@@ -43,7 +43,8 @@ export function openSuccessPage({ clipboard = 'ok', type = 'file', language = 'e
         copyShareLink: () => user.click(screen.getByRole('button', { name: words.copyLink })),
         copyOneClickLink: () => user.click(screen.getByRole('button', { name: words.copyOneClickLink })),
         copyPassword: () => user.click(screen.getByRole('button', { name: words.copyPassword })),
-        revealPassword: () => user.click(screen.getByRole('button', { name: words.show })),
-        hidePassword: () => user.click(screen.getByRole('button', { name: words.hide })),
+        // One toggle, named "Show password" either way; pressed while shown (#326).
+        revealPassword: () => user.click(screen.getByRole('button', { name: words.showPassword, pressed: false })),
+        hidePassword: () => user.click(screen.getByRole('button', { name: words.showPassword, pressed: true })),
     };
 }

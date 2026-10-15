@@ -101,14 +101,15 @@ function wire(root, input, { strings, lang, onChange }) {
     }
 
     /**
-     * Mask or reveal the password, keeping the toggle's name in step: it
-     * names what pressing it will do.
+     * Mask or reveal the password. The toggle keeps one name, "Show
+     * password", and says whether it is on with aria-pressed (#326); only
+     * its visible label flips between Show and Hide.
      * @param {boolean} visible
      */
     function setVisible(visible) {
         input.type = visible ? 'text' : 'password';
         required(toggleBtn, '#toggle-password-label', 'span').textContent = strings.text(visible ? 'hide' : 'show');
-        toggleBtn.setAttribute('aria-label', strings.text(visible ? 'hidePassword' : 'showPassword'));
+        toggleBtn.setAttribute('aria-pressed', String(visible));
     }
 
     /** Show/Hide, and whatever the page wires to onChange, have nothing to act on until there is a password. */

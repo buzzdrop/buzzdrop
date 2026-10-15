@@ -85,11 +85,12 @@ describe('in Polish', () => {
     it('writes the success page script\'s words in Polish', async () => {
         vi.useFakeTimers();
         const success = openSuccessPage({ language: 'pl', link: 'one-click' });
+        expect(screen.getByRole('button', { name: 'Pokaż hasło' })).toHaveAttribute('aria-pressed', 'false');
 
         await success.revealPassword();
-        expect(screen.getByRole('button', { name: 'Ukryj' })).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Pokaż hasło', pressed: true })).toHaveTextContent('Ukryj');
         await success.hidePassword();
-        expect(screen.getByRole('button', { name: 'Pokaż' })).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Pokaż hasło', pressed: false })).toHaveTextContent('Pokaż');
 
         await success.copyOneClickLink();
         await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Skopiuj link z\u00a0hasłem' }))
@@ -166,7 +167,7 @@ describe('in Polish', () => {
 
         await upload.generatePassword();
         expect(screen.getByRole('meter', { name: 'Siła hasła' })).toHaveAttribute('aria-valuetext', 'Silne');
-        expect(screen.getByRole('button', { name: 'Ukryj hasło' })).toHaveTextContent('Ukryj');
+        expect(screen.getByRole('button', { name: 'Pokaż hasło', pressed: true })).toHaveTextContent('Ukryj');
 
         await upload.switchToNote();
         expect(screen.getByRole('button', { name: 'Wyślij notatkę' })).toBeVisible();

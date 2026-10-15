@@ -55,20 +55,24 @@ export function initSuccess(root, deps) {
      */
     let hideTimer;
 
+    /**
+     * Mask or reveal the password. The toggle keeps one name, "Show
+     * password", and says whether it is on with aria-pressed (#326); only
+     * its visible label flips between Show and Hide.
+     * @param {boolean} visible
+     */
+    function setVisible(visible) {
+        pwdInput.type = visible ? 'text' : 'password';
+        toggleLabel.textContent = strings.text(visible ? 'hide' : 'show');
+        toggleBtn.setAttribute('aria-pressed', String(visible));
+    }
+
     // Toggle password field between 'password' and 'text' for user convenience
     function togglePasswordVisibility() {
         clearTimeout(hideTimer);
-        if (pwdInput.type === 'password') {
-            pwdInput.type = 'text';
-            toggleLabel.textContent = strings.text('hide');
-            hideTimer = setTimeout(() => {
-                pwdInput.type = 'password';
-                toggleLabel.textContent = strings.text('show');
-            }, 5000);
-        } else {
-            pwdInput.type = 'password';
-            toggleLabel.textContent = strings.text('show');
-        }
+        const visible = pwdInput.type === 'password';
+        setVisible(visible);
+        if (visible) hideTimer = setTimeout(() => setVisible(false), 5000);
     }
 
     // Buttons wire up here, not via inline onclick — CSP forbids inline handlers.

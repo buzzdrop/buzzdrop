@@ -393,13 +393,9 @@ msgstr "Pokaż"
 msgid "Hide"
 msgstr "Ukryj"
 
-#: templates/_password_gate_strings.html
+#: templates/_password_gate_strings.html templates/_success_strings.html
 msgid "Show password"
 msgstr "Pokaż hasło"
-
-#: templates/_password_gate_strings.html
-msgid "Hide password"
-msgstr "Ukryj hasło"
 
 #: templates/_password_gate_strings.html
 msgid "Enter a password, or press Generate."
