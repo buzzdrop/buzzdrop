@@ -213,7 +213,7 @@ describe('index page', () => {
             await upload.sendNote('');
 
             expect(screen.getByLabelText('Your note')).toHaveAccessibleDescription('Write the note you want to send.');
-            expect(upload.alerts()).toEqual([]);
+            expect(upload.sendError()).toBe('');
             expect(upload.requestsSent()).toEqual([]);
         });
 
@@ -233,7 +233,7 @@ describe('index page', () => {
 
             expect(passwordField()).toHaveAccessibleDescription('Enter a password, or press Generate.');
             expect(passwordField()).toHaveFocus();
-            expect(upload.alerts()).toEqual([]);
+            expect(upload.sendError()).toBe('');
             expect(upload.requestsSent()).toEqual([]);
         });
 
@@ -267,6 +267,27 @@ describe('index page', () => {
 
             expect(queryProgressBar()).toBeNull();
             expect(screen.getByRole('button', { name: 'Send note' })).toBeEnabled();
+        });
+    });
+
+    describe('upload errors', () => {
+        it('a refused upload is said under the send button, not with a dialog', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'too-large' });
+
+            expect(upload.sendError()).toBe('The drop is too large to send.');
+            expect(screen.getByText('The drop is too large to send.')).toHaveRole('alert');
+        });
+
+        it('sending again clears the last failure', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'too-large' });
+
+            await upload.send();
+
+            expect(upload.sendError()).toBe('');
+            expect(upload.navigatedTo()).toHaveLength(1);
         });
     });
 

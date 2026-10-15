@@ -5,7 +5,7 @@
 // the real crypto.js. The shared-files status refresh is not one of the
 // fake's routes, so the driver answers it itself.
 import { within } from '@testing-library/dom';
-import { computeAccessibleName } from 'dom-accessibility-api';
+import { computeAccessibleDescription, computeAccessibleName } from 'dom-accessibility-api';
 import { expect, vi } from 'vitest';
 import { HOLD_MS, initHeroFlow } from '../../../../static/js/pages/hero-flow/hero-flow-page.js';
 import { initIndex } from '../../../../static/js/pages/index/index-page.js';
@@ -116,7 +116,7 @@ export const PASSWORDS = {
  */
 
 /**
- * The page's dependencies, recording what it navigates to and alerts.
+ * The page's dependencies, recording what it navigates to.
  * @param {typeof globalThis.fetch} fetch
  * @param {import('../../../../static/js/pages/index/index-page.js').IndexDeps['crypto']} crypto
  * @param {typeof XMLHttpRequest} xhr
@@ -125,16 +125,12 @@ function indexDeps(fetch, crypto, xhr) {
     const now = Date.parse(NOW);
     /** @type {string[]} */
     const navigations = [];
-    /** @type {string[]} */
-    const alerts = [];
     return {
         navigations,
-        alerts,
         deps: {
             fetch,
             XMLHttpRequest: xhr,
             navigate: (/** @type {string} */ url) => { navigations.push(url); },
-            alert: (/** @type {string} */ message) => { alerts.push(message); },
             crypto,
             now: () => now,
         },
@@ -227,7 +223,7 @@ export function openUploadPage({
         if (response.ok && url.endsWith('/upload/begin')) issued.push(await response.clone().json());
         return response;
     };
-    const { deps, navigations, alerts } = indexDeps(
+    const { deps, navigations } = indexDeps(
         fetch, cryptoService, server.XMLHttpRequest);
     initIndex(window.document, deps);
     initHeroFlow(window.document, {});
@@ -317,15 +313,16 @@ export function openUploadPage({
         },
         /**
          * Press the send button and wait for the outcome: the page leaves for
-         * the success page, alerts, or refuses the input inline (a missing
-         * file, note or password, or a weak password).
+         * the success page, or says why not inline (the server refused the
+         * drop or could not be reached, a missing file, note or password, or
+         * a weak password). Pressing it clears the last send's failure.
          * @param {{ server?: UploadServer }} [options]
          */
         async send({ server: situation = 'ok' } = {}) {
             arrange(situation);
-            const outcomes = navigations.length + alerts.length;
+            const outcomes = navigations.length;
             await user.click(screen.getByRole('button', { name: words.send }));
-            await waitUntil(() => expect(navigations.length + alerts.length > outcomes
+            await waitUntil(() => expect(navigations.length > outcomes
                 || screen.queryAllByRole('alert').some((region) => region.textContent?.trim())).toBe(true), timeout);
         },
         /**
@@ -407,7 +404,15 @@ export function openUploadPage({
 
         /** Where the page went after an upload. */
         navigatedTo: () => [...navigations],
-        alerts: () => [...alerts],
+        /**
+         * Why the last send failed, as the send button's description; '' when
+         * it didn't. While the progress bar stands in for the button, nothing
+         * has failed: pressing it cleared the last failure.
+         */
+        sendError() {
+            const button = screen.queryByRole('button', { name: words.send });
+            return button ? computeAccessibleDescription(button) : '';
+        },
         /** The shares /upload/begin issued, in order. */
         sharesIssued: () => [...issued],
         progressShown,
