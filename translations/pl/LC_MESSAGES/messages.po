@@ -796,8 +796,8 @@ msgid ""
 "<code>file</code>, plus the <code>file_id</code>, <code>V</code> and "
 "<code>SHA-256(receipt)</code>."
 msgstr ""
-"<code>POST /upload</code> z szyfrogramem jako multipartowe pole "
-"<code>file</code>, a do tego <code>file_id</code>, <code>V</code> i "
+"<code>POST /upload</code> z szyfrogramem w polu <code>file</code> żądania"
+" multipart, a do tego <code>file_id</code>, <code>V</code> i "
 "<code>SHA-256(receipt)</code>."
 
 #: templates/_how_it_works_content.html
