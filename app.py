@@ -39,7 +39,7 @@ load_dotenv(dotenv_path=env_path)
 # Import new modules AFTER loading .env
 from config import get_config
 from storage import get_storage_backend, print_backend_info, StorageError
-from auth import login_required, admin_required, api_auth_required, get_users, get_current_user, login_user, logout_user
+from auth import login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, login_user, logout_user
 from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcnow
 from utils import (
     format_file_timestamps,
@@ -640,16 +640,11 @@ def handle_large_file(error):
     return redirect(url_for('index'))
 
 
-def _is_bearer_request():
-    """True when an API client authenticates with a token (``api_auth_required``)."""
-    return request.headers.get('Authorization', '').startswith('Bearer ')
-
-
 def _is_api_request():
     """True when the client expects JSON rather than an HTML page."""
     return (
         request.path.startswith('/api/')
-        or _is_bearer_request()
+        or bearer_token() is not None
         or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     )
 
@@ -1168,7 +1163,7 @@ def upload_file():
 
     # The language the drop-opened email is written in (#293): the page's,
     # or the default for a Bearer client, which has no page language.
-    if _is_bearer_request():
+    if bearer_token() is not None:
         language = current_app.config['DEFAULT_LANGUAGE']
     else:
         language = i18n.current_language()

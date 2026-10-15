@@ -75,6 +75,24 @@ def test_polish_upload_gets_a_polish_email(client, files_store, sent_messages,
     assert 'Opened at' not in body
 
 
+def test_language_menu_choice_wins_over_accept_language(client, files_store, sent_messages,
+                                                         key_release_upload, open_drop):
+    # Picking Polski in the language menu sets the ``lang`` cookie; it beats
+    # the browser's English Accept-Language, so the email is Polish.
+    login_user(client)
+    client.set_cookie('lang', 'pl')
+    file_id, _h, receipt, response = key_release_upload(
+        data=_notify_form(),
+        headers={'X-Requested-With': 'XMLHttpRequest', 'Accept-Language': 'en-US,en;q=0.9'})
+    assert response.status_code == 200
+    assert files_store.get_by_id(file_id)['language'] == 'pl'
+
+    open_drop(file_id, receipt)
+
+    [(_recipient, subject, _body)] = sent_messages
+    assert subject == 'Buzzdrop: otwarto plik'
+
+
 def test_bearer_upload_gets_the_default_language(app, client, files_store, sent_messages,
                                                  key_release_upload, open_drop):
     with app.app_context():
