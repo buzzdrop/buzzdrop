@@ -182,7 +182,7 @@ def test_download_file_success(client, app, files_store, key_release_upload, cla
 def test_download_file_not_found(client):
     login_user(client, 'testuser', 'password')
     response = client.get(url_for('download_file', file_id='nonexistentid'), follow_redirects=True)
-    assert b'File not found' in response.data
+    assert b'Drop not found' in response.data
     assert url_for('index') in response.request.path
 
 def test_download_file_already_downloaded(client, app, files_store, key_release_upload, claim_ticket):
@@ -197,8 +197,78 @@ def test_download_file_already_downloaded(client, app, files_store, key_release_
                headers=ticket_headers(claim_ticket(file_id)))
 
     response = client.get(url_for('download_file', file_id=file_id), follow_redirects=True)
-    assert b'This file has already been downloaded' in response.data
+    assert b'This drop has already been opened.' in response.data
     assert url_for('index') in response.request.path
+
+POLISH = {'Accept-Language': 'pl'}
+
+
+@pytest.mark.parametrize('overrides, english, polish', [
+    (None, 'Drop not found', 'Nie znaleziono przesyłki'),
+    ({'downloaded_at': '2025-01-06T20:35:00.000000+00:00'},
+     'This drop has already been opened.', 'Tę przesyłkę już otwarto.'),
+    ({'expiry_at': '2025-01-06T20:35:00.000000+00:00'},
+     'This drop has expired.', 'Ta przesyłka wygasła.'),
+])
+def test_download_flash_is_translated(client, file_record, overrides, english, polish):
+    """A browser landing on /download is sent home with a flash in its
+    language (#308); the JSON error API clients see stays English."""
+    login_user(client, 'testuser', 'password')
+    file_id = 'nonexistentid' if overrides is None else file_record(**overrides)
+
+    english_page = client.get(url_for('download_file', file_id=file_id), follow_redirects=True)
+    polish_page = client.get(url_for('download_file', file_id=file_id),
+                             headers=POLISH, follow_redirects=True)
+
+    assert english_page.request.path == url_for('index')
+    assert english in english_page.get_data(as_text=True)
+    assert polish in polish_page.get_data(as_text=True)
+
+
+def test_download_flash_for_a_drop_released_to_someone_else(client, key_release_upload, claim_ticket):
+    login_user(client, 'testuser', 'password')
+    file_id, _h, _rcpt, _resp = key_release_upload()
+    claim_ticket(file_id)
+
+    polish_page = client.get(url_for('download_file', file_id=file_id),
+                             headers=POLISH, follow_redirects=True)
+
+    assert polish_page.request.path == url_for('index')
+    assert 'Tę przesyłkę już otwarto.' in polish_page.get_data(as_text=True)
+
+
+@pytest.mark.parametrize('status, polish', [
+    ('missing', 'Nie znaleziono przesyłki'),
+    ('already_downloaded', 'Tę przesyłkę już otwarto.'),
+])
+def test_download_flash_when_the_claim_loses_a_race(client, file_record, monkeypatch, status, polish):
+    """The claim's own refusals, for a drop that passed the checks before it."""
+    import app as app_module
+    monkeypatch.setattr(app_module.file_repo, 'claim_download_with_ticket',
+                        lambda *args: {'status': status})
+    login_user(client, 'testuser', 'password')
+
+    polish_page = client.get(url_for('download_file', file_id=file_record()),
+                             headers=POLISH, follow_redirects=True)
+
+    assert polish_page.request.path == url_for('index')
+    assert polish in polish_page.get_data(as_text=True)
+
+
+def test_download_flash_when_the_download_window_has_passed(
+        client, key_release_upload, claim_ticket, key_release_settings):
+    login_user(client, 'testuser', 'password')
+    file_id, _h, _rcpt, _resp = key_release_upload()
+    ticket = claim_ticket(file_id)
+    key_release_settings['KEY_RELEASE_DOWNLOAD_TTL_SECONDS'] = 0
+
+    polish_page = client.get(url_for('download_file', file_id=file_id),
+                             headers={**POLISH, 'X-Download-Ticket': ticket},
+                             follow_redirects=True)
+
+    assert polish_page.request.path == url_for('index')
+    assert 'Ta przesyłka wygasła.' in polish_page.get_data(as_text=True)
+
 
 def test_view_file_success(client, app, files_store, key_release_upload):
     login_user(client, 'testuser', 'password')
