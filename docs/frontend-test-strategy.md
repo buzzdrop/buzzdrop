@@ -281,7 +281,7 @@ From [How do tests and CI work under i18n?](https://github.com/buzzdrop/buzzdrop
 - **Polish E2E** (`tests/e2e/polish.spec.js`, all three browsers, journey 10 in §7):
   1. The browser locale is `pl-PL`, so `Accept-Language` negotiation is exercised.
   2. A text note makes the full round trip (send, open, decrypt) with the Polish UI checked.
-  3. Switching to English with `POST /language` persists across pages.
+  3. Switching to English in the menu (`POST /language`) persists across pages.
   4. The switcher is absent from the recipient's pages (confirm and view).
 
 ## 8. E2E harness and test profile

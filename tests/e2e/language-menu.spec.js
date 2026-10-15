@@ -3,11 +3,9 @@
 // Escape giving focus back, the choice holding across pages, and the menu
 // working with JavaScript off, since each item is a plain form.
 import { test, expect } from './fixtures.js';
+import { languageButton } from './support.js';
 
 /** @typedef {import('@playwright/test').Page} Page */
-
-/** @param {Page} page */
-const languageButton = (page) => page.getByRole('navigation').getByRole('button', { name: /^(Language|Język): / });
 
 /**
  * Tab onto the language button.
