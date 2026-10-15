@@ -320,7 +320,7 @@ def test_report_decryption_for_text_note_sends_failed_notification(client, app, 
 
     assert len(sent_messages) == 1
     assert sent_messages[0][0] == 'testuser@example.com'
-    assert sent_messages[0][1] == 'Buzzdrop secret note opened'
+    assert sent_messages[0][1] == 'Buzzdrop note opened'
     assert 'Decryption status: failed' in sent_messages[0][2]
 
 

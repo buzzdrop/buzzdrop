@@ -50,6 +50,73 @@ msgstr ""
 msgid "Open notifications can only be sent to your configured account email."
 msgstr ""
 
+#. Translators: the drop-opened email's "Decryption status" value.
+#: app.py
+msgctxt "decryption status"
+msgid "successful"
+msgstr ""
+
+#. Translators: the drop-opened email's "Decryption status" value.
+#: app.py
+msgctxt "decryption status"
+msgid "failed"
+msgstr ""
+
+#. Translators: the drop-opened email's "Decryption status" value: the
+#. recipient's browser never said whether decryption worked.
+#: app.py
+msgctxt "decryption status"
+msgid "not reported"
+msgstr ""
+
+#: app.py
+msgid "Buzzdrop note opened"
+msgstr ""
+
+#: app.py
+msgid "Buzzdrop file opened"
+msgstr ""
+
+#: app.py
+msgid "Your drop was opened."
+msgstr ""
+
+#: app.py
+#, python-format
+msgid "Type: %(type)s"
+msgstr ""
+
+#: app.py templates/index.html utils.py
+msgid "Note"
+msgstr ""
+
+#: app.py templates/index.html
+msgid "File"
+msgstr ""
+
+#: app.py
+#, python-format
+msgid "Original name: %(name)s"
+msgstr ""
+
+#. Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35
+#. CET".
+#: app.py
+#, python-format
+msgid "Opened at: %(time)s"
+msgstr ""
+
+#: app.py
+#, python-format
+msgid "Decryption status: %(status)s"
+msgstr ""
+
+#: app.py
+msgid ""
+"Buzzdrop intentionally omits recipient-sensitive details from this "
+"notification."
+msgstr ""
+
 #: app.py
 msgid "Drop too large"
 msgstr ""
@@ -157,10 +224,6 @@ msgstr ""
 #: templates/_shared_files_strings.html utils.py
 #, python-format
 msgid "Note · %(time)s"
-msgstr ""
-
-#: templates/index.html utils.py
-msgid "Note"
 msgstr ""
 
 #. a Copy button's label, flashed after a copy. Keep it short.
@@ -574,10 +637,6 @@ msgstr ""
 
 #: templates/index.html
 msgid "What are you sending?"
-msgstr ""
-
-#: templates/index.html
-msgid "File"
 msgstr ""
 
 #: templates/index.html

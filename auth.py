@@ -196,6 +196,18 @@ def login_required(f):
     return decorated_function
 
 
+def bearer_token():
+    """
+    The token of an ``Authorization: Bearer <token>`` header, or None when
+    the request has no Bearer header. An empty token is ``''``, not None,
+    so ``api_auth_required`` still rejects it.
+    """
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        return auth_header[len('Bearer '):]
+    return None
+
+
 def api_auth_required(f):
     """
     Decorator for routes that accept both API token auth and session auth.
@@ -218,9 +230,8 @@ def api_auth_required(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', '')
-        if auth_header.startswith('Bearer '):
-            raw_token = auth_header[7:]
+        raw_token = bearer_token()
+        if raw_token is not None:
             from tokens import validate_api_token
             username = validate_api_token(raw_token)
             if not username:
