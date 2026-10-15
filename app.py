@@ -109,6 +109,19 @@ UPLOAD_REFUSAL_FLASHES = {
 }
 
 
+# What /download answers for each refusal, keyed by the claim's status
+# (#338): the English JSON `error` and its status for the page's XHR, or
+# the flash a browser is redirected with. The pre-checks reuse the same
+# entries, so one situation reads the same wherever it is caught.
+_DROP_ALREADY_OPENED = i18n.gettext_noop('This drop has already been opened.')
+DOWNLOAD_REFUSALS = {
+    'missing': ('File not found', 404, i18n.gettext_noop('Drop not found')),
+    'already_downloaded': ('This file has already been downloaded', 410, _DROP_ALREADY_OPENED),
+    'bad_ticket': ('This drop has already been claimed', 410, _DROP_ALREADY_OPENED),
+    'expired': ('File has expired', 410, i18n.gettext_noop('This drop has expired.')),
+}
+
+
 class NotificationPreferenceError(Exception):
     """
     Safe validation error for uploader notification inputs. ``error`` is
@@ -1354,22 +1367,21 @@ def download_file(file_id):
     the ticket.
     """
     xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    def _refuse(refusal):
+        error, status, message = DOWNLOAD_REFUSALS[refusal]
+        if xhr:
+            return {'error': error}, status
+        flash(_(message))
+        return redirect(url_for('index'))
+
     file_info = file_repo.get_by_id(file_id)
     if not file_info:
-        if xhr:
-            return {'error': 'File not found'}, 404
-        flash(_('Drop not found'))
-        return redirect(url_for('index'))
+        return _refuse('missing')
     if 'downloaded_at' in file_info and file_info['downloaded_at'] is not None:
-        if xhr:
-            return {'error': 'This file has already been downloaded'}, 410
-        flash(_('This drop has already been opened.'))
-        return redirect(url_for('index'))
+        return _refuse('already_downloaded')
     if check_and_handle_expiry(file_info):
-        if xhr:
-            return {'error': 'File has expired'}, 410
-        flash(_('This drop has expired.'))
-        return redirect(url_for('index'))
+        return _refuse('expired')
 
     ticket = request.headers.get('X-Download-Ticket')
     if isinstance(ticket, str):
@@ -1385,31 +1397,13 @@ def download_file(file_id):
 
     if status == 'not_released':
         return {'error': 'Forbidden'}, 403
-    if status == 'bad_ticket':
-        if xhr:
-            return {'error': 'This drop has already been claimed'}, 410
-        flash(_('This drop has already been opened.'))
-        return redirect(url_for('index'))
-    if status == 'already_downloaded':
-        if xhr:
-            return {'error': 'This file has already been downloaded'}, 410
-        flash(_('This drop has already been opened.'))
-        return redirect(url_for('index'))
-    if status == 'expired':
-        if result.get('path'):
-            try:
-                storage.delete(result['path'])
-            except Exception:
-                pass
-        if xhr:
-            return {'error': 'File has expired'}, 410
-        flash(_('This drop has expired.'))
-        return redirect(url_for('index'))
-    if status == 'missing':
-        if xhr:
-            return {'error': 'File not found'}, 404
-        flash(_('Drop not found'))
-        return redirect(url_for('index'))
+    if status == 'expired' and result.get('path'):
+        try:
+            storage.delete(result['path'])
+        except Exception:
+            pass
+    if status in DOWNLOAD_REFUSALS:
+        return _refuse(status)
 
     # Stream file from storage
     def generate():
