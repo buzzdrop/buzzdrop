@@ -5,9 +5,10 @@ import { openLanguageMenuPage } from '../support/pages/language-menu.js';
 import { openGonePage, openLoginPage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
 import { openLandingPage, openUploadPage } from '../support/pages/upload.js';
+import { openUsersPage } from '../support/pages/users.js';
 import { DEFAULT_MESSAGE, DEFAULT_PASSWORD, openShare } from '../support/pages/view.js';
 
-// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288, #289, #290):
+// Smoke tests for the pages served in Polish so far (#284, #286, #268, #288, #289, #290, #292):
 // the template's words, and the words a page script writes from its strings.
 
 /** Testing Library's text matching, minus collapsing a non-breaking space into a space. */
@@ -84,11 +85,12 @@ describe('in Polish', () => {
     it('writes the success page script\'s words in Polish', async () => {
         vi.useFakeTimers();
         const success = openSuccessPage({ language: 'pl', link: 'one-click' });
+        expect(screen.getByRole('button', { name: 'Pokaż hasło' })).toHaveAttribute('aria-pressed', 'false');
 
         await success.revealPassword();
-        expect(screen.getByRole('button', { name: 'Ukryj' })).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Pokaż hasło', pressed: true })).toHaveTextContent('Ukryj');
         await success.hidePassword();
-        expect(screen.getByRole('button', { name: 'Pokaż' })).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Pokaż hasło', pressed: false })).toHaveTextContent('Pokaż');
 
         await success.copyOneClickLink();
         await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Skopiuj link z\u00a0hasłem' }))
@@ -165,7 +167,7 @@ describe('in Polish', () => {
 
         await upload.generatePassword();
         expect(screen.getByRole('meter', { name: 'Siła hasła' })).toHaveAttribute('aria-valuetext', 'Silne');
-        expect(screen.getByRole('button', { name: 'Ukryj hasło' })).toHaveTextContent('Ukryj');
+        expect(screen.getByRole('button', { name: 'Pokaż hasło', pressed: true })).toHaveTextContent('Ukryj');
 
         await upload.switchToNote();
         expect(screen.getByRole('button', { name: 'Wyślij notatkę' })).toBeVisible();
@@ -179,7 +181,8 @@ describe('in Polish', () => {
 
         await upload.sendNote('kod do bramy', undefined, { server: 'too-large' });
 
-        expect(upload.alerts()).toEqual(['Przesyłka jest za duża, żeby ją wysłać.']);
+        expect(upload.sendError()).toBe('Przesyłka jest za duża, żeby ją wysłać.');
+        expect(screen.getByText('Przesyłka jest za duża, żeby ją wysłać.')).toHaveRole('alert');
     });
 
     it('serves the drop list', async () => {
@@ -362,5 +365,57 @@ describe('in Polish', () => {
 
         expect(screen.getByRole('status'))
             .toHaveTextContent('Ta przesyłka ma nieobsługiwany format. Poproś nadawcę o ponowne wysłanie.');
+    });
+
+    it('serves the users page', () => {
+        const users = openUsersPage({ language: 'pl' });
+
+        expect(users.language()).toBe('pl');
+        expect(screen.getByRole('heading', { level: 1, name: 'Zarządzanie użytkownikami' })).toBeVisible();
+        expect(screen.getByRole('heading', { name: 'Aktywne tokeny API' })).toBeVisible();
+        const card = within(screen.getByRole('region', { name: 'testuser' }));
+        expect(card.getByText('2 tokeny')).toBeVisible();
+        expect(card.getAllByRole('columnheader').map((header) => header.textContent))
+            .toEqual(['Utworzono', 'Ostatnio użyty', 'Wygasa', 'Akcje']);
+        expect(card.getAllByRole('button', { name: 'Unieważnij' })).toHaveLength(2);
+        expect(within(screen.getByRole('region', { name: 'adminuser' })).getByText('Brak aktywnych tokenów API.'))
+            .toBeVisible();
+    });
+
+    it('writes the token times in Polish', () => {
+        openUsersPage({ language: 'pl' });
+
+        const card = within(screen.getByRole('region', { name: 'testuser' }));
+        const rows = within(card.getByRole('table')).getAllByRole('row').slice(1)
+            .map((tr) => within(tr).getAllByRole('cell').slice(0, 3).map((cell) => cell.textContent?.trim()));
+        expect(rows).toEqual([
+            ['3 sty 2025, 06:00 GMT-5', '6 sty 2025, 03:30 GMT-5', '31 gru 2098, 19:00 GMT-5'],
+            ['1 sty 2025, 06:00 GMT-5', 'Nigdy', '31 gru 2098, 19:00 GMT-5'],
+        ]);
+    });
+
+    it('writes a new token\'s expiry and its copy feedback in Polish', async () => {
+        const users = openUsersPage({ language: 'pl' });
+        const card = within(screen.getByRole('region', { name: 'testuser' }));
+
+        await users.generateToken('testuser');
+        expect(card.getByText('Wygasa 31 gru 2098, 19:00 GMT-5. Odśwież stronę, by zobaczyć go na liście poniżej.'))
+            .toBeVisible();
+        expect(card.getByRole('textbox', { name: 'Nowy token API' })).toBeVisible();
+
+        await users.copyToken('testuser');
+        await vi.waitFor(() => expect(card.getByRole('button', { name: 'Skopiuj token' })).toHaveTextContent('Skopiowano!'));
+        expect(screen.getByRole('status', { name: 'Schowek' })).toHaveTextContent('Skopiowano token do schowka.');
+    });
+
+    it.each([
+        ['forbidden', 'Token dla innego użytkownika może wygenerować tylko administrator.'],
+        ['unexplained', 'Nie udało się wygenerować tokenu. Spróbuj ponownie.'],
+    ])('says in Polish why a token was refused (%s)', async (server, message) => {
+        const users = openUsersPage({ language: 'pl', server: /** @type {'forbidden' | 'unexplained'} */ (server) });
+
+        await users.generateToken('testuser');
+
+        expect(within(screen.getByRole('region', { name: 'testuser' })).getByRole('alert')).toHaveTextContent(message);
     });
 });

@@ -44,6 +44,7 @@ from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcno
 from utils import (
     format_file_timestamps,
     format_timestamp,
+    iso_twin,
     enhance_file_display,
     status_labels,
     allowed_file,
@@ -290,8 +291,10 @@ def send_open_notification_email(file_info: dict) -> bool:
     file_info['notification_sent_at'] = now_iso()
     return True
 
-# Stored times as text in UTC, for server-rendered text (the token table).
+# Stored times as text in UTC, and as the offset-aware ISO twin the token
+# table's <time datetime> carries for the page script to show in the viewer's zone.
 app.add_template_filter(format_timestamp, 'timestamp')
+app.add_template_filter(iso_twin, 'timestamp_iso')
 
 # The recipient's pages, the "drop is gone" page included: their language
 # is their browser's, and reloading one could lose the drop, so they offer
@@ -957,19 +960,19 @@ def revoke_api_token_route(token_id):
     if not token:
         if wants_json:
             return {'error': 'Token not found'}, 404
-        flash('API token not found')
+        flash(_('API token not found'))
         return redirect(url_for('manage_users' if current_user.get('is_admin', False) else 'index'))
 
     if token['username'] != current_username and not current_user.get('is_admin', False):
         if wants_json:
             return {'error': 'Admin access required to revoke tokens for other users'}, 403
-        flash('Admin access required')
+        flash(_('Admin access required'))
         return redirect(url_for('index'))
 
     if not _is_valid_csrf_token():
         if wants_json:
             return {'error': 'CSRF validation failed'}, 403
-        flash('Invalid request')
+        flash(_('Invalid request'))
         return redirect(url_for('manage_users' if current_user.get('is_admin', False) else 'index'))
 
     revoke_api_token_by_id(token_id)
@@ -977,7 +980,7 @@ def revoke_api_token_route(token_id):
     if wants_json:
         return {'status': 'revoked'}, 200
 
-    flash('API token revoked', 'success')
+    flash(_('API token revoked'), 'success')
     return redirect(url_for('manage_users' if current_user.get('is_admin', False) else 'index'))
 
 

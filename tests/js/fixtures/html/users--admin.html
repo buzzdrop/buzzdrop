@@ -130,6 +130,8 @@
             
 
             
+
+
 <div class="mx-auto max-w-4xl space-y-8">
     <header class="animate-fade-up space-y-3">
         <span class="eyebrow">Admin area</span>
@@ -150,7 +152,7 @@
             <article class="dashboard-item">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="hex-step text-xs">T</span>
+                        <span class="hex-step text-xs" translate="no">T</span>
                         <div>
                             <p class="text-sm font-semibold text-white">testuser</p>
                             <p class="mt-0.5 text-xs text-slate-500">Configured at deploy time through environment variables.</p>
@@ -165,7 +167,7 @@
             <article class="dashboard-item">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="hex-step text-xs">A</span>
+                        <span class="hex-step text-xs" translate="no">A</span>
                         <div>
                             <p class="text-sm font-semibold text-white">adminuser</p>
                             <p class="mt-0.5 text-xs text-slate-500">Configured at deploy time through environment variables.</p>
@@ -180,7 +182,7 @@
             <article class="dashboard-item">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="hex-step text-xs">N</span>
+                        <span class="hex-step text-xs" translate="no">N</span>
                         <div>
                             <p class="text-sm font-semibold text-white">notifyuser</p>
                             <p class="mt-0.5 text-xs text-slate-500">Configured at deploy time through environment variables.</p>
@@ -208,14 +210,21 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="testuser">Generate token</button>
-                        <span class="status-badge status-badge-slate">1 token</span>
+                        <span class="status-badge status-badge-slate">2 tokens</span>
                     </div>
                 </div>
                 <div class="token-result border-b border-white/6 px-4 py-4" hidden>
                     <p class="text-xs text-slate-400">New token for <span class="font-semibold text-white">testuser</span> — shown once. Store it now.</p>
                     <div class="copy-field mt-3">
                         <input type="text" readonly aria-label="New API token" class="generated-token-input field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
-                        <button type="button" aria-label="Copy token" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5"><span class="copy-label">Copy</span></button>
+                        <button type="button" aria-label="Copy token" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5">
+                            <span class="btn-label">
+                                <span class="copy-label">Copy</span>
+                                <span class="btn-label-sizer" data-label="Copy" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="Copied!" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="Failed" aria-hidden="true"></span>
+                            </span>
+                        </button>
                     </div>
                     <p class="token-expires mt-2 text-xs text-slate-500"></p>
                     <p class="token-error mt-2 text-xs text-red-400" role="alert" hidden></p>
@@ -234,9 +243,21 @@
                         <tbody>
                             
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
-                                <td class="px-4 py-3 tabular-nums text-slate-300">2025-01-01 11:00:00 UTC</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-300"><time datetime="2025-01-03T11:00:00+00:00" translate="no">2025-01-03 11:00:00 UTC</time></td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2025-01-06T08:30:00+00:00" translate="no">2025-01-06 08:30:00 UTC</time></td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
+                                <td class="px-4 py-3 text-right">
+                                    <form method="post" action="/api/tokens/2/revoke" class="inline-block">
+                                        <input type="hidden" name="csrf_token" value="fixture-csrf-token">
+                                        <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Revoke</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            
+                            <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
+                                <td class="px-4 py-3 tabular-nums text-slate-300"><time datetime="2025-01-01T11:00:00+00:00" translate="no">2025-01-01 11:00:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500">Never</td>
-                                <td class="px-4 py-3 tabular-nums text-slate-500">2099-01-01 00:00:00 UTC</td>
+                                <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
                                     <form method="post" action="/api/tokens/1/revoke" class="inline-block">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
@@ -267,7 +288,14 @@
                     <p class="text-xs text-slate-400">New token for <span class="font-semibold text-white">adminuser</span> — shown once. Store it now.</p>
                     <div class="copy-field mt-3">
                         <input type="text" readonly aria-label="New API token" class="generated-token-input field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
-                        <button type="button" aria-label="Copy token" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5"><span class="copy-label">Copy</span></button>
+                        <button type="button" aria-label="Copy token" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5">
+                            <span class="btn-label">
+                                <span class="copy-label">Copy</span>
+                                <span class="btn-label-sizer" data-label="Copy" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="Copied!" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="Failed" aria-hidden="true"></span>
+                            </span>
+                        </button>
                     </div>
                     <p class="token-expires mt-2 text-xs text-slate-500"></p>
                     <p class="token-error mt-2 text-xs text-red-400" role="alert" hidden></p>
@@ -293,7 +321,14 @@
                     <p class="text-xs text-slate-400">New token for <span class="font-semibold text-white">notifyuser</span> — shown once. Store it now.</p>
                     <div class="copy-field mt-3">
                         <input type="text" readonly aria-label="New API token" class="generated-token-input field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
-                        <button type="button" aria-label="Copy token" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5"><span class="copy-label">Copy</span></button>
+                        <button type="button" aria-label="Copy token" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5">
+                            <span class="btn-label">
+                                <span class="copy-label">Copy</span>
+                                <span class="btn-label-sizer" data-label="Copy" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="Copied!" aria-hidden="true"></span>
+                                <span class="btn-label-sizer" data-label="Failed" aria-hidden="true"></span>
+                            </span>
+                        </button>
                     </div>
                     <p class="token-expires mt-2 text-xs text-slate-500"></p>
                     <p class="token-error mt-2 text-xs text-red-400" role="alert" hidden></p>
@@ -307,7 +342,7 @@
         <p id="copy-status" class="sr-only" role="status" aria-label="Clipboard"></p>
     </section>
 </div>
-<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}}</script>
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "users": {"expires": "Expires %(time)s. Reload to see it in the list below.", "failed": "Could not generate a token. Please try again.", "refusals": {"admin_required": "Only an admin can generate a token for another user.", "csrf_failed": "Your session has expired. Reload the page and try again.", "rate_limited": "Too many requests. Please try again later.", "unknown_user": "That user no longer exists."}}}</script>
 
         </main>
 

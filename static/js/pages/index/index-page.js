@@ -29,7 +29,6 @@ import { readStrings } from '../../lib/strings.js';
  * @property {typeof fetch} fetch
  * @property {typeof XMLHttpRequest} XMLHttpRequest - supplies upload.onprogress
  * @property {(url: string) => void} navigate
- * @property {(message: string) => void} alert
  * @property {import('../../features/share-protocol/index.js').CreateDeps['crypto']} crypto
  * @property {() => number} now - epoch milliseconds, for the drop list's relative times
  */
@@ -57,7 +56,6 @@ export function browserDeps() {
         fetch: window.fetch.bind(window),
         XMLHttpRequest: window.XMLHttpRequest,
         navigate: (url) => { window.location.href = url; },
-        alert: (message) => window.alert(message),
         crypto: shareCrypto,
         now: () => Date.now(),
     };
@@ -202,10 +200,10 @@ export function initIndex(root, deps) {
 
     /**
      * Show (or with '', clear) a refusal in one of the always-present error
-     * regions (#file-error, #note-error). The region stays and only its text
-     * changes, so assistive tech announces every refusal rather than a
-     * one-time reveal.
-     * @param {'file-error' | 'note-error'} regionId
+     * regions (#file-error, #note-error, #share-error). The region stays and
+     * only its text changes, so assistive tech announces every refusal rather
+     * than a one-time reveal.
+     * @param {'file-error' | 'note-error' | 'share-error'} regionId
      * @param {string} message
      */
     function showRefusal(regionId, message) {
@@ -286,8 +284,8 @@ export function initIndex(root, deps) {
     /**
      * Seal the payload and upload it, with the progress bar standing in for
      * the share button while the upload runs. On success the page leaves for
-     * the success page; otherwise it alerts, in the words for the refusal's
-     * reason, and the button comes back.
+     * the success page; otherwise it says why under the button, in the words
+     * for the refusal's reason, and the button comes back.
      * @param {Payload} payload
      * @param {string} password - carried to the success page in the URL fragment
      */
@@ -326,7 +324,7 @@ export function initIndex(root, deps) {
             deps.navigate(buildOneClickLink(`/success/${result.fileId}`, password));
             return;
         }
-        deps.alert(result.kind === 'refused'
+        showRefusal('share-error', result.kind === 'refused'
             ? refusals.text(result.reason) : composerStrings.text('unreachable'));
         uploadInProgress = false;
         uploadBtn.disabled = false;
@@ -456,6 +454,8 @@ export function initIndex(root, deps) {
     if (shareActionButton) {
         shareActionButton.addEventListener('click', () => {
             if (uploadInProgress) return;
+            // A new attempt: the last one's failure no longer applies.
+            showRefusal('share-error', '');
             if (activeShareMode === 'text') {
                 uploadNote();
                 return;

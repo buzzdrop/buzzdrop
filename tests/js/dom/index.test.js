@@ -8,6 +8,7 @@ const SIX_WORDS = 'abacus-abdomen-abdominal-abide-abiding-ability';
 const SEVEN_WORDS = `${SIX_WORDS}-ablaze`;
 
 const passwordField = () => screen.getByLabelText('Password');
+const passwordToggle = () => screen.getByRole('button', { name: 'Show password' });
 const fileField = () => screen.getByLabelText('Drop a file here, or browse');
 const strengthMeter = () => screen.getByRole('meter', { name: 'Password strength' });
 const clipboardStatus = () => screen.getByRole('status', { name: 'Clipboard' });
@@ -174,13 +175,13 @@ describe('index page', () => {
         it('Show is unavailable while the field is empty', async () => {
             const upload = openUploadPage();
 
-            expect(screen.getByRole('button', { name: 'Show password' })).toBeDisabled();
+            expect(passwordToggle()).toBeDisabled();
 
             await upload.enterPassword('correct horse');
-            expect(screen.getByRole('button', { name: 'Show password' })).toBeEnabled();
+            expect(passwordToggle()).toBeEnabled();
 
             await upload.clearPassword();
-            expect(screen.getByRole('button', { name: 'Show password' })).toBeDisabled();
+            expect(passwordToggle()).toBeDisabled();
         });
 
         it('Show reveals a typed password and Hide masks it again', async () => {
@@ -188,21 +189,26 @@ describe('index page', () => {
             await upload.enterPassword('correct horse');
             expect(passwordField()).toHaveAttribute('type', 'password');
 
+            expect(passwordToggle()).toHaveAttribute('aria-pressed', 'false');
+
             await upload.showPassword();
             expect(passwordField()).toHaveAttribute('type', 'text');
-            expect(screen.getByRole('button', { name: 'Hide password' })).toBeVisible();
+            expect(passwordToggle()).toHaveAttribute('aria-pressed', 'true');
+            expect(passwordToggle()).toHaveTextContent('Hide');
 
             await upload.hidePassword();
             expect(passwordField()).toHaveAttribute('type', 'password');
-            expect(screen.getByRole('button', { name: 'Show password' })).toBeVisible();
+            expect(passwordToggle()).toHaveAttribute('aria-pressed', 'false');
+            expect(passwordToggle()).toHaveTextContent('Show');
         });
 
-        it('a generated passphrase is shown, so the toggle offers Hide', async () => {
+        it('a generated passphrase is shown, so the toggle is pressed and offers Hide', async () => {
             const upload = openUploadPage();
 
             await upload.generatePassword();
 
-            expect(screen.getByRole('button', { name: 'Hide password' })).toBeVisible();
+            expect(passwordToggle()).toHaveAttribute('aria-pressed', 'true');
+            expect(passwordToggle()).toHaveTextContent('Hide');
         });
     });
 
@@ -213,7 +219,7 @@ describe('index page', () => {
             await upload.sendNote('');
 
             expect(screen.getByLabelText('Your note')).toHaveAccessibleDescription('Write the note you want to send.');
-            expect(upload.alerts()).toEqual([]);
+            expect(upload.sendError()).toBe('');
             expect(upload.requestsSent()).toEqual([]);
         });
 
@@ -233,7 +239,7 @@ describe('index page', () => {
 
             expect(passwordField()).toHaveAccessibleDescription('Enter a password, or press Generate.');
             expect(passwordField()).toHaveFocus();
-            expect(upload.alerts()).toEqual([]);
+            expect(upload.sendError()).toBe('');
             expect(upload.requestsSent()).toEqual([]);
         });
 
@@ -267,6 +273,40 @@ describe('index page', () => {
 
             expect(queryProgressBar()).toBeNull();
             expect(screen.getByRole('button', { name: 'Send note' })).toBeEnabled();
+        });
+    });
+
+    describe('upload errors', () => {
+        it('a refused upload is said under the send button, not with a dialog', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'too-large' });
+
+            expect(upload.sendError()).toBe('The drop is too large to send.');
+            expect(screen.getByText('The drop is too large to send.')).toHaveRole('alert');
+        });
+
+        it('sending again clears the last failure', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'too-large' });
+
+            await upload.send();
+
+            expect(upload.sendError()).toBe('');
+            expect(upload.navigatedTo()).toHaveLength(1);
+        });
+
+        it('the last failure goes when send is pressed, before any upload starts', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'too-large' });
+            const requests = upload.requestsSent().length;
+
+            await upload.writeNote('');
+            await upload.send();
+
+            expect(upload.sendError()).toBe('');
+            expect(screen.queryByText('The drop is too large to send.')).not.toBeInTheDocument();
+            expect(upload.requestsSent()).toHaveLength(requests);
         });
     });
 

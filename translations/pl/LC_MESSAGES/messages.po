@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app.py templates/_composer_strings.html
+#: app.py templates/_composer_strings.html templates/_users_strings.html
 msgid "Too many requests. Please try again later."
 msgstr "Zbyt wiele żądań. Spróbuj ponownie później."
 
@@ -105,6 +105,18 @@ msgid "Logged out successfully"
 msgstr "Wylogowano"
 
 #: app.py
+msgid "API token not found"
+msgstr "Nie znaleziono tokenu API"
+
+#: app.py auth.py
+msgid "Admin access required"
+msgstr "Wymagany dostęp administratora"
+
+#: app.py
+msgid "API token revoked"
+msgstr "Unieważniono token API"
+
+#: app.py
 msgid "No file part"
 msgstr "W formularzu nie ma pliku"
 
@@ -119,6 +131,10 @@ msgstr "Nie znaleziono przesyłki"
 #: app.py
 msgid "Drop deleted"
 msgstr "Przesyłkę usunięto"
+
+#: auth.py
+msgid "Please log in to access this page"
+msgstr "Zaloguj się, aby zobaczyć tę stronę"
 
 #: utils.py
 msgid "Active"
@@ -249,7 +265,7 @@ msgstr "Błąd sieci podczas wysyłania przesyłki. Spróbuj ponownie."
 msgid "The drop is too large to send."
 msgstr "Przesyłka jest za duża, żeby ją wysłać."
 
-#: templates/_composer_strings.html
+#: templates/_composer_strings.html templates/_users_strings.html
 msgid "Your session has expired. Reload the page and try again."
 msgstr "Sesja wygasła. Odśwież stronę i spróbuj ponownie."
 
@@ -327,13 +343,9 @@ msgstr "Pokaż"
 msgid "Hide"
 msgstr "Ukryj"
 
-#: templates/_password_gate_strings.html
+#: templates/_password_gate_strings.html templates/_success_strings.html
 msgid "Show password"
 msgstr "Pokaż hasło"
-
-#: templates/_password_gate_strings.html
-msgid "Hide password"
-msgstr "Ukryj hasło"
 
 #: templates/_password_gate_strings.html
 msgid "Enter a password, or press Generate."
@@ -365,6 +377,25 @@ msgid_plural "Showing %(first)s–%(last)s of %(count)s drops"
 msgstr[0] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłka"
 msgstr[1] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłki"
 msgstr[2] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłek"
+
+#. shown under a new API token; %(time)s is when it expires, in the viewer's
+#. zone, e.g. "Dec 31, 2098, 19:00 CET".
+#: templates/_users_strings.html
+#, python-format
+msgid "Expires %(time)s. Reload to see it in the list below."
+msgstr "Wygasa %(time)s. Odśwież stronę, by zobaczyć go na liście poniżej."
+
+#: templates/_users_strings.html
+msgid "Only an admin can generate a token for another user."
+msgstr "Token dla innego użytkownika może wygenerować tylko administrator."
+
+#: templates/_users_strings.html
+msgid "That user no longer exists."
+msgstr "Ten użytkownik już nie istnieje."
+
+#: templates/_users_strings.html
+msgid "Could not generate a token. Please try again."
+msgstr "Nie udało się wygenerować tokenu. Spróbuj ponownie."
 
 #. the recipient's wrong passwords locked the drop; the lock can't be lifted.
 #: templates/_view_strings.html
@@ -630,7 +661,8 @@ msgstr "Wygeneruj"
 msgid "Copy password"
 msgstr "Skopiuj hasło"
 
-#: templates/index.html templates/success.html templates/view.html
+#: templates/index.html templates/success.html templates/users.html
+#: templates/view.html
 msgid "Copy"
 msgstr "Skopiuj"
 
@@ -993,7 +1025,7 @@ msgstr "Usunąć tę przesyłkę?"
 msgid "Delete"
 msgstr "Usuń"
 
-#: templates/index.html templates/success.html
+#: templates/index.html templates/success.html templates/users.html
 msgid "Clipboard"
 msgstr "Schowek"
 
@@ -1102,6 +1134,102 @@ msgstr "Skopiuj link z hasłem"
 #: templates/success.html
 msgid "Create another drop"
 msgstr "Wyślij kolejną przesyłkę"
+
+#: templates/users.html
+msgid "Admin area"
+msgstr "Panel administratora"
+
+#: templates/users.html
+msgid "User management"
+msgstr "Zarządzanie użytkownikami"
+
+#: templates/users.html
+msgid ""
+"Users are managed through environment variables. To add or modify users, "
+"update the <code class=\"rounded-sm border border-white/10 bg-hive-850 "
+"px-1.5 py-0.5 text-xs\">.env</code> file and redeploy."
+msgstr ""
+"Użytkownikami zarządza się w zmiennych środowiskowych. Aby dodać lub "
+"zmienić użytkownika, zmień plik <code class=\"rounded-sm border border-"
+"white/10 bg-hive-850 px-1.5 py-0.5 text-xs\">.env</code> i wdróż "
+"aplikację ponownie."
+
+#: templates/users.html
+msgid "System users"
+msgstr "Użytkownicy systemu"
+
+#: templates/users.html
+msgid "Configured at deploy time through environment variables."
+msgstr "Konto ustawione przy wdrożeniu, w zmiennych środowiskowych."
+
+#: templates/users.html
+msgid "Admin"
+msgstr "Administrator"
+
+#: templates/users.html
+msgid "User"
+msgstr "Użytkownik"
+
+#: templates/users.html
+msgid "Active API tokens"
+msgstr "Aktywne tokeny API"
+
+#: templates/users.html
+msgid "Generate token"
+msgstr "Wygeneruj token"
+
+#: templates/users.html
+#, python-format
+msgid "%(num)s token"
+msgid_plural "%(num)s tokens"
+msgstr[0] "%(num)s token"
+msgstr[1] "%(num)s tokeny"
+msgstr[2] "%(num)s tokenów"
+
+#: templates/users.html
+#, python-format
+msgid ""
+"New token for <span class=\"font-semibold text-"
+"white\">%(username)s</span> — shown once. Store it now."
+msgstr ""
+"Nowy token dla <span class=\"font-semibold text-"
+"white\">%(username)s</span> – widoczny tylko raz. Zapisz go teraz."
+
+#: templates/users.html
+msgid "New API token"
+msgstr "Nowy token API"
+
+#: templates/users.html
+msgid "Copy token"
+msgstr "Skopiuj token"
+
+#: templates/users.html
+msgid "Created"
+msgstr "Utworzono"
+
+#: templates/users.html
+msgid "Last used"
+msgstr "Ostatnio użyty"
+
+#: templates/users.html
+msgid "Expires"
+msgstr "Wygasa"
+
+#: templates/users.html
+msgid "Actions"
+msgstr "Akcje"
+
+#: templates/users.html
+msgid "Never"
+msgstr "Nigdy"
+
+#: templates/users.html
+msgid "Revoke"
+msgstr "Unieważnij"
+
+#: templates/users.html
+msgid "No active API tokens."
+msgstr "Brak aktywnych tokenów API."
 
 #: templates/view.html
 msgid "Recipient step"

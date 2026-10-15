@@ -328,6 +328,38 @@ def _view_page(file_type):
     return render
 
 
+def _users_page(client):
+    """/users as an admin, with a token in its table."""
+    from tokens import generate_api_token
+    generate_api_token('testuser')
+    client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+    return client.get(url_for('manage_users'))
+
+
+def _users_page_after_revoking(token_exists):
+    """/users after the revoke form posted, with its flash: revoked, or not found."""
+    def render(client):
+        from tokens import generate_api_token, list_api_tokens
+        generate_api_token('testuser')
+        token_id = list_api_tokens()[0]['id'] if token_exists else 999_999
+        client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+        with client.session_transaction() as session:
+            session['csrf_token'] = 'pseudo-locale-token'
+        return client.post(url_for('revoke_api_token_route', token_id=token_id),
+                           data={'csrf_token': 'pseudo-locale-token'}, follow_redirects=True)
+    return render
+
+
+def _users_page_refused(as_user):
+    """Where /users sends someone who may not see it, with its flash: the
+    login page for a visitor, the composer for a user who isn't an admin."""
+    def render(client):
+        if as_user:
+            client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+        return client.get(url_for('manage_users'), follow_redirects=True)
+    return render
+
+
 # The pages converted so far; each i18n issue adds its own.
 CONVERTED_PAGES = {
     'login': _login_page,
@@ -344,6 +376,11 @@ CONVERTED_PAGES = {
     'confirm, note': _confirm_page('text'),
     'view, file': _view_page('file'),
     'view, note': _view_page('text'),
+    'users': _users_page,
+    'users, token revoked': _users_page_after_revoking(token_exists=True),
+    'users, token not found': _users_page_after_revoking(token_exists=False),
+    'users refused, logged out': _users_page_refused(as_user=False),
+    'users refused, not an admin': _users_page_refused(as_user=True),
 }
 # Parts of a converted page that a later issue converts, as #id or .class.
 PENDING = {

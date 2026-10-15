@@ -1,0 +1,16 @@
+{# The words pages/users/ writes once a token is generated: its expiry line,
+   and why POST /api/token refused one, keyed by the response's `code`
+   (#285); a refusal it can't explain is `failed`. What the copy announces
+   is clipboard-feedback's (_clipboard_feedback_strings.html). #}
+{# Translators: shown under a new API token; %(time)s is when it expires, in the viewer's zone, e.g. "Dec 31, 2098, 19:00 CET". #}
+{% set expires = script_gettext('Expires %(time)s. Reload to see it in the list below.') %}
+{% set strings = {
+    'expires': expires,
+    'refusals': {
+        'admin_required': _('Only an admin can generate a token for another user.'),
+        'unknown_user': _('That user no longer exists.'),
+        'csrf_failed': _('Your session has expired. Reload the page and try again.'),
+        'rate_limited': _('Too many requests. Please try again later.'),
+    },
+    'failed': _('Could not generate a token. Please try again.'),
+} %}

@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app.py templates/_composer_strings.html
+#: app.py templates/_composer_strings.html templates/_users_strings.html
 msgid "Too many requests. Please try again later."
 msgstr ""
 
@@ -99,6 +99,18 @@ msgid "Logged out successfully"
 msgstr ""
 
 #: app.py
+msgid "API token not found"
+msgstr ""
+
+#: app.py auth.py
+msgid "Admin access required"
+msgstr ""
+
+#: app.py
+msgid "API token revoked"
+msgstr ""
+
+#: app.py
 msgid "No file part"
 msgstr ""
 
@@ -112,6 +124,10 @@ msgstr ""
 
 #: app.py
 msgid "Drop deleted"
+msgstr ""
+
+#: auth.py
+msgid "Please log in to access this page"
 msgstr ""
 
 #: utils.py
@@ -239,7 +255,7 @@ msgstr ""
 msgid "The drop is too large to send."
 msgstr ""
 
-#: templates/_composer_strings.html
+#: templates/_composer_strings.html templates/_users_strings.html
 msgid "Your session has expired. Reload the page and try again."
 msgstr ""
 
@@ -311,12 +327,8 @@ msgstr ""
 msgid "Hide"
 msgstr ""
 
-#: templates/_password_gate_strings.html
+#: templates/_password_gate_strings.html templates/_success_strings.html
 msgid "Show password"
-msgstr ""
-
-#: templates/_password_gate_strings.html
-msgid "Hide password"
 msgstr ""
 
 #: templates/_password_gate_strings.html
@@ -348,6 +360,25 @@ msgid "Showing %(first)s–%(last)s of %(count)s drop"
 msgid_plural "Showing %(first)s–%(last)s of %(count)s drops"
 msgstr[0] ""
 msgstr[1] ""
+
+#. shown under a new API token; %(time)s is when it expires, in the viewer's
+#. zone, e.g. "Dec 31, 2098, 19:00 CET".
+#: templates/_users_strings.html
+#, python-format
+msgid "Expires %(time)s. Reload to see it in the list below."
+msgstr ""
+
+#: templates/_users_strings.html
+msgid "Only an admin can generate a token for another user."
+msgstr ""
+
+#: templates/_users_strings.html
+msgid "That user no longer exists."
+msgstr ""
+
+#: templates/_users_strings.html
+msgid "Could not generate a token. Please try again."
+msgstr ""
 
 #. the recipient's wrong passwords locked the drop; the lock can't be lifted.
 #: templates/_view_strings.html
@@ -597,7 +628,8 @@ msgstr ""
 msgid "Copy password"
 msgstr ""
 
-#: templates/index.html templates/success.html templates/view.html
+#: templates/index.html templates/success.html templates/users.html
+#: templates/view.html
 msgid "Copy"
 msgstr ""
 
@@ -920,7 +952,7 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-#: templates/index.html templates/success.html
+#: templates/index.html templates/success.html templates/users.html
 msgid "Clipboard"
 msgstr ""
 
@@ -1017,6 +1049,95 @@ msgstr ""
 
 #: templates/success.html
 msgid "Create another drop"
+msgstr ""
+
+#: templates/users.html
+msgid "Admin area"
+msgstr ""
+
+#: templates/users.html
+msgid "User management"
+msgstr ""
+
+#: templates/users.html
+msgid ""
+"Users are managed through environment variables. To add or modify users, "
+"update the <code class=\"rounded-sm border border-white/10 bg-hive-850 "
+"px-1.5 py-0.5 text-xs\">.env</code> file and redeploy."
+msgstr ""
+
+#: templates/users.html
+msgid "System users"
+msgstr ""
+
+#: templates/users.html
+msgid "Configured at deploy time through environment variables."
+msgstr ""
+
+#: templates/users.html
+msgid "Admin"
+msgstr ""
+
+#: templates/users.html
+msgid "User"
+msgstr ""
+
+#: templates/users.html
+msgid "Active API tokens"
+msgstr ""
+
+#: templates/users.html
+msgid "Generate token"
+msgstr ""
+
+#: templates/users.html
+#, python-format
+msgid "%(num)s token"
+msgid_plural "%(num)s tokens"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/users.html
+#, python-format
+msgid ""
+"New token for <span class=\"font-semibold text-"
+"white\">%(username)s</span> — shown once. Store it now."
+msgstr ""
+
+#: templates/users.html
+msgid "New API token"
+msgstr ""
+
+#: templates/users.html
+msgid "Copy token"
+msgstr ""
+
+#: templates/users.html
+msgid "Created"
+msgstr ""
+
+#: templates/users.html
+msgid "Last used"
+msgstr ""
+
+#: templates/users.html
+msgid "Expires"
+msgstr ""
+
+#: templates/users.html
+msgid "Actions"
+msgstr ""
+
+#: templates/users.html
+msgid "Never"
+msgstr ""
+
+#: templates/users.html
+msgid "Revoke"
+msgstr ""
+
+#: templates/users.html
+msgid "No active API tokens."
 msgstr ""
 
 #: templates/view.html
