@@ -189,6 +189,14 @@ msgstr ""
 msgid "Drop not found"
 msgstr ""
 
+#: app.py templates/_view_strings.html
+msgid "This drop has already been opened."
+msgstr ""
+
+#: app.py
+msgid "This drop has expired."
+msgstr ""
+
 #: app.py
 msgid "Drop deleted"
 msgstr ""
@@ -1360,10 +1368,6 @@ msgstr ""
 
 #: templates/_view_strings.html
 msgid "Too many tries in a short time — wait a minute and try again."
-msgstr ""
-
-#: templates/_view_strings.html
-msgid "This drop has already been opened."
 msgstr ""
 
 #: templates/_view_strings.html

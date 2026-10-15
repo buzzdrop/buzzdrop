@@ -1358,17 +1358,17 @@ def download_file(file_id):
     if not file_info:
         if xhr:
             return {'error': 'File not found'}, 404
-        flash('File not found')
+        flash(_('Drop not found'))
         return redirect(url_for('index'))
     if 'downloaded_at' in file_info and file_info['downloaded_at'] is not None:
         if xhr:
             return {'error': 'This file has already been downloaded'}, 410
-        flash('This file has already been downloaded at {}'.format(file_info['downloaded_at']))
+        flash(_('This drop has already been opened.'))
         return redirect(url_for('index'))
     if check_and_handle_expiry(file_info):
         if xhr:
             return {'error': 'File has expired'}, 410
-        flash('File has expired')
+        flash(_('This drop has expired.'))
         return redirect(url_for('index'))
 
     ticket = request.headers.get('X-Download-Ticket')
@@ -1388,12 +1388,12 @@ def download_file(file_id):
     if status == 'bad_ticket':
         if xhr:
             return {'error': 'This drop has already been claimed'}, 410
-        flash('This file has already been claimed')
+        flash(_('This drop has already been opened.'))
         return redirect(url_for('index'))
     if status == 'already_downloaded':
         if xhr:
             return {'error': 'This file has already been downloaded'}, 410
-        flash('This file has already been downloaded')
+        flash(_('This drop has already been opened.'))
         return redirect(url_for('index'))
     if status == 'expired':
         if result.get('path'):
@@ -1403,12 +1403,12 @@ def download_file(file_id):
                 pass
         if xhr:
             return {'error': 'File has expired'}, 410
-        flash('File has expired')
+        flash(_('This drop has expired.'))
         return redirect(url_for('index'))
     if status == 'missing':
         if xhr:
             return {'error': 'File not found'}, 404
-        flash('File not found')
+        flash(_('Drop not found'))
         return redirect(url_for('index'))
 
     # Stream file from storage
@@ -1482,7 +1482,7 @@ def delete_file(file_id):
 def upload_success(file_id):
     file_info = file_repo.get_by_id(file_id)
     if not file_info or file_info.get('uploaded_by') != get_current_user()['username']:
-        flash('File not found')
+        flash(_('Drop not found'))
         return redirect(url_for('index'))
     share_link = url_for('view_file', file_id=file_id, _external=True)
     return render_template('success.html', share_link=share_link,

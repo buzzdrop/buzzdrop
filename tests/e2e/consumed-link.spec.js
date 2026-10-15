@@ -17,7 +17,7 @@ test('a second visit to a consumed link fails', async ({ page, recipient, shareP
     await expectDeadLink(recipient, link);
 
     await recipient.goto(shareUrl(link, 'download'));
-    await expect(flash(recipient)).toContainText('This file has already been downloaded');
+    await expect(flash(recipient)).toHaveText('This drop has already been opened.');
 
     expect(await releaseStatus(recipient, link, blob, password)).toBe(410);
 });

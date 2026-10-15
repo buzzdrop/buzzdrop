@@ -383,8 +383,18 @@ def test_success_route_unknown_id_is_not_found(client, app):
     response = client.get(url_for('upload_success', file_id='no-such-id'), follow_redirects=True)
 
     assert response.request.path == url_for('index')
-    assert b'File not found' in response.data
+    assert b'Drop not found' in response.data
     assert b'is in the hive' not in response.data
+
+
+def test_success_route_says_drop_not_found_in_the_page_language(client):
+    login_user(client, 'testuser', 'password')
+
+    response = client.get(url_for('upload_success', file_id='nonexistentid'),
+                          headers={'Accept-Language': 'pl'}, follow_redirects=True)
+
+    assert response.request.path == url_for('index')
+    assert 'Nie znaleziono przesyłki' in response.get_data(as_text=True)
 
 
 def test_success_route_hides_other_users_share(client, app, files_store):
@@ -396,5 +406,5 @@ def test_success_route_hides_other_users_share(client, app, files_store):
     response = other.get(url_for('upload_success', file_id=file_id), follow_redirects=True)
 
     assert response.request.path == url_for('index')
-    assert b'File not found' in response.data
+    assert b'Drop not found' in response.data
     assert b'is in the hive' not in response.data
