@@ -9,6 +9,17 @@ Buzzdrop is a one-time, self-destructing file-sharing Flask app.
 
 Never commit issue work to `main`. Before the first change, branch off an up-to-date `main` as `BD-<issue number>-<short-kebab-summary>` (e.g. `BD-188-note-success-page-wording` for #188) and commit there.
 
+## Pull requests
+
+- **Steps to reproduce.** When a change shows in the running app (a page, a flow, an error, the CLI or API output), the description has a `## How to verify` section, so that a reviewer can check it by hand. It is a numbered list:
+  - how to start the app (`python app.py` or `docker-compose up`), with any env var the change needs;
+  - which user to log in as and which page to open;
+  - what to click or send;
+  - what to expect, and what the behaviour was before the change.
+
+  When nothing is visible in the app (docs, CI, tests only, an internal refactor), write one line saying so instead.
+- **No secrets.** Never put real credentials, secrets or tokens in a PR description, a commit message or a GitHub comment. That covers values from `.env`, passwords, API tokens, `FLASK_SECRET_KEY`/`TOKEN_HASH_SECRET`, S3 or SMTP keys, session cookies, and the drop links and passwords of real drops. Test values are fine: the ones in `tests/e2e/e2e.env`, `tests/e2e/support.js`, the `conftest.py` users and the placeholders in `.env.example`. When the steps need a real secret, name the variable (e.g. `set S3_SECRET_KEY`) and leave out its value.
+
 ## Commands
 
 ```bash
