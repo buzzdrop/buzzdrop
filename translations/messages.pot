@@ -50,6 +50,18 @@ msgstr ""
 msgid "Open notifications can only be sent to your configured account email."
 msgstr ""
 
+#: app.py templates/_view_strings.html
+msgid "This drop has already been opened."
+msgstr ""
+
+#: app.py
+msgid "Drop not found"
+msgstr ""
+
+#: app.py
+msgid "This drop has expired."
+msgstr ""
+
 #. Translators: the drop-opened email's "Decryption status" value.
 #: app.py
 msgctxt "decryption status"
@@ -183,18 +195,6 @@ msgstr ""
 
 #: app.py
 msgid "No selected file"
-msgstr ""
-
-#: app.py
-msgid "Drop not found"
-msgstr ""
-
-#: app.py templates/_view_strings.html
-msgid "This drop has already been opened."
-msgstr ""
-
-#: app.py
-msgid "This drop has expired."
 msgstr ""
 
 #: app.py

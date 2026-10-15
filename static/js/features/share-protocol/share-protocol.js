@@ -336,9 +336,14 @@ async function fetchBlob(url, ticket, deps) {
     // The released material is kept, so a try after the rate limit's 429
     // downloads again without spending another release.
     if (response.status === 429) return { kind: 'throttled' };
-    // Claimed covers 'already claimed' (someone else won the release) and
-    // 'already downloaded' (a retry after a complete download) alike.
-    if (response.status === 410) return { kind: 'gone', reason: 'claimed' };
+    // An expired share (the download window closed) is gone like a missing
+    // one, as on /release. Claimed covers 'already claimed' (someone else won
+    // the release) and 'already opened' (a retry after a complete download).
+    if (response.status === 410) {
+        /** @type {{ code?: string }} */
+        const body = await response.json().catch(() => ({}));
+        return { kind: 'gone', reason: body.code === 'expired' ? 'missing' : 'claimed' };
+    }
     if (!response.ok) return { kind: 'gone', reason: 'refused' };
 
     try {

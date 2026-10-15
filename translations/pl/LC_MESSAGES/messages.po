@@ -56,6 +56,18 @@ msgstr ""
 "Powiadomienia o otwarciu można wysyłać tylko na adres e-mail ustawiony na"
 " koncie."
 
+#: app.py templates/_view_strings.html
+msgid "This drop has already been opened."
+msgstr "Tę przesyłkę już otwarto."
+
+#: app.py
+msgid "Drop not found"
+msgstr "Nie znaleziono przesyłki"
+
+#: app.py
+msgid "This drop has expired."
+msgstr "Ta przesyłka wygasła."
+
 #. Translators: the drop-opened email's "Decryption status" value.
 #: app.py
 msgctxt "decryption status"
@@ -190,18 +202,6 @@ msgstr "W formularzu nie ma pliku"
 #: app.py
 msgid "No selected file"
 msgstr "Nie wybrano pliku"
-
-#: app.py
-msgid "Drop not found"
-msgstr "Nie znaleziono przesyłki"
-
-#: app.py templates/_view_strings.html
-msgid "This drop has already been opened."
-msgstr "Tę przesyłkę już otwarto."
-
-#: app.py
-msgid "This drop has expired."
-msgstr "Ta przesyłka wygasła."
 
 #: app.py
 msgid "Drop deleted"

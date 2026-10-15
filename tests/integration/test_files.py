@@ -225,6 +225,39 @@ def test_download_flash_is_translated(client, file_record, overrides, english, p
     assert polish in polish_page.get_data(as_text=True)
 
 
+XHR = {'X-Requested-With': 'XMLHttpRequest'}
+
+
+@pytest.mark.parametrize('overrides, status, body', [
+    (None, 404, {'error': 'File not found', 'code': 'not_found'}),
+    ({'downloaded_at': '2025-01-06T20:35:00.000000+00:00'}, 410,
+     {'error': 'This file has already been downloaded', 'code': 'opened'}),
+    ({'expiry_at': '2025-01-06T20:35:00.000000+00:00'}, 410,
+     {'error': 'File has expired', 'code': 'expired'}),
+])
+def test_download_refusal_json_carries_a_code(client, file_record, overrides, status, body):
+    """The page's XHR gets the English `error` and a stable `code` (#338)."""
+    login_user(client, 'testuser', 'password')
+    file_id = 'nonexistentid' if overrides is None else file_record(**overrides)
+
+    response = client.get(url_for('download_file', file_id=file_id), headers={**XHR, **POLISH})
+
+    assert response.status_code == status
+    assert response.get_json() == body
+
+
+def test_download_refusal_json_for_a_drop_released_to_someone_else(
+        client, key_release_upload, claim_ticket):
+    login_user(client, 'testuser', 'password')
+    file_id, _h, _rcpt, _resp = key_release_upload()
+    claim_ticket(file_id)
+
+    response = client.get(url_for('download_file', file_id=file_id), headers=XHR)
+
+    assert response.status_code == 410
+    assert response.get_json() == {'error': 'This drop has already been claimed', 'code': 'claimed'}
+
+
 def test_download_flash_for_a_drop_released_to_someone_else(client, key_release_upload, claim_ticket):
     login_user(client, 'testuser', 'password')
     file_id, _h, _rcpt, _resp = key_release_upload()

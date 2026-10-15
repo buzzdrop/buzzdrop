@@ -185,6 +185,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "opened",
               "error": "This file has already been downloaded"
             }
           }
@@ -2212,6 +2213,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "not_found",
               "error": "File not found"
             }
           }
@@ -2432,6 +2434,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "claimed",
               "error": "This drop has already been claimed"
             }
           }
@@ -2509,6 +2512,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "opened",
               "error": "This file has already been downloaded"
             }
           }
@@ -2640,6 +2644,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "expired",
               "error": "File has expired"
             }
           }
@@ -2668,6 +2673,7 @@
               "Content-Type": "application/json"
             },
             "json": {
+              "code": "expired",
               "error": "File has expired"
             }
           }

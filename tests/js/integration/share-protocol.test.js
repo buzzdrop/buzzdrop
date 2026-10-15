@@ -99,6 +99,43 @@ describe('share protocol', { timeout: TEST_TIMEOUT }, () => {
         expect(result).toEqual({ kind: 'gone', reason: 'missing' });
     });
 
+    it('a download after the window closed is gone, not already opened', async () => {
+        const fake = makeProtocolFake({ downloadTtlSeconds: 0 });
+        const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });
+
+        const result = await claimShare(saltedShare(fake, fileId), PASSWORD, claimDeps(fake, fileId));
+
+        expect(result).toEqual({ kind: 'gone', reason: 'missing' });
+    });
+
+    it('a retry after a complete download is already opened', async () => {
+        const fake = makeProtocolFake();
+        const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });
+        const sealed = saltedShare(fake, fileId);
+        await claimShare(sealed, PASSWORD, claimDeps(fake, fileId));
+
+        const again = await claimShare(sealed, PASSWORD, claimDeps(fake, fileId));
+
+        expect(again).toEqual({ kind: 'gone', reason: 'claimed' });
+        expect(fake.log.at(-2)?.url).toContain('/download/');
+    });
+
+    it('a download someone else claimed is already opened', async () => {
+        const fake = makeProtocolFake();
+        const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });
+        const sealed = saltedShare(fake, fileId);
+        fake.failNext('/download', 'network');
+        await claimShare(sealed, PASSWORD, claimDeps(fake, fileId));
+        // Another release won: the server now honours only its ticket.
+        const key = fake.state.keys.get(fileId);
+        if (key) key.ticketHash = '00'.repeat(32);
+
+        const again = await claimShare(sealed, PASSWORD, claimDeps(fake, fileId));
+
+        expect(again).toEqual({ kind: 'gone', reason: 'claimed' });
+        expect(fake.log.at(-2)?.url).toContain('/download/');
+    });
+
     it('names each step of a claim as it starts; a retry skips to the download', async () => {
         const fake = makeProtocolFake();
         const fileId = await fake.seedShare({ password: PASSWORD, plaintext: 'hello' });
