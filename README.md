@@ -32,7 +32,7 @@ One honest caveat: "one-time" means no *second* read — nothing takes back what
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-npm install && npm run build:css   # compiled Tailwind CSS (committed; rebuild after changing styles)
+npm install && npm run build:css   # compiled Tailwind CSS (committed; rebuild after changing styles or template classes, CI checks it)
 
 cp .env.example .env               # set FLASK_SECRET_KEY and at least one FLASK_USER_N
 python app.py
