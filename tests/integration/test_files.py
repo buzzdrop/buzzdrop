@@ -237,6 +237,24 @@ def test_download_flash_for_a_drop_released_to_someone_else(client, key_release_
     assert 'Tę przesyłkę już otwarto.' in polish_page.get_data(as_text=True)
 
 
+@pytest.mark.parametrize('status, polish', [
+    ('missing', 'Nie znaleziono przesyłki'),
+    ('already_downloaded', 'Tę przesyłkę już otwarto.'),
+])
+def test_download_flash_when_the_claim_loses_a_race(client, file_record, monkeypatch, status, polish):
+    """The claim's own refusals, for a drop that passed the checks before it."""
+    import app as app_module
+    monkeypatch.setattr(app_module.file_repo, 'claim_download_with_ticket',
+                        lambda *args: {'status': status})
+    login_user(client, 'testuser', 'password')
+
+    polish_page = client.get(url_for('download_file', file_id=file_record()),
+                             headers=POLISH, follow_redirects=True)
+
+    assert polish_page.request.path == url_for('index')
+    assert polish in polish_page.get_data(as_text=True)
+
+
 def test_download_flash_when_the_download_window_has_passed(
         client, key_release_upload, claim_ticket, key_release_settings):
     login_user(client, 'testuser', 'password')
