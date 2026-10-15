@@ -505,7 +505,7 @@ def test_ticket_refused_after_download_window(client, files_store,
         headers={'X-Requested-With': 'XMLHttpRequest',
                  'X-Download-Ticket': download_ticket(release.get_json()['h'])})
     assert download.status_code == 410
-    assert download.get_json() == {'error': 'File has expired'}
+    assert download.get_json() == {'error': 'File has expired', 'code': 'expired'}
     assert files_store.get_by_id(file_id)['status'] == 'expired'
     assert files_store.get_by_id(file_id)['downloaded_at'] is None
     assert files_store.get_key_share(file_id) is None

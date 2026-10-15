@@ -550,21 +550,21 @@ export function makeProtocolFake(opts = {}) {
         const xhr = headers['x-requested-with'] === 'XMLHttpRequest';
         const file = state.files.get(fileId);
         if (!file) {
-            return xhr ? json(404, { error: 'File not found' }) : redirectHome();
+            return xhr ? json(404, { error: 'File not found', code: 'not_found' }) : redirectHome();
         }
         if (file.downloaded) {
-            return xhr ? json(410, { error: 'This file has already been downloaded' }) : redirectHome();
+            return xhr ? json(410, { error: 'This file has already been downloaded', code: 'opened' }) : redirectHome();
         }
         if (isExpired(file)) {
             expire(fileId, file);
-            return xhr ? json(410, { error: 'File has expired' }) : redirectHome();
+            return xhr ? json(410, { error: 'File has expired', code: 'expired' }) : redirectHome();
         }
         const key = state.keys.get(fileId);
         // A release nobody downloaded within the window expires the drop.
         if (key && key.releasedAt !== null
                 && Date.now() >= Date.parse(key.releasedAt) + downloadTtlSeconds * 1000) {
             expire(fileId, file);
-            return xhr ? json(410, { error: 'File has expired' }) : redirectHome();
+            return xhr ? json(410, { error: 'File has expired', code: 'expired' }) : redirectHome();
         }
         if (!key || key.releasedAt === null) {
             return json(403, { error: 'Forbidden' });
@@ -573,7 +573,7 @@ export function makeProtocolFake(opts = {}) {
         const ticket = typeof rawTicket === 'string' ? rawTicket.trim().toLowerCase() : null;
         const presented = isKeyMaterial(ticket) ? await sha256Hex(/** @type {string} */ (ticket)) : null;
         if (key.ticketHash === null || presented !== key.ticketHash) {
-            return xhr ? json(410, { error: 'This drop has already been claimed' }) : redirectHome();
+            return xhr ? json(410, { error: 'This drop has already been claimed', code: 'claimed' }) : redirectHome();
         }
         const blob = file.blob ?? new Uint8Array();
         file.downloaded = true;

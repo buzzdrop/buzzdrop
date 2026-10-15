@@ -110,22 +110,26 @@ UPLOAD_REFUSAL_FLASHES = {
 
 
 # What /download answers for each refusal, keyed by the claim's status
-# (#338): the English JSON `error` and its status for the page's XHR, or
-# the flash a browser is redirected with. The pre-checks reuse the same
+# (#338): the English JSON `error`, its stable `code` and its status for
+# the page's XHR, or the flash a browser is redirected with. The pre-checks reuse the same
 # entries, so one situation reads the same wherever it is caught.
 class DownloadRefusal(NamedTuple):
     error: str
+    code: str
     status: int
     flash: str
 
 
 _DROP_ALREADY_OPENED = i18n.gettext_noop('This drop has already been opened.')
 DOWNLOAD_REFUSALS = {
-    'missing': DownloadRefusal('File not found', 404, i18n.gettext_noop('Drop not found')),
+    'missing': DownloadRefusal(
+        'File not found', 'not_found', 404, i18n.gettext_noop('Drop not found')),
     'already_downloaded': DownloadRefusal(
-        'This file has already been downloaded', 410, _DROP_ALREADY_OPENED),
-    'bad_ticket': DownloadRefusal('This drop has already been claimed', 410, _DROP_ALREADY_OPENED),
-    'expired': DownloadRefusal('File has expired', 410, i18n.gettext_noop('This drop has expired.')),
+        'This file has already been downloaded', 'opened', 410, _DROP_ALREADY_OPENED),
+    'bad_ticket': DownloadRefusal(
+        'This drop has already been claimed', 'claimed', 410, _DROP_ALREADY_OPENED),
+    'expired': DownloadRefusal(
+        'File has expired', 'expired', 410, i18n.gettext_noop('This drop has expired.')),
 }
 
 
@@ -1378,7 +1382,7 @@ def download_file(file_id):
     def _refuse(key):
         refusal = DOWNLOAD_REFUSALS[key]
         if xhr:
-            return {'error': refusal.error}, refusal.status
+            return {'error': refusal.error, 'code': refusal.code}, refusal.status
         flash(_(refusal.flash))
         return redirect(url_for('index'))
 
