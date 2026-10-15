@@ -188,21 +188,26 @@ describe('index page', () => {
             await upload.enterPassword('correct horse');
             expect(passwordField()).toHaveAttribute('type', 'password');
 
+            expect(screen.getByRole('button', { name: 'Show password' })).toHaveAttribute('aria-pressed', 'false');
+
             await upload.showPassword();
             expect(passwordField()).toHaveAttribute('type', 'text');
-            expect(screen.getByRole('button', { name: 'Hide password' })).toBeVisible();
+            expect(screen.getByRole('button', { name: 'Show password' })).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByRole('button', { name: 'Show password' })).toHaveTextContent('Hide');
 
             await upload.hidePassword();
             expect(passwordField()).toHaveAttribute('type', 'password');
-            expect(screen.getByRole('button', { name: 'Show password' })).toBeVisible();
+            expect(screen.getByRole('button', { name: 'Show password' })).toHaveAttribute('aria-pressed', 'false');
+            expect(screen.getByRole('button', { name: 'Show password' })).toHaveTextContent('Show');
         });
 
-        it('a generated passphrase is shown, so the toggle offers Hide', async () => {
+        it('a generated passphrase is shown, so the toggle is pressed and offers Hide', async () => {
             const upload = openUploadPage();
 
             await upload.generatePassword();
 
-            expect(screen.getByRole('button', { name: 'Hide password' })).toBeVisible();
+            expect(screen.getByRole('button', { name: 'Show password' })).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByRole('button', { name: 'Show password' })).toHaveTextContent('Hide');
         });
     });
 

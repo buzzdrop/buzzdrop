@@ -7,6 +7,7 @@ const copyLinkButton = () => screen.getByRole('button', { name: 'Copy link' });
 const copyOneClickButton = () => screen.getByRole('button', { name: 'Copy one-click link' });
 const copyPasswordButton = () => screen.getByRole('button', { name: 'Copy password' });
 const passwordField = () => screen.getByLabelText('Password');
+const toggle = () => screen.getByRole('button', { name: 'Show password' });
 const clipboardStatus = () => screen.getByRole('status', { name: 'Clipboard' });
 const oneClickSection = () => within(screen.getByRole('region', { name: 'One-click link' }));
 
@@ -109,11 +110,14 @@ describe('success page', () => {
         await success.revealPassword();
 
         expect(passwordField()).toHaveAttribute('type', 'text');
+        expect(toggle()).toHaveAttribute('aria-pressed', 'true');
+        expect(toggle()).toHaveTextContent('Hide');
 
         await success.hidePassword();
 
         expect(passwordField()).toHaveAttribute('type', 'password');
-        expect(screen.getByRole('button', { name: 'Show' })).toBeVisible();
+        expect(toggle()).toHaveAttribute('aria-pressed', 'false');
+        expect(toggle()).toHaveTextContent('Show');
     });
 
     it('a revealed password hides itself after five seconds', async () => {
@@ -123,7 +127,7 @@ describe('success page', () => {
         vi.advanceTimersByTime(5000);
 
         expect(passwordField()).toHaveAttribute('type', 'password');
-        expect(screen.getByRole('button', { name: 'Show' })).toBeVisible();
+        expect(toggle()).toHaveAttribute('aria-pressed', 'false');
     });
 
     it('showing the password again restarts the five seconds', async () => {
@@ -137,14 +141,14 @@ describe('success page', () => {
         vi.advanceTimersByTime(3000);
 
         expect(passwordField()).toHaveAttribute('type', 'text');
-        expect(screen.getByRole('button', { name: 'Hide' })).toBeVisible();
+        expect(toggle()).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('fills the password from a well-formed fragment', () => {
         openSuccessPage({ link: 'one-click', password: 'correct horse' });
 
         expect(passwordField()).toHaveValue('correct horse');
-        expect(screen.getByRole('button', { name: 'Show' })).toBeEnabled();
+        expect(toggle()).toBeEnabled();
         expect(copyPasswordButton()).toBeEnabled();
         expect(copyOneClickButton()).toBeEnabled();
     });
@@ -172,7 +176,7 @@ describe('success page', () => {
         expect(success.url()).toBe(PAGE_URL);
         expect(passwordField()).toHaveValue('');
         expect(oneClickSection().getByText(SHARE_LINK)).not.toBeVisible();
-        expect(screen.getByRole('button', { name: 'Show' })).toBeDisabled();
+        expect(toggle()).toBeDisabled();
         expect(copyPasswordButton()).toBeDisabled();
         expect(copyOneClickButton()).toBeDisabled();
     });

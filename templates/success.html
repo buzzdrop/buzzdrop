@@ -71,7 +71,7 @@
                             <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
                                 {# Each label sits over its every word drawn invisibly, so the
                                    buttons keep one width as they flip and the field doesn't shift. #}
-                                <button id="toggle-password" type="button" aria-controls="password-display" class="btn-secondary px-4 py-2.5" disabled>
+                                <button id="toggle-password" type="button" aria-label="{{ success_strings.showPassword }}" aria-pressed="false" aria-controls="password-display" class="btn-secondary px-4 py-2.5" disabled>
                                     <span class="btn-label">
                                         <span id="toggle-password-label">{{ success_strings.show }}</span>
                                         <span class="btn-label-sizer" data-label="{{ success_strings.show }}" aria-hidden="true"></span>
