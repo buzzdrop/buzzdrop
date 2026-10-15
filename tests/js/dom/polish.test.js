@@ -85,6 +85,7 @@ describe('in Polish', () => {
     it('writes the success page script\'s words in Polish', async () => {
         vi.useFakeTimers();
         const success = openSuccessPage({ language: 'pl', link: 'one-click' });
+        expect(screen.getByRole('button', { name: 'Pokaż hasło' })).toHaveAttribute('aria-pressed', 'false');
 
         await success.revealPassword();
         expect(screen.getByRole('button', { name: 'Pokaż hasło', pressed: true })).toHaveTextContent('Ukryj');

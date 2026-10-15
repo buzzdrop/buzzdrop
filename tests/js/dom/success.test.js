@@ -7,7 +7,7 @@ const copyLinkButton = () => screen.getByRole('button', { name: 'Copy link' });
 const copyOneClickButton = () => screen.getByRole('button', { name: 'Copy one-click link' });
 const copyPasswordButton = () => screen.getByRole('button', { name: 'Copy password' });
 const passwordField = () => screen.getByLabelText('Password');
-const toggle = () => screen.getByRole('button', { name: 'Show password' });
+const passwordToggle = () => screen.getByRole('button', { name: 'Show password' });
 const clipboardStatus = () => screen.getByRole('status', { name: 'Clipboard' });
 const oneClickSection = () => within(screen.getByRole('region', { name: 'One-click link' }));
 
@@ -106,18 +106,20 @@ describe('success page', () => {
 
     it('Show reveals the password, then hides it again', async () => {
         const success = openSuccessPage({ link: 'one-click' });
+        expect(passwordToggle()).toHaveAttribute('aria-pressed', 'false');
+        expect(passwordToggle()).toHaveTextContent('Show');
 
         await success.revealPassword();
 
         expect(passwordField()).toHaveAttribute('type', 'text');
-        expect(toggle()).toHaveAttribute('aria-pressed', 'true');
-        expect(toggle()).toHaveTextContent('Hide');
+        expect(passwordToggle()).toHaveAttribute('aria-pressed', 'true');
+        expect(passwordToggle()).toHaveTextContent('Hide');
 
         await success.hidePassword();
 
         expect(passwordField()).toHaveAttribute('type', 'password');
-        expect(toggle()).toHaveAttribute('aria-pressed', 'false');
-        expect(toggle()).toHaveTextContent('Show');
+        expect(passwordToggle()).toHaveAttribute('aria-pressed', 'false');
+        expect(passwordToggle()).toHaveTextContent('Show');
     });
 
     it('a revealed password hides itself after five seconds', async () => {
@@ -127,7 +129,7 @@ describe('success page', () => {
         vi.advanceTimersByTime(5000);
 
         expect(passwordField()).toHaveAttribute('type', 'password');
-        expect(toggle()).toHaveAttribute('aria-pressed', 'false');
+        expect(passwordToggle()).toHaveAttribute('aria-pressed', 'false');
     });
 
     it('showing the password again restarts the five seconds', async () => {
@@ -141,14 +143,14 @@ describe('success page', () => {
         vi.advanceTimersByTime(3000);
 
         expect(passwordField()).toHaveAttribute('type', 'text');
-        expect(toggle()).toHaveAttribute('aria-pressed', 'true');
+        expect(passwordToggle()).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('fills the password from a well-formed fragment', () => {
         openSuccessPage({ link: 'one-click', password: 'correct horse' });
 
         expect(passwordField()).toHaveValue('correct horse');
-        expect(toggle()).toBeEnabled();
+        expect(passwordToggle()).toBeEnabled();
         expect(copyPasswordButton()).toBeEnabled();
         expect(copyOneClickButton()).toBeEnabled();
     });
@@ -176,7 +178,7 @@ describe('success page', () => {
         expect(success.url()).toBe(PAGE_URL);
         expect(passwordField()).toHaveValue('');
         expect(oneClickSection().getByText(SHARE_LINK)).not.toBeVisible();
-        expect(toggle()).toBeDisabled();
+        expect(passwordToggle()).toBeDisabled();
         expect(copyPasswordButton()).toBeDisabled();
         expect(copyOneClickButton()).toBeDisabled();
     });
