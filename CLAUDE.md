@@ -49,3 +49,17 @@ Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their
   - A change to the upload/view/release/download/expiry flow, the crypto, what is stored or how long it is kept must update the doc and the page in the same PR, or the PR must say that neither is affected.
   - `tests/unit/test_how_it_works_fingerprint.py` fails until someone has re-read both and pasted the new hash.
   - Page layout and its other checks: `docs/dev/share-protocol.md` §Explainer page.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues for `buzzdrop/buzzdrop`, using the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The default five-role vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: the glossary is `CONTEXT.md` at the root, and ADRs go in `docs/adr/`. See `docs/agents/domain.md`.
