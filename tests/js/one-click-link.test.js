@@ -91,21 +91,34 @@ test('stash+restore carries the fragment through a language switch without posti
         await import('../../static/js/lib/one-click-link.js');
 
     // a page with a language-menu form and a fragment
+    /** @type {string[]} */
     const submitted = [];
     const storage = new Map();
     const window = {
         location: { hash: '#s=' + 'a'.repeat(64), pathname: '/dropzone/x', search: '' },
-        history: { replaceState: (_a, _b, url) => { submitted.push(url); } },
+        history: {
+            /** @param {any} _a @param {any} _b @param {string} url */
+            replaceState: (_a, _b, url) => { submitted.push(url); },
+        },
         sessionStorage: {
+            /** @param {string} k */
             getItem: (k) => storage.get(k) ?? null,
+            /** @param {string} k @param {string} v */
             setItem: (k, v) => storage.set(k, v),
+            /** @param {string} k */
             removeItem: (k) => storage.delete(k),
         },
     };
+    /** @type {Array<() => void>} */
     const handlers = [];
+    /** @type {any} */
     const doc = {
         defaultView: window,
-        querySelectorAll: () => [{ addEventListener: (ev, fn) => handlers.push(fn) }],
+        /** @param {string} _sel */
+        querySelectorAll: (_sel) => [{
+            /** @param {string} _ev @param {() => void} fn */
+            addEventListener: (_ev, fn) => handlers.push(fn),
+        }],
     };
 
     stashFragmentForLanguageSwitch(doc, window.location.hash);
