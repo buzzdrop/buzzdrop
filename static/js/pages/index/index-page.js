@@ -404,6 +404,7 @@ function initDropzones(root, deps, strings) {
             del.className = 'btn-secondary px-3 py-1.5 text-xs';
             del.textContent = strings.text('deleteZone');
             del.addEventListener('click', async () => {
+                if (!window.confirm(strings.text('confirmDelete'))) return;
                 const resp = await deps.fetch(endpoints.actionBase + z.id + '/delete', {
                     method: 'POST', headers: { 'X-CSRF-Token': csrf() },
                 });

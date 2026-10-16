@@ -559,6 +559,10 @@ msgid "Delete"
 msgstr "Usuń"
 
 #: templates/_dropzones_strings.html
+msgid "Delete this dropzone?"
+msgstr "Usunąć tę skrytkę?"
+
+#: templates/_dropzones_strings.html
 msgid "Could not create the dropzone. Please try again."
 msgstr "Nie udało się utworzyć skrytki. Spróbuj ponownie."
 

@@ -537,6 +537,10 @@ msgid "Delete"
 msgstr ""
 
 #: templates/_dropzones_strings.html
+msgid "Delete this dropzone?"
+msgstr ""
+
+#: templates/_dropzones_strings.html
 msgid "Could not create the dropzone. Please try again."
 msgstr ""
 
