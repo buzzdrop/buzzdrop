@@ -56,9 +56,11 @@ Two secrets and the password gate, reused.
    derives `master = PBKDF2-SHA256(password, salt, 600k)`, then
    `Kw = HKDF(master, salt, 'dz-wrap')` and `V = HKDF(master, salt, 'ver')` —
    the same KDF ladder as BKV3.
-3. `s` is wrapped: `wS = AES-GCM(Kw, s)`.
-4. The server stores `{ dropzone_id, salt, wS, V, expiry }`. It never
-   sees `s` or the password.
+3. `s` is wrapped: `wS = AES-GCM(Kw, s)`. The browser also derives the
+   submit verifier `SV = HKDF(s, 'submit')` — proof of link possession,
+   one-way over a random secret, so not offline-crackable like `V`.
+4. The server stores `{ dropzone_id, salt, wS, V, SV, expiry }`. It
+   never sees `s` or the password.
 5. The browser emits the **request link** (for the responder):
    `/d/<dropzone_id>#s=<s>` — `s` rides in the fragment and never reaches
    the server. The requester keeps nothing but the password in their head;
@@ -67,12 +69,18 @@ Two secrets and the password gate, reused.
 **At submission (responder):**
 
 1. The responder opens the request link; the server only sees `dropzone_id`
-   and marks the link consumed once a submission lands (one-time link).
+   and marks the link consumed once a valid submission lands (one-time
+   link).
 2. The responder's browser draws a fresh per-submission key `K`, encrypts
    the payload (`BKV3` envelope unchanged: `receipt ‖ name ‖ data` under
    AES-GCM), and wraps `K` under `s`: `wK = AES-GCM(s, K)`.
-3. POST `{ dropzone_id, ct, wK, receipt_hash }`. The server stores
-   ciphertext + wrapped key and can derive neither plaintext.
+3. POST `{ dropzone_id, ct, wK, receipt_hash, sv }`, where `sv` is the
+   responder's `SV` re-derived from `#s`. The server constant-time
+   compares `sv` to `SV` *before* consuming the link, and the
+   check-plus-consume runs in one transaction, so racing submissions
+   get exactly one winner. A rejected `sv` leaves the link alive. The
+   server stores ciphertext + wrapped key and can derive neither
+   plaintext.
 
 **At collection (requester):**
 
@@ -103,6 +111,12 @@ Two secrets and the password gate, reused.
   real responder reports it broken) and would let them decrypt `wK` *if*
   they could also fetch ciphertexts — but fetch needs `V`, which the
   request link does not carry. Net damage: sabotaging one submission.
+- `SV` gates submission on link possession. Without it, a bare
+  `dropzone_id` — which rides in the URL path and so lands in server
+  and proxy logs, unlike the `#s` fragment — would let any log reader
+  burn the one-time link with a garbage `wK`. With `SV`, burning still
+  requires holding the link; the residual risk is the leaked-link race
+  above.
 - **A request link is a bearer capability, not an identity.** Whoever holds
   it may submit — including an attacker who submits *false* credentials
   (e.g. a swapped bank account number) before the intended responder does.
@@ -133,24 +147,25 @@ Ala (admin, has an account) needs the production DB password from Bob
 (contractor, no account).
 
 1. **Ala creates a dropzone.** Her browser draws `s`; she types
-   `alamakota123#$`. The server stores `salt, wS, V`. She mails
+   `alamakota123#$`. The server stores `salt, wS, V, SV`. She mails
    Bob `https://buzzdrop/d/abc123#s=…`. She keeps nothing but the password.
 2. **Bob opens the request link**, pastes the DB password into the respond
    page. His browser draws `K`, encrypts, wraps `K` under `s`, uploads
-   `ct + wK`. The request link dies.
+   `ct + wK + sv`. The request link dies.
 3. **Ala opens her list**, sees a pending submission, clicks, types
    `alamakota123#$`. Her browser derives `V`; the server verifies and
    releases `wS + ct` exactly once. Her browser unwraps `s → K →
    plaintext`. Row deleted; submission collected.
 
-A server-side attacker at any point holds `ct`, `wK`, `wS`, `V`
+A server-side attacker at any point holds `ct`, `wK`, `wS`, `V`, `SV`
 — all useless without `alamakota123#$` and `s`, neither of which ever
 touches the server.
 
 ## Consequences
 
-- New server objects: `dropzones` table (id, salt, wS, V, expiry,
-  requester) and dropzone submissions (ct, wK, receipt_hash).
+- New server objects: `dropzones` table (id, salt, wS, V, SV, expiry,
+  requester) and dropzone submissions (ct, wK, receipt_hash; the `sv`
+  field is verified then discarded).
   Reuses `file_keys`-style verifier/attempts machinery.
 - New routes + a respond page → security docs, CSRF, CSP/import-map and
   protocol-contract updates per `docs/dev/security.md` and
