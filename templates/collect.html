@@ -13,10 +13,11 @@
             <span class="eyebrow">{{ _('Dropzone') }}</span>
             <h1 class="mt-5 wrap-break-word text-2xl font-semibold tracking-tight text-white">{{ _('Collect the submission') }}</h1>
             <p id="status" class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400" role="status" aria-live="polite">
-                {{ _('Enter the dropzone password to decrypt and save the submission.') }}
+                {% if locked %}{{ _('Too many incorrect passwords — this dropzone is locked.') }}{% else %}{{ _('Enter the dropzone password to decrypt and save the submission.') }}{% endif %}
             </p>
         </div>
 
+        {% if not locked %}
         <form id="collect-form" class="mt-7 space-y-3">
             <div>
                 <label for="password-input" class="field-label">{{ _('Dropzone password') }}</label>
@@ -38,6 +39,7 @@
            password is checked, wS released and the submission decrypted;
            hidden otherwise. #}
         {{ progress_bar('collect-progress', _('Collection progress'), extra_class='mt-4') }}
+        {% endif %}
 
         <div id="text-display" class="mt-7" style="display: none;">
             <h2 id="text-display-heading" class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{{ _('Decrypted text') }}</h2>

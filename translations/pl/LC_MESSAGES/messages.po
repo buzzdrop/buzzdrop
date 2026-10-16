@@ -330,7 +330,7 @@ msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano teks
 
 #. the requester's wrong passwords locked the dropzone; the lock can't be
 #. lifted.
-#: templates/_collect_strings.html
+#: templates/_collect_strings.html templates/collect.html
 msgid "Too many incorrect passwords — this dropzone is locked."
 msgstr "Za dużo nieprawidłowych haseł – skrytka zablokowana na stałe."
 
@@ -375,6 +375,14 @@ msgid_plural "Incorrect password. %(count)s attempts remaining."
 msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
 msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
 msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
+
+#: templates/_collect_strings.html
+#, python-format
+msgid "One attempt left — check the password before you continue."
+msgid_plural "%(count)s attempts left — check the password before you continue."
+msgstr[0] "Została jedna próba – sprawdź hasło, zanim przejdziesz dalej."
+msgstr[1] "Zostały %(count)s próby – sprawdź hasło, zanim przejdziesz dalej."
+msgstr[2] "Zostało %(count)s prób – sprawdź hasło, zanim przejdziesz dalej."
 
 #: templates/_collect_strings.html templates/_dropzones_strings.html
 msgid "Nothing has been submitted to this dropzone yet."

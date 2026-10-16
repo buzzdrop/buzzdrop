@@ -318,7 +318,7 @@ msgstr ""
 
 #. the requester's wrong passwords locked the dropzone; the lock can't be
 #. lifted.
-#: templates/_collect_strings.html
+#: templates/_collect_strings.html templates/collect.html
 msgid "Too many incorrect passwords — this dropzone is locked."
 msgstr ""
 
@@ -360,6 +360,13 @@ msgstr ""
 #, python-format
 msgid "Incorrect password. %(count)s attempt remaining."
 msgid_plural "Incorrect password. %(count)s attempts remaining."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/_collect_strings.html
+#, python-format
+msgid "One attempt left — check the password before you continue."
+msgid_plural "%(count)s attempts left — check the password before you continue."
 msgstr[0] ""
 msgstr[1] ""
 

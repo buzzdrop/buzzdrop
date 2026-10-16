@@ -2117,11 +2117,14 @@ def collect_dropzone(dropzone_id):
             or zone.get('collected_at') is not None
             or _expire_dropzone(zone)):
         return _drop_gone()
+    max_attempts = current_app.config['DROPZONE_MAX_ATTEMPTS']
+    attempts_remaining = max(0, max_attempts - (zone.get('attempts') or 0))
     return render_template(
         'collect.html',
         dropzone_id=dropzone_id,
         salt=zone.get('salt'),
-        max_attempts=current_app.config['DROPZONE_MAX_ATTEMPTS'],
+        max_attempts=attempts_remaining,
+        locked=attempts_remaining == 0,
     )
 
 

@@ -62,7 +62,13 @@ export function initCollect(root, deps) {
     const { zoneUrl, releaseUrl, submissionUrl, reportUrl, salt } =
         JSON.parse(required(root, '#collect-config-json', 'script').text);
 
-    const collectForm = required(root, '#collect-form', 'form');
+    // A locked zone renders no form — the page is already the locked
+    // notice, so there is nothing to wire.
+    const collectFormEl = /** @type {HTMLFormElement | null} */ (
+        root.querySelector('#collect-form'));
+    if (!collectFormEl) return;
+    const collectForm = /** @type {HTMLFormElement} */ (collectFormEl);
+
     const collectBtn = required(root, '#collect-btn', 'button');
     const passInput = required(root, '#password-input', 'input');
     const status = required(root, '#status', 'p');
@@ -137,6 +143,10 @@ export function initCollect(root, deps) {
             err instanceof Error ? err : null);
         const code = e && (e.serverCode || e.code);
         if (e && typeof e.attemptsRemaining === 'number') {
+            // Keep the static warning honest — it still says the full
+            // count until it is rewritten here.
+            attemptsWarning.textContent = strings.plural('attemptsLeft', e.attemptsRemaining,
+                { count: formatNumber(e.attemptsRemaining, lang) });
             return {
                 message: strings.plural('attemptsRemaining', e.attemptsRemaining,
                     { count: formatNumber(e.attemptsRemaining, lang) }),
