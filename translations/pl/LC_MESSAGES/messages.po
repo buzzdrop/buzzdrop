@@ -104,11 +104,12 @@ msgstr "Twoją przesyłkę otwarto."
 msgid "Type: %(type)s"
 msgstr "Typ: %(type)s"
 
-#: app.py templates/index.html utils.py
+#: app.py templates/index.html templates/respond.html utils.py
 msgid "Note"
 msgstr "Notatka"
 
 #: app.py templates/how_it_works.html templates/index.html
+#: templates/respond.html
 msgid "File"
 msgstr "Plik"
 
@@ -1467,6 +1468,81 @@ msgstr "Pokaż hasło"
 msgid "Enter a password, or press Generate."
 msgstr "Wpisz hasło albo naciśnij „Wygeneruj”."
 
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "Choose a file to submit."
+msgstr "Wybierz plik do wysłania."
+
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "Write the note to submit."
+msgstr "Napisz notatkę, którą chcesz wysłać."
+
+#: templates/_respond_strings.html
+msgid "Submit"
+msgstr ""
+
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "Encrypting…"
+msgstr "Odszyfrowywanie…"
+
+#: templates/_respond_strings.html
+msgid "Submitting…"
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "Submitted — the requester can now collect it. You can close this page."
+msgstr ""
+
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "That file is too large for this server."
+msgstr "Przesyłka jest za duża, żeby ją wysłać."
+
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "That note is too large for this server."
+msgstr "Przesyłka jest za duża, żeby ją wysłać."
+
+#: templates/_respond_strings.html
+msgid ""
+"This request link is not valid — check that the whole link was copied, "
+"including the part after #."
+msgstr ""
+
+#: templates/_respond_strings.html templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
+
+#: templates/_respond_strings.html templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
+
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "This dropzone is gone. Ask the requester for a new link."
+msgstr "Tej przesyłki już nie ma. Poproś nadawcę o nową."
+
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "This request link was already used. Ask the requester for a new one."
+msgstr "Tej przesyłki już nie ma. Poproś nadawcę o nową."
+
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "This dropzone has expired. Ask the requester for a new link."
+msgstr "Tej przesyłki już nie ma. Poproś nadawcę o nową."
+
+#: templates/_respond_strings.html
+#, fuzzy
+msgid "The submission was refused. Please try again."
+msgstr "Zbyt wiele żądań. Spróbuj ponownie później."
+
+#: templates/_respond_strings.html
+msgid "The submission failed. Please try again."
+msgstr ""
+
 #. a Copy link button's accessible name; %(name)s is the drop's title.
 #: templates/_shared_files_strings.html
 #, python-format
@@ -1557,14 +1633,6 @@ msgid_plural "Incorrect password. %(count)s attempts remaining."
 msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
 msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
 msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
-
-#: templates/_view_strings.html
-msgid "Could not reach the server — check the connection and try again."
-msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
-
-#: templates/_view_strings.html
-msgid "Too many tries in a short time — wait a minute and try again."
-msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
 
 #: templates/_view_strings.html
 msgid "This drop is gone. Ask the sender for a new one."
@@ -2250,6 +2318,35 @@ msgstr "Nazwa użytkownika"
 #: templates/login.html
 msgid "Accounts are provisioned at deploy time through environment variables."
 msgstr "Konta zakłada się przy wdrożeniu, w zmiennych środowiskowych."
+
+#: templates/respond.html
+msgid "Dropzone"
+msgstr ""
+
+#: templates/respond.html
+msgid "Submit securely"
+msgstr ""
+
+#: templates/respond.html
+#, fuzzy
+msgid ""
+"Your file or note is encrypted in this browser before it is sent — the "
+"server can never read it."
+msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
+
+#: templates/respond.html
+#, fuzzy
+msgid "What are you submitting?"
+msgstr "Co wysyłasz?"
+
+#: templates/respond.html
+msgid "The filename travels inside the encryption — the server never sees it."
+msgstr ""
+
+#: templates/respond.html
+#, fuzzy
+msgid "Encrypt and submit"
+msgstr "Odszyfruj i wyświetl"
 
 #: templates/success.html
 msgid "Drop secured"

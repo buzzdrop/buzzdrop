@@ -98,11 +98,12 @@ msgstr ""
 msgid "Type: %(type)s"
 msgstr ""
 
-#: app.py templates/index.html utils.py
+#: app.py templates/index.html templates/respond.html utils.py
 msgid "Note"
 msgstr ""
 
 #: app.py templates/how_it_works.html templates/index.html
+#: templates/respond.html
 msgid "File"
 msgstr ""
 
@@ -1293,6 +1294,72 @@ msgstr ""
 msgid "Enter a password, or press Generate."
 msgstr ""
 
+#: templates/_respond_strings.html
+msgid "Choose a file to submit."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "Write the note to submit."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "Submit"
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "Encrypting…"
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "Submitting…"
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "Submitted — the requester can now collect it. You can close this page."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "That file is too large for this server."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "That note is too large for this server."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid ""
+"This request link is not valid — check that the whole link was copied, "
+"including the part after #."
+msgstr ""
+
+#: templates/_respond_strings.html templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr ""
+
+#: templates/_respond_strings.html templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "This dropzone is gone. Ask the requester for a new link."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "This request link was already used. Ask the requester for a new one."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "This dropzone has expired. Ask the requester for a new link."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "The submission was refused. Please try again."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "The submission failed. Please try again."
+msgstr ""
+
 #. a Copy link button's accessible name; %(name)s is the drop's title.
 #: templates/_shared_files_strings.html
 #, python-format
@@ -1381,14 +1448,6 @@ msgid "Incorrect password. %(count)s attempt remaining."
 msgid_plural "Incorrect password. %(count)s attempts remaining."
 msgstr[0] ""
 msgstr[1] ""
-
-#: templates/_view_strings.html
-msgid "Could not reach the server — check the connection and try again."
-msgstr ""
-
-#: templates/_view_strings.html
-msgid "Too many tries in a short time — wait a minute and try again."
-msgstr ""
 
 #: templates/_view_strings.html
 msgid "This drop is gone. Ask the sender for a new one."
@@ -2016,6 +2075,32 @@ msgstr ""
 
 #: templates/login.html
 msgid "Accounts are provisioned at deploy time through environment variables."
+msgstr ""
+
+#: templates/respond.html
+msgid "Dropzone"
+msgstr ""
+
+#: templates/respond.html
+msgid "Submit securely"
+msgstr ""
+
+#: templates/respond.html
+msgid ""
+"Your file or note is encrypted in this browser before it is sent — the "
+"server can never read it."
+msgstr ""
+
+#: templates/respond.html
+msgid "What are you submitting?"
+msgstr ""
+
+#: templates/respond.html
+msgid "The filename travels inside the encryption — the server never sees it."
+msgstr ""
+
+#: templates/respond.html
+msgid "Encrypt and submit"
 msgstr ""
 
 #: templates/success.html

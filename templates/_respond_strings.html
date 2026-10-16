@@ -1,0 +1,26 @@
+{# The words pages/respond/ writes: tab labels handled by markup, the
+   status line and per-code refusal text, keyed by /submit's `code`.
+   'consumed'/'expired'/'invalid_link' mirror _drop_gone's uniform tone —
+   the page never says which case it is beyond what the server answered. #}
+{% set strings = {
+    'chooseFile': _('Choose a file to submit.'),
+    'writeNote': _('Write the note to submit.'),
+    'submit': _('Submit'),
+    'encrypting': _('Encrypting…'),
+    'submitting': _('Submitting…'),
+    'submitted': _('Submitted — the requester can now collect it. You can close this page.'),
+    'fileTooLarge': _('That file is too large for this server.'),
+    'noteTooLarge': _('That note is too large for this server.'),
+    'badLink': _('This request link is not valid — check that the whole link was copied, including the part after #.'),
+    'unreachable': _('Could not reach the server — check the connection and try again.'),
+    'throttled': _('Too many tries in a short time — wait a minute and try again.'),
+    'refusals': {
+        'not_found': _('This dropzone is gone. Ask the requester for a new link.'),
+        'invalid_link': _('This request link is not valid — check that the whole link was copied, including the part after #.'),
+        'consumed': _('This request link was already used. Ask the requester for a new one.'),
+        'expired': _('This dropzone has expired. Ask the requester for a new link.'),
+        'invalid_submission': _('The submission was refused. Please try again.'),
+        'submit_failed': _('The submission failed. Please try again.'),
+        'rate_limited': _('Too many tries in a short time — wait a minute and try again.'),
+    },
+} %}
