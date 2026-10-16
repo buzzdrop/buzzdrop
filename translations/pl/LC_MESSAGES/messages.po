@@ -1903,6 +1903,15 @@ msgid "Encrypting…"
 msgstr "Szyfrowanie…"
 
 #: templates/_respond_strings.html
+msgid ""
+"Encryption failed — this browser may not support it. Try a modern browser"
+" or a secure (https) connection."
+msgstr ""
+"Nie udało się zaszyfrować — ta przeglądarka może tego nie wspierać. "
+"Spróbuj w nowoczesnej przeglądarce albo przez bezpieczne połączenie "
+"(https)."
+
+#: templates/_respond_strings.html
 msgid "Submitting…"
 msgstr "Składanie…"
 

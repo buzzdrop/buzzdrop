@@ -105,7 +105,16 @@ export function initRespond(root, deps) {
 
         submitBtn.disabled = true;
         statusEl.textContent = strings.text('encrypting');
-        const { blob, wk, receiptHash, sv } = await deps.crypto.sealSubmission(data, name, s);
+        /** @type {{ blob: Bytes, wk: string, receiptHash: string, sv: string }} */
+        let sealed;
+        try {
+            sealed = await deps.crypto.sealSubmission(data, name, s);
+        } catch {
+            // e.g. crypto.subtle missing on an insecure origin — surface it.
+            fail(strings.text('encryptFailed'));
+            return;
+        }
+        const { blob, wk, receiptHash, sv } = sealed;
 
         const form = new FormData();
         form.append('sv', sv);

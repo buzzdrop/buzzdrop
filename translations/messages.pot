@@ -1654,6 +1654,12 @@ msgid "Encrypting…"
 msgstr ""
 
 #: templates/_respond_strings.html
+msgid ""
+"Encryption failed — this browser may not support it. Try a modern browser"
+" or a secure (https) connection."
+msgstr ""
+
+#: templates/_respond_strings.html
 msgid "Submitting…"
 msgstr ""
 

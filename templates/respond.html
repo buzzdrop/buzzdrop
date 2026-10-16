@@ -47,8 +47,5 @@
     'allowedExtensions': allowed_extensions,
 } | tojson }}</script>
 {{ page_strings({'respond': respond_strings}) }}
-{% endblock %}
-
-{% block page_scripts %}
-<script type="module" src="{{ url_for('static', filename='js/pages/respond/entry.js') }}" integrity="{{ sri_hash('js/pages/respond/entry.js') }}" crossorigin></script>
+<script type="module" src="{{ url_for('static', filename='js/pages/respond/entry.js') }}" integrity="{{ sri_hash('js/pages/respond/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}
