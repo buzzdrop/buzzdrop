@@ -10,23 +10,30 @@
 proposed here and should land in the glossary when this ships:
 
 - **Dropzone**: a user's one-time invitation to receive one drop. The
-  inverse of a drop: the account holder *receives*, the anonymous
-  visitor *sends*.
+  inverse of a drop: the account holder *collects*, the anonymous
+  visitor *submits*.
 - **Requester**: the user who creates a dropzone. (The glossary's *sender*
   doesn't fit — the requester sends nothing.)
-- **Responder**: whoever opens a request link and drops a file or note into
-  the dropzone. A responder has no account — the mirror of *recipient*.
+- **Responder**: whoever opens a request link and submits a file or note
+  to the dropzone. A responder has no account — the mirror of *recipient*.
 - **Request link**: the one-time URL a responder opens. The analogue of a
   drop link, direction reversed.
-- **Dropzone password**: the password the requester sets at creation, which
-  gates collection. Same role as a drop's password, held by the receiver
-  instead of the sender.
+- **Submission**: what a responder submits — one file or one note,
+  encrypted in their browser. The mirror of a *drop*.
+- **Submit**: what a responder does with a submission. The mirror of
+  *send*.
+- **Collect**: what a requester does to a submission — proves the
+  dropzone password and receives it, once. The mirror of *open*.
+- **Dropzone password**: a kind of *password*, for the reversed flow —
+  the requester sets it at creation and it gates collection. Same role
+  as a drop's password, set by the receiving side rather than the
+  sending one.
 
 ## Context
 
 Buzzdrop is strictly one-directional today: a sender encrypts, sends and
 hands out a drop link; a recipient proves the password and opens the drop
-once. There is no way to say "here is a box — drop your secret in it, I
+once. There is no way to say "here is a box — leave your secret in it, I
 will pick it up". That reversed flow is the missing half: collecting a DB
 password from a contractor, a certificate from a customer, a signed
 contract — without "just email it".
@@ -112,8 +119,11 @@ Two secrets and the password gate, reused.
 ### Threat model notes
 
 - Server compromise yields ciphertexts, wrapped keys, hashes and `wS` — no
-  plaintext. `s` never reaches the server; this is the same guarantee BKV3
-  already makes for drops.
+  plaintext at rest. `s` never reaches the server; this is the same
+  guarantee BKV3 already makes for drops — including the same caveat:
+  `V` is offline-crackable after a DB theft, so password strength is the
+  last barrier. One password here gates the whole zone, so the blast
+  radius is bigger than a drop's.
 - A leaked request link lets a stranger consume it first (fail-visible: the
   real responder reports it broken) and would let them decrypt `wK` *if*
   they could also fetch ciphertexts — but fetch needs `V`, which the
@@ -133,8 +143,8 @@ Two secrets and the password gate, reused.
   link itself. Accepted limitation for v1; mitigations to consider later:
   a requester-issued verification word checked at submission, per-responder
   named request links (which also give free "from whom" attribution), and
-  UI that presents submissions as unverified pending out-of-band
-  confirmation.
+  UI that presents submissions as unverified until confirmed out of
+  band.
 - The one-shot dropzone is what makes carrying `s` in the link safe:
   "who may submit" ≈ "who may read that one submission" holds literally,
   because the zone dies with its first submission. **This is the
@@ -144,8 +154,9 @@ Two secrets and the password gate, reused.
   so reuse needs per-link secrets or `s` rotation at collection (and, for
   multi-responder, an ephemeral-ECDH swap; WebCrypto, ~30 lines, still no
   OpenPGP). Deferred; see *Deferred* below.
-- Wrong-password lockout is harsher here than in send flow: a typo at the
-  last attempt locks a submission the responder can never re-send (their
+- Wrong-password lockout is harsher here than in send flow: `attempts`
+  and `V` are per dropzone, so a typo at the last attempt locks the
+  zone — stranding a submission the responder can never re-send (their
   request link is already dead). Decide per-dropzone whether lockout
   deletes rows or just locks — `KEY_RELEASE_BURN_ON_LOCKOUT` may want a
   gentler twin for dropzones.
@@ -161,14 +172,14 @@ Ala (admin, has an account) needs the production DB password from Bob
 2. **Bob opens the request link**, pastes the DB password into the respond
    page. His browser draws `K`, encrypts, wraps `K` under `s`, uploads
    `ct + wK + sv`. The request link dies.
-3. **Ala opens her list**, sees a pending submission, clicks, types
-   `alamakota123#$`. Her browser derives `V`; the server verifies and
-   releases `wS + ct` exactly once. Her browser unwraps `s → K →
-   plaintext`. Row deleted; submission collected.
+3. **Ala opens her list**, sees a submission awaiting collection,
+   clicks, types `alamakota123#$`. Her browser derives `V`; the server
+   verifies and releases `wS + ct` exactly once. Her browser unwraps
+   `s → K → plaintext`. Row deleted; submission collected.
 
 A server-side attacker at any point holds `ct`, `wK`, `wS`, `V`, `SV`
-— all useless without `alamakota123#$` and `s`, neither of which ever
-touches the server.
+— all useless without `alamakota123#$`: the password alone unwraps
+`s`, and `s` unwraps the rest. The password never touches the server.
 
 ## Consequences
 
@@ -184,6 +195,8 @@ touches the server.
   `tests/CLAUDE.md`.
 - The explainer page (`docs/how-it-works.md`) must describe the reversed
   flow in the same PR.
+- Management reuses the existing flat-list + memo machinery: a memo
+  attaches to a dropzone row exactly as it does to a drop.
 - i18n: respond page, password prompt, list strings.
 - `CONTEXT.md` gains the vocabulary section above.
 - Out of scope for v1: multi-use dropzones (a zone surviving its first
