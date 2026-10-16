@@ -51,15 +51,14 @@ Two secrets and the password gate, reused.
 
 **At dropzone creation (requester):**
 
-1. The requester's browser draws a random dropzone secret `s` and a fetch
-   token `t`.
+1. The requester's browser draws a random dropzone secret `s`.
 2. The requester picks (or generates) a dropzone password. The browser
    derives `master = PBKDF2-SHA256(password, salt, 600k)`, then
    `Kw = HKDF(master, salt, 'dz-wrap')` and `V = HKDF(master, salt, 'ver')` —
    the same KDF ladder as BKV3.
 3. `s` is wrapped: `wS = AES-GCM(Kw, s)`.
-4. The server stores `{ dropzone_id, salt, wS, V, hash(t), expiry }`. It
-   never sees `s` or the password.
+4. The server stores `{ dropzone_id, salt, wS, V, expiry }`. It never
+   sees `s` or the password.
 5. The browser emits the **request link** (for the responder):
    `/d/<dropzone_id>#s=<s>` — `s` rides in the fragment and never reaches
    the server. The requester keeps nothing but the password in their head;
@@ -102,7 +101,7 @@ Two secrets and the password gate, reused.
   already makes for drops.
 - A leaked request link lets a stranger consume it first (fail-visible: the
   real responder reports it broken) and would let them decrypt `wK` *if*
-  they could also fetch ciphertexts — but fetch needs `t`/`V`, which the
+  they could also fetch ciphertexts — but fetch needs `V`, which the
   request link does not carry. Net damage: sabotaging one submission.
 - **A request link is a bearer capability, not an identity.** Whoever holds
   it may submit — including an attacker who submits *false* credentials
@@ -134,7 +133,7 @@ Ala (admin, has an account) needs the production DB password from Bob
 (contractor, no account).
 
 1. **Ala creates a dropzone.** Her browser draws `s`; she types
-   `alamakota123#$`. The server stores `salt, wS, V, hash(t)`. She mails
+   `alamakota123#$`. The server stores `salt, wS, V`. She mails
    Bob `https://buzzdrop/d/abc123#s=…`. She keeps nothing but the password.
 2. **Bob opens the request link**, pastes the DB password into the respond
    page. His browser draws `K`, encrypts, wraps `K` under `s`, uploads
@@ -144,14 +143,14 @@ Ala (admin, has an account) needs the production DB password from Bob
    releases `wS + ct` exactly once. Her browser unwraps `s → K →
    plaintext`. Row deleted; submission collected.
 
-A server-side attacker at any point holds `ct`, `wK`, `wS`, `V`, `hash(t)`
+A server-side attacker at any point holds `ct`, `wK`, `wS`, `V`
 — all useless without `alamakota123#$` and `s`, neither of which ever
 touches the server.
 
 ## Consequences
 
-- New server objects: `dropzones` table (id, salt, wS, V, token hash,
-  expiry, requester) and dropzone submissions (ct, wK, receipt_hash).
+- New server objects: `dropzones` table (id, salt, wS, V, expiry,
+  requester) and dropzone submissions (ct, wK, receipt_hash).
   Reuses `file_keys`-style verifier/attempts machinery.
 - New routes + a respond page → security docs, CSRF, CSP/import-map and
   protocol-contract updates per `docs/dev/security.md` and
