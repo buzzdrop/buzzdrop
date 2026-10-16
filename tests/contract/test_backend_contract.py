@@ -223,6 +223,15 @@ def test_bind_key_verifier_stores_salt(backend):
     assert backend.files.get_key_share('file-1')['salt'] == 'aa' * 16
 
 
+def _dz_collect_ticket(ws_hex):
+    """The ticket a collector derives from wS — HKDF-SHA256, zero salt,
+    info='buzzdrop-collect-ticket'. Independent of the backend's
+    derivation so a divergence shows here."""
+    prk = hmac.new(b'\x00' * 32, bytes.fromhex(ws_hex), hashlib.sha256).digest()
+    return hmac.new(prk, b'buzzdrop-collect-ticket' + b'\x01',
+                    hashlib.sha256).hexdigest()
+
+
 def _download_ticket(h_hex):
     """The ticket a client derives from H — HKDF-SHA256, zero salt,
     info='buzzdrop-download-ticket'. Kept independent of the backend's
@@ -877,7 +886,8 @@ def test_attempt_dropzone_release_concurrent_single_winner(backend):
 def test_claim_dropzone_submission(backend):
     _released_zone(backend)
 
-    result = backend.files.claim_dropzone_submission('dz-1', '1.2.3.4')
+    result = backend.files.claim_dropzone_submission(
+        'dz-1', '1.2.3.4', _dz_collect_ticket(_DZ_WS))
     assert result['status'] == 'ok'
     assert result['path'] == 'uploads/sub-dz-1'
     assert result['wk'] == _DZ_WK
@@ -888,7 +898,8 @@ def test_claim_dropzone_submission(backend):
     assert zone['collected_at'] is not None
     assert zone['collected_by_ip'] == '1.2.3.4'
 
-    result = backend.files.claim_dropzone_submission('dz-1', '5.6.7.8')
+    result = backend.files.claim_dropzone_submission(
+        'dz-1', '5.6.7.8', _dz_collect_ticket(_DZ_WS))
     assert result['status'] == 'already_collected'
 
 
@@ -900,7 +911,8 @@ def test_claim_dropzone_submission_concurrent_single_winner(backend):
     with ThreadPoolExecutor(max_workers=workers) as pool:
         results = list(pool.map(
             lambda index: backend.files.claim_dropzone_submission(
-                'dz-1', f'10.0.0.{index}')['status'],
+                'dz-1', f'10.0.0.{index}',
+                _dz_collect_ticket(_DZ_WS))['status'],
             range(workers),
         ))
 
@@ -933,10 +945,11 @@ def test_claim_dropzone_submission_honours_the_collect_window(backend):
     transaction — the blob comes back for the caller to delete."""
     _released_zone(backend, 'fresh')
     assert backend.files.claim_dropzone_submission(
-        'fresh', '1.2.3.4', 3600)['status'] == 'ok'
+        'fresh', '1.2.3.4', _dz_collect_ticket(_DZ_WS), 3600)['status'] == 'ok'
 
     _released_zone(backend, 'stale')
-    result = backend.files.claim_dropzone_submission('stale', '1.2.3.4', 0)
+    result = backend.files.claim_dropzone_submission(
+        'stale', '1.2.3.4', _dz_collect_ticket(_DZ_WS), 0)
     assert result == {'status': 'expired', 'path': 'uploads/sub-stale'}
     zone = backend.files.get_dropzone('stale')
     assert zone['status'] == 'expired'
@@ -950,7 +963,8 @@ def test_claim_dropzone_submission_zone_expired(backend):
     # expiry_at still hands its submission over.
     _released_zone(backend)
     backend.files.update_dropzone_fields('dz-1', {'expiry_at': past})
-    result = backend.files.claim_dropzone_submission('dz-1', '1.2.3.4')
+    result = backend.files.claim_dropzone_submission(
+        'dz-1', '1.2.3.4', _dz_collect_ticket(_DZ_WS))
     assert result['status'] == 'ok'
     assert result['path'] == 'uploads/sub-dz-1'
 
@@ -1004,7 +1018,8 @@ def test_expire_unclaimed_dropzone_releases(backend):
     """Only released, never-collected zones past the window expire."""
     _released_zone(backend, 'unclaimed')
     _released_zone(backend, 'collected')
-    backend.files.claim_dropzone_submission('collected', '1.2.3.4')
+    backend.files.claim_dropzone_submission(
+        'collected', '1.2.3.4', _dz_collect_ticket(_DZ_WS))
     _consumed_zone(backend, 'unreleased')
 
     # inside the window nothing is touched

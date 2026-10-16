@@ -191,10 +191,10 @@ test('a refused release carries the server code through', async () => {
 
 test('a failed submission download surfaces as download_failed', async () => {
     const secrets = await createDropzoneSecrets(PASSWORD);
-    await sealSubmission(encoder.encode('x'), 'n.txt', secrets.s);
+    const sealed = await sealSubmission(encoder.encode('x'), 'n.txt', secrets.s);
     const { fetch } = stubFetch({
         '/dropzones/dz-1/release': () => jsonResponse({ ws: secrets.ws }),
-        '/api/dropzones/dz-1': () => jsonResponse({ id: 'dz-1', submission: null }),
+        '/api/dropzones/dz-1': () => jsonResponse({ id: 'dz-1', submission: { wk: sealed.wk } }),
         '/dropzones/dz-1/submission': () => jsonResponse(
             { error: 'Submission already collected', code: 'collected' }, 410),
     });

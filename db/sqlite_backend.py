@@ -286,6 +286,7 @@ CREATE TABLE IF NOT EXISTS dropzones (
     created_by TEXT,
     link_consumed_at TEXT,
     released_at TEXT,
+    ticket_hash TEXT,
     collected_at TEXT,
     collected_by_ip TEXT,
     status TEXT,
@@ -320,6 +321,15 @@ CREATE TABLE IF NOT EXISTS dropzone_submissions (
 # it from the H /release handed it; the server stores only its SHA-256 and
 # the ticket itself never leaves either side in a response body.
 _DOWNLOAD_TICKET_INFO = b'buzzdrop-download-ticket'
+
+
+def _dz_collect_ticket(ws_hex: str) -> str:
+    """Derive the collect ticket (hex) from the released wS — the
+    dropzone mirror of _download_ticket. The release winner recomputes
+    it client-side; the server stores only its SHA-256."""
+    prk = hmac.new(b'\x00' * 32, bytes.fromhex(ws_hex), hashlib.sha256).digest()
+    return hmac.new(prk, b'buzzdrop-collect-ticket' + b'\x01',
+                    hashlib.sha256).hexdigest()
 
 
 def _download_ticket(h_hex: str) -> str:
@@ -1044,6 +1054,18 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         )
         return cursor.rowcount > 0
 
+    def expire_dropzone_unconsumed(self, dropzone_id: str) -> bool:
+        """Mark the zone expired and shred its secrets — but only while
+        the link is still unconsumed. The conditional UPDATE makes the
+        lazy expiry race-safe against a concurrent consume: a landed
+        submission outlives the deadline either way."""
+        cursor = self._conn().execute(
+            "UPDATE dropzones SET status = 'expired', v = NULL, "
+            'ws = NULL, sv = NULL WHERE id = ? AND link_consumed_at IS NULL',
+            (dropzone_id,),
+        )
+        return cursor.rowcount > 0
+
     def get_dropzone_submission(self, dropzone_id: str
                                 ) -> Optional[Dict[str, Any]]:
         row = self._conn().execute(
@@ -1069,8 +1091,6 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             ).fetchone()
             if zone is None:
                 result: Dict[str, Any] = {'status': 'missing'}
-            elif zone['link_consumed_at'] is not None:
-                result = {'status': 'consumed'}
             elif self._dropzone_row_expired(zone, 'status'):
                 self._wipe_dropzone_secrets(conn, dropzone_id,
                                             mark_expired=True)
@@ -1079,8 +1099,13 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             elif (not isinstance(sv_hex, str) or zone['sv'] is None
                     or not secrets.compare_digest(zone['sv'], sv_hex)):
                 # No sv, no consume — a bare dropzone_id can't burn
-                # the link.
+                # the link. This check runs before the consumed one so
+                # polling a bare id can't learn when the real
+                # submission landed (a consumed zone's sv is NULL
+                # anyway, so it lands here too).
                 result = {'status': 'bad_sv'}
+            elif zone['link_consumed_at'] is not None:
+                result = {'status': 'consumed'}
             else:
                 conn.execute(
                     'UPDATE dropzones SET link_consumed_at = ? '
@@ -1155,8 +1180,10 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                     and secrets.compare_digest(row['v'], v_hex)):
                 conn.execute(
                     'UPDATE dropzones SET released_at = ?, '
-                    'v = NULL, ws = NULL, sv = NULL WHERE id = ?',
-                    (now_iso(), dropzone_id),
+                    'v = NULL, ws = NULL, sv = NULL, ticket_hash = ? '
+                    'WHERE id = ?',
+                    (now_iso(), _ticket_digest(
+                        _dz_collect_ticket(row['ws'])), dropzone_id),
                 )
                 # ws/v wiped with the claim, like H/V on a drop: a
                 # post-release DB theft yields nothing crackable.
@@ -1187,16 +1214,20 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         return result
 
     def claim_dropzone_submission(self, dropzone_id: str, ip_address: str,
+                                  ticket_hex: Optional[str] = None,
                                   ttl_seconds: Optional[int] = None
                                   ) -> Dict[str, Any]:
         """
         Claim the released submission blob in one BEGIN IMMEDIATE —
-        the dropzone mirror of claim_download_with_ticket. Ownership is
-        the caller's session check, not a bearer ticket.
+        the dropzone mirror of claim_download_with_ticket. The session
+        scopes ownership; the collect ticket (derived from wS at the
+        winning release) proves the caller holds the released material,
+        so a bare session URL can't burn the one-shot claim.
 
         Returns a dict with ``status``:
           'missing'            — no zone row
           'already_collected'  — collected_at already stamped
+          'claimed'            — ticket missing or mismatched
           'expired'            — zone expired, or released at least
                                  ttl_seconds ago (secrets wiped,
                                  'path' for blob cleanup)
@@ -1212,7 +1243,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         try:
             row = conn.execute(
                 'SELECT z.status AS zone_status, z.expiry_at, '
-                '       z.released_at, z.collected_at, '
+                '       z.released_at, z.collected_at, z.ticket_hash, '
                 '       s.id AS submission_id, s.path, s.wk, s.type '
                 'FROM dropzones z LEFT JOIN dropzone_submissions s '
                 '    ON s.dropzone_id = z.id '
@@ -1230,16 +1261,29 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                                            ttl_seconds)):
                 self._wipe_dropzone_secrets(conn, dropzone_id,
                                             mark_expired=True)
+                if row['submission_id'] is not None:
+                    conn.execute(
+                        'DELETE FROM dropzone_submissions WHERE id = ?',
+                        (row['submission_id'],),
+                    )
                 destroyed = True
                 result = {'status': 'expired', 'path': row['path']}
             elif row['released_at'] is None:
                 result = {'status': 'not_released'}
             elif row['submission_id'] is None:
                 result = {'status': 'no_submission'}
+            elif (row['ticket_hash'] is None
+                    or not isinstance(ticket_hex, str)
+                    or not secrets.compare_digest(
+                        row['ticket_hash'], _ticket_digest(ticket_hex))):
+                # Wrong or missing ticket — the claim stays live for
+                # the real winner.
+                result = {'status': 'claimed'}
             else:
                 conn.execute(
                     'UPDATE dropzones SET collected_at = ?, '
-                    'collected_by_ip = ? WHERE id = ?',
+                    'collected_by_ip = ?, ticket_hash = NULL '
+                    'WHERE id = ?',
                     (now_iso(), ip_address, dropzone_id),
                 )
                 result = {
@@ -1296,11 +1340,11 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         conn.execute('BEGIN IMMEDIATE')
         try:
             rows = conn.execute(
-                'SELECT z.id, s.path FROM dropzones z '
-                'LEFT JOIN dropzone_submissions s '
-                '    ON s.dropzone_id = z.id '
+                "SELECT z.id FROM dropzones z "
                 "WHERE COALESCE(z.status, '') != 'expired' "
-                'AND s.id IS NULL '
+                'AND NOT EXISTS ('
+                '    SELECT 1 FROM dropzone_submissions s '
+                '    WHERE s.dropzone_id = z.id) '
                 'AND z.expiry_at IS NOT NULL '
                 'AND (z.expiry_at <= ? '
                 '     OR NOT is_iso_timestamp(z.expiry_at))',
@@ -1309,17 +1353,13 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             for row in rows:
                 self._wipe_dropzone_secrets(conn, row['id'],
                                             mark_expired=True)
-                conn.execute(
-                    'DELETE FROM dropzone_submissions WHERE dropzone_id = ?',
-                    (row['id'],))
             conn.execute('COMMIT')
         except Exception:
             conn.execute('ROLLBACK')
             raise
         if rows:
             self._backend.checkpoint_wal()
-        return [{'id': row['id'], 'path': row['path']} for row in rows
-                if row['path']]
+        return []
 
     def expire_unclaimed_dropzone_releases(self, older_than_seconds: int
                                            ) -> List[Dict[str, Any]]:
@@ -1539,6 +1579,7 @@ class SQLiteBackend(Backend):
         _guard_incompatible_columns(conn, 'files', FILE_COLUMNS)
         _guard_incompatible_columns(conn, 'api_tokens', TOKEN_COLUMNS)
         self._ensure_column(conn, 'dropzone_submissions', 'submitted_by_ip', 'TEXT')
+        self._ensure_column(conn, 'dropzones', 'ticket_hash', 'TEXT')
         for table, column, decl in _MIGRATABLE_COLUMNS:
             self._ensure_column(conn, table, column, decl)
 

@@ -6,7 +6,7 @@
 // note panel) is the feature the index page shares (features/composer).
 
 import { required } from '../../lib/required.js';
-import { preserveFragmentAcrossLanguageSwitch } from '../../lib/one-click-link.js';
+import { restoreFragmentAfterLanguageSwitch, stashFragmentForLanguageSwitch } from '../../lib/one-click-link.js';
 import { initComposer } from '../../features/composer/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
 import { readStrings } from '../../lib/strings.js';
@@ -29,7 +29,7 @@ export function browserDeps() {
  * @returns {Bytes | null}
  */
 function takeFragmentSecret(win) {
-    const match = /^#s=([0-9a-f]+)$/.exec(win.location.hash);
+    const match = /^#s=([0-9a-f]{64})$/.exec(win.location.hash);
     return match ? hexToBytes(match[1]) : null;
 }
 
@@ -49,11 +49,14 @@ export function initRespond(root, deps) {
     const progress = createProgressBar(required(root, '#submit-progress', 'div'));
     const statusEl = required(root, '#status', 'p');
 
+    // A language switch just landed: pick the fragment back up before
+    // takeFragmentSecret looks for it.
+    restoreFragmentAfterLanguageSwitch(root);
     const s = takeFragmentSecret(window);
-    // The language menu redirects through POST /set_language with only the
-    // path in `next` — a fragment never reaches the server, so it would be
-    // lost and the page would come back dead. Carry it ourselves.
-    if (s) preserveFragmentAcrossLanguageSwitch(root, window.location.hash);
+    // The language menu redirects through POST /set_language — the
+    // fragment can't ride along (and must never be POSTed), so it waits
+    // in sessionStorage for the round-trip.
+    if (s) stashFragmentForLanguageSwitch(root);
     if (!s) {
         submitBtn.disabled = true;
         errorEl.hidden = false;
@@ -130,7 +133,10 @@ export function initRespond(root, deps) {
             fail(message);
             return;
         }
-        window.location.hash = '';
+        // Scrub the fragment like takeFragmentPassword does — no extra
+    // history entry, no back-button landmine.
+    window.history.replaceState(null, '',
+        window.location.pathname + window.location.search);
         // Scrub the plaintext and hide the composer — the zone is spent,
         // a second submit can only bounce off 'consumed'.
         composer.reset();

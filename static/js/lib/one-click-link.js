@@ -53,17 +53,49 @@ export function buildOneClickLink(shareUrl, password) {
     return shareUrl.split('#')[0] + '#' + encodeURIComponent(password);
 }
 
+const _LANG_FRAGMENT_KEY = 'buzzdrop:lang-switch-fragment';
+
 /**
- * Keep the page's fragment across a language switch: the menu's forms POST
- * to /set_language with only the path in `next` — a fragment never reaches
- * the server, so without this it is lost and the page comes back without
- * the secret (or anchor) it carried.
+ * Keep the page's fragment across a language switch *without ever sending
+ * it*: the menu's forms POST only the path in `next` — a fragment on that
+ * field would reach the server, which for a secret-bearing fragment
+ * (`#s=…`, `#<password>`) would break the zero-knowledge invariant. So the
+ * fragment waits in sessionStorage (same tab, dies with it) while the
+ * redirect round-trips, and restoreFragmentAfterLanguageSwitch puts it
+ * back before any page code reads it.
  * @param {Document} root
- * @param {string} fragment - '#…' to append to each language form's next
  */
-export function preserveFragmentAcrossLanguageSwitch(root, fragment) {
-    if (!fragment || fragment.length <= 1) return;
-    /** @type {NodeListOf<HTMLInputElement>} */ (
-        root.querySelectorAll('#language-menu-list input[name="next"]'))
-        .forEach((input) => { input.value += fragment; });
+export function stashFragmentForLanguageSwitch(root) {
+    const win = root.defaultView;
+    if (!win) return;
+    if (!win.location.hash || win.location.hash.length <= 1) return;
+    /** @type {NodeListOf<HTMLFormElement>} */ (
+        root.querySelectorAll('#language-menu-list form'))
+        .forEach((form) => {
+            form.addEventListener('submit', () => {
+                try {
+                    win.sessionStorage.setItem(
+                        _LANG_FRAGMENT_KEY, win.location.hash);
+                } catch { /* storage denied — the fragment dies, not the switch */ }
+            });
+        });
+}
+
+/**
+ * The restore half of stashFragmentForLanguageSwitch: re-attach a stashed
+ * fragment before the page's fragment readers (takeFragmentPassword,
+ * takeFragmentSecret) run. Consumes the stash — no residue for the e2e
+ * storage guard.
+ * @param {Document} root
+ */
+export function restoreFragmentAfterLanguageSwitch(root) {
+    const win = root.defaultView;
+    if (!win) return;
+    try {
+        const stashed = win.sessionStorage.getItem(_LANG_FRAGMENT_KEY);
+        if (stashed && !win.location.hash) {
+            win.history.replaceState(null, '', stashed);
+        }
+        win.sessionStorage.removeItem(_LANG_FRAGMENT_KEY);
+    } catch { /* storage denied — nothing to restore */ }
 }

@@ -323,6 +323,10 @@ class FileRepository:
         """Return the requester's dropzones."""
         return self.store.list_dropzones(username)
 
+    def expire_dropzone_unconsumed(self, dropzone_id: str) -> bool:
+        """Pass-through to FileStore.expire_dropzone_unconsumed."""
+        return self.store.expire_dropzone_unconsumed(dropzone_id)
+
     def get_dropzone_submission(self, dropzone_id: str) -> Optional[dict]:
         """Return the zone's submission record, or None."""
         return self.store.get_dropzone_submission(dropzone_id)
@@ -341,10 +345,11 @@ class FileRepository:
             dropzone_id, v_hex, max_attempts, burn_on_lockout)
 
     def claim_dropzone_submission(self, dropzone_id: str, ip_address: str,
+                                  ticket_hex: Optional[str] = None,
                                   ttl_seconds: Optional[int] = None) -> dict:
         """Claim the released submission blob, atomically."""
         return self.store.claim_dropzone_submission(
-            dropzone_id, ip_address, ttl_seconds)
+            dropzone_id, ip_address, ticket_hex, ttl_seconds)
 
     def delete_dropzone(self, dropzone_id: str) -> Optional[dict]:
         """Delete zone + submission; returns the cleanup dict or None."""

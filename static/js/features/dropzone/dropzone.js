@@ -3,7 +3,7 @@
 // gets wS once, fetches the submission blob and unwraps s → K → plaintext.
 
 import { bytesToHex, hexToBytes } from '../../lib/hex.js';
-import { createDropzoneSecrets, openDropzone } from '../../lib/dropzone-crypto.js';
+import { createDropzoneSecrets, deriveCollectTicket, openDropzone } from '../../lib/dropzone-crypto.js';
 
 /** @typedef {import('../../lib/hex.js').Bytes} Bytes */
 
@@ -90,13 +90,28 @@ export async function collectDropzone(endpoints, fetchFn, zone, password, csrfTo
     }
     const { ws } = await release.json();
 
-    const zoneInfo = await (await fetchFn(endpoints.zoneUrl, {
+    const zoneResp = await fetchFn(endpoints.zoneUrl, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
-    })).json();
-    const wk = zoneInfo.submission && zoneInfo.submission.wk;
+    });
+    /** @type {{ submission?: { wk?: string } } | null} */
+    const zoneInfo = zoneResp.ok
+        ? await zoneResp.json().catch(() => null)
+        : null;
+    const wk = zoneInfo && zoneInfo.submission && zoneInfo.submission.wk;
+    if (!wk) {
+        /** @type {Error & {code: string, status?: number}} */
+        const noWk = /** @type {any} */ (new Error('No wrapped key'));
+        noWk.code = 'download_failed';
+        noWk.status = zoneResp.status;
+        throw noWk;
+    }
+    const collectTicket = await deriveCollectTicket(ws);
     hooks.onStep?.('downloading');
     const response = await fetchFn(endpoints.submissionUrl, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-Collect-Ticket': collectTicket,
+        },
     });
     if (!response.ok) {
         const body = await response.json().catch(() => ({}));

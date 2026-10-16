@@ -37,6 +37,7 @@ const SUBMISSION_MAGIC = encoder.encode('BKD1');
 const INFO_WRAP = encoder.encode('dz-wrap');
 const INFO_VER = encoder.encode('ver');
 const INFO_SUBMIT = encoder.encode('submit');
+const INFO_COLLECT_TICKET = encoder.encode('buzzdrop-collect-ticket');
 const WRAPPED_LENGTH = IV_LENGTH + SECRET_LENGTH + 16; // iv + key + GCM tag
 
 /**
@@ -117,6 +118,20 @@ export async function sealSubmission(data, name, s) {
         receiptHash: bytesToHex(new Uint8Array(digest)),
         sv: await deriveSubmitVerifier(s),
     };
+}
+
+/**
+ * The collect ticket for a released zone — mirror of
+ * _dz_collect_ticket in sqlite_backend.py: HKDF-SHA256 over the raw
+ * wS bytes with a zero salt and the collect-ticket info string. The
+ * server stores only its SHA-256; whoever won the release recomputes
+ * it to fetch the blob. hex in, hex out.
+ * @param {string} wsHex
+ * @returns {Promise<string>}
+ */
+export async function deriveCollectTicket(wsHex) {
+    return bytesToHex(await hkdf(new Uint8Array(hexToBytes(wsHex)),
+        new Uint8Array(32), INFO_COLLECT_TICKET));
 }
 
 /**

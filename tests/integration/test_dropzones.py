@@ -8,6 +8,7 @@ one-time submission download, the receipt report and delete — plus the
 owner-only, CSRF and expiry behaviour on each.
 """
 import base64
+import hashlib
 import io
 import os
 from datetime import timedelta
@@ -38,6 +39,15 @@ RECEIPT, RECEIPT_HASH = receipt_pair()
 BLOB = b'BKD1' + b'\x10' * 12 + b'\x99' * 48
 
 CSRF_HEADERS = {'X-CSRF-Token': CSRF_TOKEN, 'X-Requested-With': 'XMLHttpRequest'}
+
+
+def _collect_ticket(ws_hex=_WS):
+    """The X-Collect-Ticket a collector derives from the released wS —
+    HKDF-SHA256, zero salt, 'buzzdrop-collect-ticket'."""
+    import hmac as _h
+    prk = _h.new(b'\x00' * 32, bytes.fromhex(ws_hex), hashlib.sha256).digest()
+    return _h.new(prk, b'buzzdrop-collect-ticket' + b'\x01',
+                  hashlib.sha256).hexdigest()
 
 
 def login_user(client, username='testuser', password='password'):
@@ -428,7 +438,8 @@ def test_collect_page_gone_for_collected_expired_and_missing(client, files_store
     collected = _submitted_zone(client)
     assert _release(client, collected).status_code == 200
     assert client.get(
-        url_for('download_dropzone_submission', dropzone_id=collected)
+        url_for('download_dropzone_submission', dropzone_id=collected),
+        headers={'X-Collect-Ticket': _collect_ticket()}
     ).status_code == 200
 
     expired = _submitted_zone(client)
@@ -801,7 +812,8 @@ def test_submission_downloads_once(client, files_store):
     assert release.status_code == 200
 
     download = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        headers={'X-Collect-Ticket': _collect_ticket()})
     assert download.status_code == 200
     assert download.data == BLOB
     # the stream consumed the claim AND deleted the blob
@@ -811,6 +823,30 @@ def test_submission_downloads_once(client, files_store):
         url_for('download_dropzone_submission', dropzone_id=dropzone_id))
     assert again.status_code == 410
     assert again.get_json()['code'] == 'collected'
+
+
+def test_submission_download_needs_the_collect_ticket(client):
+    """The bare URL can't burn the one-shot claim: no ticket or a wrong
+    one → 410 'claimed', and the claim stays live for the real winner."""
+    login_user(client)
+    dropzone_id = _submitted_zone(client)
+    assert _release(client, dropzone_id).status_code == 200
+
+    no_ticket = client.get(
+        url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+    assert no_ticket.status_code == 410
+    assert no_ticket.get_json()['code'] == 'claimed'
+
+    wrong_ticket = client.get(
+        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        headers={'X-Collect-Ticket': _collect_ticket('ff' * 60)})
+    assert wrong_ticket.status_code == 410
+
+    # the claim itself survived both
+    ok = client.get(
+        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        headers={'X-Collect-Ticket': _collect_ticket()})
+    assert ok.status_code == 200
 
 
 def test_submission_download_window_closes(client, files_store, dropzone_settings):
@@ -860,7 +896,9 @@ def test_report_records_the_decryption(client, files_store):
     login_user(client)
     dropzone_id = _submitted_zone(client)
     assert _release(client, dropzone_id).status_code == 200
-    client.get(url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+    client.get(
+        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        headers={'X-Collect-Ticket': _collect_ticket()})
 
     response = client.post(
         url_for('report_dropzone_decryption', dropzone_id=dropzone_id),
@@ -1002,7 +1040,8 @@ def test_dropzone_round_trip(client, files_store):
     assert release.get_json()['ws'] == _WS
 
     download = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        headers={'X-Collect-Ticket': _collect_ticket()})
     assert download.status_code == 200
     assert download.data == BLOB
 

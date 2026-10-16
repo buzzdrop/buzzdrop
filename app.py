@@ -636,19 +636,12 @@ def _expire_dropzone(zone):
             return False
     except ValueError:
         return False
-    sub = file_repo.get_dropzone_submission(zone['id'])
-    if sub is not None:
-        # A landed submission outlives the request link's expiry — the
-        # deadline bounded the submit window, not the collection.
-        return False
-    file_repo.store.update_dropzone_fields(zone['id'], {
-        'status': 'expired', 'v': None, 'ws': None, 'sv': None,
-    })
-    if sub and sub.get('path'):
-        try:
-            storage.delete(sub['path'])
-        except Exception:
-            pass
+    # Conditional wipe: a consume racing this check wins — a landed
+    # submission outlives the request link's deadline either way, and
+    # an expired-but-consumed zone is not gone for its requester.
+    if not file_repo.expire_dropzone_unconsumed(zone['id']):
+        zone = file_repo.get_dropzone(zone['id'])
+        return zone is None or zone.get('link_consumed_at') is None
     zone['status'] = 'expired'
     return True
 
@@ -690,14 +683,7 @@ def sweep_expired_files() -> int:
         expired_count += 1
     # Dropzones go the same way: past expiry_at, or released and never
     # collected within DROPZONE_COLLECT_TTL_SECONDS.
-    for stale in file_repo.purge_expired_dropzones():
-        try:
-            storage.delete(stale['path'])
-        except Exception:
-            app.logger.exception(
-                'Expiry sweep could not delete the submission of '
-                'dropzone %s', stale['id'])
-        expired_count += 1
+    file_repo.purge_expired_dropzones()
     for stale in file_repo.expire_unclaimed_dropzone_releases(
             app.config['DROPZONE_COLLECT_TTL_SECONDS']):
         try:
@@ -1816,7 +1802,7 @@ def report_decryption(file_id):
 # --- Dropzones: the reversed one-shot flow (docs/adr/0001) ---
 
 _BKD1_MAGIC = b'BKD1'
-_BKD1_SALT_LENGTH = 32  # hex chars — 16 random bytes at zone creation
+_DROPZONE_SALT_LENGTH = 32  # hex chars — 16 random bytes at zone creation
 # A wrapped key is iv(12) ‖ AES-GCM(32-byte key) = 60 bytes = 120 hex.
 _WRAPPED_KEY_HEX_LENGTH = 120
 
@@ -1832,7 +1818,7 @@ def _is_valid_wrapped_key(value) -> bool:
 def _is_valid_salt_hex(value) -> bool:
     return (
         isinstance(value, str)
-        and len(value) == _BKD1_SALT_LENGTH
+        and len(value) == _DROPZONE_SALT_LENGTH
         and all(c in '0123456789abcdef' for c in value)
     )
 
@@ -1855,6 +1841,7 @@ def respond_dropzone(dropzone_id):
     dead drop link gets — the page reveals nothing about which."""
     zone = file_repo.get_dropzone(dropzone_id)
     if (not zone or zone.get('link_consumed_at') is not None
+            or zone.get('sv') is None
             or _expire_dropzone(zone)):
         return _drop_gone()
     return render_template(
@@ -1939,6 +1926,18 @@ def submit_dropzone(dropzone_id):
     if head != _BKD1_MAGIC:
         return _fail('Invalid submission', 'invalid_submission')
 
+    # Advisory sv check before touching storage: the atomic consume
+    # below stays authoritative, but a bare dropzone_id shouldn't be
+    # able to make the server write and delete blobs for free.
+    zone = file_repo.get_dropzone(dropzone_id)
+    if not zone:
+        refusal = SUBMIT_REFUSALS['missing']
+        return _fail(refusal.error, refusal.code, refusal.status)
+    if (zone.get('sv') is None
+            or not secrets.compare_digest(zone['sv'], sv)):
+        refusal = SUBMIT_REFUSALS['bad_sv']
+        return _fail(refusal.error, refusal.code, refusal.status)
+
     # The blob lands before the row that names it; a refused consume
     # deletes it again — sv is what actually gates the zone.
     try:
@@ -2017,6 +2016,10 @@ def create_dropzone():
     expiry_raw = data.get('expiry')
     expiry_iso = None
     if expiry_raw:
+        if not isinstance(expiry_raw, str):
+            return {'error': 'Expiry must be an ISO 8601 time with a time zone, '
+                             'e.g. 2026-12-31T23:59+01:00',
+                    'code': 'invalid_expiry'}, 400
         try:
             expiry_iso = parse_expiry(expiry_raw)
         except ValueError:
@@ -2025,7 +2028,7 @@ def create_dropzone():
                     'code': 'invalid_expiry'}, 400
 
     notification_email = None
-    if data.get('notify_on_submission'):
+    if data.get('notify_on_submission') is True:
         try:
             notification_email = _notification_email_for(
                 g.username, str(data.get('notification_email') or '').strip())
@@ -2037,7 +2040,8 @@ def create_dropzone():
         if bearer_token() is not None
         else i18n.current_language()
     )
-    memo = str(data.get('memo') or '').strip() or None
+    memo_raw = data.get('memo')
+    memo = str(memo_raw).strip()[:200] or None if memo_raw is not None else None
 
     dropzone_id = file_repo.create_dropzone({
         'salt': salt,
@@ -2218,8 +2222,10 @@ def download_dropzone_submission(dropzone_id):
     """
     Serve the submission ciphertext once, to the owning requester who
     won the release. The blob's claim is consumed before the body
-    streams — like /download, a broken-off transfer cannot resume. No
-    ticket: the session is the binding.
+    streams — like /download, a broken-off transfer cannot resume. The
+    session scopes ownership; the X-Collect-Ticket header carries the
+    ticket derived from wS at the winning release, so the URL alone
+    can't burn the one-shot claim.
     """
     zone = file_repo.get_dropzone(dropzone_id)
     if not zone or zone.get('created_by') != g.username:
@@ -2227,11 +2233,14 @@ def download_dropzone_submission(dropzone_id):
 
     result = file_repo.claim_dropzone_submission(
         dropzone_id, get_client_ip(),
+        request.headers.get('X-Collect-Ticket'),
         current_app.config['DROPZONE_COLLECT_TTL_SECONDS'])
     status = result['status']
 
     if status == 'not_released':
         return {'error': 'Forbidden'}, 403
+    if status == 'claimed':
+        return {'error': 'Already released', 'code': 'claimed'}, 410
     if status == 'expired' and result.get('path'):
         try:
             storage.delete(result['path'])

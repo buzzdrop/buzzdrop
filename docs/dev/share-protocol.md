@@ -95,7 +95,7 @@ The reversed flow (`docs/adr/0001-dropzone-reverse-flow.md`): a requester create
 - `/api/dropzones` (POST): creates the zone (`created_by` = the authed user; shares the `UPLOAD_RATE_LIMIT` bucket) and (GET) lists the caller's zones for the index section and API clients. `/api/dropzones/<id>` (GET) returns the salt and submission metadata, owner-only (404 otherwise).
 - `/dropzones/<id>/release` (POST): password-first `wS` release, owner-only. Rate-limited per `dropzone_id` via `DROPZONE_RELEASE_RATE_LIMIT`.
   - Answers mirror `/release`: 403 on a wrong verifier (`attempts_remaining`), 429 on the attempt that locks, 410 after release or expiry (`code: 'expired'`), 409 `no_submission` when the link hasn't been used (wS must not leave before there is something to decrypt), a uniform 404 when the zone is missing or not the caller's.
-- `/dropzones/<id>/submission` (GET): streams the blob once to the owner who won the release. 403 `not_released`; 404 `missing`/`no_submission`; 410 `collected` after collection; 410 `expired` past `DROPZONE_COLLECT_TTL_SECONDS` since the release. A zone's own `expiry_at` bounds only the request link — a landed submission stays collectable past it.
+- `/dropzones/<id>/submission` (GET): streams the blob once to the owner who won the release — requires the `X-Collect-Ticket` header, derived client-side from `wS` (`HKDF` info `buzzdrop-collect-ticket`); the release stores only its SHA-256, so the bare session URL can't burn the one-shot claim. 403 `not_released`; 404 `missing`/`no_submission`; 410 `collected` after collection; 410 `expired` past `DROPZONE_COLLECT_TTL_SECONDS` since the release. A zone's own `expiry_at` bounds only the request link — a landed submission stays collectable past it.
 - `/dropzones/<id>/report` (POST): receipt-gated proof of decryption, public like `/report_decryption` (403 `Invalid receipt`), rate-limited per `dropzone_id` by `REPORT_DECRYPTION_RATE_LIMIT`.
 - `/dropzones/<id>/delete` (POST): manual deletion by the owner; drops both rows, and the caller deletes the blob.
 
@@ -107,7 +107,7 @@ The reversed flow (`docs/adr/0001-dropzone-reverse-flow.md`): a requester create
 - **Release:** `released_at` set, `v`/`ws`/`sv` wiped in the same transaction — a post-release DB theft yields nothing crackable.
 - **Collect:** `collected_at`/`collected_by_ip` set, the blob streams and is deleted; the browser decrypts and reports the receipt (`decryption_success` written once).
 - **Released but never collected** expires after `DROPZONE_COLLECT_TTL_SECONDS`: `expire_unclaimed_dropzone_releases` marks the zone expired, deletes the submission row, and the sweep deletes the blob.
-- **Expiry:** `purge_expired_dropzones` (and `_expire_dropzone` on read paths) wipes `v`/`ws`/`sv`, marks the zone expired, drops the submission row and deletes the blob. Zone rows stay for bookkeeping until `POST /dropzones/<id>/delete` removes zone + submission + blob.
+- **Expiry:** `purge_expired_dropzones` (and `expire_dropzone_unconsumed` on read paths) wipes `v`/`ws`/`sv` and marks the zone expired — only while the link is unconsumed. `expiry_at` bounds the request link's submit window; a landed submission outlives it and stays collectable until the requester fetches it or deletes the zone. Zone rows stay for bookkeeping until `POST /dropzones/<id>/delete` removes zone + submission + blob.
 
 ## Explainer page
 

@@ -1063,6 +1063,7 @@ _HKDF_INFO_FILE = b'file'
 MAGIC_BKD1 = b'BKD1'
 _HKDF_INFO_DZ_WRAP = b'dz-wrap'
 _HKDF_INFO_DZ_SUBMIT = b'submit'
+_HKDF_INFO_DZ_COLLECT_TICKET = b'buzzdrop-collect-ticket'
 _DZ_SECRET_LEN = 32
 # wS / wK on the wire: iv(12) ‖ AES-GCM ct (32-byte key + 16-byte tag).
 _WRAPPED_KEY_LEN = _IV_LEN + _DZ_SECRET_LEN + 16
@@ -1454,6 +1455,7 @@ def upload_begin(server: str, token: str) -> dict | None:
             headers={
                 'Authorization': f'Bearer {token}',
                 'X-Requested-With': 'XMLHttpRequest',
+                **(extra_headers or {}),
             },
             timeout=30,
         )
@@ -1683,7 +1685,8 @@ def decrypt_dropzone_submission(blob: bytes, k: bytes
 
 
 def _dropzone_request(method: str, server: str, token: str, path: str,
-                      json_body: dict = None, stream: bool = False):
+                      json_body: dict = None, stream: bool = False,
+                      extra_headers: dict = None):
     """
     One Bearer-authed dropzone API call. Returns the Response for the
     caller to interpret (403s and 410s carry meaning per route); exits on
@@ -1697,6 +1700,7 @@ def _dropzone_request(method: str, server: str, token: str, path: str,
             headers={
                 'Authorization': f'Bearer {token}',
                 'X-Requested-With': 'XMLHttpRequest',
+                **(extra_headers or {}),
             },
             json=json_body,
             timeout=120,
@@ -1762,6 +1766,7 @@ def _report_dropzone_result(server: str, token: str, dropzone_id: str,
             headers={
                 'Authorization': f'Bearer {token}',
                 'X-Requested-With': 'XMLHttpRequest',
+                **(extra_headers or {}),
             },
             json={
                 'success': bool(success),
@@ -1921,10 +1926,13 @@ def cmd_dropzone_collect(args) -> None:
         sys.exit(1)
 
     # The claim is consumed before the body streams — one shot, like
-    # /download; a broken transfer cannot resume.
+    # /download; a broken transfer cannot resume. The ticket proves we
+    # hold the released wS: without it the bare URL can't burn the claim.
+    collect_ticket = _hkdf(ws, b'\x00' * 32,
+                           _HKDF_INFO_DZ_COLLECT_TICKET).hex()
     resp = _dropzone_request(
         'GET', server, token, f'/dropzones/{dropzone_id}/submission',
-        stream=True)
+        stream=True, extra_headers={'X-Collect-Ticket': collect_ticket})
     if resp.status_code == 403:
         print("Error: dropzone is not released.", file=sys.stderr)
         sys.exit(1)
@@ -1958,6 +1966,12 @@ def cmd_dropzone_collect(args) -> None:
             server, token, dropzone_id, success=False, receipt=None)
         print(f"Error: decryption failed: {exc}", file=sys.stderr)
         sys.exit(1)
+
+    if submission.get('type') == 'text' and not args.output:
+        _report_dropzone_result(
+            server, token, dropzone_id, success=True, receipt=receipt)
+        print(data.decode('utf-8', errors='replace'))
+        return
 
     out_name = os.path.basename(name or '') or 'submission'
     out_path = args.output or out_name

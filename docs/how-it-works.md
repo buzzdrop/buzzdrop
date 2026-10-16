@@ -4,7 +4,7 @@ The user-facing account of what happens when you share a file or a note with Buz
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
-<!-- how-it-works-fingerprint: sha256:f20084b1c59006e986223c8bde2f0fd57178947de51620fc2072f54c380e3e26 -->
+<!-- how-it-works-fingerprint: sha256:035d1f7f6609e408fa4537044d71f302deda87cb68c212ae392ad1246df9b059 -->
 
 > **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto (drops and dropzone submissions), the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release and dropzone defaults, and the server code that releases, serves, expires and deletes a drop or a dropzone submission (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc and the page against the change, fix whichever is now wrong, and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer page — keep in step" says the same for reviewers.
 
@@ -176,7 +176,7 @@ The same guarantees, direction reversed: a requester creates a one-time dropzone
 ### 4. Collect once
 
 - **Who acts:** the requester's browser, then the server.
-- **What crosses the wire:** `GET /dropzones/<id>/submission`, signed in as the zone's owner. The server streams the ciphertext back, once.
+- **What crosses the wire:** `GET /dropzones/<id>/submission`, signed in as the zone's owner, with a collect ticket in `X-Collect-Ticket` — derived from the released `wS` (`HKDF` info `buzzdrop-collect-ticket`), the same one-shot ticket trick the drop download uses. The server streams the ciphertext back, once.
 - **What the server sees:** the collection, which it stores with the time and the requester's IP address.
 - **Never sees:** `s`, `K` and the content.
 - **Then:** the ciphertext is deleted from storage once the stream ends, even if it broke off. A released zone nobody collects within 10 minutes (`DROPZONE_COLLECT_TTL_SECONDS`) expires the same way. The browser unwraps `s` from `wS`, unwraps `K` from `wK`, decrypts and posts the receipt to `POST /dropzones/<id>/report`, so the requester's list shows whether decryption worked.

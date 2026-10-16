@@ -64,6 +64,7 @@ The reversed flow's zone record (docs/adr/0001; protocol: `docs/dev/share-protoc
 - `link_consumed_at`: set once by `consume_for_submission` in the same transaction that inserts the submission — one link, one shot
 - `released_at`: set once by `attempt_dropzone_release`, which also wipes `v`, `ws` and `sv`
 - `collected_at`, `collected_by_ip`: stamped by `claim_dropzone_submission` when the owner fetches the blob
+- `ticket_hash`: SHA-256 of the collect ticket derived from `wS` at the winning release; `claim_dropzone_submission` requires it, so the bare URL can't burn the one-shot claim
 - `status` (active/expired)
 - `notify_on_submission`, `notification_email`, `notification_sent_at`, `notification_claimed_at`: the submission-landed email, claimed then marked like the drop-opened one
 - `language`: the zone's language, used for the notification email
@@ -76,12 +77,13 @@ At most one row per zone (`dropzone_id UNIQUE`) — the responder's ciphertext p
 - `id` (UUID), `dropzone_id` (unique), `path` (local path or S3 key), `type` (`'file'` or `'text'`)
 - `wk`: the submission key wrapped under `s`, hex (`iv ‖ AES-GCM ct`). Served to the owner with the zone metadata before collection.
 - `receipt_hash`: SHA-256 of the in-plaintext decryption receipt. `/dropzones/<id>/report` must present a matching receipt.
+- `submitted_by_ip`: the responder's IP at consume time — the requester's audit mirror of `downloaded_by_ip`
 - `decryption_success`: a bool, NULL-guarded and written once by `record_dropzone_decryption`.
 - `created_at`
 
 How rows and secrets go away:
 - `delete_dropzone()` drops both rows in one transaction; the caller deletes the blob.
 - Collection stamps `collected_at` on the zone and streams the blob once; the route deletes it after the stream. The submission row stays so the list shows collected/decrypted.
-- `purge_expired_dropzones()` wipes the zone's secrets, marks it expired and deletes the submission row; the sweep deletes the blob. `_expire_dropzone` does the same lazily on read paths.
+- `purge_expired_dropzones()` wipes the zone's secrets and marks it expired — but only while the link is unconsumed (`NOT EXISTS` a submission): `expiry_at` bounds the submit window, not collection, so a landed submission outlives it. `_expire_dropzone` does the same lazily on read paths, race-safe via `expire_dropzone_unconsumed`.
 - `expire_unclaimed_dropzone_releases()` expires a zone released but never collected within `DROPZONE_COLLECT_TTL_SECONDS`, the same way — part of the expiry sweep, and `claim_dropzone_submission` refuses a late collect the same way.
 - Wrong-password misses increment `attempts`; at `DROPZONE_MAX_ATTEMPTS` the zone locks, and `DROPZONE_BURN_ON_LOCKOUT` (off by default) decides whether the secrets are wiped too.

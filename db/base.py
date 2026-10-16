@@ -364,12 +364,15 @@ class FileStore(ABC):
 
     @abstractmethod
     def claim_dropzone_submission(self, dropzone_id: str, ip_address: str,
+                                  ticket_hex: Optional[str] = None,
                                   ttl_seconds: Optional[int] = None
                                   ) -> Dict[str, Any]:
         """
         Claim the released submission blob in one transaction — the
         dropzone mirror of ``claim_download_with_ticket``, with session
-        ownership checked by the caller instead of a bearer ticket.
+        ownership checked by the caller, plus a collect ticket
+        derived from wS at the winning release so the URL alone
+        can't burn the one-shot claim.
 
         A release left uncollected for at least ``ttl_seconds`` (or an
         unparseable ``released_at`` — fail closed) expires the zone and
@@ -383,6 +386,12 @@ class FileStore(ABC):
             ``wk``, ``type``, ``submission_id``; ``collected_at`` and
             ``collected_by_ip`` stamped).
         """
+
+    @abstractmethod
+    def expire_dropzone_unconsumed(self, dropzone_id: str) -> bool:
+        """Expire the zone only while its request link is unconsumed
+        (atomic counterpart of the lazy expiry check — a concurrent
+        consume wins)."""
 
     @abstractmethod
     def get_dropzone_submission(self, dropzone_id: str
