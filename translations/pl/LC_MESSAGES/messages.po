@@ -2780,8 +2780,9 @@ msgid "Next"
 msgstr "Następna"
 
 #: templates/index.html
-msgid "Dropzones"
-msgstr "Skrytki"
+#, fuzzy
+msgid "Your dropzones"
+msgstr "Twoje skrytki"
 
 #: templates/index.html
 msgid ""

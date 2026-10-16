@@ -2464,7 +2464,7 @@ msgid "Next"
 msgstr ""
 
 #: templates/index.html
-msgid "Dropzones"
+msgid "Your dropzones"
 msgstr ""
 
 #: templates/index.html
