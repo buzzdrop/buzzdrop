@@ -30,7 +30,7 @@ msgstr "Serwer nie przyjął przesyłki. Spróbuj ponownie."
 msgid "Choose a valid expiry time."
 msgstr "Wybierz poprawny termin ważności."
 
-#: app.py templates/_composer_strings.html
+#: app.py templates/_composer_strings.html templates/_respond_strings.html
 msgid "That file type is not allowed."
 msgstr "Ten typ pliku jest niedozwolony."
 

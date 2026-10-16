@@ -7,6 +7,7 @@
 import { required } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
 import { hexToBytes, bytesToHex } from '../../lib/hex.js';
+import { isAllowedFile } from '../../lib/file-extensions.js';
 import { sealSubmission } from '../../lib/dropzone-crypto.js';
 
 /** @typedef {import('../../lib/hex.js').Bytes} Bytes */
@@ -94,6 +95,10 @@ export function initRespond(root, deps) {
         } else {
             const file = fileInput.files && fileInput.files[0];
             if (!file) { fail(strings.text('chooseFile')); return; }
+            if (!isAllowedFile(file.name, config.allowedExtensions)) {
+                fail(strings.text('fileTypeNotAllowed'));
+                return;
+            }
             if (file.size > config.maxBytes) { fail(strings.text('fileTooLarge')); return; }
             data = new Uint8Array(await file.arrayBuffer());
             name = file.name;

@@ -26,7 +26,7 @@ msgstr ""
 msgid "Choose a valid expiry time."
 msgstr ""
 
-#: app.py templates/_composer_strings.html
+#: app.py templates/_composer_strings.html templates/_respond_strings.html
 msgid "That file type is not allowed."
 msgstr ""
 
