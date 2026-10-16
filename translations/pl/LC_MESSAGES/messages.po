@@ -500,11 +500,15 @@ msgstr "Tworzenie…"
 
 #: templates/_dropzones_strings.html
 msgid ""
-"Dropzone created — send this request link to whoever should drop a file "
-"or note in:"
+"Dropzone created — copy the request link now; it is never shown again. "
+"The link carries the secret itself, so the server cannot recreate it."
 msgstr ""
-"Skrytkę utworzono – wyślij link do skrytki osobie, która ma złożyć plik "
-"lub notatkę:"
+"Skrytka utworzona — skopiuj teraz link do niej, bo już się nie wyświetli."
+" Link sam niesie sekret, więc serwer nie potrafi go odtworzyć."
+
+#: templates/_dropzones_strings.html
+msgid "Link lost? This dropzone is dead weight — delete it and create a new one."
+msgstr "Zgubiłeś link? Ta skrytka to martwy ciężar — usuń ją i utwórz nową."
 
 #: templates/_dropzones_strings.html templates/index.html
 msgid "Copy request link"

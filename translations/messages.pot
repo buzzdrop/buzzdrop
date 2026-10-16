@@ -480,8 +480,12 @@ msgstr ""
 
 #: templates/_dropzones_strings.html
 msgid ""
-"Dropzone created — send this request link to whoever should drop a file "
-"or note in:"
+"Dropzone created — copy the request link now; it is never shown again. "
+"The link carries the secret itself, so the server cannot recreate it."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Link lost? This dropzone is dead weight — delete it and create a new one."
 msgstr ""
 
 #: templates/_dropzones_strings.html templates/index.html

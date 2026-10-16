@@ -381,6 +381,12 @@ function initDropzones(root, deps, strings) {
             const sub = root.createElement('p');
             sub.className = 'text-xs text-slate-500';
             sub.textContent = strings.text(state) + (z.submission_type ? ' · ' + kind : '');
+            if (state === 'awaiting') {
+                const hint = root.createElement('p');
+                hint.className = 'mt-0.5 text-xs text-slate-600';
+                hint.textContent = strings.text('linkLost');
+                meta.append(hint);
+            }
             meta.append(title, sub);
             li.append(meta);
             if (state === 'ready') {
