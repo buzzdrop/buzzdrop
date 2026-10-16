@@ -9,8 +9,9 @@
 `CONTEXT.md` has no terms for the reversed flow yet; the following are
 proposed here and should land in the glossary when this ships:
 
-- **Dropzone**: a user's standing invitation to receive drops. The inverse
-  of a drop: the account holder *receives*, the anonymous visitor *sends*.
+- **Dropzone**: a user's one-time invitation to receive one drop. The
+  inverse of a drop: the account holder *receives*, the anonymous
+  visitor *sends*.
 - **Requester**: the user who creates a dropzone. (The glossary's *sender*
   doesn't fit — the requester sends nothing.)
 - **Responder**: whoever opens a request link and drops a file or note into
@@ -64,7 +65,9 @@ Two secrets and the password gate, reused.
 5. The browser emits the **request link** (for the responder):
    `/d/<dropzone_id>#s=<s>` — `s` rides in the fragment and never reaches
    the server. The requester keeps nothing but the password in their head;
-   the dropzone appears in their account's list.
+   the dropzone appears in their account's list. The zone carries exactly
+   one link; a dead link means a new dropzone, so creation must stay
+   cheap.
 
 **At submission (responder):**
 
@@ -87,14 +90,15 @@ Two secrets and the password gate, reused.
 
 **At collection (requester):**
 
-1. The requester opens the dropzone in their list; each pending submission
-   is a row of `{ct, wK}`.
+1. The requester opens the dropzone in their list; its single submission
+   shows as `{ct, wK}`.
 2. Click → password prompt → the browser derives `V` from the attempt; the
    server compares `V` and only then releases `wS` + the ciphertext —
    identical to today's "password first, ciphertext second" gating with
    `attempts`, `KEY_RELEASE_MAX_ATTEMPTS` and lockout.
 3. The browser unwraps `s`, unwraps `K`, decrypts, verifies the receipt.
-   The submission row is deleted on collection — one-time, mirroring a drop.
+   The submission row is deleted on collection and the dropzone is
+   spent — one-time, mirroring a drop.
 
 ### Why not asymmetric crypto
 
@@ -131,13 +135,15 @@ Two secrets and the password gate, reused.
   named request links (which also give free "from whom" attribution), and
   UI that presents submissions as unverified pending out-of-band
   confirmation.
-- The one-time request link is what makes carrying `s` in it acceptable:
-  for 1-to-1, "who may submit" ≈ "who may read that one submission".
-  **This is the load-bearing assumption.** In multi-responder mode, `s` in
-  a shared link would let every responder decrypt everyone's submissions
-  given ciphertext access — at that point `s` in the link must be replaced
-  by an ephemeral ECDH keypair (WebCrypto, ~30 lines, still no OpenPGP).
-  Design the link payload so that piece can be swapped without a redesign.
+- The one-shot dropzone is what makes carrying `s` in the link safe:
+  "who may submit" ≈ "who may read that one submission" holds literally,
+  because the zone dies with its first submission. **This is the
+  load-bearing assumption.** Any multi-use variant (extra links or
+  responders on one zone) would share `s` between link holders — every
+  past link holder could read every future `wK` given ciphertext access —
+  so reuse needs per-link secrets or `s` rotation at collection (and, for
+  multi-responder, an ephemeral-ECDH swap; WebCrypto, ~30 lines, still no
+  OpenPGP). Deferred; see *Deferred* below.
 - Wrong-password lockout is harsher here than in send flow: a typo at the
   last attempt locks a submission the responder can never re-send (their
   request link is already dead). Decide per-dropzone whether lockout
@@ -180,6 +186,18 @@ touches the server.
   flow in the same PR.
 - i18n: respond page, password prompt, list strings.
 - `CONTEXT.md` gains the vocabulary section above.
-- Out of scope for v1: multi-responder links, per-submission passwords,
-  responder metadata, submission placement questions (they are normal
-  blobs — `STORAGE_BACKEND` applies unchanged).
+- Out of scope for v1: multi-use dropzones (a zone surviving its first
+  submission — see *Deferred*), multi-responder links, per-submission
+  passwords, responder metadata, download limits, submission placement
+  questions (they are normal blobs — `STORAGE_BACKEND` applies
+  unchanged).
+
+## Deferred
+
+- **Dropzone model — one-shot vs multi-use.** v1 is strictly one-shot:
+  one link, one submission, zone spent. Whether a dropzone should ever
+  mint another link — and the mechanism for it (`s` rotation at
+  collection, per-link `wS`, or ECDH per responder) — is a product
+  decision deferred to "dropzone as a feature — model decision". Until
+  it lands, "collect from N people" is N dropzones: creation is meant to
+  be cheap enough for that not to hurt.
