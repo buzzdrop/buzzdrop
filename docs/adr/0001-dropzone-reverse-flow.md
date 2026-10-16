@@ -71,9 +71,12 @@ Two secrets and the password gate, reused.
 1. The responder opens the request link; the server only sees `dropzone_id`
    and marks the link consumed once a valid submission lands (one-time
    link).
-2. The responder's browser draws a fresh per-submission key `K`, encrypts
-   the payload (`BKV3` envelope unchanged: `receipt ‖ name ‖ data` under
-   AES-GCM), and wraps `K` under `s`: `wK = AES-GCM(s, K)`.
+2. The responder's browser draws a fresh per-submission key `K` and
+   encrypts the payload under AES-GCM. The plaintext keeps BKV3's inner
+   layout — `BKP-FIL2 ‖ receipt ‖ name_len ‖ name ‖ data` — but the
+   envelope is a **second format**, `BKD1 ‖ iv(12) ‖ ciphertext`: BKV3's
+   `salt` exists to feed the password KDF, and a random `K` has nothing
+   to derive from it. Then `K` is wrapped under `s`: `wK = AES-GCM(s, K)`.
 3. POST `{ dropzone_id, ct, wK, receipt_hash, sv }`, where `sv` is the
    responder's `SV` re-derived from `#s`. The server constant-time
    compares `sv` to `SV` *before* consuming the link, and the
@@ -163,6 +166,9 @@ touches the server.
 
 ## Consequences
 
+- Submissions are a second share format (`BKD1`), so the "BKV3 is the
+  only share format" invariant and `docs/dev/share-protocol.md` must be
+  updated in the implementation PR.
 - New server objects: `dropzones` table (id, salt, wS, V, SV, expiry,
   requester) and dropzone submissions (ct, wK, receipt_hash; the `sv`
   field is verified then discarded).
