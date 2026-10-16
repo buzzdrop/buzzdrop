@@ -50,9 +50,8 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
    (amber) or burn (rose), with what it sees and what it never sees.
    A packet that is only protocol names (V, file_id + H) is the same in
    every language, so it is marked translate="no" rather than translated. #}
-{% macro actor_label(role, labels=none) -%}
-{%- if labels and labels.get(role) -%}{{ labels.get(role) }}
-{%- elif role == 'sender' -%}<span {{ show('sender', 'web') }}>{{ _('Your browser') }}</span><span {{ show('sender', 'cli') }}>{{ _('Your terminal') }}</span>
+{% macro actor_label(role) -%}
+{%- if role == 'sender' -%}<span {{ show('sender', 'web') }}>{{ _('Your browser') }}</span><span {{ show('sender', 'cli') }}>{{ _('Your terminal') }}</span>
 {%- elif role == 'server' -%}{{ _('Buzzdrop server') }}
 {%- else -%}{{ _('Recipient’s browser') }}{%- endif -%}
 {%- endmacro %}
@@ -81,38 +80,6 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
                'lens': ('burn', _('<code>H</code> destroyed, ciphertext deleted'), _('The content, then or ever'))},
 } %}
 
-{# The dropzone flow (ADR-0001), mirrored from the doc's "Collecting
-   secrets: the dropzone" under the same step ids. Same scene vocabulary;
-   `labels` renames the fixed actor cards — 'sender' is the requester,
-   'recipient' the responder — so the wires keep working. #}
-{% set dz_actors = {'sender': _('Requester’s browser'), 'recipient': _('Responder’s browser')} %}
-{% set dz_create_out %}<span translate="no">salt + wS + V + SV</span>{% endset %}
-{% set dz_submit_back %}<span translate="no">ct + wK + sv</span>{% endset %}
-{% set dz_release_out %}<span translate="no">wS</span>{% endset %}
-{% set dropzone_steps = [
-    ('dz-create', _('Create the dropzone and get a request link')),
-    ('dz-submit', _('The responder submits, once')),
-    ('dz-release', _('Prove the dropzone password')),
-    ('dz-collect', _('Collect once')),
-    ('dz-expiry', _('Expiry and delete')),
-] %}
-{% set dropzone_scenes = {
-    'dz-create': {'lit': ['sender', 'server'], 'labels': dz_actors,
-                  'left': [('out', dz_create_out), ('back', pgettext('how-it-works diagram', 'request link'))],
-                  'lens': ('some', _('The salt, <code>wS</code>, <code>V</code> and <code>SV</code>'), _('<code>s</code> and the password'))},
-    'dz-submit': {'lit': ['server', 'recipient'], 'labels': dz_actors,
-                  'right': [('back', dz_submit_back), ('out', pgettext('how-it-works diagram', 'submitted'))],
-                  'lens': ('some', _('Ciphertext, <code>wK</code> and <code>sv</code>'), _('<code>s</code>, <code>K</code> and the content'))},
-    'dz-release': {'lit': ['sender', 'server'], 'labels': dz_actors,
-                   'left': [('out', v_only), ('back', dz_release_out)],
-                   'lens': ('some', _('<code>V</code> and an IP address'), _('The password'))},
-    'dz-collect': {'lit': ['sender', 'server'], 'labels': dz_actors,
-                   'left': [('out', pgettext('how-it-works diagram', 'collect')), ('back', pgettext('how-it-works diagram', 'ciphertext')), ('out', pgettext('how-it-works diagram', 'receipt'))],
-                   'lens': ('some', _('That it was collected, and an IP address'), _('<code>s</code>, <code>K</code> and the content'))},
-    'dz-expiry': {'lit': ['server'], 'labels': dz_actors, 'burn': True,
-                  'lens': ('burn', _('<code>wS</code>, <code>V</code> and <code>SV</code> wiped, ciphertext deleted'), _('The content, then or ever'))},
-} %}
-
 {% set content_cli_hint = _('Text is off: the CLI sends files only.') %}
 {% set facts_label = _('What happens') %}
 
@@ -120,8 +87,6 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 
 {% set flow_lead %}{% trans %}Web app or CLI, file or text: it is the same protocol and the same crypto. Pick a view and the steps change to match.{% endtrans %}{% endset %}
 
-{% set dropzone_heading = _('Collecting secrets: the dropzone') %}
-{% set dropzone_lead = _('The same flow in reverse: you hand out one request link, someone submits into it, and you collect once.') %}
 {% set sees_heading = _('What the server sees') %}
 {% set sees_lead = _('Everything that reaches us, set against what never does.') %}
 {% set keep_heading = _('What we keep, and for how long') %}
@@ -230,57 +195,6 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
 <dd>{% trans %}When a drop’s expiry passes, or you delete it from your list, <code>H</code> is destroyed and the ciphertext is deleted from storage. Expiry is checked whenever the link is opened and on a timer (every five minutes by default). The database overwrites what it deletes, which reduces, but doesn’t rule out, traces of <code>H</code> left in its file.{% endtrans %}</dd>
 <dt>{{ _('Why') }}</dt>
 <dd>{% trans %}<code>H</code> never outlives the drop. Even if deleting the ciphertext from storage failed, without <code>H</code> it can’t be decrypted.{% endtrans %}</dd>
-{% elif id == 'dz-create' %}
-<dt>{{ _('Who acts') }}</dt>
-<dd>{% trans %}Your browser, then the server.{% endtrans %}</dd>
-<dt>{{ _('What happens') }}</dt>
-<dd>{% trans %}Your browser draws a random dropzone secret <code>s</code> and derives two keys from the dropzone password: <code>Kw</code> for wrapping and a verifier <code>V</code> for proving the password later. It wraps <code>s</code> into <code>wS</code> and derives the submit verifier <code>SV</code> — proof that a submitter holds the link.{% endtrans %}</dd>
-<dt>{{ _('What crosses the wire') }}</dt>
-<dd>{% trans %}<code>POST /api/dropzones</code> with the salt, <code>wS</code>, <code>V</code> and <code>SV</code>, signed in by your session or API token. The server answers with a <code>dropzone_id</code>.{% endtrans %}</dd>
-<dt>{{ _('What the server sees') }}</dt>
-<dd>{% trans %}The salt, <code>wS</code>, <code>V</code>, <code>SV</code>, an optional expiry, an optional memo and an optional notification address. Never <code>s</code> or the password.{% endtrans %}</dd>
-<dt>{{ pgettext('how-it-works step', 'Then') }}</dt>
-<dd>{% trans %}Your browser builds the request link <code>/dropzone/&lt;id&gt;#s=…</code>. <code>s</code> sits after the <code>#</code>, so it never reaches the server. One zone carries exactly one link; a dead link means a new zone.{% endtrans %}</dd>
-{% elif id == 'dz-submit' %}
-<dt>{{ _('Who acts') }}</dt>
-<dd>{% trans %}The responder’s browser, then the server. The responder needs no account — only the request link.{% endtrans %}</dd>
-<dt>{{ _('What happens') }}</dt>
-<dd>{% trans %}The browser takes <code>s</code> from the link’s fragment, draws a fresh random key <code>K</code>, and encrypts the file or note. It wraps <code>K</code> under <code>s</code> into <code>wK</code>, and posts the ciphertext, <code>wK</code>, <code>SHA-256(receipt)</code> and its own <code>SV</code> to <code>POST /dropzone/&lt;id&gt;/submit</code>.{% endtrans %}</dd>
-<dt>{{ _('What the server sees') }}</dt>
-<dd>{% trans %}The ciphertext and its approximate size, <code>wK</code>, the receipt’s hash and <code>sv</code>. It checks <code>sv</code> before consuming the link, in one transaction — so a bare <code>dropzone_id</code> can’t burn the link and racing submissions get exactly one winner.{% endtrans %}</dd>
-<dt>{{ _('Never sees') }}</dt>
-<dd>{% trans %}<code>s</code>, <code>K</code> and the content. The filename travels inside the ciphertext here too.{% endtrans %}</dd>
-<dt>{{ pgettext('how-it-works step', 'Then') }}</dt>
-<dd>{% trans %}The request link is consumed; a second submission is refused. If you asked for it, an email says a submission landed.{% endtrans %}</dd>
-{% elif id == 'dz-release' %}
-<dt>{{ _('Who acts') }}</dt>
-<dd>{% trans %}Your browser, signed in, then the server.{% endtrans %}</dd>
-<dt>{{ _('What crosses the wire') }}</dt>
-<dd>{% trans %}The browser derives <code>V</code> from the typed dropzone password and posts it to <code>POST /dropzones/&lt;id&gt;/release</code>. Never the password.{% endtrans %}</dd>
-<dt>{{ _('What the server sees') }}</dt>
-<dd>{% trans %}<code>V</code>, and your IP address, which it logs with a successful or wrong attempt. It compares <code>V</code> with the stored one in a single database transaction.{% endtrans %}</dd>
-<dt>{{ _('On a match') }}</dt>
-<dd>{% trans %}The server hands over <code>wS</code>, once, and wipes <code>wS</code>, <code>V</code> and <code>SV</code> from its database.{% endtrans %}</dd>
-<dt>{{ _('On a wrong password') }}</dt>
-<dd>{% trans %}Three wrong passwords lock the zone by default, so the server refuses every later attempt but keeps the secrets. A locked zone strands the submission — the responder’s link is already dead, which is why the default is gentler than a drop’s.{% endtrans %}</dd>
-<dt>{{ _('Why') }}</dt>
-<dd>{% trans %}<code>wS</code> is the only way back to <code>s</code>, and <code>s</code> unwraps everything else. Password first, ciphertext second, exactly once.{% endtrans %}</dd>
-{% elif id == 'dz-collect' %}
-<dt>{{ _('Who acts') }}</dt>
-<dd>{% trans %}Your browser, then the server.{% endtrans %}</dd>
-<dt>{{ _('What crosses the wire') }}</dt>
-<dd>{% trans %}<code>GET /dropzones/&lt;id&gt;/submission</code>, signed in as the zone’s owner. The server streams the ciphertext back, once.{% endtrans %}</dd>
-<dt>{{ _('What the server sees') }}</dt>
-<dd>{% trans %}The collection, which it stores with the time and your IP address. Never <code>s</code>, <code>K</code> or the content.{% endtrans %}</dd>
-<dt>{{ pgettext('how-it-works step', 'Then') }}</dt>
-<dd>{% trans %}The ciphertext is deleted from storage once the stream ends, even if it broke off. A released zone nobody collects within 10 minutes expires the same way. The browser unwraps <code>s</code>, unwraps <code>K</code>, decrypts and reports the receipt, so your list shows whether decryption worked.{% endtrans %}</dd>
-{% elif id == 'dz-expiry' %}
-<dt>{{ _('Who acts') }}</dt>
-<dd>{{ _('The server, or you.') }}</dd>
-<dt>{{ _('What happens') }}</dt>
-<dd>{% trans %}When a zone’s expiry passes, or you delete the zone, <code>wS</code>, <code>V</code> and <code>SV</code> are wiped and the submission’s ciphertext is deleted from storage. The zone’s record stays in your list until you delete it.{% endtrans %}</dd>
-<dt>{{ _('Why') }}</dt>
-<dd>{% trans %}Without <code>wS</code> the wrapped secret is unreachable, and without the ciphertext there is nothing to unwrap. A dropzone is spent after its first collection: one link, one submission, one collection.{% endtrans %}</dd>
 {% endif %}
 {%- endmacro %}
 
@@ -301,7 +215,6 @@ data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else con
      _('Until the release succeeds, the drop locks, it expires, or it is deleted, whichever comes first.') if burn_on_lockout
      else _('Until the release succeeds, it expires, or it is deleted, whichever comes first. A locked drop keeps them, refusing every attempt, until it expires or is deleted.')),
     (_('The drop’s record'), _('Until you delete it'), _('The filename (or “Secret Note”), the sender’s account, when it was created, its expiry, when it was opened and from which IP address, whether decryption worked, the receipt’s hash, and the sender’s optional memo and notification address; also the language it was sent in, which the notification is written in. Beside it, what is left of the key share once <code>H</code> and <code>V</code> are gone: the password’s salt, the count of wrong attempts and when it was released. All of it stays in the sender’s list until the sender deletes it; nothing purges it automatically.')),
-    (_('The dropzone’s record'), _('Until you delete it'), _('The requester’s account, when it was created, its expiry, when the request link was consumed, when it was released and collected and from which IP address, the count of wrong attempts, the password’s salt, and the optional memo, notification address and language. The submission’s record keeps its kind, <code>wK</code>, the receipt’s hash and whether decryption worked. <code>wS</code>, <code>V</code> and <code>SV</code> are wiped as each step lands. All of it stays in the requester’s list until they delete the zone.')),
     (_('Server logs'), _('Operator’s choice'), _('Every successful or wrong password attempt is logged with the requester’s IP address. How long logs are kept is up to whoever runs the server.')),
 ] %}
 

@@ -3,10 +3,9 @@ Keeps docs/how-it-works.md and the /how-it-works page in step with the code
 that defines the flow they explain (#245).
 
 The doc carries a fingerprint: a hash of the recorded protocol contract, the
-browser crypto (drops and dropzone submissions), the CLI's crypto, upload and
-passphrase code, the web app's passphrase length, the database schema, the
-key-release and dropzone defaults, and the server code that releases, serves,
-expires and deletes a drop or a dropzone submission. When any of
+browser crypto, the CLI's crypto, upload and passphrase code, the web app's
+passphrase length, the database schema, the key-release defaults, and the
+server code that releases, serves, expires and deletes a drop. When any of
 them changes, this test fails until someone
 has re-read the doc and the page against the change and pasted the new
 fingerprint, the same way CI fails on stale fixtures.
@@ -26,7 +25,6 @@ FINGERPRINT = re.compile(r'<!-- how-it-works-fingerprint: sha256:([0-9a-f]{64}) 
 WHOLE_FILES = (
     'tests/js/fixtures/protocol-contract.json',
     'static/js/lib/crypto.js',
-    'static/js/lib/dropzone-crypto.js',
 )
 
 # Functions whose behaviour a claim rests on.
@@ -36,10 +34,6 @@ FUNCTIONS = {
     'cli/buzz': (
         '_derive_master', '_hkdf', 'derive_key_release_keys', '_derive_file_key',
         'encrypt_file', 'upload_begin', 'upload', 'generate_passphrase',
-        # Dropzone (docs/adr/0001): the secret/V/SV ladder and the BKD1
-        # unwrap the doc's dropzone steps describe.
-        'create_dropzone_secrets', '_unwrap_dropzone_key',
-        'decrypt_dropzone_submission',
     ),
     # The routes behind each step: the pending sweep at begin, what upload
     # stores, the IP logged on release, the blob deleted after streaming,
@@ -48,27 +42,14 @@ FUNCTIONS = {
         'upload_begin', 'upload_file', 'release_key', 'download_file',
         'report_decryption', 'delete_file', 'check_and_handle_expiry',
         'sweep_expired_files',
-        # The dropzone flow (docs/adr/0001): respond page, submit, the
-        # owner API, release, collect, report, delete and expiry.
-        'respond_dropzone', 'submit_dropzone', 'create_dropzone',
-        'list_dropzones_route', 'get_dropzone_route', 'collect_dropzone',
-        'release_dropzone',
-        'download_dropzone_submission', 'report_dropzone_decryption',
-        'delete_dropzone', '_expire_dropzone',
-        'send_submission_notification_email', '_is_valid_wrapped_key',
     ),
     # The transactions those routes run: what release wipes, what the
-    # ticket claim stamps, what expiry and delete destroy. The dropzone
-    # mirrors: submit consume, release, collect claim, expiry and delete.
+    # ticket claim stamps, what expiry and delete destroy.
     'db/sqlite_backend.py': (
         '_download_ticket', 'bind_key_verifier', 'attempt_key_release',
         'claim_download_with_ticket', 'record_decryption_result',
         'expire_unclaimed_releases', 'purge_stale_key_shares',
         'burn_key_share', 'delete',
-        'consume_for_submission', 'attempt_dropzone_release',
-        'claim_dropzone_submission', 'delete_dropzone',
-        'purge_expired_dropzones', 'expire_unclaimed_dropzone_releases',
-        'record_dropzone_decryption', '_wipe_dropzone_secrets',
     ),
 }
 
@@ -79,17 +60,11 @@ QUOTED_LINES = {
 
 # What the server stores, and the defaults the doc quotes.
 MODULE_ASSIGNMENTS = {
-    'db/sqlite_backend.py': (
-        '_FILES_DDL', '_FILE_KEYS_DDL',
-        '_DROPZONES_DDL', '_DROPZONE_SUBMISSIONS_DDL',
-    ),
+    'db/sqlite_backend.py': ('_FILES_DDL', '_FILE_KEYS_DDL'),
     'config.py': (
         'KEY_RELEASE_MAX_ATTEMPTS', 'KEY_RELEASE_BURN_ON_LOCKOUT',
         'KEY_RELEASE_DOWNLOAD_TTL_SECONDS', 'KEY_SHARE_PENDING_TTL_SECONDS',
         'EXPIRY_SWEEP_INTERVAL_SECONDS',
-        'DROPZONE_SUBMIT_RATE_LIMIT', 'DROPZONE_RELEASE_RATE_LIMIT',
-        'DROPZONE_MAX_ATTEMPTS', 'DROPZONE_BURN_ON_LOCKOUT',
-        'DROPZONE_COLLECT_TTL_SECONDS',
     ),
 }
 

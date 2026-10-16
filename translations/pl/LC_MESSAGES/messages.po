@@ -26,11 +26,11 @@ msgstr "Zbyt wiele żądań. Spróbuj ponownie później."
 msgid "The server would not accept the drop. Please try again."
 msgstr "Serwer nie przyjął przesyłki. Spróbuj ponownie."
 
-#: app.py templates/_composer_strings.html templates/_dropzones_strings.html
+#: app.py templates/_composer_strings.html
 msgid "Choose a valid expiry time."
 msgstr "Wybierz poprawny termin ważności."
 
-#: app.py templates/_composer_strings.html templates/_respond_strings.html
+#: app.py templates/_composer_strings.html
 msgid "That file type is not allowed."
 msgstr "Ten typ pliku jest niedozwolony."
 
@@ -104,12 +104,11 @@ msgstr "Twoją przesyłkę otwarto."
 msgid "Type: %(type)s"
 msgstr "Typ: %(type)s"
 
-#: app.py templates/_composer.html templates/index.html utils.py
+#: app.py templates/index.html utils.py
 msgid "Note"
 msgstr "Notatka"
 
-#: app.py templates/_composer.html templates/how_it_works.html
-#: templates/index.html
+#: app.py templates/how_it_works.html templates/index.html
 msgid "File"
 msgstr "Plik"
 
@@ -135,28 +134,6 @@ msgid ""
 "Buzzdrop intentionally omits recipient-sensitive details from this "
 "notification."
 msgstr "Buzzdrop celowo pomija w tym powiadomieniu szczegóły dotyczące odbiorcy."
-
-#: app.py
-msgid "Buzzdrop submission received"
-msgstr "Buzzdrop: nowe zgłoszenie"
-
-#: app.py
-msgid "A submission landed in your dropzone."
-msgstr "Do twojej skrytki trafiło zgłoszenie."
-
-#. Translators: %(time)s is when the submission landed.
-#: app.py
-#, python-format
-msgid "Received at: %(time)s"
-msgstr "Otrzymano: %(time)s"
-
-#: app.py
-msgid ""
-"Buzzdrop intentionally omits responder-sensitive details from this "
-"notification."
-msgstr ""
-"Buzzdrop celowo pomija w tym powiadomieniu szczegóły dotyczące "
-"odpowiadającego."
 
 #: app.py
 msgid "Drop too large"
@@ -242,7 +219,7 @@ msgstr "Aktywna"
 msgid "Decrypted"
 msgstr "Odszyfrowana"
 
-#: templates/_dropzones_strings.html utils.py
+#: utils.py
 msgid "Locked"
 msgstr "Zablokowana"
 
@@ -252,7 +229,7 @@ msgstr "Zablokowana"
 msgid "Opened"
 msgstr "Otwarta"
 
-#: templates/_dropzones_strings.html utils.py
+#: utils.py
 msgid "Expired"
 msgstr "Wygasła"
 
@@ -328,123 +305,6 @@ msgstr "Skopiowano tekst do schowka."
 msgid "Your browser blocked clipboard access, so the text was not copied."
 msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano tekstu."
 
-#. the requester's wrong passwords locked the dropzone; the lock can't be
-#. lifted.
-#: templates/_collect_strings.html templates/collect.html
-msgid "Too many incorrect passwords — this dropzone is locked."
-msgstr "Za dużo nieprawidłowych haseł – skrytka zablokowana na stałe."
-
-#: templates/_collect_strings.html templates/_view_strings.html
-msgid "Checking password…"
-msgstr "Sprawdzanie hasła…"
-
-#: templates/_collect_strings.html templates/_view_strings.html
-msgid "Getting key…"
-msgstr "Pobieranie klucza…"
-
-#: templates/_collect_strings.html templates/_view_strings.html
-msgid "Downloading…"
-msgstr "Pobieranie przesyłki…"
-
-#: templates/_collect_strings.html templates/_view_strings.html
-msgid "Decrypting…"
-msgstr "Odszyfrowywanie…"
-
-#: templates/_collect_strings.html
-msgid "This dropzone uses an unsupported format."
-msgstr "Ta skrytka ma nieobsługiwany format."
-
-#: templates/_collect_strings.html templates/_view_strings.html
-msgid "Text decrypted successfully."
-msgstr "Odszyfrowano notatkę."
-
-#: templates/_collect_strings.html templates/_view_strings.html
-msgid "Download complete."
-msgstr "Pobieranie zakończone."
-
-#: templates/_collect_strings.html templates/_dropzones_strings.html
-#: templates/_view_strings.html
-msgid "Incorrect password."
-msgstr "Nieprawidłowe hasło."
-
-#: templates/_collect_strings.html templates/_dropzones_strings.html
-#: templates/_view_strings.html
-#, python-format
-msgid "Incorrect password. %(count)s attempt remaining."
-msgid_plural "Incorrect password. %(count)s attempts remaining."
-msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
-msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
-msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
-
-#: templates/_collect_strings.html
-#, python-format
-msgid "One attempt left — check the password before you continue."
-msgid_plural "%(count)s attempts left — check the password before you continue."
-msgstr[0] "Została jedna próba – sprawdź hasło, zanim przejdziesz dalej."
-msgstr[1] "Zostały %(count)s próby – sprawdź hasło, zanim przejdziesz dalej."
-msgstr[2] "Zostało %(count)s prób – sprawdź hasło, zanim przejdziesz dalej."
-
-#: templates/_collect_strings.html templates/_dropzones_strings.html
-msgid "Nothing has been submitted to this dropzone yet."
-msgstr "Do tej skrytki nic jeszcze nie złożono."
-
-#: templates/_collect_strings.html templates/_dropzones_strings.html
-#: templates/_respond_strings.html templates/_view_strings.html
-msgid "Could not reach the server — check the connection and try again."
-msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
-
-#: templates/_collect_strings.html templates/_dropzones_strings.html
-#: templates/_respond_strings.html templates/_view_strings.html
-msgid "Too many tries in a short time — wait a minute and try again."
-msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
-
-#: templates/_collect_strings.html templates/_dropzones_strings.html
-msgid "This submission was already collected."
-msgstr "To zgłoszenie już odebrano."
-
-#: templates/_collect_strings.html
-msgid "This dropzone is gone."
-msgstr "Tej skrytki już nie ma."
-
-#: templates/_collect_strings.html
-msgid "The server refused to release this submission."
-msgstr "Serwer odmówił wydania tego zgłoszenia."
-
-#: templates/_collect_strings.html
-msgid "The submission could not be decrypted — it may be corrupted."
-msgstr "Nie udało się odszyfrować zgłoszenia — może być uszkodzone."
-
-#: templates/_composer.html
-msgid ""
-"Drop a file here, or <span class=\"text-honey-300 underline decoration-"
-"honey-400/40 underline-offset-4\">browse</span>"
-msgstr ""
-"Upuść tu plik albo <span class=\"text-honey-300 underline decoration-"
-"honey-400/40 underline-offset-4\">wybierz go</span>"
-
-#: templates/_composer.html
-msgid "It is encrypted on this device before a single byte leaves it."
-msgstr ""
-"Zostanie zaszyfrowany na tym urządzeniu, zanim opuści je choćby jeden "
-"bajt."
-
-#: templates/_composer.html
-#, python-format
-msgid "Up to %(size)s"
-msgstr "Do %(size)s"
-
-#: templates/_composer.html
-msgid "Your note"
-msgstr "Treść notatki"
-
-#: templates/_composer.html
-msgid "Paste the note you want to protect with a one-time buzz…"
-msgstr "Wklej notatkę, którą chcesz wysłać jednorazowo…"
-
-#: templates/_composer.html
-msgid "Encrypted in the browser before it reaches the server."
-msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
-
 #. %(zone)s is the viewer's time zone as their browser names it, e.g. "Central
 #. European Time".
 #: templates/_composer_strings.html
@@ -489,114 +349,6 @@ msgstr ""
 #: templates/_confirm_download_strings.html
 msgid "This link already carries the key — continue and the drop goes BZZT."
 msgstr "Ten link zawiera już hasło – przejdź dalej, a przesyłka zrobi BZZT."
-
-#: templates/_dropzones_strings.html templates/index.html
-msgid "Create dropzone"
-msgstr "Utwórz skrytkę"
-
-#: templates/_dropzones_strings.html
-msgid "Creating…"
-msgstr "Tworzenie…"
-
-#: templates/_dropzones_strings.html
-msgid ""
-"Dropzone created — copy the request link now; it is never shown again. "
-"The link carries the secret itself, so the server cannot recreate it."
-msgstr ""
-"Skrytka utworzona — skopiuj teraz link do niej, bo już się nie wyświetli."
-" Link sam niesie sekret, więc serwer nie potrafi go odtworzyć."
-
-#: templates/_dropzones_strings.html
-msgid "Link lost? This dropzone is dead weight — delete it and create a new one."
-msgstr "Zgubiłeś link? Ta skrytka to martwy ciężar — usuń ją i utwórz nową."
-
-#: templates/_dropzones_strings.html templates/index.html
-msgid "Copy request link"
-msgstr "Skopiuj link do skrytki"
-
-#: templates/_dropzones_strings.html
-msgid "Copied."
-msgstr "Skopiowano."
-
-#: templates/_dropzones_strings.html templates/collect.html
-msgid "Collect"
-msgstr "Odbierz"
-
-#: templates/_dropzones_strings.html
-msgid "Collecting…"
-msgstr "Odbieranie…"
-
-#: templates/_dropzones_strings.html
-msgid "Enter the dropzone password"
-msgstr "Wpisz hasło do skrytki"
-
-#: templates/_dropzones_strings.html
-msgid "Enter the dropzone password first."
-msgstr "Najpierw wpisz hasło do skrytki."
-
-#: templates/_dropzones_strings.html
-msgid "Awaiting submission"
-msgstr "Oczekuje na zgłoszenie"
-
-#: templates/_dropzones_strings.html
-msgid "Submission ready"
-msgstr "Zgłoszenie gotowe"
-
-#: templates/_dropzones_strings.html
-msgid "Collected"
-msgstr "Odebrano"
-
-#: templates/_dropzones_strings.html
-msgid "file"
-msgstr "plik"
-
-#: templates/_dropzones_strings.html templates/users.html
-msgid "Created"
-msgstr "Utworzono"
-
-#: templates/_dropzones_strings.html templates/index.html
-msgid "Expiry"
-msgstr "Termin ważności"
-
-#: templates/_dropzones_strings.html
-msgid "Submitted"
-msgstr "Złożono"
-
-#: templates/_dropzones_strings.html templates/index.html
-msgid "From"
-msgstr "Z adresu"
-
-#: templates/_dropzones_strings.html templates/index.html
-msgid "No expiry"
-msgstr "Bez terminu"
-
-#: templates/_dropzones_strings.html templates/_shared_files_strings.html
-msgid "Not yet"
-msgstr "Jeszcze nie"
-
-#: templates/_dropzones_strings.html
-msgid "note"
-msgstr "notatka"
-
-#: templates/_dropzones_strings.html templates/index.html
-msgid "Delete"
-msgstr "Usuń"
-
-#: templates/_dropzones_strings.html
-msgid "Delete this dropzone?"
-msgstr "Usunąć tę skrytkę?"
-
-#: templates/_dropzones_strings.html
-msgid "Could not create the dropzone. Please try again."
-msgstr "Nie udało się utworzyć skrytki. Spróbuj ponownie."
-
-#: templates/_dropzones_strings.html
-msgid "This dropzone has expired."
-msgstr "Ta skrytka wygasła."
-
-#: templates/_dropzones_strings.html
-msgid "Could not download the submission."
-msgstr "Nie udało się pobrać zgłoszenia."
 
 #: templates/_hero_flow_strings.html
 msgid "Play walkthrough"
@@ -817,77 +569,6 @@ msgid "The content, then or ever"
 msgstr "Treści – ani wtedy, ani nigdy"
 
 #: templates/_how_it_works_content.html
-msgid "Requester’s browser"
-msgstr "Przeglądarka zamawiającego"
-
-#: templates/_how_it_works_content.html
-msgid "Responder’s browser"
-msgstr "Przeglądarka odpowiadającego"
-
-#: templates/_how_it_works_content.html
-msgid "Create the dropzone and get a request link"
-msgstr "Utwórz skrytkę i otrzymaj link do niej"
-
-#: templates/_how_it_works_content.html
-msgid "The responder submits, once"
-msgstr "Odpowiadający składa, raz"
-
-#: templates/_how_it_works_content.html
-msgid "Prove the dropzone password"
-msgstr "Udowodnij hasło do skrytki"
-
-#: templates/_how_it_works_content.html
-msgid "Collect once"
-msgstr "Odbierz raz"
-
-#: templates/_how_it_works_content.html
-msgid "Expiry and delete"
-msgstr "Wygaśnięcie i usunięcie"
-
-#: templates/_how_it_works_content.html
-msgctxt "how-it-works diagram"
-msgid "request link"
-msgstr "link do skrytki"
-
-#: templates/_how_it_works_content.html
-msgid "The salt, <code>wS</code>, <code>V</code> and <code>SV</code>"
-msgstr "Sól, <code>wS</code>, <code>V</code> i <code>SV</code>"
-
-#: templates/_how_it_works_content.html
-msgid "<code>s</code> and the password"
-msgstr "<code>s</code> i hasło"
-
-#: templates/_how_it_works_content.html
-msgctxt "how-it-works diagram"
-msgid "submitted"
-msgstr "złożono"
-
-#: templates/_how_it_works_content.html
-msgid "Ciphertext, <code>wK</code> and <code>sv</code>"
-msgstr "Szyfrogram, <code>wK</code> i <code>sv</code>"
-
-#: templates/_how_it_works_content.html
-msgid "<code>s</code>, <code>K</code> and the content"
-msgstr "<code>s</code>, <code>K</code> i treść"
-
-#: templates/_how_it_works_content.html
-msgctxt "how-it-works diagram"
-msgid "collect"
-msgstr "odbiór"
-
-#: templates/_how_it_works_content.html
-msgid "That it was collected, and an IP address"
-msgstr "Że odebrano, oraz adres IP"
-
-#: templates/_how_it_works_content.html
-msgid ""
-"<code>wS</code>, <code>V</code> and <code>SV</code> wiped, ciphertext "
-"deleted"
-msgstr ""
-"<code>wS</code>, <code>V</code> i <code>SV</code> wymazane, szyfrogram "
-"usunięty"
-
-#: templates/_how_it_works_content.html
 msgid "Text is off: the CLI sends files only."
 msgstr "Notatki są wyłączone: CLI wysyła tylko pliki."
 
@@ -911,18 +592,6 @@ msgid ""
 msgstr ""
 "Aplikacja w przeglądarce czy CLI, plik czy notatka: to ten sam protokół i"
 " ta sama kryptografia. Wybierz widok, a kroki się do niego dopasują."
-
-#: templates/_how_it_works_content.html
-msgid "Collecting secrets: the dropzone"
-msgstr "Zbieranie sekretów: skrytka"
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The same flow in reverse: you hand out one request link, someone submits "
-"into it, and you collect once."
-msgstr ""
-"Ten sam schemat w odwrotną stronę: rozdajesz jeden link do skrytki, ktoś "
-"składa do niej zgłoszenie, a ty odbierasz je raz."
 
 #: templates/_how_it_works_content.html
 msgid "What the server sees"
@@ -1443,212 +1112,6 @@ msgstr ""
 
 #: templates/_how_it_works_content.html
 msgid ""
-"Your browser draws a random dropzone secret <code>s</code> and derives "
-"two keys from the dropzone password: <code>Kw</code> for wrapping and a "
-"verifier <code>V</code> for proving the password later. It wraps "
-"<code>s</code> into <code>wS</code> and derives the submit verifier "
-"<code>SV</code> — proof that a submitter holds the link."
-msgstr ""
-"Twoja przeglądarka losuje tajny sekret skrytki <code>s</code> i "
-"wyprowadza z hasła do skrytki dwa klucze: <code>Kw</code> do opakowania i"
-" weryfikator <code>V</code> do późniejszego udowodnienia hasła. Opakowuje"
-" <code>s</code> w <code>wS</code> i wyprowadza weryfikator zgłoszenia "
-"<code>SV</code> – dowód, że składający ma link."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"<code>POST /api/dropzones</code> with the salt, <code>wS</code>, "
-"<code>V</code> and <code>SV</code>, signed in by your session or API "
-"token. The server answers with a <code>dropzone_id</code>."
-msgstr ""
-"<code>POST /api/dropzones</code> z solą, <code>wS</code>, <code>V</code> "
-"i <code>SV</code>, zalogowane twoją sesją lub tokenem API. Serwer "
-"odpowiada <code>dropzone_id</code>."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The salt, <code>wS</code>, <code>V</code>, <code>SV</code>, an optional "
-"expiry, an optional memo and an optional notification address. Never "
-"<code>s</code> or the password."
-msgstr ""
-"Sól, <code>wS</code>, <code>V</code>, <code>SV</code>, opcjonalny termin "
-"ważności, opcjonalny dopisek i opcjonalny adres powiadomień. Nigdy "
-"<code>s</code> ani hasła."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"Your browser builds the request link "
-"<code>/dropzone/&lt;id&gt;#s=…</code>. <code>s</code> sits after the "
-"<code>#</code>, so it never reaches the server. One zone carries exactly "
-"one link; a dead link means a new zone."
-msgstr ""
-"Twoja przeglądarka buduje link do skrytki "
-"<code>/dropzone/&lt;id&gt;#s=…</code>. <code>s</code> jest za "
-"<code>#</code>, więc nigdy nie dociera do serwera. Jedna skrytka ma "
-"dokładnie jeden link; martwy link to nowa skrytka."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The responder’s browser, then the server. The responder needs no account "
-"— only the request link."
-msgstr ""
-"Przeglądarka odpowiadającego, potem serwer. Odpowiadający nie potrzebuje "
-"konta – tylko linku do skrytki."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The browser takes <code>s</code> from the link’s fragment, draws a fresh "
-"random key <code>K</code>, and encrypts the file or note. It wraps "
-"<code>K</code> under <code>s</code> into <code>wK</code>, and posts the "
-"ciphertext, <code>wK</code>, <code>SHA-256(receipt)</code> and its own "
-"<code>SV</code> to <code>POST /dropzone/&lt;id&gt;/submit</code>."
-msgstr ""
-"Przeglądarka pobiera <code>s</code> z fragmentu linku, losuje świeży "
-"klucz <code>K</code> i szyfruje plik lub notatkę. Opakowuje "
-"<code>K</code> kluczem <code>s</code> w <code>wK</code> i wysyła "
-"szyfrogram, <code>wK</code>, <code>SHA-256(receipt)</code> i własne "
-"<code>SV</code> do <code>POST /dropzone/&lt;id&gt;/submit</code>."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The ciphertext and its approximate size, <code>wK</code>, the receipt’s "
-"hash and <code>sv</code>. It checks <code>sv</code> before consuming the "
-"link, in one transaction — so a bare <code>dropzone_id</code> can’t burn "
-"the link and racing submissions get exactly one winner."
-msgstr ""
-"Szyfrogram i jego przybliżony rozmiar, <code>wK</code>, skrót "
-"pokwitowania i <code>sv</code>. Sprawdza <code>sv</code> przed zużyciem "
-"linku, w jednej transakcji – więc samo <code>dropzone_id</code> nie może "
-"spalić linku, a spośród ścigających się zgłoszeń wygrywa dokładnie jedno."
-
-#: templates/_how_it_works_content.html templates/how_it_works.html
-msgid "Never sees"
-msgstr "Nigdy nie widzi"
-
-#: templates/_how_it_works_content.html
-msgid ""
-"<code>s</code>, <code>K</code> and the content. The filename travels "
-"inside the ciphertext here too."
-msgstr ""
-"<code>s</code>, <code>K</code> i treść. Nazwa pliku również podróżuje "
-"wewnątrz szyfrogramu."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The request link is consumed; a second submission is refused. If you "
-"asked for it, an email says a submission landed."
-msgstr ""
-"Link do skrytki zostaje zużyty; drugie zgłoszenie odrzucano. Jeśli "
-"powiadomienie było włączone, e-mail zawiadamia o złożonym zgłoszeniu."
-
-#: templates/_how_it_works_content.html
-msgid "Your browser, signed in, then the server."
-msgstr "Twoja przeglądarka, zalogowana, potem serwer."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The browser derives <code>V</code> from the typed dropzone password and "
-"posts it to <code>POST /dropzones/&lt;id&gt;/release</code>. Never the "
-"password."
-msgstr ""
-"Przeglądarka wyprowadza <code>V</code> z wpisanego hasła do skrytki i "
-"wysyła je do <code>POST /dropzones/&lt;id&gt;/release</code>. Nigdy samo "
-"hasło."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"<code>V</code>, and your IP address, which it logs with a successful or "
-"wrong attempt. It compares <code>V</code> with the stored one in a single"
-" database transaction."
-msgstr ""
-"<code>V</code> i twój adres IP, który zapisuje przy udanej lub błędnej "
-"próbie. Porównuje <code>V</code> z zapisanym w jednej transakcji bazy "
-"danych."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The server hands over <code>wS</code>, once, and wipes <code>wS</code>, "
-"<code>V</code> and <code>SV</code> from its database."
-msgstr ""
-"Serwer wydaje <code>wS</code>, raz, i wymazuje <code>wS</code>, "
-"<code>V</code> oraz <code>SV</code> ze swojej bazy."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"Three wrong passwords lock the zone by default, so the server refuses "
-"every later attempt but keeps the secrets. A locked zone strands the "
-"submission — the responder’s link is already dead, which is why the "
-"default is gentler than a drop’s."
-msgstr ""
-"Trzy błędne hasła domyślnie blokują skrytkę: serwer odrzuca każdą kolejną"
-" próbę, ale zachowuje sekrety. Zablokowana skrytka unieszczęśliwia "
-"zgłoszenie – link odpowiadającego już nie żyje, dlatego domyślne "
-"ustawienie jest łagodniejsze niż przy przesyłce."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"<code>wS</code> is the only way back to <code>s</code>, and "
-"<code>s</code> unwraps everything else. Password first, ciphertext "
-"second, exactly once."
-msgstr ""
-"<code>wS</code> to jedyna droga powrotna do <code>s</code>, a "
-"<code>s</code> odwija wszystko inne. Najpierw hasło, potem szyfrogram, "
-"dokładnie raz."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"<code>GET /dropzones/&lt;id&gt;/submission</code>, signed in as the "
-"zone’s owner. The server streams the ciphertext back, once."
-msgstr ""
-"<code>GET /dropzones/&lt;id&gt;/submission</code>, zalogowany jako "
-"właściciel skrytki. Serwer odsyła szyfrogram strumieniem, raz."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The collection, which it stores with the time and your IP address. Never "
-"<code>s</code>, <code>K</code> or the content."
-msgstr ""
-"Odbiór, który zapisuje z czasem i twoim adresem IP. Nigdy <code>s</code>,"
-" <code>K</code> ani treści."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The ciphertext is deleted from storage once the stream ends, even if it "
-"broke off. A released zone nobody collects within 10 minutes expires the "
-"same way. The browser unwraps <code>s</code>, unwraps <code>K</code>, "
-"decrypts and reports the receipt, so your list shows whether decryption "
-"worked."
-msgstr ""
-"Szyfrogram zostaje usunięty z magazynu po zakończeniu strumienia, nawet "
-"gdy się urwał. Skrytka zwolniona, której nikt nie odbierze w ciągu 10 "
-"minut, wygasa tak samo. Przeglądarka odwija <code>s</code>, odwija "
-"<code>K</code>, odszyfrowuje i zgłasza pokwitowanie, więc twoja lista "
-"pokazuje, czy odszyfrowanie się powiodło."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"When a zone’s expiry passes, or you delete the zone, <code>wS</code>, "
-"<code>V</code> and <code>SV</code> are wiped and the submission’s "
-"ciphertext is deleted from storage. The zone’s record stays in your list "
-"until you delete it."
-msgstr ""
-"Gdy minie termin ważności skrytki albo ją usuniesz, <code>wS</code>, "
-"<code>V</code> i <code>SV</code> zostają wymazane, a szyfrogram "
-"zgłoszenia usunięty z magazynu. Rekord skrytki zostaje na twojej liście, "
-"dopóki go nie usuniesz."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"Without <code>wS</code> the wrapped secret is unreachable, and without "
-"the ciphertext there is nothing to unwrap. A dropzone is spent after its "
-"first collection: one link, one submission, one collection."
-msgstr ""
-"Bez <code>wS</code> opakowany sekret jest nieosiągalny, a bez szyfrogramu"
-" nie ma czego odwijać. Skrytka kończy się po pierwszym odbiorze: jeden "
-"link, jedno zgłoszenie, jeden odbiór."
-
-#: templates/_how_it_works_content.html
-msgid ""
 "The <strong class=\"hiw-caveat\">original filename, in plain "
 "text</strong>. It is stored and shown in the sender’s drop list; the "
 "recipient never sees it on a page — the name they save the file under "
@@ -1783,30 +1246,6 @@ msgstr ""
 "nieudanych prób i czas wydania klucza. Wszystko to zostaje na liście "
 "nadawcy, dopóki nadawca tego nie usunie; nic nie czyści tego "
 "automatycznie."
-
-#: templates/_how_it_works_content.html
-msgid "The dropzone’s record"
-msgstr "Rekord skrytki"
-
-#: templates/_how_it_works_content.html
-msgid ""
-"The requester’s account, when it was created, its expiry, when the "
-"request link was consumed, when it was released and collected and from "
-"which IP address, the count of wrong attempts, the password’s salt, and "
-"the optional memo, notification address and language. The submission’s "
-"record keeps its kind, <code>wK</code>, the receipt’s hash and whether "
-"decryption worked. <code>wS</code>, <code>V</code> and <code>SV</code> "
-"are wiped as each step lands. All of it stays in the requester’s list "
-"until they delete the zone."
-msgstr ""
-"Konto zamawiającego, kiedy utworzono skrytkę, jej termin ważności, kiedy "
-"zużyto link do skrytki, kiedy zwolniono ją i odebrano oraz z jakiego "
-"adresu IP, liczba błędnych prób, sól hasła oraz opcjonalny dopisek, adres"
-" powiadomień i język. Rekord zgłoszenia zachowuje jego rodzaj, "
-"<code>wK</code>, skrót pokwitowania i to, czy odszyfrowanie się powiodło."
-" <code>wS</code>, <code>V</code> i <code>SV</code> są wymazywane wraz z "
-"każdym krokiem. To wszystko zostaje na liście zamawiającego, dopóki nie "
-"usunie skrytki."
 
 #: templates/_how_it_works_content.html
 msgid "Server logs"
@@ -2005,82 +1444,15 @@ msgstr "Pokaż hasło"
 msgid "Enter a password, or press Generate."
 msgstr "Wpisz hasło albo naciśnij „Wygeneruj”."
 
-#: templates/_respond_strings.html
-msgid "Choose a file to submit."
-msgstr "Wybierz plik do złożenia."
-
-#: templates/_respond_strings.html
-msgid "Write the note to submit."
-msgstr "Napisz notatkę do złożenia."
-
-#: templates/_respond_strings.html
-msgid "That file is too large for this server."
-msgstr "Ten plik jest za duży dla tego serwera."
-
-#: templates/_respond_strings.html
-msgid "That note is too large for this server."
-msgstr "Ta notatka jest za duża dla tego serwera."
-
-#: templates/_respond_strings.html
-msgid "Submit"
-msgstr "Złóż"
-
-#: templates/_respond_strings.html
-msgid "Encrypting…"
-msgstr "Szyfrowanie…"
-
-#: templates/_respond_strings.html
-msgid ""
-"Encryption failed — this browser may not support it. Try a modern browser"
-" or a secure (https) connection."
-msgstr ""
-"Nie udało się zaszyfrować — ta przeglądarka może tego nie wspierać. "
-"Spróbuj w nowoczesnej przeglądarce albo przez bezpieczne połączenie "
-"(https)."
-
-#: templates/_respond_strings.html
-msgid "Submitting…"
-msgstr "Składanie…"
-
-#: templates/_respond_strings.html
-msgid "Submitted — the requester can now collect it. You can close this page."
-msgstr ""
-"Złożono – zamawiający może teraz odebrać zgłoszenie. Możesz zamknąć tę "
-"stronę."
-
-#: templates/_respond_strings.html
-msgid ""
-"This request link is not valid — check that the whole link was copied, "
-"including the part after #."
-msgstr ""
-"Ten link do skrytki jest nieprawidłowy – sprawdź, czy skopiowano cały "
-"link, wraz z częścią po #."
-
-#: templates/_respond_strings.html
-msgid "This dropzone is gone. Ask the requester for a new link."
-msgstr "Tej skrytki już nie ma. Poproś zamawiającego o nowy link."
-
-#: templates/_respond_strings.html
-msgid "This request link was already used. Ask the requester for a new one."
-msgstr "Tego linku do skrytki już użyto. Poproś zamawiającego o nowy."
-
-#: templates/_respond_strings.html
-msgid "This dropzone has expired. Ask the requester for a new link."
-msgstr "Ta skrytka wygasła. Poproś zamawiającego o nowy link."
-
-#: templates/_respond_strings.html
-msgid "The submission was refused. Please try again."
-msgstr "Zgłoszenie odrzucono. Spróbuj ponownie."
-
-#: templates/_respond_strings.html
-msgid "The submission failed. Please try again."
-msgstr "Zgłoszenie nie powiodło się. Spróbuj ponownie."
-
 #. a Copy link button's accessible name; %(name)s is the drop's title.
 #: templates/_shared_files_strings.html
 #, python-format
 msgid "Copy link for %(name)s"
 msgstr "Skopiuj link: %(name)s"
+
+#: templates/_shared_files_strings.html
+msgid "Not yet"
+msgstr "Jeszcze nie"
 
 #: templates/_shared_files_strings.html
 msgid "No matching drops"
@@ -2124,8 +1496,52 @@ msgid "Too many incorrect passwords — this drop is locked."
 msgstr "Za dużo nieprawidłowych haseł – przesyłka zablokowana na stałe."
 
 #: templates/_view_strings.html
+msgid "Checking password…"
+msgstr "Sprawdzanie hasła…"
+
+#: templates/_view_strings.html
+msgid "Getting key…"
+msgstr "Pobieranie klucza…"
+
+#: templates/_view_strings.html
+msgid "Downloading…"
+msgstr "Pobieranie przesyłki…"
+
+#: templates/_view_strings.html
+msgid "Decrypting…"
+msgstr "Odszyfrowywanie…"
+
+#: templates/_view_strings.html
 msgid "This drop uses an unsupported format. Ask the sender to send it again."
 msgstr "Ta przesyłka ma nieobsługiwany format. Poproś nadawcę o ponowne wysłanie."
+
+#: templates/_view_strings.html
+msgid "Text decrypted successfully."
+msgstr "Odszyfrowano notatkę."
+
+#: templates/_view_strings.html
+msgid "Download complete."
+msgstr "Pobieranie zakończone."
+
+#: templates/_view_strings.html
+msgid "Incorrect password."
+msgstr "Nieprawidłowe hasło."
+
+#: templates/_view_strings.html
+#, python-format
+msgid "Incorrect password. %(count)s attempt remaining."
+msgid_plural "Incorrect password. %(count)s attempts remaining."
+msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
+msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
+msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
+
+#: templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
+
+#: templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
 
 #: templates/_view_strings.html
 msgid "This drop is gone. Ask the sender for a new one."
@@ -2174,13 +1590,11 @@ msgstr "Zaloguj"
 msgid "Each drop opens once, then it's gone."
 msgstr "Każdą przesyłkę można otworzyć raz, potem znika."
 
-#: templates/base.html templates/collect.html templates/confirm_download.html
-#: templates/view.html
+#: templates/base.html templates/confirm_download.html templates/view.html
 msgid "How it works (opens in new tab)"
 msgstr "Jak to działa (otwiera się w nowej karcie)"
 
-#: templates/base.html templates/collect.html templates/confirm_download.html
-#: templates/view.html
+#: templates/base.html templates/confirm_download.html templates/view.html
 msgid "How it works"
 msgstr "Jak to działa"
 
@@ -2199,59 +1613,6 @@ msgstr "Kod źródłowy"
 #: templates/base.html
 msgid "AGPL-3.0 licence text (opens in new tab)"
 msgstr "Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)"
-
-#: templates/collect.html templates/respond.html
-msgid "Dropzone"
-msgstr "Skrytka"
-
-#: templates/collect.html
-msgid "Collect the submission"
-msgstr "Odbierz zgłoszenie"
-
-#: templates/collect.html
-msgid "Enter the dropzone password to decrypt and save the submission."
-msgstr "Wpisz hasło do skrytki, żeby odszyfrować i zapisać zgłoszenie."
-
-#: templates/collect.html templates/index.html
-msgid "Dropzone password"
-msgstr "Hasło do skrytki"
-
-#: templates/collect.html templates/view.html
-#, python-format
-msgid "You have one attempt — check the password before you continue."
-msgid_plural "You have %(num)s attempts — check the password before you continue."
-msgstr[0] "Masz jedną próbę – sprawdź hasło, zanim przejdziesz dalej."
-msgstr[1] "Masz %(num)s próby – sprawdź hasło, zanim przejdziesz dalej."
-msgstr[2] "Masz %(num)s prób – sprawdź hasło, zanim przejdziesz dalej."
-
-#: templates/collect.html
-msgid "Collection progress"
-msgstr "Postęp odbierania"
-
-#: templates/collect.html templates/view.html
-msgid "Decrypted text"
-msgstr "Odszyfrowany tekst"
-
-#: templates/collect.html templates/view.html
-msgid "Copy it now — this page can’t be reopened."
-msgstr "Skopiuj go teraz – tej strony nie da się otworzyć ponownie."
-
-#: templates/collect.html templates/view.html
-msgid "Copy text"
-msgstr "Skopiuj tekst"
-
-#: templates/collect.html templates/index.html templates/success.html
-#: templates/users.html templates/view.html
-msgid "Copy"
-msgstr "Skopiuj"
-
-#: templates/collect.html templates/view.html
-msgid ""
-"Decryption happens entirely in your browser. Your password stays in your "
-"browser; only a derived check value is sent."
-msgstr ""
-"Odszyfrowanie odbywa się w całości w twojej przeglądarce. Hasło jej nie "
-"opuszcza; wysyłana jest tylko wyprowadzona z niego wartość kontrolna."
 
 #: templates/confirm_download.html
 msgid "One-time action"
@@ -2306,19 +1667,6 @@ msgid "Go to Buzzdrop"
 msgstr "Przejdź do Buzzdropa"
 
 #: templates/how_it_works.html
-#, python-format
-msgid "Step %(number)s"
-msgstr "Krok %(number)s"
-
-#: templates/how_it_works.html
-msgid "Server sees:"
-msgstr "Serwer widzi:"
-
-#: templates/how_it_works.html
-msgid "Never sees:"
-msgstr "Nigdy nie widzi:"
-
-#: templates/how_it_works.html
 msgid "Under the hood"
 msgstr "Od kuchni"
 
@@ -2366,6 +1714,19 @@ msgstr "Krok %(number)s:"
 
 #: templates/how_it_works.html
 #, python-format
+msgid "Step %(number)s"
+msgstr "Krok %(number)s"
+
+#: templates/how_it_works.html
+msgid "Server sees:"
+msgstr "Serwer widzi:"
+
+#: templates/how_it_works.html
+msgid "Never sees:"
+msgstr "Nigdy nie widzi:"
+
+#: templates/how_it_works.html
+#, python-format
 msgid "%(count)s steps"
 msgstr "Kroków: %(count)s"
 
@@ -2382,6 +1743,10 @@ msgstr "Dalej"
 #: templates/how_it_works.html
 msgid "Sees"
 msgstr "Widzi"
+
+#: templates/how_it_works.html
+msgid "Never sees"
+msgstr "Nigdy nie widzi"
 
 #: templates/index.html templates/success.html
 msgid "Send the link and the password through different channels."
@@ -2411,6 +1776,37 @@ msgstr ""
 msgid "What are you sending?"
 msgstr "Co wysyłasz?"
 
+#: templates/index.html
+msgid ""
+"Drop a file here, or <span class=\"text-honey-300 underline decoration-"
+"honey-400/40 underline-offset-4\">browse</span>"
+msgstr ""
+"Upuść tu plik albo <span class=\"text-honey-300 underline decoration-"
+"honey-400/40 underline-offset-4\">wybierz go</span>"
+
+#: templates/index.html
+msgid "It is encrypted on this device before a single byte leaves it."
+msgstr ""
+"Zostanie zaszyfrowany na tym urządzeniu, zanim opuści je choćby jeden "
+"bajt."
+
+#: templates/index.html
+#, python-format
+msgid "Up to %(size)s"
+msgstr "Do %(size)s"
+
+#: templates/index.html
+msgid "Your note"
+msgstr "Treść notatki"
+
+#: templates/index.html
+msgid "Paste the note you want to protect with a one-time buzz…"
+msgstr "Wklej notatkę, którą chcesz wysłać jednorazowo…"
+
+#: templates/index.html
+msgid "Encrypted in the browser before it reaches the server."
+msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
+
 #: templates/index.html templates/login.html templates/success.html
 #: templates/view.html
 msgid "Password"
@@ -2431,6 +1827,11 @@ msgstr "Wygeneruj"
 #: templates/index.html templates/success.html
 msgid "Copy password"
 msgstr "Skopiuj hasło"
+
+#: templates/index.html templates/success.html templates/users.html
+#: templates/view.html
+msgid "Copy"
+msgstr "Skopiuj"
 
 #: templates/index.html
 msgid "Password strength"
@@ -2767,6 +2168,18 @@ msgstr "Najbliższy termin ważności"
 msgid "Sent"
 msgstr "Wysłana"
 
+#: templates/index.html
+msgid "Expiry"
+msgstr "Termin ważności"
+
+#: templates/index.html
+msgid "No expiry"
+msgstr "Bez terminu"
+
+#: templates/index.html
+msgid "From"
+msgstr "Z adresu"
+
 #: templates/index.html templates/success.html
 msgid "Copy link"
 msgstr "Skopiuj link"
@@ -2774,6 +2187,10 @@ msgstr "Skopiuj link"
 #: templates/index.html
 msgid "Delete this drop?"
 msgstr "Usunąć tę przesyłkę?"
+
+#: templates/index.html
+msgid "Delete"
+msgstr "Usuń"
 
 #: templates/index.html templates/success.html templates/users.html
 msgid "Clipboard"
@@ -2790,34 +2207,6 @@ msgstr "Poprzednia"
 #: templates/index.html
 msgid "Next"
 msgstr "Następna"
-
-#: templates/index.html
-msgid "Your dropzones"
-msgstr "Twoje skrytki"
-
-#: templates/index.html
-msgid ""
-"One-time boxes others can drop a secret into. One link, one submission, "
-"gone."
-msgstr ""
-"Jednorazowe skrytki, do których inni mogą złożyć sekret. Jeden link, "
-"jedno zgłoszenie i po sprawie."
-
-#: templates/index.html
-msgid "optional"
-msgstr "opcjonalnie"
-
-#: templates/index.html
-msgid "Memo"
-msgstr "Dopisek"
-
-#: templates/index.html
-msgid "Email me when a submission lands"
-msgstr "Powiadom mnie e-mailem o nowym zgłoszeniu"
-
-#: templates/index.html
-msgid "No dropzones yet."
-msgstr "Nie masz jeszcze skrytek."
 
 #: templates/login.html
 msgid "Private access"
@@ -2838,30 +2227,6 @@ msgstr "Nazwa użytkownika"
 #: templates/login.html
 msgid "Accounts are provisioned at deploy time through environment variables."
 msgstr "Konta zakłada się przy wdrożeniu, w zmiennych środowiskowych."
-
-#: templates/respond.html
-msgid "Submit securely"
-msgstr "Złóż bezpiecznie"
-
-#: templates/respond.html
-msgid ""
-"Your file or note is encrypted in this browser before it is sent — the "
-"server can never read it."
-msgstr ""
-"Twój plik lub notatka jest szyfrowany w tej przeglądarce, zanim zostanie "
-"wysłany – serwer nigdy nie może go odczytać."
-
-#: templates/respond.html
-msgid "What are you submitting?"
-msgstr "Co składasz?"
-
-#: templates/respond.html
-msgid "Encryption and submission progress"
-msgstr "Postęp szyfrowania i wysyłania"
-
-#: templates/respond.html
-msgid "Encrypt and submit"
-msgstr "Zaszyfruj i złóż"
 
 #: templates/success.html
 msgid "Drop secured"
@@ -3006,6 +2371,10 @@ msgid "Copy token"
 msgstr "Skopiuj token"
 
 #: templates/users.html
+msgid "Created"
+msgstr "Utworzono"
+
+#: templates/users.html
 msgid "Last used"
 msgstr "Ostatnio użyty"
 
@@ -3050,6 +2419,14 @@ msgid "Enter the password to decrypt and download."
 msgstr "Wpisz hasło, żeby odszyfrować i pobrać plik."
 
 #: templates/view.html
+#, python-format
+msgid "You have one attempt — check the password before you continue."
+msgid_plural "You have %(num)s attempts — check the password before you continue."
+msgstr[0] "Masz jedną próbę – sprawdź hasło, zanim przejdziesz dalej."
+msgstr[1] "Masz %(num)s próby – sprawdź hasło, zanim przejdziesz dalej."
+msgstr[2] "Masz %(num)s prób – sprawdź hasło, zanim przejdziesz dalej."
+
+#: templates/view.html
 msgid "Decrypt and view"
 msgstr "Odszyfruj i wyświetl"
 
@@ -3064,4 +2441,24 @@ msgstr "Postęp odszyfrowywania"
 #: templates/view.html
 msgid "Your link included the password — just press Decrypt and download."
 msgstr "Link zawierał hasło – wystarczy nacisnąć „Odszyfruj i pobierz”."
+
+#: templates/view.html
+msgid "Decrypted text"
+msgstr "Odszyfrowany tekst"
+
+#: templates/view.html
+msgid "Copy it now — this page can’t be reopened."
+msgstr "Skopiuj go teraz – tej strony nie da się otworzyć ponownie."
+
+#: templates/view.html
+msgid "Copy text"
+msgstr "Skopiuj tekst"
+
+#: templates/view.html
+msgid ""
+"Decryption happens entirely in your browser. Your password stays in your "
+"browser; only a derived check value is sent."
+msgstr ""
+"Odszyfrowanie odbywa się w całości w twojej przeglądarce. Hasło jej nie "
+"opuszcza; wysyłana jest tylko wyprowadzona z niego wartość kontrolna."
 

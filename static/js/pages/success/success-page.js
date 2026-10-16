@@ -7,7 +7,7 @@
 // _clipboard_feedback_strings.html for what its copies announce.
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
-import { buildOneClickLink, restoreFragmentAfterLanguageSwitch, stashFragmentForLanguageSwitch, takeFragmentPassword } from '../../lib/one-click-link.js';
+import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
 
@@ -93,15 +93,7 @@ export function initSuccess(root, deps) {
     // Auto-fill the password from the URL fragment (the upload flow navigates
     // here with it). The entry is a module script, so the DOM is already
     // parsed when this runs.
-    // A language switch just landed: pick the fragment back up before
-    // takeFragmentPassword looks for it.
-    restoreFragmentAfterLanguageSwitch(root);
-    const fragment = window.location.hash;
     const pwd = takeFragmentPassword(window);
-    // If there is one, let it wait out the next language switch in
-    // sessionStorage — posting it would leak the password to the server.
-    // The fragment was captured before takeFragmentPassword scrubbed it.
-    if (pwd) stashFragmentForLanguageSwitch(root, fragment);
     if (pwd) {
         pwdInput.value = pwd;
         toggleBtn.disabled = false;

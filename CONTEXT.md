@@ -30,40 +30,6 @@ _Avoid_: self-destructing
 The optional moment after which a drop that hasn't been opened is deleted. A drop _expires_.
 _Avoid_: expiration, TTL, deadline
 
-### Dropzones
-
-**Dropzone**:
-A user's one-time invitation to receive one drop. The inverse of a drop: the account holder _collects_, the anonymous visitor _submits_.
-_Avoid_: inbox, request, reverse drop
-
-**Requester**:
-The user who creates a dropzone.
-_Avoid_: sender (the requester sends nothing), owner
-
-**Responder**:
-Whoever opens a request link and submits a file or note to the dropzone. A responder has no account.
-_Avoid_: sender, uploader, recipient
-
-**Request link**:
-The one-time URL a responder opens. The analogue of a drop link, direction reversed.
-_Avoid_: share link, submit link, URL
-
-**Submission**:
-What a responder submits — one file or one note, encrypted in their browser.
-_Avoid_: drop (the submission becomes the requester's, but it is not a drop), upload
-
-**Submit**:
-What a responder does with a submission.
-_Avoid_: upload, send, drop (as a verb)
-
-**Collect**:
-What a requester does to a submission: prove the dropzone password and receive it, once.
-_Avoid_: download, open, claim
-
-**Dropzone password**:
-A kind of _password_, for the reversed flow — the requester sets it at creation and it gates collection. Same role as a drop's password, set by the receiving side rather than the sending one.
-_Avoid_: passphrase (as a synonym), zone key
-
 ### Actions
 
 **Send**:
