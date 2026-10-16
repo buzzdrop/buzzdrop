@@ -412,8 +412,8 @@ function initDropzones(root, deps, strings) {
             const timeCell = (label, iso, fallback) => {
                 const then = iso && parseTimestamp(iso);
                 metaCell(label,
-                    then ? relativeTime(then, deps.now(), { locale: lang }) : fallback,
-                    then ? fullTime(then, { locale: lang }) ?? undefined : undefined);
+                    then ? (relativeTime(then, deps.now(), { locale: lang }) ?? fallback) : fallback,
+                    then ? (fullTime(then, { locale: lang }) ?? undefined) : undefined);
             };
             timeCell('metaCreated', z.created_at, '—');
             timeCell('metaExpiry', z.expiry_at, strings.text('noExpiry'));
