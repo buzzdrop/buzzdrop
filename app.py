@@ -392,11 +392,11 @@ def send_submission_notification_email(zone: dict) -> bool:
 app.add_template_filter(format_timestamp, 'timestamp')
 app.add_template_filter(iso_twin, 'timestamp_iso')
 
-# The recipient's and responder's pages, the "drop is gone" page
-# included: their language is their browser's, and reloading one could
-# lose the drop or the link's #s fragment, so they offer no language
-# menu (#287).
-RECIPIENT_ENDPOINTS = ('view_file', 'confirm_view_file', 'respond_dropzone')
+# The recipient's pages, the "drop is gone" page included: their language
+# is their browser's, and reloading one could lose the drop, so they offer
+# no language menu (#287). The respond page keeps its menu — its script
+# carries the #s fragment through the switch itself.
+RECIPIENT_ENDPOINTS = ('view_file', 'confirm_view_file')
 
 
 def _language_return_path():

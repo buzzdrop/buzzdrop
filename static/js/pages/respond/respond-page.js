@@ -49,6 +49,14 @@ export function initRespond(root, deps) {
     const statusEl = required(root, '#status', 'p');
 
     const s = takeFragmentSecret(window);
+    // The language menu redirects through POST /set_language with only the
+    // path in `next` — a fragment never reaches the server, so it would be
+    // lost and the page would come back dead. Carry it ourselves.
+    if (s) {
+        /** @type {NodeListOf<HTMLInputElement>} */ (
+            root.querySelectorAll('#language-menu-list input[name="next"]'))
+            .forEach((input) => { input.value += window.location.hash; });
+    }
     if (!s) {
         submitBtn.disabled = true;
         errorEl.hidden = false;
