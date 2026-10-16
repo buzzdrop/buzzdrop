@@ -2452,6 +2452,10 @@ msgid "The filename travels inside the encryption — the server never sees it."
 msgstr ""
 
 #: templates/respond.html
+msgid "Encryption and submission progress"
+msgstr ""
+
+#: templates/respond.html
 msgid "Encrypt and submit"
 msgstr ""
 

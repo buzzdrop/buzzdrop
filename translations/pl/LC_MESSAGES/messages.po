@@ -2770,6 +2770,10 @@ msgid "The filename travels inside the encryption — the server never sees it."
 msgstr "Nazwa pliku podróżuje wewnątrz szyfrogramu – serwer nigdy jej nie widzi."
 
 #: templates/respond.html
+msgid "Encryption and submission progress"
+msgstr "Postęp szyfrowania i wysyłania"
+
+#: templates/respond.html
 msgid "Encrypt and submit"
 msgstr "Zaszyfruj i złóż"
 

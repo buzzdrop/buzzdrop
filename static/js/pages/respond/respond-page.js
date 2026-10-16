@@ -5,6 +5,7 @@
 // one-way material.
 
 import { required } from '../../lib/required.js';
+import { createProgressBar } from '../../features/progress-bar/index.js';
 import { readStrings } from '../../lib/strings.js';
 import { hexToBytes, bytesToHex } from '../../lib/hex.js';
 import { isAllowedFile } from '../../lib/file-extensions.js';
@@ -14,12 +15,12 @@ import { sealSubmission } from '../../lib/dropzone-crypto.js';
 
 /**
  * @typedef {object} RespondDeps
- * @property {typeof fetch} fetch
+ * @property {typeof XMLHttpRequest} XMLHttpRequest - supplies upload.onprogress
  * @property {{ sealSubmission: typeof import('../../lib/dropzone-crypto.js').sealSubmission }} crypto
  */
 
 export function browserDeps() {
-    return { fetch: window.fetch.bind(window) };
+    return { XMLHttpRequest: window.XMLHttpRequest };
 }
 
 /**
@@ -48,6 +49,7 @@ export function initRespond(root, deps) {
     const noteInput = required(root, '#note-input', 'textarea');
     const submitBtn = required(root, '#submit-btn', 'button');
     const errorEl = required(root, '#submit-error', 'p');
+    const progress = createProgressBar(required(root, '#submit-progress', 'div'));
     const statusEl = required(root, '#status', 'p');
 
     const s = takeFragmentSecret(window);
@@ -135,17 +137,14 @@ export function initRespond(root, deps) {
         }
 
         statusEl.textContent = strings.text('submitting');
-        let response;
-        try {
-            response = await deps.fetch(config.submitUrl, { method: 'POST', body: form });
-        } catch {
-            fail(strings.text('unreachable'));
-            return;
-        }
-        if (response.status === 429) { fail(strings.text('throttled')); return; }
-        if (!response.ok) {
-            let code = 'invalid_submission';
-            try { code = (await response.json()).code || code; } catch { /* keep default */ }
+        progress.show(0);
+        const result = await postForm(deps.XMLHttpRequest, config.submitUrl, form,
+            (percent) => progress.show(percent));
+        progress.hide();
+        if (result.status === null) { fail(strings.text('unreachable')); return; }
+        if (result.status === 429) { fail(strings.text('throttled')); return; }
+        if (result.status < 200 || result.status >= 300) {
+            const code = result.code || 'invalid_submission';
             let message;
             try { message = refusals.text(code); } catch { message = refusals.text('invalid_submission'); }
             fail(message);
@@ -156,5 +155,33 @@ export function initRespond(root, deps) {
         submitBtn.hidden = true;
         filePanel.hidden = true;
         textPanel.hidden = true;
+    });
+}
+
+/**
+ * POST a FormData by XHR for upload.onprogress — fetch reports no upload
+ * progress. Resolves { status, code } (status null on a network failure).
+ * @param {typeof globalThis.XMLHttpRequest} XhrCtor
+ * @param {string} url
+ * @param {FormData} form
+ * @param {(percent: number) => void} onProgress
+ * @returns {Promise<{ status: number | null, code?: string }>}
+ */
+function postForm(XhrCtor, url, form, onProgress) {
+    return new Promise((resolve) => {
+        const xhr = new XhrCtor();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.upload.onprogress = (/** @type {ProgressEvent} */ e) => {
+            if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onload = () => {
+            /** @type {{ code?: string } | null} */
+            let body = null;
+            try { body = JSON.parse(xhr.responseText); } catch { /* keep null */ }
+            resolve({ status: xhr.status, code: body?.code });
+        };
+        xhr.onerror = () => resolve({ status: null });
+        xhr.send(form);
     });
 }
