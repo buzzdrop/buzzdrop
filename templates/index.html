@@ -604,11 +604,13 @@
             </div>
             <button id="dz-create-btn" type="button" class="btn-primary shrink-0">{{ _('Create dropzone') }}</button>
         </div>
-        {% if configured_notification_email %}
-        <label class="mt-3 flex items-center gap-2 text-sm text-slate-400">
-            <input id="dz-notify" type="checkbox" class="field-check">
+        <label class="mt-3 flex items-center gap-2 text-sm {{ 'cursor-pointer text-slate-400' if configured_notification_email else 'cursor-not-allowed text-slate-500' }}">
+            <input id="dz-notify" type="checkbox" class="field-check disabled:cursor-not-allowed disabled:opacity-50"
+                {%- if not configured_notification_email %} disabled aria-describedby="dz-notify-unavailable"{% endif %}>
             {{ _('Email me when a submission lands') }}
         </label>
+        {% if not configured_notification_email %}
+        <p id="dz-notify-unavailable" class="text-sm text-slate-500">{{ _('Notifications need an email on your account — ask your admin.') }}</p>
         {% endif %}
         <p id="dz-error" class="file-error mt-2" role="alert"></p>
 

@@ -634,6 +634,12 @@
             </div>
             <button id="dz-create-btn" type="button" class="btn-primary shrink-0">Utwórz skrytkę</button>
         </div>
+        <label class="mt-3 flex items-center gap-2 text-sm cursor-not-allowed text-slate-500">
+            <input id="dz-notify" type="checkbox" class="field-check disabled:cursor-not-allowed disabled:opacity-50" disabled aria-describedby="dz-notify-unavailable">
+            Powiadom mnie e-mailem o nowym zgłoszeniu
+        </label>
+        
+        <p id="dz-notify-unavailable" class="text-sm text-slate-500">Powiadomienia wymagają adresu e-mail na koncie – poproś o niego administratora.</p>
         
         <p id="dz-error" class="file-error mt-2" role="alert"></p>
 
