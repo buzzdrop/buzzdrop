@@ -407,7 +407,12 @@ function initDropzones(root, deps, strings) {
                 const resp = await deps.fetch(endpoints.actionBase + z.id + '/delete', {
                     method: 'POST', headers: { 'X-CSRF-Token': csrf() },
                 });
-                if (resp.ok) li.remove();
+                if (resp.ok) {
+                    // Drop it from the source array too, or the next
+                    // renderZones resurrects the row.
+                    zones.splice(zones.indexOf(z), 1);
+                    renderZones(zones);
+                }
             });
             li.append(del);
             listEl.append(li);
