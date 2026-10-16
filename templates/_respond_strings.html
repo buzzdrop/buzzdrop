@@ -1,0 +1,35 @@
+{# The words pages/respond/ writes. `composer` is the shared composer's
+   section (features/composer): the refusals it shows in its own error
+   regions, in the responder's "submit" wording. `strings` covers the
+   status line and the per-code refusal text keyed by /submit's `code`;
+   'consumed'/'expired'/'invalid_link' mirror _drop_gone's uniform tone —
+   the page never says which case it is beyond what the server answered. #}
+{% set composer = {
+    'chooseFile': _('Choose a file to submit.'),
+    'writeNote': _('Write the note to submit.'),
+    'refusals': {
+        'type_not_allowed': _('That file type is not allowed.'),
+        'file_too_large': _('That file is too large for this server.'),
+        'note_too_large': _('That note is too large for this server.'),
+    },
+} %}
+{% set strings = {
+    'submit': _('Submit'),
+    'encrypting': _('Encrypting…'),
+    'encryptFailed': _('Encryption failed — this browser may not support it. Try a modern browser or a secure (https) connection.'),
+    'submitting': _('Submitting…'),
+    'submitted': _('Submitted — the requester can now collect it. You can close this page.'),
+    'badLink': _('This request link is not valid — check that the whole link was copied, including the part after #.'),
+    'unreachable': _('Could not reach the server — check the connection and try again.'),
+    'throttled': _('Too many tries in a short time — wait a minute and try again.'),
+    'refusals': {
+        'not_found': _('This dropzone is gone. Ask the requester for a new link.'),
+        'invalid_link': _('This request link is not valid — check that the whole link was copied, including the part after #.'),
+        'consumed': _('This request link was already used. Ask the requester for a new one.'),
+        'expired': _('This dropzone has expired. Ask the requester for a new link.'),
+        'invalid_submission': _('The submission was refused. Please try again.'),
+        'submit_failed': _('The submission failed. Please try again.'),
+        'file_too_large': _('That file is too large for this server.'),
+        'rate_limited': _('Too many tries in a short time — wait a minute and try again.'),
+    },
+} %}

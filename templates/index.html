@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% from '_page_strings.html' import page_strings %}
 {% from '_clipboard_feedback_strings.html' import strings as clipboard_feedback_strings with context %}
+{% from '_composer.html' import composer_panels with context %}
 {% from '_password_gate_strings.html' import strings as password_gate_strings with context %}
 {% from '_composer_strings.html' import strings as composer_strings with context %}
 {% from '_hero_flow_strings.html' import strings as hero_flow_strings with context %}
 {% from '_shared_files_strings.html' import strings as shared_files_strings with context %}
+{% from '_dropzones_strings.html' import strings as dropzones_strings with context %}
 {% from '_play_toggle.html' import play_toggle %}
 {% from '_progress_bar.html' import progress_bar %}
 {% from '_how_it_works_content.html' import brief with context %}
@@ -50,64 +52,7 @@
     </header>
 
     <div class="surface-card animate-fade-up delay-1 p-6 sm:p-8">
-        <span id="share-mode-label" class="field-label">{{ _('What are you sending?') }}</span>
-        <div class="tab-rail sm:inline-flex" role="tablist" aria-labelledby="share-mode-label">
-            <button id="file-tab" type="button" role="tab" aria-selected="true" aria-controls="file-upload-section" class="share-tab share-tab-active">
-                {{ _('File') }}
-            </button>
-            <button id="text-tab" type="button" role="tab" aria-selected="false" aria-controls="text-note-section" tabindex="-1" class="share-tab">
-                {{ _('Note') }}
-            </button>
-        </div>
-
-        {# Both panels share one grid cell, so the cell is as tall as the taller
-           one and switching tabs doesn't move anything below. The inactive
-           panel keeps its space with visibility: hidden (pages/index/index-page.js), which
-           also takes it out of the tab order and the accessibility tree. #}
-        <div class="mt-6 grid *:col-start-1 *:row-start-1">
-        <div id="file-upload-section" class="flex flex-col" role="tabpanel" aria-labelledby="file-tab">
-            {# novalidate: a missing file is reported inline in #file-error, like
-               every other refusal, not in the browser's own bubble. #}
-            <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" novalidate class="flex flex-1 flex-col">
-                <label id="dropzone" for="file" class="dropzone flex flex-1 flex-col justify-center">
-                    <div class="relative flex flex-col items-center gap-4">
-                        <svg viewBox="0 0 48 48" class="h-14 w-14 text-honey-300" fill="none" aria-hidden="true">
-                            <path d="M24 3 42 13.5v21L24 45 6 34.5v-21z" stroke="currentColor" stroke-width="1.4" opacity=".45"/>
-                            <path d="M24 31.5V16.5m0 0-6.5 6.5M24 16.5l6.5 6.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <div class="space-y-1">
-                            <p id="dropzone-label" class="text-base font-semibold text-white">
-                                {% trans %}Drop a file here, or <span class="text-honey-300 underline decoration-honey-400/40 underline-offset-4">browse</span>{% endtrans %}
-                            </p>
-                            <p class="dropzone-hint text-sm text-slate-400">{{ _('It is encrypted on this device before a single byte leaves it.') }}</p>
-                        </div>
-                        <p id="file-selected" hidden>
-                            <span class="file-chip">
-                                <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M4 4a2 2 0 0 1 2-2h4.586A2 2 0 0 1 12 2.586L15.414 6A2 2 0 0 1 16 7.414V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4Zm6 0v3a1 1 0 0 0 1 1h3l-4-4Z" clip-rule="evenodd"/>
-                                </svg>
-                                <span id="file-selected-name" class="truncate"></span>
-                            </span>
-                        </p>
-                        <div class="space-y-2 pt-1">
-                            <p><span class="stat-chip">{{ _('Up to %(size)s', size=format_size(max_content_length, page_language)) }}</span></p>
-                            {# File extensions, the same in every language. #}
-                            <p translate="no" class="mx-auto max-w-sm text-xs leading-5 text-slate-600">{{ allowed_extensions|join(' · ')|upper }}</p>
-                        </div>
-                    </div>
-                    <input id="file" name="file" type="file" class="sr-only" aria-labelledby="dropzone-label" aria-describedby="file-error" required>
-                </label>
-                <p id="file-error" class="file-error" role="alert"></p>
-            </form>
-        </div>
-
-        <div id="text-note-section" style="visibility:hidden;" class="flex flex-col" role="tabpanel" aria-labelledby="text-tab">
-            <label for="note-text" class="field-label">{{ _('Your note') }}</label>
-            <textarea id="note-text" rows="9" class="field-input min-h-56 flex-1 font-mono text-[0.8rem] leading-6" placeholder="{{ _('Paste the note you want to protect with a one-time buzz…') }}" aria-required="true" aria-describedby="note-error"></textarea>
-            <p class="field-help">{{ _('Encrypted in the browser before it reaches the server.') }}</p>
-            <p id="note-error" class="file-error" role="alert"></p>
-        </div>
-        </div>
+        {{ composer_panels(_('What are you sending?')) }}
 
         <div class="mt-8 space-y-6 border-t border-white/6 pt-8">
             {# The password takes the whole row, with its buttons below it until
@@ -576,6 +521,55 @@
             </div>
         </div>
     </section>
+
+    {# --- Dropzones (ADR-0001): the reversed one-shot flow --- #}
+    <section class="surface-card p-6 sm:p-8">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="max-w-xl space-y-2">
+                <h2 class="text-xl font-semibold tracking-tight text-white">{{ _('Your dropzones') }}</h2>
+                <p class="section-lead">{{ _('One-time boxes others can drop a secret into. One link, one submission, gone.') }}</p>
+            </div>
+        </div>
+
+        <div class="mt-6 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div class="grid gap-3 sm:grid-cols-3">
+                <div>
+                    <label for="dz-password" class="field-label">{{ _('Dropzone password') }}</label>
+                    <input id="dz-password" type="password" class="field-input" autocomplete="new-password" aria-describedby="dz-error">
+                </div>
+                <div>
+                    <label for="dz-expiry" class="field-label">{{ _('Expiry') }} <span class="text-slate-500">({{ _('optional') }})</span></label>
+                    <input id="dz-expiry" type="datetime-local" class="field-input">
+                </div>
+                <div>
+                    <label for="dz-memo" class="field-label">{{ _('Memo') }} <span class="text-slate-500">({{ _('optional') }})</span></label>
+                    <input id="dz-memo" type="text" class="field-input" maxlength="200">
+                </div>
+            </div>
+            <button id="dz-create-btn" type="button" class="btn-primary shrink-0">{{ _('Create dropzone') }}</button>
+        </div>
+        <label class="mt-3 flex items-center gap-2 text-sm {{ 'cursor-pointer text-slate-400' if configured_notification_email else 'cursor-not-allowed text-slate-500' }}">
+            <input id="dz-notify" type="checkbox" class="field-check disabled:cursor-not-allowed disabled:opacity-50"
+                {%- if not configured_notification_email %} disabled aria-describedby="dz-notify-unavailable"{% endif %}>
+            {{ _('Email me when a submission lands') }}
+        </label>
+        {% if not configured_notification_email %}
+        <p id="dz-notify-unavailable" class="text-sm text-slate-500">{{ _('Notifications need an email on your account — ask your admin.') }}</p>
+        {% endif %}
+        <p id="dz-error" class="file-error mt-2" role="alert"></p>
+
+        <div id="dz-link-out" class="mt-4" hidden>
+            <p id="dz-link-status" class="text-sm text-emerald-300"></p>
+            <div class="mt-2 flex gap-2">
+                <input id="dz-link" type="text" readonly class="field-input flex-1 font-mono text-[0.8rem]">
+                <button id="dz-copy-btn" type="button" class="btn-secondary px-4 py-2">{{ _('Copy request link') }}</button>
+            </div>
+        </div>
+
+        <ul id="dz-list" class="mt-6 divide-y divide-white/6"></ul>
+        <p id="dz-empty" class="mt-4 text-sm text-slate-500" hidden>{{ _('No dropzones yet.') }}</p>
+    </section>
+
 </div>
 {% endif %}
 
@@ -584,12 +578,23 @@
     'uploadUrl': url_for('upload_file'),
     'uploadBeginUrl': url_for('upload_begin'),
 } | tojson }}</script>
+<script id="dropzones-json" type="application/json">{{ {
+    'zones': user_dropzones | default([]),
+    'endpoints': {
+        'createUrl': url_for('create_dropzone'),
+        'listUrl': url_for('list_dropzones_route'),
+        'zoneBase': url_for('get_dropzone_route', dropzone_id=''),
+        'actionBase': '/dropzones/',
+        'respondBase': url_for('respond_dropzone', dropzone_id='', _external=True),
+    },
+} | tojson }}</script>
 {{ page_strings({
     'clipboard-feedback': clipboard_feedback_strings,
     'password-gate': password_gate_strings,
     'composer': composer_strings,
     'hero-flow': hero_flow_strings,
     'shared-files': shared_files_strings,
+    'dropzones': dropzones_strings,
 }) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/index/entry.js') }}" integrity="{{ sri_hash('js/pages/index/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}
