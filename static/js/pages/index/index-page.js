@@ -393,35 +393,33 @@ function initDropzones(root, deps, strings) {
             // Same meta grid the drops list renders: when it happened,
             // the deadline, the events, who from.
             const dl = root.createElement('dl');
-            dl.className = 'mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-5';
-            /** @param {string} label @param {string | null | undefined} iso @param {string} fallback */
-            const timeCell = (label, iso, fallback) => {
+            dl.className = 'mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400';
+            /** @param {string} label @param {string} value @param {string} [title] */
+            const metaCell = (label, value, title) => {
+                const wrap = root.createElement('div');
+                wrap.className = 'flex gap-1.5 break-all';
                 const dt = root.createElement('dt');
                 dt.className = 'font-semibold uppercase tracking-wider text-slate-500';
                 dt.textContent = strings.text(label);
                 const dd = root.createElement('dd');
-                dd.className = 'tabular-nums text-slate-400';
+                dd.className = 'tabular-nums';
+                dd.textContent = value;
+                if (title) dd.title = title;
+                wrap.append(dt, dd);
+                dl.append(wrap);
+            };
+            /** @param {string} label @param {string | null | undefined} iso @param {string} fallback */
+            const timeCell = (label, iso, fallback) => {
                 const then = iso && parseTimestamp(iso);
-                if (then) {
-                    dd.textContent = relativeTime(then, deps.now(), { locale: lang });
-                    const full = fullTime(then, { locale: lang });
-                    if (full) dd.title = full;
-                } else {
-                    dd.textContent = fallback;
-                }
-                dl.append(dt, dd);
+                metaCell(label,
+                    then ? relativeTime(then, deps.now(), { locale: lang }) : fallback,
+                    then ? fullTime(then, { locale: lang }) ?? undefined : undefined);
             };
             timeCell('metaCreated', z.created_at, '—');
             timeCell('metaExpiry', z.expiry_at, strings.text('noExpiry'));
             timeCell('metaSubmitted', z.link_consumed_at, strings.text('notYet'));
             timeCell('metaCollected', z.collected_at, strings.text('notYet'));
-            const fromDt = root.createElement('dt');
-            fromDt.className = 'font-semibold uppercase tracking-wider text-slate-500';
-            fromDt.textContent = strings.text('metaFrom');
-            const fromDd = root.createElement('dd');
-            fromDd.className = 'tabular-nums text-slate-400';
-            fromDd.textContent = z.submitted_by_ip || '—';
-            dl.append(fromDt, fromDd);
+            metaCell('metaFrom', z.submitted_by_ip || '—');
             meta.append(dl);
             li.append(meta);
             if (state === 'ready') {
