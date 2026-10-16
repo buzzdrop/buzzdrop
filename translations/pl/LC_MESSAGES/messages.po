@@ -559,9 +559,8 @@ msgid "Expiry"
 msgstr "Termin ważności"
 
 #: templates/_dropzones_strings.html
-#, fuzzy
 msgid "Submitted"
-msgstr "złożono"
+msgstr "Złożono"
 
 #: templates/_dropzones_strings.html templates/index.html
 msgid "From"
