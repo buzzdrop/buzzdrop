@@ -52,3 +52,18 @@ export function takeFragmentPassword(window) {
 export function buildOneClickLink(shareUrl, password) {
     return shareUrl.split('#')[0] + '#' + encodeURIComponent(password);
 }
+
+/**
+ * Keep the page's fragment across a language switch: the menu's forms POST
+ * to /set_language with only the path in `next` — a fragment never reaches
+ * the server, so without this it is lost and the page comes back without
+ * the secret (or anchor) it carried.
+ * @param {Document} root
+ * @param {string} fragment - '#…' to append to each language form's next
+ */
+export function preserveFragmentAcrossLanguageSwitch(root, fragment) {
+    if (!fragment || fragment.length <= 1) return;
+    /** @type {NodeListOf<HTMLInputElement>} */ (
+        root.querySelectorAll('#language-menu-list input[name="next"]'))
+        .forEach((input) => { input.value += fragment; });
+}

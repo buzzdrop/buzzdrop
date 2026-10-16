@@ -7,7 +7,7 @@
 // _clipboard_feedback_strings.html for what its copies announce.
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
-import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
+import { buildOneClickLink, preserveFragmentAcrossLanguageSwitch, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
 
@@ -94,6 +94,10 @@ export function initSuccess(root, deps) {
     // here with it). The entry is a module script, so the DOM is already
     // parsed when this runs.
     const pwd = takeFragmentPassword(window);
+    // The fragment was just scrubbed — carry the password through the
+    // language menu's redirect so switching doesn't blank the fields.
+    if (pwd) preserveFragmentAcrossLanguageSwitch(
+        root, '#' + encodeURIComponent(pwd));
     if (pwd) {
         pwdInput.value = pwd;
         toggleBtn.disabled = false;
