@@ -48,6 +48,7 @@ export function initRespond(root, deps) {
     const fileInput = required(root, '#file-input', 'input');
     const noteInput = required(root, '#note-input', 'textarea');
     const submitBtn = required(root, '#submit-btn', 'button');
+    const tabsRail = required(root, '#submit-tabs', 'div');
     const errorEl = required(root, '#submit-error', 'p');
     const progress = createProgressBar(required(root, '#submit-progress', 'div'));
     const statusEl = required(root, '#status', 'p');
@@ -151,8 +152,13 @@ export function initRespond(root, deps) {
             return;
         }
         window.location.hash = '';
+        // Scrub the plaintext and hide the composer — the zone is spent,
+        // a second submit can only bounce off 'consumed'.
+        noteInput.value = '';
+        fileInput.value = '';
         statusEl.textContent = strings.text('submitted');
         submitBtn.hidden = true;
+        tabsRail.hidden = true;
         filePanel.hidden = true;
         textPanel.hidden = true;
     });
