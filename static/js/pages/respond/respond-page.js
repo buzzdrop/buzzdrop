@@ -2,14 +2,14 @@
 // under a fresh random K, wrap K under the link's s (BKD1), and POST it
 // with sv = HKDF(s,'submit') — the proof of link possession. The page
 // never sends s itself; everything the server stores is ciphertext or
-// one-way material.
+// one-way material. The composer itself (tabs, drop zone, file chip,
+// note panel) is the feature the index page shares (features/composer).
 
 import { required } from '../../lib/required.js';
+import { initComposer } from '../../features/composer/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
 import { readStrings } from '../../lib/strings.js';
-import { hexToBytes, bytesToHex } from '../../lib/hex.js';
-import { isAllowedFile } from '../../lib/file-extensions.js';
-import { sealSubmission } from '../../lib/dropzone-crypto.js';
+import { hexToBytes } from '../../lib/hex.js';
 
 /** @typedef {import('../../lib/hex.js').Bytes} Bytes */
 
@@ -38,17 +38,12 @@ function takeFragmentSecret(win) {
  */
 export function initRespond(root, deps) {
     const config = JSON.parse(required(root, '#respond-config-json', 'script').text);
-    const strings = readStrings(required(root, '#page-strings-json', 'script')).section('respond');
+    const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
+    const strings = pageStrings.section('respond');
     const refusals = strings.section('refusals');
 
-    const fileTab = required(root, '#file-tab', 'button');
-    const textTab = required(root, '#text-tab', 'button');
-    const filePanel = required(root, '#file-panel', 'div');
-    const textPanel = required(root, '#text-panel', 'div');
-    const fileInput = required(root, '#file-input', 'input');
-    const noteInput = required(root, '#note-input', 'textarea');
     const submitBtn = required(root, '#submit-btn', 'button');
-    const tabsRail = required(root, '#submit-tabs', 'div');
+    const composerEl = required(root, '#respond-composer', 'div');
     const errorEl = required(root, '#submit-error', 'p');
     const progress = createProgressBar(required(root, '#submit-progress', 'div'));
     const statusEl = required(root, '#status', 'p');
@@ -61,20 +56,12 @@ export function initRespond(root, deps) {
         return;
     }
 
-    /** @param {'file' | 'text'} mode */
-    function selectTab(mode) {
-        const file = mode === 'file';
-        filePanel.hidden = !file;
-        textPanel.hidden = file;
-        fileTab.setAttribute('aria-selected', String(file));
-        textTab.setAttribute('aria-selected', String(!file));
-        fileTab.classList.toggle('text-white', file);
-        fileTab.classList.toggle('text-slate-400', !file);
-        textTab.classList.toggle('text-white', !file);
-        textTab.classList.toggle('text-slate-400', file);
-    }
-    fileTab.addEventListener('click', () => selectTab('file'));
-    textTab.addEventListener('click', () => selectTab('text'));
+    const composer = initComposer(root, {
+        strings: pageStrings.section('composer'),
+        allowedExtensions: config.allowedExtensions,
+        maxBytes: config.maxBytes,
+    });
+    if (!composer) throw new Error('Expected the composer in the page');
 
     /** @param {string} message */
     function fail(message) {
@@ -86,29 +73,16 @@ export function initRespond(root, deps) {
 
     submitBtn.addEventListener('click', async () => {
         errorEl.hidden = true;
-        const isText = !textPanel.hidden;
+        const payload = composer.getPayload();
+        if (!payload) return;
         /** @type {Bytes} */
         let data;
         let name = '';
-        let type = 'file';
-        if (isText) {
-            data = new TextEncoder().encode(noteInput.value);
-            type = 'text';
-            if (!data.length) { fail(strings.text('writeNote')); return; }
+        if (payload.kind === 'text') {
+            data = new TextEncoder().encode(payload.text);
         } else {
-            const file = fileInput.files && fileInput.files[0];
-            if (!file) { fail(strings.text('chooseFile')); return; }
-            if (!isAllowedFile(file.name, config.allowedExtensions)) {
-                fail(strings.text('fileTypeNotAllowed'));
-                return;
-            }
-            if (file.size > config.maxBytes) { fail(strings.text('fileTooLarge')); return; }
-            data = new Uint8Array(await file.arrayBuffer());
-            name = file.name;
-        }
-        if (data.length > config.maxBytes) {
-            fail(isText ? strings.text('noteTooLarge') : strings.text('fileTooLarge'));
-            return;
+            data = new Uint8Array(await payload.file.arrayBuffer());
+            name = payload.file.name;
         }
 
         submitBtn.disabled = true;
@@ -128,8 +102,8 @@ export function initRespond(root, deps) {
         form.append('sv', sv);
         form.append('wk', wk);
         form.append('receipt_hash', receiptHash);
-        form.append('type', type);
-        if (type === 'text') {
+        form.append('type', payload.kind);
+        if (payload.kind === 'text') {
             let binary = '';
             for (const byte of blob) binary += String.fromCharCode(byte);
             form.append('note_text', btoa(binary));
@@ -154,13 +128,10 @@ export function initRespond(root, deps) {
         window.location.hash = '';
         // Scrub the plaintext and hide the composer — the zone is spent,
         // a second submit can only bounce off 'consumed'.
-        noteInput.value = '';
-        fileInput.value = '';
+        composer.reset();
         statusEl.textContent = strings.text('submitted');
         submitBtn.hidden = true;
-        tabsRail.hidden = true;
-        filePanel.hidden = true;
-        textPanel.hidden = true;
+        composerEl.hidden = true;
     });
 }
 

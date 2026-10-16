@@ -1,18 +1,24 @@
-{# The words pages/respond/ writes: tab labels handled by markup, the
-   status line and per-code refusal text, keyed by /submit's `code`.
+{# The words pages/respond/ writes. `composer` is the shared composer's
+   section (features/composer): the refusals it shows in its own error
+   regions, in the responder's "submit" wording. `strings` covers the
+   status line and the per-code refusal text keyed by /submit's `code`;
    'consumed'/'expired'/'invalid_link' mirror _drop_gone's uniform tone —
    the page never says which case it is beyond what the server answered. #}
-{% set strings = {
+{% set composer = {
     'chooseFile': _('Choose a file to submit.'),
-    'fileTypeNotAllowed': _('That file type is not allowed.'),
     'writeNote': _('Write the note to submit.'),
+    'refusals': {
+        'type_not_allowed': _('That file type is not allowed.'),
+        'file_too_large': _('That file is too large for this server.'),
+        'note_too_large': _('That note is too large for this server.'),
+    },
+} %}
+{% set strings = {
     'submit': _('Submit'),
     'encrypting': _('Encrypting…'),
     'encryptFailed': _('Encryption failed — this browser may not support it. Try a modern browser or a secure (https) connection.'),
     'submitting': _('Submitting…'),
     'submitted': _('Submitted — the requester can now collect it. You can close this page.'),
-    'fileTooLarge': _('That file is too large for this server.'),
-    'noteTooLarge': _('That note is too large for this server.'),
     'badLink': _('This request link is not valid — check that the whole link was copied, including the part after #.'),
     'unreachable': _('Could not reach the server — check the connection and try again.'),
     'throttled': _('Too many tries in a short time — wait a minute and try again.'),

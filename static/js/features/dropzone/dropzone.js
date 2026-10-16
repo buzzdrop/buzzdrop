@@ -46,6 +46,13 @@ export async function createDropzone(endpoints, fetchFn, password, options = {})
 }
 
 /**
+ * The steps of a collection, in order: deriving the verifier from the
+ * password (PBKDF2), proving it to the release route, fetching the
+ * submission ciphertext, unwrapping s → K and decrypting.
+ * @typedef {'unlocking' | 'releasing' | 'downloading' | 'decrypting'} CollectStep
+ */
+
+/**
  * One collection attempt: derive V from the password, release wS, fetch
  * the blob and decrypt. `finish` reports the receipt.
  * @param {{ zoneUrl: string, releaseUrl: string, submissionUrl: string, reportUrl: string }} endpoints
@@ -53,13 +60,19 @@ export async function createDropzone(endpoints, fetchFn, password, options = {})
  * @param {{ id: string, salt: string }} zone
  * @param {string} password
  * @param {string} [csrfToken]
+ * @param {{ onStep?: (step: CollectStep) => void }} [hooks] - as each step starts
  * @returns {Promise<{data: Bytes, name: string, receipt: Bytes}>}
  */
-export async function collectDropzone(endpoints, fetchFn, zone, password, csrfToken) {
+export async function collectDropzone(endpoints, fetchFn, zone, password, csrfToken, hooks = {}) {
+    hooks.onStep?.('unlocking');
     const { unlock } = openDropzone(hexToBytes(zone.salt));
     const attempt = await unlock(password);
-    const headers = /** @type {Record<string, string>} */ ({ 'Content-Type': 'application/json' });
+    const headers = /** @type {Record<string, string>} */ ({
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    });
     if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+    hooks.onStep?.('releasing');
     const release = await fetchFn(endpoints.releaseUrl, {
         method: 'POST',
         headers,
@@ -67,27 +80,44 @@ export async function collectDropzone(endpoints, fetchFn, zone, password, csrfTo
     });
     if (!release.ok) {
         const body = await release.json().catch(() => ({}));
-        /** @type {Error & {code: string, status: number, attemptsRemaining?: number}} */
+        /** @type {Error & {code: string, status: number, serverCode?: string, attemptsRemaining?: number}} */
         const error = /** @type {any} */ (new Error(body.error || 'Release failed'));
         error.code = body.code || 'release_failed';
+        error.serverCode = body.code;
         error.status = release.status;
         error.attemptsRemaining = body.attempts_remaining;
         throw error;
     }
     const { ws } = await release.json();
 
-    const zoneInfo = await (await fetchFn(endpoints.zoneUrl)).json();
+    const zoneInfo = await (await fetchFn(endpoints.zoneUrl, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })).json();
     const wk = zoneInfo.submission && zoneInfo.submission.wk;
-    const response = await fetchFn(endpoints.submissionUrl);
+    hooks.onStep?.('downloading');
+    const response = await fetchFn(endpoints.submissionUrl, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    });
     if (!response.ok) {
-        /** @type {Error & {code: string, status: number}} */
+        const body = await response.json().catch(() => ({}));
+        /** @type {Error & {code: string, status: number, serverCode?: string}} */
         const error = /** @type {any} */ (new Error('Download failed'));
         error.code = 'download_failed';
+        error.serverCode = body.code;
         error.status = response.status;
         throw error;
     }
     const blob = new Uint8Array(await response.arrayBuffer());
-    const opened = await attempt.finish(ws, wk, blob);
+    hooks.onStep?.('decrypting');
+    let opened;
+    try {
+        opened = await attempt.finish(ws, wk, blob);
+    } catch {
+        /** @type {Error & {code: string}} */
+        const error = /** @type {any} */ (new Error('Decryption failed'));
+        error.code = 'decrypt_failed';
+        throw error;
+    }
 
     // Fire-and-forget receipt report, like the drop flow's.
     fetchFn(endpoints.reportUrl, {

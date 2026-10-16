@@ -51,7 +51,8 @@ FUNCTIONS = {
         # The dropzone flow (docs/adr/0001): respond page, submit, the
         # owner API, release, collect, report, delete and expiry.
         'respond_dropzone', 'submit_dropzone', 'create_dropzone',
-        'list_dropzones_route', 'get_dropzone_route', 'release_dropzone',
+        'list_dropzones_route', 'get_dropzone_route', 'collect_dropzone',
+        'release_dropzone',
         'download_dropzone_submission', 'report_dropzone_decryption',
         'delete_dropzone', '_expire_dropzone',
         'send_submission_notification_email', '_is_valid_wrapped_key',

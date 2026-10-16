@@ -362,6 +362,80 @@ def test_get_dropzone_is_owner_only(client):
 
 
 # ---------------------------------------------------------------------------
+# GET /dropzones/<id>/collect — the requester's collect page
+# ---------------------------------------------------------------------------
+
+def test_collect_page_renders_for_the_owner(client):
+    login_user(client)
+    dropzone_id = _submitted_zone(client)
+
+    response = client.get(url_for('collect_dropzone', dropzone_id=dropzone_id))
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'collect-config-json' in html
+    assert f'/dropzones/{dropzone_id}/release' in html
+    assert f'/dropzones/{dropzone_id}/submission' in html
+    # the zone's salt feeds the page's password KDF, like view's envelope salt
+    assert _SALT in html
+
+
+def test_collect_page_renders_while_awaiting_and_released(client):
+    """No submission yet renders — the release answers no_submission and
+    the page words it; a released-but-uncollected zone still collects."""
+    login_user(client)
+    awaiting = _create_zone(client)
+    assert client.get(
+        url_for('collect_dropzone', dropzone_id=awaiting)).status_code == 200
+
+    released = _submitted_zone(client)
+    assert _release(client, released).status_code == 200
+    assert client.get(
+        url_for('collect_dropzone', dropzone_id=released)).status_code == 200
+
+
+def test_collect_page_requires_login(client):
+    login_user(client)
+    dropzone_id = _submitted_zone(client)
+
+    anonymous = client.application.test_client()
+    response = anonymous.get(
+        url_for('collect_dropzone', dropzone_id=dropzone_id))
+    assert response.status_code == 302
+    assert url_for('login') in response.headers['Location']
+
+
+def test_collect_page_is_owner_only(client):
+    """Another account's zone answers the same uniform 'gone' page a dead
+    link gets — the page reveals nothing about whose it is."""
+    login_user(client)
+    dropzone_id = _submitted_zone(client)
+
+    login_user(client, 'adminuser', 'adminpass')
+    response = client.get(url_for('collect_dropzone', dropzone_id=dropzone_id))
+    assert response.status_code == 404
+    assert 'This drop is gone' in response.get_data(as_text=True)
+
+
+def test_collect_page_gone_for_collected_expired_and_missing(client, files_store):
+    login_user(client)
+    collected = _submitted_zone(client)
+    assert _release(client, collected).status_code == 200
+    assert client.get(
+        url_for('download_dropzone_submission', dropzone_id=collected)
+    ).status_code == 200
+
+    expired = _submitted_zone(client)
+    files_store.update_dropzone_fields(
+        expired, {'expiry_at': to_utc_iso(utcnow() - timedelta(minutes=5))})
+
+    for dropzone_id in (collected, expired, 'never-existed'):
+        response = client.get(
+            url_for('collect_dropzone', dropzone_id=dropzone_id))
+        assert response.status_code == 404, dropzone_id
+        assert 'This drop is gone' in response.get_data(as_text=True)
+
+
+# ---------------------------------------------------------------------------
 # POST /dropzone/<id>/submit — the responder's shot (public)
 # ---------------------------------------------------------------------------
 

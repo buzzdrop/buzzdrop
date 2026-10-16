@@ -2099,6 +2099,32 @@ def get_dropzone_route(dropzone_id):
     }
 
 
+@app.route('/dropzones/<dropzone_id>/collect', methods=['GET'])
+@login_required
+def collect_dropzone(dropzone_id):
+    """The requester's collect page — the dropzone mirror of /view: an
+    interactive page where the password is proven, then the browser
+    releases wS, fetches the submission ciphertext and decrypts it.
+
+    Uniform 'gone' for anything that isn't a live zone of this user's:
+    a stranger's zone, a missing one, an expired one, or an already
+    collected one (once collected_at is set there is nothing to
+    collect). A zone still awaiting a submission renders — its release
+    answers no_submission and the page says so."""
+    zone = file_repo.get_dropzone(dropzone_id)
+    current_user = get_current_user()
+    if (not zone or zone.get('created_by') != current_user['username']
+            or zone.get('collected_at') is not None
+            or _expire_dropzone(zone)):
+        return _drop_gone()
+    return render_template(
+        'collect.html',
+        dropzone_id=dropzone_id,
+        salt=zone.get('salt'),
+        max_attempts=current_app.config['DROPZONE_MAX_ATTEMPTS'],
+    )
+
+
 @app.route('/dropzones/<dropzone_id>/release', methods=['POST'])
 @limiter.limit(
     lambda: current_app.config['DROPZONE_RELEASE_RATE_LIMIT'],

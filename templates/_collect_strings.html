@@ -1,0 +1,33 @@
+{# The words pages/collect/ writes: the progress bar's step names, the
+   status line once the password is in, and why a submission can't be
+   collected. Mirrors _view_strings.html for the reversed flow — the
+   requester collects instead of the recipient opening. 'missing' never
+   says why (translations/pl/GLOSSARY.md, Gone). What the copy announces
+   is clipboard-feedback's (_clipboard_feedback_strings.html). #}
+{# Set apart only so the translators' note sits right above its message. #}
+{# Translators: the requester's wrong passwords locked the dropzone; the lock can't be lifted. #}
+{% set locked = _('Too many incorrect passwords — this dropzone is locked.') %}
+{% set strings = {
+    'steps': {
+        'unlocking': _('Checking password…'),
+        'releasing': _('Getting key…'),
+        'downloading': _('Downloading…'),
+        'decrypting': _('Decrypting…'),
+    },
+    'unsupported': _('This dropzone uses an unsupported format.'),
+    'textDecrypted': _('Text decrypted successfully.'),
+    'downloadComplete': _('Download complete.'),
+    'incorrectPassword': _('Incorrect password.'),
+    'attemptsRemaining': plural_forms('Incorrect password. %(count)s attempt remaining.',
+                                      'Incorrect password. %(count)s attempts remaining.'),
+    'noSubmission': _('Nothing has been submitted to this dropzone yet.'),
+    'unreachable': _('Could not reach the server — check the connection and try again.'),
+    'throttled': _('Too many tries in a short time — wait a minute and try again.'),
+    'gone': {
+        'collected': _('This submission was already collected.'),
+        'locked': locked,
+        'missing': _('This dropzone is gone.'),
+        'refused': _('The server refused to release this submission.'),
+        'corrupted': _('The submission could not be decrypted — it may be corrupted.'),
+    },
+} %}

@@ -98,12 +98,12 @@ msgstr ""
 msgid "Type: %(type)s"
 msgstr ""
 
-#: app.py templates/index.html templates/respond.html utils.py
+#: app.py templates/_composer.html templates/index.html utils.py
 msgid "Note"
 msgstr ""
 
-#: app.py templates/how_it_works.html templates/index.html
-#: templates/respond.html
+#: app.py templates/_composer.html templates/how_it_works.html
+#: templates/index.html
 msgid "File"
 msgstr ""
 
@@ -316,6 +316,110 @@ msgstr ""
 msgid "Your browser blocked clipboard access, so the text was not copied."
 msgstr ""
 
+#. the requester's wrong passwords locked the dropzone; the lock can't be
+#. lifted.
+#: templates/_collect_strings.html
+msgid "Too many incorrect passwords — this dropzone is locked."
+msgstr ""
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Checking password…"
+msgstr ""
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Getting key…"
+msgstr ""
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Downloading…"
+msgstr ""
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Decrypting…"
+msgstr ""
+
+#: templates/_collect_strings.html
+msgid "This dropzone uses an unsupported format."
+msgstr ""
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Text decrypted successfully."
+msgstr ""
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Download complete."
+msgstr ""
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+#: templates/_view_strings.html
+msgid "Incorrect password."
+msgstr ""
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+#: templates/_view_strings.html
+#, python-format
+msgid "Incorrect password. %(count)s attempt remaining."
+msgid_plural "Incorrect password. %(count)s attempts remaining."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+msgid "Nothing has been submitted to this dropzone yet."
+msgstr ""
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+#: templates/_respond_strings.html templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr ""
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+#: templates/_respond_strings.html templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr ""
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+msgid "This submission was already collected."
+msgstr ""
+
+#: templates/_collect_strings.html
+msgid "This dropzone is gone."
+msgstr ""
+
+#: templates/_collect_strings.html
+msgid "The server refused to release this submission."
+msgstr ""
+
+#: templates/_collect_strings.html
+msgid "The submission could not be decrypted — it may be corrupted."
+msgstr ""
+
+#: templates/_composer.html
+msgid ""
+"Drop a file here, or <span class=\"text-honey-300 underline decoration-"
+"honey-400/40 underline-offset-4\">browse</span>"
+msgstr ""
+
+#: templates/_composer.html
+msgid "It is encrypted on this device before a single byte leaves it."
+msgstr ""
+
+#: templates/_composer.html
+#, python-format
+msgid "Up to %(size)s"
+msgstr ""
+
+#: templates/_composer.html
+msgid "Your note"
+msgstr ""
+
+#: templates/_composer.html
+msgid "Paste the note you want to protect with a one-time buzz…"
+msgstr ""
+
+#: templates/_composer.html
+msgid "Encrypted in the browser before it reaches the server."
+msgstr ""
+
 #. %(zone)s is the viewer's time zone as their browser names it, e.g. "Central
 #. European Time".
 #: templates/_composer_strings.html
@@ -381,7 +485,7 @@ msgstr ""
 msgid "Copied."
 msgstr ""
 
-#: templates/_dropzones_strings.html templates/index.html
+#: templates/_dropzones_strings.html templates/collect.html
 msgid "Collect"
 msgstr ""
 
@@ -426,40 +530,11 @@ msgid "Could not create the dropzone. Please try again."
 msgstr ""
 
 #: templates/_dropzones_strings.html
-msgid "Nothing has been submitted to this dropzone yet."
-msgstr ""
-
-#: templates/_dropzones_strings.html
 msgid "This dropzone has expired."
-msgstr ""
-
-#: templates/_dropzones_strings.html templates/_view_strings.html
-msgid "Incorrect password."
 msgstr ""
 
 #: templates/_dropzones_strings.html
 msgid "Could not download the submission."
-msgstr ""
-
-#: templates/_dropzones_strings.html
-msgid "This submission was already collected."
-msgstr ""
-
-#: templates/_dropzones_strings.html templates/_view_strings.html
-#, python-format
-msgid "Incorrect password. %(count)s attempt remaining."
-msgid_plural "Incorrect password. %(count)s attempts remaining."
-msgstr[0] ""
-msgstr[1] ""
-
-#: templates/_dropzones_strings.html templates/_respond_strings.html
-#: templates/_view_strings.html
-msgid "Could not reach the server — check the connection and try again."
-msgstr ""
-
-#: templates/_dropzones_strings.html templates/_respond_strings.html
-#: templates/_view_strings.html
-msgid "Too many tries in a short time — wait a minute and try again."
 msgstr ""
 
 #: templates/_hero_flow_strings.html
@@ -1646,6 +1721,14 @@ msgid "Write the note to submit."
 msgstr ""
 
 #: templates/_respond_strings.html
+msgid "That file is too large for this server."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "That note is too large for this server."
+msgstr ""
+
+#: templates/_respond_strings.html
 msgid "Submit"
 msgstr ""
 
@@ -1665,14 +1748,6 @@ msgstr ""
 
 #: templates/_respond_strings.html
 msgid "Submitted — the requester can now collect it. You can close this page."
-msgstr ""
-
-#: templates/_respond_strings.html
-msgid "That file is too large for this server."
-msgstr ""
-
-#: templates/_respond_strings.html
-msgid "That note is too large for this server."
 msgstr ""
 
 #: templates/_respond_strings.html
@@ -1752,31 +1827,7 @@ msgid "Too many incorrect passwords — this drop is locked."
 msgstr ""
 
 #: templates/_view_strings.html
-msgid "Checking password…"
-msgstr ""
-
-#: templates/_view_strings.html
-msgid "Getting key…"
-msgstr ""
-
-#: templates/_view_strings.html
-msgid "Downloading…"
-msgstr ""
-
-#: templates/_view_strings.html
-msgid "Decrypting…"
-msgstr ""
-
-#: templates/_view_strings.html
 msgid "This drop uses an unsupported format. Ask the sender to send it again."
-msgstr ""
-
-#: templates/_view_strings.html
-msgid "Text decrypted successfully."
-msgstr ""
-
-#: templates/_view_strings.html
-msgid "Download complete."
 msgstr ""
 
 #: templates/_view_strings.html
@@ -1821,11 +1872,13 @@ msgstr ""
 msgid "Each drop opens once, then it's gone."
 msgstr ""
 
-#: templates/base.html templates/confirm_download.html templates/view.html
+#: templates/base.html templates/collect.html templates/confirm_download.html
+#: templates/view.html
 msgid "How it works (opens in new tab)"
 msgstr ""
 
-#: templates/base.html templates/confirm_download.html templates/view.html
+#: templates/base.html templates/collect.html templates/confirm_download.html
+#: templates/view.html
 msgid "How it works"
 msgstr ""
 
@@ -1843,6 +1896,56 @@ msgstr ""
 
 #: templates/base.html
 msgid "AGPL-3.0 licence text (opens in new tab)"
+msgstr ""
+
+#: templates/collect.html templates/respond.html
+msgid "Dropzone"
+msgstr ""
+
+#: templates/collect.html
+msgid "Collect the submission"
+msgstr ""
+
+#: templates/collect.html
+msgid "Enter the dropzone password to decrypt and save the submission."
+msgstr ""
+
+#: templates/collect.html templates/index.html
+msgid "Dropzone password"
+msgstr ""
+
+#: templates/collect.html templates/view.html
+#, python-format
+msgid "You have one attempt — check the password before you continue."
+msgid_plural "You have %(num)s attempts — check the password before you continue."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/collect.html
+msgid "Collection progress"
+msgstr ""
+
+#: templates/collect.html templates/view.html
+msgid "Decrypted text"
+msgstr ""
+
+#: templates/collect.html templates/view.html
+msgid "Copy it now — this page can’t be reopened."
+msgstr ""
+
+#: templates/collect.html templates/view.html
+msgid "Copy text"
+msgstr ""
+
+#: templates/collect.html templates/index.html templates/success.html
+#: templates/users.html templates/view.html
+msgid "Copy"
+msgstr ""
+
+#: templates/collect.html templates/view.html
+msgid ""
+"Decryption happens entirely in your browser. Your password stays in your "
+"browser; only a derived check value is sent."
 msgstr ""
 
 #: templates/confirm_download.html
@@ -1997,33 +2100,6 @@ msgstr ""
 msgid "What are you sending?"
 msgstr ""
 
-#: templates/index.html
-msgid ""
-"Drop a file here, or <span class=\"text-honey-300 underline decoration-"
-"honey-400/40 underline-offset-4\">browse</span>"
-msgstr ""
-
-#: templates/index.html
-msgid "It is encrypted on this device before a single byte leaves it."
-msgstr ""
-
-#: templates/index.html
-#, python-format
-msgid "Up to %(size)s"
-msgstr ""
-
-#: templates/index.html
-msgid "Your note"
-msgstr ""
-
-#: templates/index.html
-msgid "Paste the note you want to protect with a one-time buzz…"
-msgstr ""
-
-#: templates/index.html
-msgid "Encrypted in the browser before it reaches the server."
-msgstr ""
-
 #: templates/index.html templates/login.html templates/success.html
 #: templates/view.html
 msgid "Password"
@@ -2043,11 +2119,6 @@ msgstr ""
 
 #: templates/index.html templates/success.html
 msgid "Copy password"
-msgstr ""
-
-#: templates/index.html templates/success.html templates/users.html
-#: templates/view.html
-msgid "Copy"
 msgstr ""
 
 #: templates/index.html
@@ -2392,10 +2463,6 @@ msgid ""
 msgstr ""
 
 #: templates/index.html
-msgid "Dropzone password"
-msgstr ""
-
-#: templates/index.html
 msgid "optional"
 msgstr ""
 
@@ -2430,10 +2497,6 @@ msgid "Accounts are provisioned at deploy time through environment variables."
 msgstr ""
 
 #: templates/respond.html
-msgid "Dropzone"
-msgstr ""
-
-#: templates/respond.html
 msgid "Submit securely"
 msgstr ""
 
@@ -2445,10 +2508,6 @@ msgstr ""
 
 #: templates/respond.html
 msgid "What are you submitting?"
-msgstr ""
-
-#: templates/respond.html
-msgid "The filename travels inside the encryption — the server never sees it."
 msgstr ""
 
 #: templates/respond.html
@@ -2634,13 +2693,6 @@ msgid "Enter the password to decrypt and download."
 msgstr ""
 
 #: templates/view.html
-#, python-format
-msgid "You have one attempt — check the password before you continue."
-msgid_plural "You have %(num)s attempts — check the password before you continue."
-msgstr[0] ""
-msgstr[1] ""
-
-#: templates/view.html
 msgid "Decrypt and view"
 msgstr ""
 
@@ -2654,23 +2706,5 @@ msgstr ""
 
 #: templates/view.html
 msgid "Your link included the password — just press Decrypt and download."
-msgstr ""
-
-#: templates/view.html
-msgid "Decrypted text"
-msgstr ""
-
-#: templates/view.html
-msgid "Copy it now — this page can’t be reopened."
-msgstr ""
-
-#: templates/view.html
-msgid "Copy text"
-msgstr ""
-
-#: templates/view.html
-msgid ""
-"Decryption happens entirely in your browser. Your password stays in your "
-"browser; only a derived check value is sent."
 msgstr ""
 

@@ -104,12 +104,12 @@ msgstr "Twoją przesyłkę otwarto."
 msgid "Type: %(type)s"
 msgstr "Typ: %(type)s"
 
-#: app.py templates/index.html templates/respond.html utils.py
+#: app.py templates/_composer.html templates/index.html utils.py
 msgid "Note"
 msgstr "Notatka"
 
-#: app.py templates/how_it_works.html templates/index.html
-#: templates/respond.html
+#: app.py templates/_composer.html templates/how_it_works.html
+#: templates/index.html
 msgid "File"
 msgstr "Plik"
 
@@ -328,6 +328,115 @@ msgstr "Skopiowano tekst do schowka."
 msgid "Your browser blocked clipboard access, so the text was not copied."
 msgstr "Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano tekstu."
 
+#. the requester's wrong passwords locked the dropzone; the lock can't be
+#. lifted.
+#: templates/_collect_strings.html
+msgid "Too many incorrect passwords — this dropzone is locked."
+msgstr "Za dużo nieprawidłowych haseł – skrytka zablokowana na stałe."
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Checking password…"
+msgstr "Sprawdzanie hasła…"
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Getting key…"
+msgstr "Pobieranie klucza…"
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Downloading…"
+msgstr "Pobieranie przesyłki…"
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Decrypting…"
+msgstr "Odszyfrowywanie…"
+
+#: templates/_collect_strings.html
+msgid "This dropzone uses an unsupported format."
+msgstr "Ta skrytka ma nieobsługiwany format."
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Text decrypted successfully."
+msgstr "Odszyfrowano notatkę."
+
+#: templates/_collect_strings.html templates/_view_strings.html
+msgid "Download complete."
+msgstr "Pobieranie zakończone."
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+#: templates/_view_strings.html
+msgid "Incorrect password."
+msgstr "Nieprawidłowe hasło."
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+#: templates/_view_strings.html
+#, python-format
+msgid "Incorrect password. %(count)s attempt remaining."
+msgid_plural "Incorrect password. %(count)s attempts remaining."
+msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
+msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
+msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+msgid "Nothing has been submitted to this dropzone yet."
+msgstr "Do tej skrytki nic jeszcze nie złożono."
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+#: templates/_respond_strings.html templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+#: templates/_respond_strings.html templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
+
+#: templates/_collect_strings.html templates/_dropzones_strings.html
+msgid "This submission was already collected."
+msgstr "To zgłoszenie już odebrano."
+
+#: templates/_collect_strings.html
+msgid "This dropzone is gone."
+msgstr "Tej skrytki już nie ma."
+
+#: templates/_collect_strings.html
+msgid "The server refused to release this submission."
+msgstr "Serwer odmówił wydania tego zgłoszenia."
+
+#: templates/_collect_strings.html
+msgid "The submission could not be decrypted — it may be corrupted."
+msgstr "Nie udało się odszyfrować zgłoszenia — może być uszkodzone."
+
+#: templates/_composer.html
+msgid ""
+"Drop a file here, or <span class=\"text-honey-300 underline decoration-"
+"honey-400/40 underline-offset-4\">browse</span>"
+msgstr ""
+"Upuść tu plik albo <span class=\"text-honey-300 underline decoration-"
+"honey-400/40 underline-offset-4\">wybierz go</span>"
+
+#: templates/_composer.html
+msgid "It is encrypted on this device before a single byte leaves it."
+msgstr ""
+"Zostanie zaszyfrowany na tym urządzeniu, zanim opuści je choćby jeden "
+"bajt."
+
+#: templates/_composer.html
+#, python-format
+msgid "Up to %(size)s"
+msgstr "Do %(size)s"
+
+#: templates/_composer.html
+msgid "Your note"
+msgstr "Treść notatki"
+
+#: templates/_composer.html
+msgid "Paste the note you want to protect with a one-time buzz…"
+msgstr "Wklej notatkę, którą chcesz wysłać jednorazowo…"
+
+#: templates/_composer.html
+msgid "Encrypted in the browser before it reaches the server."
+msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
+
 #. %(zone)s is the viewer's time zone as their browser names it, e.g. "Central
 #. European Time".
 #: templates/_composer_strings.html
@@ -397,7 +506,7 @@ msgstr "Skopiuj link do skrytki"
 msgid "Copied."
 msgstr "Skopiowano."
 
-#: templates/_dropzones_strings.html templates/index.html
+#: templates/_dropzones_strings.html templates/collect.html
 msgid "Collect"
 msgstr "Odbierz"
 
@@ -442,42 +551,12 @@ msgid "Could not create the dropzone. Please try again."
 msgstr "Nie udało się utworzyć skrytki. Spróbuj ponownie."
 
 #: templates/_dropzones_strings.html
-msgid "Nothing has been submitted to this dropzone yet."
-msgstr "Do tej skrytki nic jeszcze nie złożono."
-
-#: templates/_dropzones_strings.html
 msgid "This dropzone has expired."
 msgstr "Ta skrytka wygasła."
-
-#: templates/_dropzones_strings.html templates/_view_strings.html
-msgid "Incorrect password."
-msgstr "Nieprawidłowe hasło."
 
 #: templates/_dropzones_strings.html
 msgid "Could not download the submission."
 msgstr "Nie udało się pobrać zgłoszenia."
-
-#: templates/_dropzones_strings.html
-msgid "This submission was already collected."
-msgstr "To zgłoszenie już odebrano."
-
-#: templates/_dropzones_strings.html templates/_view_strings.html
-#, python-format
-msgid "Incorrect password. %(count)s attempt remaining."
-msgid_plural "Incorrect password. %(count)s attempts remaining."
-msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
-msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
-msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
-
-#: templates/_dropzones_strings.html templates/_respond_strings.html
-#: templates/_view_strings.html
-msgid "Could not reach the server — check the connection and try again."
-msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
-
-#: templates/_dropzones_strings.html templates/_respond_strings.html
-#: templates/_view_strings.html
-msgid "Too many tries in a short time — wait a minute and try again."
-msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
 
 #: templates/_hero_flow_strings.html
 msgid "Play walkthrough"
@@ -1895,6 +1974,14 @@ msgid "Write the note to submit."
 msgstr "Napisz notatkę do złożenia."
 
 #: templates/_respond_strings.html
+msgid "That file is too large for this server."
+msgstr "Ten plik jest za duży dla tego serwera."
+
+#: templates/_respond_strings.html
+msgid "That note is too large for this server."
+msgstr "Ta notatka jest za duża dla tego serwera."
+
+#: templates/_respond_strings.html
 msgid "Submit"
 msgstr "Złóż"
 
@@ -1920,14 +2007,6 @@ msgid "Submitted — the requester can now collect it. You can close this page."
 msgstr ""
 "Złożono – zamawiający może teraz odebrać zgłoszenie. Możesz zamknąć tę "
 "stronę."
-
-#: templates/_respond_strings.html
-msgid "That file is too large for this server."
-msgstr "Ten plik jest za duży dla tego serwera."
-
-#: templates/_respond_strings.html
-msgid "That note is too large for this server."
-msgstr "Ta notatka jest za duża dla tego serwera."
 
 #: templates/_respond_strings.html
 msgid ""
@@ -2009,32 +2088,8 @@ msgid "Too many incorrect passwords — this drop is locked."
 msgstr "Za dużo nieprawidłowych haseł – przesyłka zablokowana na stałe."
 
 #: templates/_view_strings.html
-msgid "Checking password…"
-msgstr "Sprawdzanie hasła…"
-
-#: templates/_view_strings.html
-msgid "Getting key…"
-msgstr "Pobieranie klucza…"
-
-#: templates/_view_strings.html
-msgid "Downloading…"
-msgstr "Pobieranie przesyłki…"
-
-#: templates/_view_strings.html
-msgid "Decrypting…"
-msgstr "Odszyfrowywanie…"
-
-#: templates/_view_strings.html
 msgid "This drop uses an unsupported format. Ask the sender to send it again."
 msgstr "Ta przesyłka ma nieobsługiwany format. Poproś nadawcę o ponowne wysłanie."
-
-#: templates/_view_strings.html
-msgid "Text decrypted successfully."
-msgstr "Odszyfrowano notatkę."
-
-#: templates/_view_strings.html
-msgid "Download complete."
-msgstr "Pobieranie zakończone."
 
 #: templates/_view_strings.html
 msgid "This drop is gone. Ask the sender for a new one."
@@ -2083,11 +2138,13 @@ msgstr "Zaloguj"
 msgid "Each drop opens once, then it's gone."
 msgstr "Każdą przesyłkę można otworzyć raz, potem znika."
 
-#: templates/base.html templates/confirm_download.html templates/view.html
+#: templates/base.html templates/collect.html templates/confirm_download.html
+#: templates/view.html
 msgid "How it works (opens in new tab)"
 msgstr "Jak to działa (otwiera się w nowej karcie)"
 
-#: templates/base.html templates/confirm_download.html templates/view.html
+#: templates/base.html templates/collect.html templates/confirm_download.html
+#: templates/view.html
 msgid "How it works"
 msgstr "Jak to działa"
 
@@ -2106,6 +2163,59 @@ msgstr "Kod źródłowy"
 #: templates/base.html
 msgid "AGPL-3.0 licence text (opens in new tab)"
 msgstr "Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)"
+
+#: templates/collect.html templates/respond.html
+msgid "Dropzone"
+msgstr "Skrytka"
+
+#: templates/collect.html
+msgid "Collect the submission"
+msgstr "Odbierz zgłoszenie"
+
+#: templates/collect.html
+msgid "Enter the dropzone password to decrypt and save the submission."
+msgstr "Wpisz hasło do skrytki, żeby odszyfrować i zapisać zgłoszenie."
+
+#: templates/collect.html templates/index.html
+msgid "Dropzone password"
+msgstr "Hasło do skrytki"
+
+#: templates/collect.html templates/view.html
+#, python-format
+msgid "You have one attempt — check the password before you continue."
+msgid_plural "You have %(num)s attempts — check the password before you continue."
+msgstr[0] "Masz jedną próbę – sprawdź hasło, zanim przejdziesz dalej."
+msgstr[1] "Masz %(num)s próby – sprawdź hasło, zanim przejdziesz dalej."
+msgstr[2] "Masz %(num)s prób – sprawdź hasło, zanim przejdziesz dalej."
+
+#: templates/collect.html
+msgid "Collection progress"
+msgstr "Postęp odbierania"
+
+#: templates/collect.html templates/view.html
+msgid "Decrypted text"
+msgstr "Odszyfrowany tekst"
+
+#: templates/collect.html templates/view.html
+msgid "Copy it now — this page can’t be reopened."
+msgstr "Skopiuj go teraz – tej strony nie da się otworzyć ponownie."
+
+#: templates/collect.html templates/view.html
+msgid "Copy text"
+msgstr "Skopiuj tekst"
+
+#: templates/collect.html templates/index.html templates/success.html
+#: templates/users.html templates/view.html
+msgid "Copy"
+msgstr "Skopiuj"
+
+#: templates/collect.html templates/view.html
+msgid ""
+"Decryption happens entirely in your browser. Your password stays in your "
+"browser; only a derived check value is sent."
+msgstr ""
+"Odszyfrowanie odbywa się w całości w twojej przeglądarce. Hasło jej nie "
+"opuszcza; wysyłana jest tylko wyprowadzona z niego wartość kontrolna."
 
 #: templates/confirm_download.html
 msgid "One-time action"
@@ -2265,37 +2375,6 @@ msgstr ""
 msgid "What are you sending?"
 msgstr "Co wysyłasz?"
 
-#: templates/index.html
-msgid ""
-"Drop a file here, or <span class=\"text-honey-300 underline decoration-"
-"honey-400/40 underline-offset-4\">browse</span>"
-msgstr ""
-"Upuść tu plik albo <span class=\"text-honey-300 underline decoration-"
-"honey-400/40 underline-offset-4\">wybierz go</span>"
-
-#: templates/index.html
-msgid "It is encrypted on this device before a single byte leaves it."
-msgstr ""
-"Zostanie zaszyfrowany na tym urządzeniu, zanim opuści je choćby jeden "
-"bajt."
-
-#: templates/index.html
-#, python-format
-msgid "Up to %(size)s"
-msgstr "Do %(size)s"
-
-#: templates/index.html
-msgid "Your note"
-msgstr "Treść notatki"
-
-#: templates/index.html
-msgid "Paste the note you want to protect with a one-time buzz…"
-msgstr "Wklej notatkę, którą chcesz wysłać jednorazowo…"
-
-#: templates/index.html
-msgid "Encrypted in the browser before it reaches the server."
-msgstr "Szyfrowana w przeglądarce, zanim dotrze do serwera."
-
 #: templates/index.html templates/login.html templates/success.html
 #: templates/view.html
 msgid "Password"
@@ -2316,11 +2395,6 @@ msgstr "Wygeneruj"
 #: templates/index.html templates/success.html
 msgid "Copy password"
 msgstr "Skopiuj hasło"
-
-#: templates/index.html templates/success.html templates/users.html
-#: templates/view.html
-msgid "Copy"
-msgstr "Skopiuj"
 
 #: templates/index.html
 msgid "Password strength"
@@ -2706,10 +2780,6 @@ msgstr ""
 "jedno zgłoszenie i po sprawie."
 
 #: templates/index.html
-msgid "Dropzone password"
-msgstr "Hasło do skrytki"
-
-#: templates/index.html
 msgid "optional"
 msgstr "opcjonalnie"
 
@@ -2746,10 +2816,6 @@ msgid "Accounts are provisioned at deploy time through environment variables."
 msgstr "Konta zakłada się przy wdrożeniu, w zmiennych środowiskowych."
 
 #: templates/respond.html
-msgid "Dropzone"
-msgstr "Skrytka"
-
-#: templates/respond.html
 msgid "Submit securely"
 msgstr "Złóż bezpiecznie"
 
@@ -2764,10 +2830,6 @@ msgstr ""
 #: templates/respond.html
 msgid "What are you submitting?"
 msgstr "Co składasz?"
-
-#: templates/respond.html
-msgid "The filename travels inside the encryption — the server never sees it."
-msgstr "Nazwa pliku podróżuje wewnątrz szyfrogramu – serwer nigdy jej nie widzi."
 
 #: templates/respond.html
 msgid "Encryption and submission progress"
@@ -2968,14 +3030,6 @@ msgid "Enter the password to decrypt and download."
 msgstr "Wpisz hasło, żeby odszyfrować i pobrać plik."
 
 #: templates/view.html
-#, python-format
-msgid "You have one attempt — check the password before you continue."
-msgid_plural "You have %(num)s attempts — check the password before you continue."
-msgstr[0] "Masz jedną próbę – sprawdź hasło, zanim przejdziesz dalej."
-msgstr[1] "Masz %(num)s próby – sprawdź hasło, zanim przejdziesz dalej."
-msgstr[2] "Masz %(num)s prób – sprawdź hasło, zanim przejdziesz dalej."
-
-#: templates/view.html
 msgid "Decrypt and view"
 msgstr "Odszyfruj i wyświetl"
 
@@ -2990,24 +3044,4 @@ msgstr "Postęp odszyfrowywania"
 #: templates/view.html
 msgid "Your link included the password — just press Decrypt and download."
 msgstr "Link zawierał hasło – wystarczy nacisnąć „Odszyfruj i pobierz”."
-
-#: templates/view.html
-msgid "Decrypted text"
-msgstr "Odszyfrowany tekst"
-
-#: templates/view.html
-msgid "Copy it now — this page can’t be reopened."
-msgstr "Skopiuj go teraz – tej strony nie da się otworzyć ponownie."
-
-#: templates/view.html
-msgid "Copy text"
-msgstr "Skopiuj tekst"
-
-#: templates/view.html
-msgid ""
-"Decryption happens entirely in your browser. Your password stays in your "
-"browser; only a derived check value is sent."
-msgstr ""
-"Odszyfrowanie odbywa się w całości w twojej przeglądarce. Hasło jej nie "
-"opuszcza; wysyłana jest tylko wyprowadzona z niego wartość kontrolna."
 
