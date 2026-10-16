@@ -234,7 +234,7 @@ msgstr ""
 msgid "Decrypted"
 msgstr ""
 
-#: utils.py
+#: templates/_dropzones_strings.html utils.py
 msgid "Locked"
 msgstr ""
 

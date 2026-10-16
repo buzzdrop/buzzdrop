@@ -242,7 +242,7 @@ msgstr "Aktywna"
 msgid "Decrypted"
 msgstr "Odszyfrowana"
 
-#: utils.py
+#: templates/_dropzones_strings.html utils.py
 msgid "Locked"
 msgstr "Zablokowana"
 

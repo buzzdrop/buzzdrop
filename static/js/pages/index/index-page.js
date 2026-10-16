@@ -359,6 +359,7 @@ function initDropzones(root, deps, strings) {
     const zoneState = (z) => {
         if (z.status === 'expired') return 'expired';
         if (z.collected_at) return 'collected';
+        if (z.attempts_remaining === 0) return 'locked';
         if (z.link_consumed_at) return 'ready';
         return 'awaiting';
     };

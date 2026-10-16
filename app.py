@@ -894,6 +894,9 @@ def index():
                 'memo': zone.get('memo'),
                 'link_consumed_at': zone.get('link_consumed_at'),
                 'collected_at': zone.get('collected_at'),
+                'attempts_remaining': max(
+                    0, current_app.config['DROPZONE_MAX_ATTEMPTS']
+                    - (zone.get('attempts') or 0)),
                 'submission_type': sub.get('type') if sub else None,
             })
 
@@ -2061,6 +2064,9 @@ def list_dropzones_route():
             'link_consumed_at': zone.get('link_consumed_at'),
             'released_at': zone.get('released_at'),
             'collected_at': zone.get('collected_at'),
+            'attempts_remaining': max(
+                0, current_app.config['DROPZONE_MAX_ATTEMPTS']
+                - (zone.get('attempts') or 0)),
             'memo': zone.get('memo'),
             'submission': (
                 {
@@ -2091,6 +2097,9 @@ def get_dropzone_route(dropzone_id):
         'link_consumed_at': zone.get('link_consumed_at'),
         'released_at': zone.get('released_at'),
         'collected_at': zone.get('collected_at'),
+        'attempts_remaining': max(
+            0, current_app.config['DROPZONE_MAX_ATTEMPTS']
+            - (zone.get('attempts') or 0)),
         'memo': zone.get('memo'),
         'submission': (
             {'type': sub.get('type'), 'wk': sub.get('wk')}
