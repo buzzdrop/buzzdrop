@@ -26,7 +26,7 @@ msgstr "Zbyt wiele żądań. Spróbuj ponownie później."
 msgid "The server would not accept the drop. Please try again."
 msgstr "Serwer nie przyjął przesyłki. Spróbuj ponownie."
 
-#: app.py templates/_composer_strings.html
+#: app.py templates/_composer_strings.html templates/_dropzones_strings.html
 msgid "Choose a valid expiry time."
 msgstr "Wybierz poprawny termin ważności."
 
@@ -253,7 +253,7 @@ msgstr "Zablokowana"
 msgid "Opened"
 msgstr "Otwarta"
 
-#: utils.py
+#: templates/_dropzones_strings.html utils.py
 msgid "Expired"
 msgstr "Wygasła"
 
@@ -373,6 +373,124 @@ msgstr ""
 #: templates/_confirm_download_strings.html
 msgid "This link already carries the key — continue and the drop goes BZZT."
 msgstr "Ten link zawiera już hasło – przejdź dalej, a przesyłka zrobi BZZT."
+
+#: templates/_dropzones_strings.html templates/index.html
+#, fuzzy
+msgid "Create dropzone"
+msgstr "Wyślij kolejną przesyłkę"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Creating…"
+msgstr "Odszyfrowywanie…"
+
+#: templates/_dropzones_strings.html
+msgid ""
+"Dropzone created — send this request link to whoever should drop a file "
+"or note in:"
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/index.html
+#, fuzzy
+msgid "Copy request link"
+msgstr "Skopiuj link"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Copied."
+msgstr "Skopiowano"
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "Collect"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Collecting…"
+msgstr "Odszyfrowywanie…"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Enter the dropzone password"
+msgstr "Wpisz silne hasło"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Enter the dropzone password first."
+msgstr "Wpisz silne hasło"
+
+#: templates/_dropzones_strings.html
+msgid "Awaiting submission"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Submission ready"
+msgstr "Serwer Buzzdropa"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Collected"
+msgstr "Utworzono"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "file"
+msgstr "Plik"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "note"
+msgstr "Notatka"
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "Delete"
+msgstr "Usuń"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Could not create the dropzone. Please try again."
+msgstr "Nie udało się wysłać przesyłki. Spróbuj ponownie."
+
+#: templates/_dropzones_strings.html
+msgid "Nothing has been submitted to this dropzone yet."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "This dropzone has expired."
+msgstr "Ta przesyłka wygasła."
+
+#: templates/_dropzones_strings.html templates/_view_strings.html
+msgid "Incorrect password."
+msgstr "Nieprawidłowe hasło."
+
+#: templates/_dropzones_strings.html
+msgid "Could not download the submission."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "This submission was already collected."
+msgstr "Tę przesyłkę już otwarto."
+
+#: templates/_dropzones_strings.html templates/_view_strings.html
+#, python-format
+msgid "Incorrect password. %(count)s attempt remaining."
+msgid_plural "Incorrect password. %(count)s attempts remaining."
+msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
+msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
+msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
+
+#: templates/_dropzones_strings.html templates/_respond_strings.html
+#: templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
+
+#: templates/_dropzones_strings.html templates/_respond_strings.html
+#: templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
+msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
 
 #: templates/_hero_flow_strings.html
 msgid "Play walkthrough"
@@ -1511,14 +1629,6 @@ msgid ""
 "including the part after #."
 msgstr ""
 
-#: templates/_respond_strings.html templates/_view_strings.html
-msgid "Could not reach the server — check the connection and try again."
-msgstr "Nie udało się połączyć z serwerem – sprawdź połączenie i spróbuj ponownie."
-
-#: templates/_respond_strings.html templates/_view_strings.html
-msgid "Too many tries in a short time — wait a minute and try again."
-msgstr "Zbyt wiele prób w krótkim czasie – odczekaj chwilę i spróbuj ponownie."
-
 #: templates/_respond_strings.html
 #, fuzzy
 msgid "This dropzone is gone. Ask the requester for a new link."
@@ -1621,18 +1731,6 @@ msgstr "Odszyfrowano notatkę."
 #: templates/_view_strings.html
 msgid "Download complete."
 msgstr "Pobieranie zakończone."
-
-#: templates/_view_strings.html
-msgid "Incorrect password."
-msgstr "Nieprawidłowe hasło."
-
-#: templates/_view_strings.html
-#, python-format
-msgid "Incorrect password. %(count)s attempt remaining."
-msgid_plural "Incorrect password. %(count)s attempts remaining."
-msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
-msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
-msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
 
 #: templates/_view_strings.html
 msgid "This drop is gone. Ask the sender for a new one."
@@ -2279,10 +2377,6 @@ msgstr "Skopiuj link"
 msgid "Delete this drop?"
 msgstr "Usunąć tę przesyłkę?"
 
-#: templates/index.html
-msgid "Delete"
-msgstr "Usuń"
-
 #: templates/index.html templates/success.html templates/users.html
 msgid "Clipboard"
 msgstr "Schowek"
@@ -2298,6 +2392,37 @@ msgstr "Poprzednia"
 #: templates/index.html
 msgid "Next"
 msgstr "Następna"
+
+#: templates/index.html
+msgid "Dropzones"
+msgstr ""
+
+#: templates/index.html
+msgid ""
+"One-time boxes others can drop a secret into. One link, one submission, "
+"gone."
+msgstr ""
+
+#: templates/index.html
+#, fuzzy
+msgid "Dropzone password"
+msgstr "Skopiuj hasło"
+
+#: templates/index.html
+msgid "optional"
+msgstr ""
+
+#: templates/index.html
+msgid "Memo"
+msgstr ""
+
+#: templates/index.html
+msgid "Email me when a submission lands"
+msgstr ""
+
+#: templates/index.html
+msgid "No dropzones yet."
+msgstr ""
 
 #: templates/login.html
 msgid "Private access"

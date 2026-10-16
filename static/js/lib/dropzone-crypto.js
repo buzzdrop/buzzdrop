@@ -181,7 +181,12 @@ export function openDropzone(salt) {
     };
 }
 
-/** iv(12) ‖ AES-GCM ciphertext — the wire shape of a wrapped key. */
+/**
+ * iv(12) ‖ AES-GCM ciphertext — the wire shape of a wrapped key.
+ * @param {CryptoKey} key
+ * @param {Bytes} secret
+ * @returns {Promise<Bytes>}
+ */
 async function wrapKey(key, secret) {
     const iv = randomBytes(IV_LENGTH);
     const ct = new Uint8Array(await globalThis.crypto.subtle.encrypt(
@@ -192,6 +197,11 @@ async function wrapKey(key, secret) {
     return wrapped;
 }
 
+/**
+ * @param {CryptoKey} key
+ * @param {Bytes} wrapped
+ * @returns {Promise<Bytes>}
+ */
 async function unwrapKey(key, wrapped) {
     if (!(wrapped instanceof Uint8Array) || wrapped.length !== WRAPPED_LENGTH) {
         throw new Error('Invalid wrapped key');
@@ -201,6 +211,11 @@ async function unwrapKey(key, wrapped) {
         key, wrapped.slice(IV_LENGTH)));
 }
 
+/**
+ * @param {string} password
+ * @param {Bytes} salt
+ * @returns {Promise<Bytes>}
+ */
 async function pbkdf2(password, salt) {
     const keyMaterial = await globalThis.crypto.subtle.importKey(
         'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
@@ -209,6 +224,12 @@ async function pbkdf2(password, salt) {
         keyMaterial, 256));
 }
 
+/**
+ * @param {Bytes} ikm
+ * @param {Bytes} salt
+ * @param {Bytes} info
+ * @returns {Promise<Bytes>}
+ */
 async function hkdf(ikm, salt, info) {
     const key = await globalThis.crypto.subtle.importKey(
         'raw', ikm, 'HKDF', false, ['deriveBits']);
@@ -216,12 +237,21 @@ async function hkdf(ikm, salt, info) {
         { name: 'HKDF', hash: 'SHA-256', salt, info }, key, 256));
 }
 
+/**
+ * @param {Bytes} raw
+ * @param {KeyUsage} usage
+ * @returns {Promise<CryptoKey>}
+ */
 async function aesKey(raw, usage) {
     return globalThis.crypto.subtle.importKey('raw', raw, 'AES-GCM', false, [usage]);
 }
 
 const rawKey = aesKey;
 
+/**
+ * @param {number} length
+ * @returns {Bytes}
+ */
 function randomBytes(length) {
     return globalThis.crypto.getRandomValues(new Uint8Array(length));
 }

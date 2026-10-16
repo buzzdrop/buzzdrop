@@ -14,32 +14,40 @@ import { sealSubmission } from '../../lib/dropzone-crypto.js';
 /**
  * @typedef {object} RespondDeps
  * @property {typeof fetch} fetch
- * @property {typeof import('../../lib/dropzone-crypto.js')} crypto
+ * @property {{ sealSubmission: typeof import('../../lib/dropzone-crypto.js').sealSubmission }} crypto
  */
 
 export function browserDeps() {
     return { fetch: window.fetch.bind(window) };
 }
 
+/**
+ * @param {Window} win
+ * @returns {Bytes | null}
+ */
 function takeFragmentSecret(win) {
     const match = /^#s=([0-9a-f]+)$/.exec(win.location.hash);
     return match ? hexToBytes(match[1]) : null;
 }
 
+/**
+ * @param {Document} root
+ * @param {RespondDeps} deps
+ */
 export function initRespond(root, deps) {
     const config = JSON.parse(required(root, '#respond-config-json', 'script').text);
     const strings = readStrings(required(root, '#page-strings-json', 'script')).section('respond');
     const refusals = strings.section('refusals');
 
-    const fileTab = required(root, '#file-tab');
-    const textTab = required(root, '#text-tab');
-    const filePanel = required(root, '#file-panel');
-    const textPanel = required(root, '#text-panel');
-    const fileInput = required(root, '#file-input', HTMLInputElement);
-    const noteInput = required(root, '#note-input', HTMLTextAreaElement);
-    const submitBtn = required(root, '#submit-btn', HTMLButtonElement);
-    const errorEl = required(root, '#submit-error');
-    const statusEl = required(root, '#status');
+    const fileTab = required(root, '#file-tab', 'button');
+    const textTab = required(root, '#text-tab', 'button');
+    const filePanel = required(root, '#file-panel', 'div');
+    const textPanel = required(root, '#text-panel', 'div');
+    const fileInput = required(root, '#file-input', 'input');
+    const noteInput = required(root, '#note-input', 'textarea');
+    const submitBtn = required(root, '#submit-btn', 'button');
+    const errorEl = required(root, '#submit-error', 'p');
+    const statusEl = required(root, '#status', 'p');
 
     const s = takeFragmentSecret(window);
     if (!s) {
@@ -49,6 +57,7 @@ export function initRespond(root, deps) {
         return;
     }
 
+    /** @param {'file' | 'text'} mode */
     function selectTab(mode) {
         const file = mode === 'file';
         filePanel.hidden = !file;
@@ -63,6 +72,7 @@ export function initRespond(root, deps) {
     fileTab.addEventListener('click', () => selectTab('file'));
     textTab.addEventListener('click', () => selectTab('text'));
 
+    /** @param {string} message */
     function fail(message) {
         errorEl.hidden = false;
         errorEl.textContent = message;

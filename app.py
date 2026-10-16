@@ -877,11 +877,30 @@ def index():
 
         # Get files shared with the current user
         shared_files = file_repo.get_shared_files(username)
-        
+
+        # The user's dropzones: salt rides along because collection
+        # derives V from it (it is not secret-critical — like the view
+        # page's envelope salt), plus each zone's submission kind.
+        user_dropzones = []
+        for zone in file_repo.list_dropzones(username):
+            _expire_dropzone(zone)
+            sub = file_repo.get_dropzone_submission(zone['id'])
+            user_dropzones.append({
+                'id': zone['id'],
+                'salt': zone.get('salt'),
+                'status': zone.get('status', 'active'),
+                'expiry_at': zone.get('expiry_at'),
+                'memo': zone.get('memo'),
+                'link_consumed_at': zone.get('link_consumed_at'),
+                'collected_at': zone.get('collected_at'),
+                'submission_type': sub.get('type') if sub else None,
+            })
+
         response = make_response(render_template(
-            'index.html', 
-            user_files=user_files, 
+            'index.html',
+            user_files=user_files,
             shared_files=shared_files,
+            user_dropzones=user_dropzones,
             allowed_extensions=sorted(current_app.config.get('ALLOWED_EXTENSIONS')),
             max_content_length=current_app.config.get('MAX_CONTENT_LENGTH'),
             configured_notification_email=current_user.get('email'),

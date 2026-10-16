@@ -11,9 +11,11 @@ import { initPasswordGate } from '../../features/password-gate/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
 import { createShare } from '../../features/share-protocol/index.js';
 import { initSharedFilesList } from '../../features/shared-files/index.js';
+import { createDropzone, collectDropzone } from '../../features/dropzone/index.js';
 import { isAllowedFile } from '../../lib/file-extensions.js';
 import * as shareCrypto from '../../lib/crypto.js';
 import { timeZoneName } from '../../lib/format.js';
+import { bytesToHex } from '../../lib/hex.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
@@ -31,7 +33,7 @@ import { readStrings } from '../../lib/strings.js';
  * @property {(url: string) => void} navigate
  * @property {import('../../features/share-protocol/index.js').CreateDeps['crypto']} crypto
  * @property {() => number} now - epoch milliseconds, for the drop list's relative times
- */
+  */
 
 /**
  * The extensions the upload form accepts (`allowed-extensions-json`):
@@ -355,7 +357,7 @@ export function initIndex(root, deps) {
         showRefusal('file-error', refusals.text('type_not_allowed'));
     }
 
-    const dropzone = root.getElementById('dropzone');
+    const dropzone = root.getElementById('file-dropzone');
     if (dropzone) {
         const fileField = required(root, '#file', 'input');
 
@@ -492,6 +494,167 @@ export function initIndex(root, deps) {
         });
     });
 
+    // --- Dropzones (ADR-0001) ---
+    initDropzones(root, deps, pageStrings.section('dropzones'));
+
     // --- Shared Files Search & Pagination ---
     initSharedFilesList(root, { fetch: deps.fetch, now: deps.now, strings: pageStrings.section('shared-files') });
+}
+
+
+/**
+ * The dropzones section: create (secrets client-side, link shown once),
+ * the zone list, collect (V → release → fetch → unwrap → save → report)
+ * and delete.
+ * @param {Document} root
+ * @param {{ fetch: typeof fetch }} deps
+ * @param {import('../../lib/strings.js').Strings} strings
+ */
+function initDropzones(root, deps, strings) {
+    const island = required(root, '#dropzones-json', 'script');
+    const createBtn = /** @type {HTMLButtonElement | null} */ (root.getElementById('dz-create-btn'));
+    if (!createBtn) return;
+    const { zones, endpoints } = JSON.parse(island.text);
+    const refusals = strings.section('refusals');
+    const csrf = () => csrfToken(root);
+
+    const passwordInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-password'));
+    const expiryInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-expiry'));
+    const memoInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-memo'));
+    const notifyInput = /** @type {HTMLInputElement | null} */ (root.getElementById('dz-notify'));
+    const errorEl = /** @type {HTMLElement} */ (root.getElementById('dz-error'));
+    const linkOut = /** @type {HTMLElement} */ (root.getElementById('dz-link-out'));
+    const linkInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-link'));
+    const linkStatus = /** @type {HTMLElement} */ (root.getElementById('dz-link-status'));
+    const copyBtn = /** @type {HTMLButtonElement} */ (root.getElementById('dz-copy-btn'));
+    const listEl = /** @type {HTMLElement} */ (root.getElementById('dz-list'));
+    const emptyEl = /** @type {HTMLElement} */ (root.getElementById('dz-empty'));
+    const collectForm = /** @type {HTMLFormElement} */ (root.getElementById('dz-collect-form'));
+    const collectPassword = /** @type {HTMLInputElement} */ (root.getElementById('dz-collect-password'));
+    const collectError = /** @type {HTMLElement} */ (root.getElementById('dz-collect-error'));
+
+    /** @param {string} id */
+    const zoneEndpoints = (id) => ({
+        zoneUrl: endpoints.zoneBase + id,
+        releaseUrl: endpoints.actionBase + id + '/release',
+        submissionUrl: endpoints.actionBase + id + '/submission',
+        reportUrl: endpoints.actionBase + id + '/report',
+    });
+    /** @param {HTMLElement} el @param {string} code */
+    const refuse = (el, code) => {
+        try { el.textContent = refusals.text(code); }
+        catch { el.textContent = refusals.text('create_failed'); }
+    };
+    /** @param {Record<string, any>} z */
+    const zoneState = (z) => {
+        if (z.status === 'expired') return 'expired';
+        if (z.collected_at) return 'collected';
+        if (z.link_consumed_at) return 'ready';
+        return 'awaiting';
+    };
+
+    /** @param {Array<Record<string, any>>} list */
+    function renderZones(list) {
+        listEl.replaceChildren();
+        emptyEl.hidden = list.length > 0;
+        for (const z of list) {
+            const li = root.createElement('li');
+            li.className = 'flex flex-wrap items-center gap-3 py-3';
+            const state = zoneState(z);
+            const kind = z.submission_type === 'text' ? strings.text('noteKind') : strings.text('fileKind');
+            const meta = root.createElement('div');
+            meta.className = 'min-w-0 flex-1';
+            const title = root.createElement('p');
+            title.className = 'truncate text-sm font-medium text-white';
+            title.textContent = z.memo || z.id;
+            const sub = root.createElement('p');
+            sub.className = 'text-xs text-slate-500';
+            sub.textContent = strings.text(state) + (z.submission_type ? ' · ' + kind : '');
+            meta.append(title, sub);
+            li.append(meta);
+            if (state === 'ready') {
+                const btn = root.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn-secondary px-3 py-1.5 text-xs';
+                btn.textContent = strings.text('collect');
+                btn.addEventListener('click', () => {
+                    collectForm.dataset.zone = z.id;
+                    collectForm.classList.remove('hidden');
+                    collectPassword.value = '';
+                    collectPassword.focus();
+                });
+                li.append(btn);
+            }
+            const del = root.createElement('button');
+            del.type = 'button';
+            del.className = 'btn-secondary px-3 py-1.5 text-xs';
+            del.textContent = strings.text('deleteZone');
+            del.addEventListener('click', async () => {
+                const resp = await deps.fetch(endpoints.actionBase + z.id + '/delete', {
+                    method: 'POST', headers: { 'X-CSRF-Token': csrf() },
+                });
+                if (resp.ok) li.remove();
+            });
+            li.append(del);
+            listEl.append(li);
+        }
+    }
+    renderZones(zones);
+
+    copyBtn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(linkInput.value);
+        linkStatus.textContent = strings.text('copied');
+    });
+
+    createBtn.addEventListener('click', async () => {
+        errorEl.textContent = '';
+        const password = passwordInput.value;
+        if (!password) { refuse(errorEl, 'noPassword'); return; }
+        createBtn.disabled = true;
+        try {
+            const expiry = expiryInput.value ? new Date(expiryInput.value).toISOString() : null;
+            const { dropzoneId, s } = await createDropzone(
+                { createUrl: endpoints.createUrl }, deps.fetch, password,
+                { expiry, memo: memoInput.value || null,
+                  notifyOnSubmission: Boolean(notifyInput && notifyInput.checked),
+                  csrfToken: csrf() });
+            linkInput.value = endpoints.respondBase + dropzoneId + '#s=' + bytesToHex(s);
+            linkStatus.textContent = strings.text('created');
+            linkOut.hidden = false;
+            zones.push({ id: dropzoneId, salt: null, status: 'active', memo: memoInput.value || null });
+            renderZones(zones);
+        } catch (err) {
+            refuse(errorEl, /** @type {any} */ (err) && /** @type {any} */ (err).code || 'create_failed');
+        } finally {
+            createBtn.disabled = false;
+        }
+    });
+
+    collectForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        collectError.textContent = '';
+        const id = collectForm.dataset.zone || '';
+        const zone = zones.find((/** @type {Record<string, any>} */ z) => z.id === id);
+        if (!zone) return;
+        try {
+            const opened = await collectDropzone(
+                zoneEndpoints(id), deps.fetch, zone, collectPassword.value, csrf());
+            const blob = new Blob([opened.data]);
+            const a = root.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = opened.name || 'submission';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            zone.collected_at = new Date().toISOString();
+            renderZones(zones);
+            collectForm.classList.add('hidden');
+        } catch (err) {
+            const e = /** @type {any} */ (err);
+            if (e && typeof e.attemptsRemaining === 'number') {
+                collectError.textContent = strings.plural('attemptsRemaining', e.attemptsRemaining);
+            } else {
+                refuse(collectError, (e && e.code) || 'release_failed');
+            }
+        }
+    });
 }

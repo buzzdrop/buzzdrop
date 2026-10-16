@@ -22,7 +22,7 @@ msgstr ""
 msgid "The server would not accept the drop. Please try again."
 msgstr ""
 
-#: app.py templates/_composer_strings.html
+#: app.py templates/_composer_strings.html templates/_dropzones_strings.html
 msgid "Choose a valid expiry time."
 msgstr ""
 
@@ -244,7 +244,7 @@ msgstr ""
 msgid "Opened"
 msgstr ""
 
-#: utils.py
+#: templates/_dropzones_strings.html utils.py
 msgid "Expired"
 msgstr ""
 
@@ -357,6 +357,109 @@ msgstr ""
 
 #: templates/_confirm_download_strings.html
 msgid "This link already carries the key — continue and the drop goes BZZT."
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "Create dropzone"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Creating…"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid ""
+"Dropzone created — send this request link to whoever should drop a file "
+"or note in:"
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "Copy request link"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Copied."
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "Collect"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Collecting…"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Enter the dropzone password"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Enter the dropzone password first."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Awaiting submission"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Submission ready"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Collected"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "file"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "note"
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "Delete"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Could not create the dropzone. Please try again."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Nothing has been submitted to this dropzone yet."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "This dropzone has expired."
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/_view_strings.html
+msgid "Incorrect password."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Could not download the submission."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "This submission was already collected."
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/_view_strings.html
+#, python-format
+msgid "Incorrect password. %(count)s attempt remaining."
+msgid_plural "Incorrect password. %(count)s attempts remaining."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/_dropzones_strings.html templates/_respond_strings.html
+#: templates/_view_strings.html
+msgid "Could not reach the server — check the connection and try again."
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/_respond_strings.html
+#: templates/_view_strings.html
+msgid "Too many tries in a short time — wait a minute and try again."
 msgstr ""
 
 #: templates/_hero_flow_strings.html
@@ -1332,14 +1435,6 @@ msgid ""
 "including the part after #."
 msgstr ""
 
-#: templates/_respond_strings.html templates/_view_strings.html
-msgid "Could not reach the server — check the connection and try again."
-msgstr ""
-
-#: templates/_respond_strings.html templates/_view_strings.html
-msgid "Too many tries in a short time — wait a minute and try again."
-msgstr ""
-
 #: templates/_respond_strings.html
 msgid "This dropzone is gone. Ask the requester for a new link."
 msgstr ""
@@ -1437,17 +1532,6 @@ msgstr ""
 #: templates/_view_strings.html
 msgid "Download complete."
 msgstr ""
-
-#: templates/_view_strings.html
-msgid "Incorrect password."
-msgstr ""
-
-#: templates/_view_strings.html
-#, python-format
-msgid "Incorrect password. %(count)s attempt remaining."
-msgid_plural "Incorrect password. %(count)s attempts remaining."
-msgstr[0] ""
-msgstr[1] ""
 
 #: templates/_view_strings.html
 msgid "This drop is gone. Ask the sender for a new one."
@@ -2039,10 +2123,6 @@ msgstr ""
 msgid "Delete this drop?"
 msgstr ""
 
-#: templates/index.html
-msgid "Delete"
-msgstr ""
-
 #: templates/index.html templates/success.html templates/users.html
 msgid "Clipboard"
 msgstr ""
@@ -2057,6 +2137,36 @@ msgstr ""
 
 #: templates/index.html
 msgid "Next"
+msgstr ""
+
+#: templates/index.html
+msgid "Dropzones"
+msgstr ""
+
+#: templates/index.html
+msgid ""
+"One-time boxes others can drop a secret into. One link, one submission, "
+"gone."
+msgstr ""
+
+#: templates/index.html
+msgid "Dropzone password"
+msgstr ""
+
+#: templates/index.html
+msgid "optional"
+msgstr ""
+
+#: templates/index.html
+msgid "Memo"
+msgstr ""
+
+#: templates/index.html
+msgid "Email me when a submission lands"
+msgstr ""
+
+#: templates/index.html
+msgid "No dropzones yet."
 msgstr ""
 
 #: templates/login.html
