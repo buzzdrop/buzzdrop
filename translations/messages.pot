@@ -528,6 +528,30 @@ msgstr ""
 msgid "file"
 msgstr ""
 
+#: templates/_dropzones_strings.html templates/users.html
+msgid "Created"
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "Expiry"
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Submitted"
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "From"
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "No expiry"
+msgstr ""
+
+#: templates/_dropzones_strings.html templates/_shared_files_strings.html
+msgid "Not yet"
+msgstr ""
+
 #: templates/_dropzones_strings.html
 msgid "note"
 msgstr ""
@@ -1798,10 +1822,6 @@ msgid "Copy link for %(name)s"
 msgstr ""
 
 #: templates/_shared_files_strings.html
-msgid "Not yet"
-msgstr ""
-
-#: templates/_shared_files_strings.html
 msgid "No matching drops"
 msgstr ""
 
@@ -2431,18 +2451,6 @@ msgstr ""
 msgid "Sent"
 msgstr ""
 
-#: templates/index.html
-msgid "Expiry"
-msgstr ""
-
-#: templates/index.html
-msgid "No expiry"
-msgstr ""
-
-#: templates/index.html
-msgid "From"
-msgstr ""
-
 #: templates/index.html templates/success.html
 msgid "Copy link"
 msgstr ""
@@ -2657,10 +2665,6 @@ msgstr ""
 
 #: templates/users.html
 msgid "Copy token"
-msgstr ""
-
-#: templates/users.html
-msgid "Created"
 msgstr ""
 
 #: templates/users.html

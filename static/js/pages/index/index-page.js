@@ -14,7 +14,7 @@ import { createShare } from '../../features/share-protocol/index.js';
 import { initSharedFilesList } from '../../features/shared-files/index.js';
 import { createDropzone } from '../../features/dropzone/index.js';
 import * as shareCrypto from '../../lib/crypto.js';
-import { timeZoneName } from '../../lib/format.js';
+import { formatNumber, fullTime, parseTimestamp, relativeTime, timeZoneName } from '../../lib/format.js';
 import { bytesToHex } from '../../lib/hex.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
@@ -327,10 +327,11 @@ export function initIndex(root, deps) {
  * the zone list and delete. Collecting a submission has its own page —
  * the Collect button navigates to /dropzones/<id>/collect.
  * @param {Document} root
- * @param {{ fetch: typeof fetch, navigate: (url: string) => void }} deps
+ * @param {{ fetch: typeof fetch, navigate: (url: string) => void, now: () => number }} deps
  * @param {import('../../lib/strings.js').Strings} strings
  */
 function initDropzones(root, deps, strings) {
+    const lang = root.documentElement.lang || 'en';
     const island = required(root, '#dropzones-json', 'script');
     const createBtn = /** @type {HTMLButtonElement | null} */ (root.getElementById('dz-create-btn'));
     if (!createBtn) return;
@@ -388,11 +389,45 @@ function initDropzones(root, deps, strings) {
                 meta.append(hint);
             }
             meta.append(title, sub);
+
+            // Same meta grid the drops list renders: when it happened,
+            // the deadline, the events, who from.
+            const dl = root.createElement('dl');
+            dl.className = 'mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-5';
+            /** @param {string} label @param {string | null | undefined} iso @param {string} fallback */
+            const timeCell = (label, iso, fallback) => {
+                const dt = root.createElement('dt');
+                dt.className = 'font-semibold uppercase tracking-wider text-slate-500';
+                dt.textContent = strings.text(label);
+                const dd = root.createElement('dd');
+                dd.className = 'tabular-nums text-slate-400';
+                const then = iso && parseTimestamp(iso);
+                if (then) {
+                    dd.textContent = relativeTime(then, deps.now(), { locale: lang });
+                    const full = fullTime(then, { locale: lang });
+                    if (full) dd.title = full;
+                } else {
+                    dd.textContent = fallback;
+                }
+                dl.append(dt, dd);
+            };
+            timeCell('metaCreated', z.created_at, '—');
+            timeCell('metaExpiry', z.expiry_at, strings.text('noExpiry'));
+            timeCell('metaSubmitted', z.link_consumed_at, strings.text('notYet'));
+            timeCell('metaCollected', z.collected_at, strings.text('notYet'));
+            const fromDt = root.createElement('dt');
+            fromDt.className = 'font-semibold uppercase tracking-wider text-slate-500';
+            fromDt.textContent = strings.text('metaFrom');
+            const fromDd = root.createElement('dd');
+            fromDd.className = 'tabular-nums text-slate-400';
+            fromDd.textContent = z.submitted_by_ip || '—';
+            dl.append(fromDt, fromDd);
+            meta.append(dl);
             li.append(meta);
             if (state === 'ready') {
                 const btn = root.createElement('button');
                 btn.type = 'button';
-                btn.className = 'btn-secondary px-3 py-1.5 text-xs';
+                btn.className = 'btn-secondary px-4 py-2';
                 btn.textContent = strings.text('collect');
                 btn.addEventListener('click', () => {
                     deps.navigate(endpoints.actionBase + z.id + '/collect');
@@ -401,7 +436,7 @@ function initDropzones(root, deps, strings) {
             }
             const del = root.createElement('button');
             del.type = 'button';
-            del.className = 'btn-secondary px-3 py-1.5 text-xs';
+            del.className = 'btn-danger';
             del.textContent = strings.text('deleteZone');
             del.addEventListener('click', async () => {
                 if (!window.confirm(strings.text('confirmDelete'))) return;

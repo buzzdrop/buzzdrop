@@ -263,6 +263,7 @@ DROPZONE_COLUMNS = (
 DROPZONE_SUBMISSION_BOOL_COLUMNS = frozenset({'decryption_success'})
 DROPZONE_SUBMISSION_JSON_COLUMNS = frozenset()
 DROPZONE_SUBMISSION_TEXT_COLUMNS = frozenset({
+    'submitted_by_ip',
     'id', 'dropzone_id', 'path', 'type', 'wk', 'receipt_hash',
     'created_at',
 })
@@ -307,6 +308,7 @@ CREATE TABLE IF NOT EXISTS dropzone_submissions (
     type TEXT,
     wk TEXT,
     receipt_hash TEXT,
+    submitted_by_ip TEXT,
     decryption_success INTEGER,
     created_at TEXT,
     extra TEXT
@@ -1531,6 +1533,7 @@ class SQLiteBackend(Backend):
         _add_missing_columns(conn, 'api_tokens', _TOKEN_MIGRATABLE_COLUMNS)
         _guard_incompatible_columns(conn, 'files', FILE_COLUMNS)
         _guard_incompatible_columns(conn, 'api_tokens', TOKEN_COLUMNS)
+        self._ensure_column(conn, 'dropzone_submissions', 'submitted_by_ip', 'TEXT')
         for table, column, decl in _MIGRATABLE_COLUMNS:
             self._ensure_column(conn, table, column, decl)
 

@@ -321,7 +321,11 @@ def test_list_dropzones_shows_only_the_requesters(client):
     assert by_memo['mine']['submission'] is None
     landed = by_memo[None]
     assert landed['link_consumed_at'] is not None
-    assert landed['submission'] == {'type': 'file', 'decryption_success': None}
+    sub = landed['submission']
+    assert sub['type'] == 'file'
+    assert sub['decryption_success'] is None
+    assert sub['created_at'] is not None
+    assert sub['submitted_by_ip'] == '127.0.0.1'
 
 
 def test_list_dropzones_requires_auth(client):
@@ -344,7 +348,10 @@ def test_get_dropzone_hands_the_owner_salt_and_wk(client, files_store):
     assert body['id'] == dropzone_id
     assert body['salt'] == _SALT
     assert body['link_consumed_at'] is not None
-    assert body['submission'] == {'type': 'file', 'wk': _WK}
+    sub = body['submission']
+    assert sub['type'] == 'file'
+    assert sub['wk'] == _WK
+    assert sub['submitted_by_ip'] == '127.0.0.1'
 
 
 def test_get_dropzone_is_owner_only(client):

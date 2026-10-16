@@ -550,6 +550,31 @@ msgstr "Odebrano"
 msgid "file"
 msgstr "plik"
 
+#: templates/_dropzones_strings.html templates/users.html
+msgid "Created"
+msgstr "Utworzono"
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "Expiry"
+msgstr "Termin ważności"
+
+#: templates/_dropzones_strings.html
+#, fuzzy
+msgid "Submitted"
+msgstr "złożono"
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "From"
+msgstr "Z adresu"
+
+#: templates/_dropzones_strings.html templates/index.html
+msgid "No expiry"
+msgstr "Bez terminu"
+
+#: templates/_dropzones_strings.html templates/_shared_files_strings.html
+msgid "Not yet"
+msgstr "Jeszcze nie"
+
 #: templates/_dropzones_strings.html
 msgid "note"
 msgstr "notatka"
@@ -2059,10 +2084,6 @@ msgid "Copy link for %(name)s"
 msgstr "Skopiuj link: %(name)s"
 
 #: templates/_shared_files_strings.html
-msgid "Not yet"
-msgstr "Jeszcze nie"
-
-#: templates/_shared_files_strings.html
 msgid "No matching drops"
 msgstr "Brak pasujących przesyłek"
 
@@ -2747,18 +2768,6 @@ msgstr "Najbliższy termin ważności"
 msgid "Sent"
 msgstr "Wysłana"
 
-#: templates/index.html
-msgid "Expiry"
-msgstr "Termin ważności"
-
-#: templates/index.html
-msgid "No expiry"
-msgstr "Bez terminu"
-
-#: templates/index.html
-msgid "From"
-msgstr "Z adresu"
-
 #: templates/index.html templates/success.html
 msgid "Copy link"
 msgstr "Skopiuj link"
@@ -2996,10 +3005,6 @@ msgstr "Nowy token API"
 #: templates/users.html
 msgid "Copy token"
 msgstr "Skopiuj token"
-
-#: templates/users.html
-msgid "Created"
-msgstr "Utworzono"
 
 #: templates/users.html
 msgid "Last used"

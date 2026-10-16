@@ -888,6 +888,7 @@ def index():
             sub = file_repo.get_dropzone_submission(zone['id'])
             user_dropzones.append({
                 'id': zone['id'],
+                'created_at': zone.get('created_at'),
                 'salt': zone.get('salt'),
                 'status': zone.get('status', 'active'),
                 'expiry_at': zone.get('expiry_at'),
@@ -898,6 +899,7 @@ def index():
                     0, current_app.config['DROPZONE_MAX_ATTEMPTS']
                     - (zone.get('attempts') or 0)),
                 'submission_type': sub.get('type') if sub else None,
+                'submitted_by_ip': sub.get('submitted_by_ip') if sub else None,
             })
 
         response = make_response(render_template(
@@ -1947,6 +1949,7 @@ def submit_dropzone(dropzone_id):
         'type': sub_type,
         'wk': wk,
         'receipt_hash': receipt_hash,
+        'submitted_by_ip': get_client_ip(),
         'created_at': now_iso(),
     })
     status = result['status']
@@ -2071,6 +2074,8 @@ def list_dropzones_route():
             'submission': (
                 {
                     'type': sub.get('type'),
+                    'created_at': sub.get('created_at'),
+                    'submitted_by_ip': sub.get('submitted_by_ip'),
                     'decryption_success': sub.get('decryption_success'),
                 }
                 if sub else None
@@ -2102,7 +2107,9 @@ def get_dropzone_route(dropzone_id):
             - (zone.get('attempts') or 0)),
         'memo': zone.get('memo'),
         'submission': (
-            {'type': sub.get('type'), 'wk': sub.get('wk')}
+            {'type': sub.get('type'), 'wk': sub.get('wk'),
+             'created_at': sub.get('created_at'),
+             'submitted_by_ip': sub.get('submitted_by_ip')}
             if sub else None
         ),
     }
