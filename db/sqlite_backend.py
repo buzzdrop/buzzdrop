@@ -242,6 +242,77 @@ _MIGRATABLE_COLUMNS = (
     ('file_keys', 'ticket_hash', 'TEXT'),
 )
 
+# Dropzones (docs/adr/0001): the one-shot reversed flow. `v`/`ws`/`sv`
+# are wiped (NULLed) on release, expiry and lockout-burn — the zone row
+# stays for bookkeeping, like files outliving file_keys. A zone carries
+# exactly one link (`link_consumed_at` stamps its death) and at most
+# one submission (`dropzone_id UNIQUE` on dropzone_submissions).
+DROPZONE_BOOL_COLUMNS = frozenset({'notify_on_submission'})
+DROPZONE_JSON_COLUMNS = frozenset()
+DROPZONE_TEXT_COLUMNS = frozenset({
+    'id', 'salt', 'ws', 'v', 'sv', 'attempts', 'expiry_at', 'created_at',
+    'created_by', 'link_consumed_at', 'released_at', 'collected_at',
+    'collected_by_ip', 'status', 'notification_email',
+    'notification_sent_at', 'notification_claimed_at', 'language',
+    'memo',
+})
+DROPZONE_COLUMNS = (
+    DROPZONE_BOOL_COLUMNS | DROPZONE_JSON_COLUMNS | DROPZONE_TEXT_COLUMNS
+)
+
+DROPZONE_SUBMISSION_BOOL_COLUMNS = frozenset({'decryption_success'})
+DROPZONE_SUBMISSION_JSON_COLUMNS = frozenset()
+DROPZONE_SUBMISSION_TEXT_COLUMNS = frozenset({
+    'id', 'dropzone_id', 'path', 'type', 'wk', 'receipt_hash',
+    'created_at',
+})
+DROPZONE_SUBMISSION_COLUMNS = (
+    DROPZONE_SUBMISSION_BOOL_COLUMNS | DROPZONE_SUBMISSION_JSON_COLUMNS
+    | DROPZONE_SUBMISSION_TEXT_COLUMNS
+)
+
+_DROPZONES_DDL = """
+CREATE TABLE IF NOT EXISTS dropzones (
+    doc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT UNIQUE,
+    salt TEXT,
+    ws TEXT,
+    v TEXT,
+    sv TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    expiry_at TEXT,
+    created_at TEXT,
+    created_by TEXT,
+    link_consumed_at TEXT,
+    released_at TEXT,
+    collected_at TEXT,
+    collected_by_ip TEXT,
+    status TEXT,
+    notify_on_submission INTEGER,
+    notification_email TEXT,
+    notification_sent_at TEXT,
+    notification_claimed_at TEXT,
+    language TEXT,
+    memo TEXT,
+    extra TEXT
+)
+"""
+
+_DROPZONE_SUBMISSIONS_DDL = """
+CREATE TABLE IF NOT EXISTS dropzone_submissions (
+    doc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT UNIQUE,
+    dropzone_id TEXT UNIQUE,
+    path TEXT,
+    type TEXT,
+    wk TEXT,
+    receipt_hash TEXT,
+    decryption_success INTEGER,
+    created_at TEXT,
+    extra TEXT
+)
+"""
+
 # Domain label for the bearer ticket a released share downloads with. The
 # ticket is deterministic — HKDF-SHA256(ikm=H) — so the winner recomputes
 # it from the H /release handed it; the server stores only its SHA-256 and
@@ -815,9 +886,490 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             self._backend.checkpoint_wal()
         return removed
 
+    # -- dropzones -----------------------------------------------------
+
+    @staticmethod
+    def _dropzone_row_to_doc(row: sqlite3.Row) -> Dict[str, Any]:
+        doc: Dict[str, Any] = {'doc_id': row['doc_id']}
+        for column in DROPZONE_COLUMNS:
+            value = row[column]
+            if column in DROPZONE_BOOL_COLUMNS:
+                doc[column] = None if value is None else bool(value)
+            else:
+                doc[column] = value
+        if row['extra']:
+            for key, value in json.loads(row['extra']).items():
+                doc.setdefault(key, value)
+        return doc
+
+    @staticmethod
+    def _submission_row_to_doc(row: sqlite3.Row) -> Dict[str, Any]:
+        doc: Dict[str, Any] = {'doc_id': row['doc_id']}
+        for column in DROPZONE_SUBMISSION_COLUMNS:
+            value = row[column]
+            if column in DROPZONE_SUBMISSION_BOOL_COLUMNS:
+                doc[column] = None if value is None else bool(value)
+            else:
+                doc[column] = value
+        if row['extra']:
+            for key, value in json.loads(row['extra']).items():
+                doc.setdefault(key, value)
+        return doc
+
+    @staticmethod
+    def _insert_submission(conn: sqlite3.Connection,
+                           submission: Mapping[str, Any]) -> None:
+        known, extra = _split_doc(submission, DROPZONE_SUBMISSION_COLUMNS)
+        names = [c for c in DROPZONE_SUBMISSION_COLUMNS if c in known]
+        values = [
+            _serialize_value(c, known[c],
+                             DROPZONE_SUBMISSION_BOOL_COLUMNS,
+                             DROPZONE_SUBMISSION_JSON_COLUMNS)
+            for c in names
+        ]
+        if extra:
+            names.append('extra')
+            values.append(json.dumps(extra))
+        placeholders = ', '.join('?' for _ in values)
+        conn.execute(
+            f'INSERT INTO dropzone_submissions ({", ".join(names)}) '
+            f'VALUES ({placeholders})',
+            tuple(values),
+        )
+
+    @staticmethod
+    def _wipe_dropzone_secrets(conn: sqlite3.Connection,
+                               dropzone_id: str,
+                               mark_expired: bool = False) -> None:
+        """NULL out v/ws/sv — the crypto-shredding half of expiry, burn
+        and release. The zone row stays for bookkeeping."""
+        if mark_expired:
+            conn.execute(
+                "UPDATE dropzones SET status = 'expired', v = NULL, "
+                'ws = NULL, sv = NULL WHERE id = ?',
+                (dropzone_id,))
+        else:
+            conn.execute(
+                'UPDATE dropzones SET v = NULL, ws = NULL, sv = NULL '
+                'WHERE id = ?',
+                (dropzone_id,))
+
+    @staticmethod
+    def _dropzone_row_expired(row: sqlite3.Row,
+                              status_key: str = 'zone_status') -> bool:
+        """True when the zone row (or a join carrying it) is expired."""
+        status = row[status_key] if status_key in row.keys() else row['status']
+        if status == 'expired':
+            return True
+        expiry_at = row['expiry_at']
+        if not expiry_at:
+            return False
+        try:
+            return utcnow() >= parse_timestamp(expiry_at)
+        except ValueError:
+            return False
+
+    def create_dropzone(self, doc: Mapping[str, Any]) -> bool:
+        known, extra = _split_doc(doc, DROPZONE_COLUMNS)
+        names = [c for c in DROPZONE_COLUMNS if c in known]
+        values = [
+            _serialize_value(c, known[c],
+                             DROPZONE_BOOL_COLUMNS,
+                             DROPZONE_JSON_COLUMNS)
+            for c in names
+        ]
+        if extra:
+            names.append('extra')
+            values.append(json.dumps(extra))
+        placeholders = ', '.join('?' for _ in values)
+        try:
+            self._conn().execute(
+                f'INSERT INTO dropzones ({", ".join(names)}) '
+                f'VALUES ({placeholders})',
+                tuple(values),
+            )
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+    def get_dropzone(self, dropzone_id: str) -> Optional[Dict[str, Any]]:
+        row = self._conn().execute(
+            'SELECT * FROM dropzones WHERE id = ?', (dropzone_id,),
+        ).fetchone()
+        return self._dropzone_row_to_doc(row) if row else None
+
+    def list_dropzones(self, username: str) -> List[Dict[str, Any]]:
+        rows = self._conn().execute(
+            'SELECT * FROM dropzones WHERE created_by = ? ORDER BY doc_id',
+            (username,),
+        ).fetchall()
+        return [self._dropzone_row_to_doc(row) for row in rows]
+
+    def update_dropzone_fields(self, dropzone_id: str,
+                               fields: Mapping[str, Any]) -> bool:
+        assignments: List[str] = []
+        values: List[Any] = []
+        extra_updates: Dict[str, Any] = {}
+        for key, value in fields.items():
+            if key == 'doc_id':
+                raise ValueError('doc_id cannot be updated')
+            if key in DROPZONE_COLUMNS:
+                assignments.append(f'"{key}" = ?')
+                values.append(
+                    _serialize_value(key, value,
+                                     DROPZONE_BOOL_COLUMNS,
+                                     DROPZONE_JSON_COLUMNS)
+                )
+            else:
+                if not _SAFE_IDENTIFIER.match(key):
+                    raise ValueError(
+                        f'Cannot update non-identifier field {key!r}')
+                extra_updates[key] = value
+        if extra_updates:
+            assignments.append(
+                "extra = json_set(COALESCE(extra, '{}'), "
+                + ', '.join(
+                    f"'$.{key}', json(?)" for key in extra_updates
+                )
+                + ')'
+            )
+            values.extend(json.dumps(v) for v in extra_updates.values())
+        if not assignments:
+            return False
+        cursor = self._conn().execute(
+            f'UPDATE dropzones SET {", ".join(assignments)} WHERE id = ?',
+            tuple(values) + (dropzone_id,),
+        )
+        return cursor.rowcount > 0
+
+    def get_dropzone_submission(self, dropzone_id: str
+                                ) -> Optional[Dict[str, Any]]:
+        row = self._conn().execute(
+            'SELECT * FROM dropzone_submissions WHERE dropzone_id = ?',
+            (dropzone_id,),
+        ).fetchone()
+        return self._submission_row_to_doc(row) if row else None
+
+    def list_dropzone_submissions(self) -> List[Dict[str, Any]]:
+        rows = self._conn().execute(
+            'SELECT * FROM dropzone_submissions ORDER BY doc_id',
+        ).fetchall()
+        return [self._submission_row_to_doc(row) for row in rows]
+
+    def consume_for_submission(self, dropzone_id: str, sv_hex: str,
+                               submission: Mapping[str, Any]) -> Dict[str, Any]:
+        conn = self._conn()
+        destroyed = False
+        conn.execute('BEGIN IMMEDIATE')
+        try:
+            zone = conn.execute(
+                'SELECT * FROM dropzones WHERE id = ?', (dropzone_id,),
+            ).fetchone()
+            if zone is None:
+                result: Dict[str, Any] = {'status': 'missing'}
+            elif zone['link_consumed_at'] is not None:
+                result = {'status': 'consumed'}
+            elif self._dropzone_row_expired(zone, 'status'):
+                self._wipe_dropzone_secrets(conn, dropzone_id,
+                                            mark_expired=True)
+                destroyed = True
+                result = {'status': 'expired'}
+            elif (not isinstance(sv_hex, str) or zone['sv'] is None
+                    or not secrets.compare_digest(zone['sv'], sv_hex)):
+                # No sv, no consume — a bare dropzone_id can't burn
+                # the link.
+                result = {'status': 'bad_sv'}
+            else:
+                conn.execute(
+                    'UPDATE dropzones SET link_consumed_at = ? '
+                    'WHERE id = ?',
+                    (now_iso(), dropzone_id),
+                )
+                self._insert_submission(conn, submission)
+                result = {'status': 'ok'}
+            conn.execute('COMMIT')
+        except Exception:
+            conn.execute('ROLLBACK')
+            raise
+        if destroyed:
+            self._backend.checkpoint_wal()
+        return result
+
+    def attempt_dropzone_release(self, dropzone_id: str, v_hex: str,
+                                 max_attempts: int,
+                                 burn_on_lockout: bool) -> Dict[str, Any]:
+        """
+        One full release attempt in a single BEGIN IMMEDIATE — the
+        dropzone mirror of attempt_key_release.
+
+        Returns a dict with ``status``:
+          'missing'       — no zone row
+          'released'      — released_at already set
+          'expired'       — zone past expiry_at (secrets wiped, 'path'
+                            carries a submission blob for cleanup)
+          'locked'        — attempts exhausted (secrets wiped when
+                            burn_on_lockout)
+          'no_submission' — link not yet consumed: ws must not leave
+                            before there is something to decrypt
+          'ok'            — verifier matched; 'ws' handed out once,
+                            v/ws/sv wiped
+          'denied'        — miss; 'attempts'/'attempts_remaining'
+        """
+        conn = self._conn()
+        destroyed = False
+        conn.execute('BEGIN IMMEDIATE')
+        try:
+            row = conn.execute(
+                'SELECT z.status AS zone_status, z.expiry_at, z.v, z.ws, '
+                '       z.attempts, z.released_at, z.link_consumed_at, '
+                '       s.path AS submission_path '
+                'FROM dropzones z LEFT JOIN dropzone_submissions s '
+                '    ON s.dropzone_id = z.id '
+                'WHERE z.id = ?',
+                (dropzone_id,),
+            ).fetchone()
+
+            if row is None:
+                result: Dict[str, Any] = {'status': 'missing'}
+            elif row['released_at'] is not None:
+                result = {'status': 'released'}
+            elif self._dropzone_row_expired(row):
+                self._wipe_dropzone_secrets(conn, dropzone_id,
+                                            mark_expired=True)
+                destroyed = True
+                result = {'status': 'expired', 'path': row['submission_path']}
+            elif row['attempts'] >= max_attempts:
+                if burn_on_lockout:
+                    self._wipe_dropzone_secrets(conn, dropzone_id)
+                    destroyed = True
+                result = {'status': 'locked'}
+            elif (row['link_consumed_at'] is None
+                    or row['submission_path'] is None):
+                result = {'status': 'no_submission'}
+            elif (row['v'] is not None
+                    and secrets.compare_digest(row['v'], v_hex)):
+                conn.execute(
+                    'UPDATE dropzones SET released_at = ?, '
+                    'v = NULL, ws = NULL, sv = NULL WHERE id = ?',
+                    (now_iso(), dropzone_id),
+                )
+                # ws/v wiped with the claim, like H/V on a drop: a
+                # post-release DB theft yields nothing crackable.
+                result = {'status': 'ok', 'ws': row['ws']}
+            else:
+                conn.execute(
+                    'UPDATE dropzones SET attempts = attempts + 1 '
+                    'WHERE id = ?',
+                    (dropzone_id,))
+                attempts = row['attempts'] + 1
+                if attempts >= max_attempts:
+                    if burn_on_lockout:
+                        self._wipe_dropzone_secrets(conn, dropzone_id)
+                        destroyed = True
+                    result = {'status': 'locked'}
+                else:
+                    result = {
+                        'status': 'denied',
+                        'attempts': attempts,
+                        'attempts_remaining': max_attempts - attempts,
+                    }
+            conn.execute('COMMIT')
+        except Exception:
+            conn.execute('ROLLBACK')
+            raise
+        if destroyed:
+            self._backend.checkpoint_wal()
+        return result
+
+    def claim_dropzone_submission(self, dropzone_id: str, ip_address: str,
+                                  ttl_seconds: Optional[int] = None
+                                  ) -> Dict[str, Any]:
+        """
+        Claim the released submission blob in one BEGIN IMMEDIATE —
+        the dropzone mirror of claim_download_with_ticket. Ownership is
+        the caller's session check, not a bearer ticket.
+
+        Returns a dict with ``status``:
+          'missing'            — no zone row
+          'already_collected'  — collected_at already stamped
+          'expired'            — zone expired, or released at least
+                                 ttl_seconds ago (secrets wiped,
+                                 'path' for blob cleanup)
+          'not_released'       — released_at never set
+          'no_submission'      — released but no submission row (should
+                                 not happen; fail closed)
+          'ok'                 — 'path', 'wk', 'type', 'submission_id';
+                                 collected_at/by_ip stamped
+        """
+        conn = self._conn()
+        destroyed = False
+        conn.execute('BEGIN IMMEDIATE')
+        try:
+            row = conn.execute(
+                'SELECT z.status AS zone_status, z.expiry_at, '
+                '       z.released_at, z.collected_at, '
+                '       s.id AS submission_id, s.path, s.wk, s.type '
+                'FROM dropzones z LEFT JOIN dropzone_submissions s '
+                '    ON s.dropzone_id = z.id '
+                'WHERE z.id = ?',
+                (dropzone_id,),
+            ).fetchone()
+
+            if row is None:
+                result: Dict[str, Any] = {'status': 'missing'}
+            elif row['collected_at'] is not None:
+                result = {'status': 'already_collected'}
+            elif (self._dropzone_row_expired(row)
+                    or self._release_stale(row['released_at'],
+                                           ttl_seconds)):
+                self._wipe_dropzone_secrets(conn, dropzone_id,
+                                            mark_expired=True)
+                destroyed = True
+                result = {'status': 'expired', 'path': row['path']}
+            elif row['released_at'] is None:
+                result = {'status': 'not_released'}
+            elif row['submission_id'] is None:
+                result = {'status': 'no_submission'}
+            else:
+                conn.execute(
+                    'UPDATE dropzones SET collected_at = ?, '
+                    'collected_by_ip = ? WHERE id = ?',
+                    (now_iso(), ip_address, dropzone_id),
+                )
+                result = {
+                    'status': 'ok',
+                    'path': row['path'],
+                    'wk': row['wk'],
+                    'type': row['type'],
+                    'submission_id': row['submission_id'],
+                }
+            conn.execute('COMMIT')
+        except Exception:
+            conn.execute('ROLLBACK')
+            raise
+        if destroyed:
+            self._backend.checkpoint_wal()
+        return result
+
+    def delete_dropzone(self, dropzone_id: str) -> Optional[Dict[str, Any]]:
+        conn = self._conn()
+        conn.execute('BEGIN IMMEDIATE')
+        try:
+            zone = conn.execute(
+                'SELECT doc_id FROM dropzones WHERE id = ?',
+                (dropzone_id,),
+            ).fetchone()
+            if zone is None:
+                result: Optional[Dict[str, Any]] = None
+            else:
+                sub = conn.execute(
+                    'SELECT * FROM dropzone_submissions '
+                    'WHERE dropzone_id = ?',
+                    (dropzone_id,),
+                ).fetchone()
+                conn.execute(
+                    'DELETE FROM dropzone_submissions WHERE dropzone_id = ?',
+                    (dropzone_id,))
+                conn.execute(
+                    'DELETE FROM dropzones WHERE id = ?', (dropzone_id,))
+                result = {
+                    'existed': True,
+                    'path': sub['path'] if sub else None,
+                }
+            conn.execute('COMMIT')
+        except Exception:
+            conn.execute('ROLLBACK')
+            raise
+        if result is not None:
+            self._backend.checkpoint_wal()
+        return result
+
+    def purge_expired_dropzones(self) -> List[Dict[str, Any]]:
+        now = now_iso()
+        conn = self._conn()
+        conn.execute('BEGIN IMMEDIATE')
+        try:
+            rows = conn.execute(
+                'SELECT z.id, s.path FROM dropzones z '
+                'LEFT JOIN dropzone_submissions s '
+                '    ON s.dropzone_id = z.id '
+                "WHERE COALESCE(z.status, '') != 'expired' "
+                'AND z.expiry_at IS NOT NULL '
+                'AND (z.expiry_at <= ? '
+                '     OR NOT is_iso_timestamp(z.expiry_at))',
+                (now,),
+            ).fetchall()
+            for row in rows:
+                self._wipe_dropzone_secrets(conn, row['id'],
+                                            mark_expired=True)
+                conn.execute(
+                    'DELETE FROM dropzone_submissions WHERE dropzone_id = ?',
+                    (row['id'],))
+            conn.execute('COMMIT')
+        except Exception:
+            conn.execute('ROLLBACK')
+            raise
+        if rows:
+            self._backend.checkpoint_wal()
+        return [{'id': row['id'], 'path': row['path']} for row in rows
+                if row['path']]
+
+    def expire_unclaimed_dropzone_releases(self, older_than_seconds: int
+                                           ) -> List[Dict[str, Any]]:
+        cutoff_iso = to_utc_iso(
+            utcnow() - timedelta(seconds=older_than_seconds))
+        conn = self._conn()
+        conn.execute('BEGIN IMMEDIATE')
+        try:
+            rows = conn.execute(
+                'SELECT z.id, s.path FROM dropzones z '
+                'JOIN dropzone_submissions s ON s.dropzone_id = z.id '
+                'WHERE z.released_at IS NOT NULL '
+                'AND z.collected_at IS NULL '
+                "AND COALESCE(z.status, '') != 'expired' "
+                'AND (z.released_at <= ? '
+                '     OR NOT is_iso_timestamp(z.released_at))',
+                (cutoff_iso,),
+            ).fetchall()
+            for row in rows:
+                self._wipe_dropzone_secrets(conn, row['id'],
+                                            mark_expired=True)
+                conn.execute(
+                    'DELETE FROM dropzone_submissions WHERE dropzone_id = ?',
+                    (row['id'],))
+            conn.execute('COMMIT')
+        except Exception:
+            conn.execute('ROLLBACK')
+            raise
+        if rows:
+            self._backend.checkpoint_wal()
+        return [{'id': row['id'], 'path': row['path']} for row in rows]
+
+    def record_dropzone_decryption(self, dropzone_id: str,
+                                   success: bool) -> bool:
+        cursor = self._conn().execute(
+            'UPDATE dropzone_submissions SET decryption_success = ? '
+            'WHERE dropzone_id = ? AND decryption_success IS NULL',
+            (1 if success else 0, dropzone_id),
+        )
+        return cursor.rowcount > 0
+
+    def claim_dropzone_notification_send(self, dropzone_id: str) -> bool:
+        cursor = self._conn().execute(
+            'UPDATE dropzones '
+            'SET notification_claimed_at = ? '
+            'WHERE id = ? '
+            'AND notification_sent_at IS NULL '
+            'AND notification_claimed_at IS NULL',
+            (now_iso(), dropzone_id),
+        )
+        return cursor.rowcount > 0
+
     def truncate(self) -> None:
         super().truncate()
         self._conn().execute('DELETE FROM file_keys')
+        self._conn().execute('DELETE FROM dropzone_submissions')
+        self._conn().execute('DELETE FROM dropzones')
 
 
 class SQLiteTokenStore(_SQLiteStoreBase, TokenStore):
@@ -970,6 +1522,8 @@ class SQLiteBackend(Backend):
         conn.execute(_TOKENS_DDL)
         conn.execute(_TOKENS_HASH_INDEX)
         conn.execute(_FILE_KEYS_DDL)
+        conn.execute(_DROPZONES_DDL)
+        conn.execute(_DROPZONE_SUBMISSIONS_DDL)
         # Additive migrations: CREATE TABLE IF NOT EXISTS won't touch an
         # existing table, so add any columns introduced since the user's
         # DB was created (nullable only — no constraints via ALTER).

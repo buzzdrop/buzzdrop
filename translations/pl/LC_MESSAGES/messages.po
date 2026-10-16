@@ -136,6 +136,29 @@ msgid ""
 msgstr "Buzzdrop celowo pomija w tym powiadomieniu szczegóły dotyczące odbiorcy."
 
 #: app.py
+#, fuzzy
+msgid "Buzzdrop submission received"
+msgstr "Serwer Buzzdropa"
+
+#: app.py
+#, fuzzy
+msgid "A submission landed in your dropzone."
+msgstr "Przypomnienie na twojej liście przesyłek"
+
+#. Translators: %(time)s is when the submission landed.
+#: app.py
+#, fuzzy, python-format
+msgid "Received at: %(time)s"
+msgstr "Otwarto: %(time)s"
+
+#: app.py
+#, fuzzy
+msgid ""
+"Buzzdrop intentionally omits responder-sensitive details from this "
+"notification."
+msgstr "Buzzdrop celowo pomija w tym powiadomieniu szczegóły dotyczące odbiorcy."
+
+#: app.py
 msgid "Drop too large"
 msgstr "Przesyłka jest za duża"
 

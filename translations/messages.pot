@@ -130,6 +130,26 @@ msgid ""
 msgstr ""
 
 #: app.py
+msgid "Buzzdrop submission received"
+msgstr ""
+
+#: app.py
+msgid "A submission landed in your dropzone."
+msgstr ""
+
+#. Translators: %(time)s is when the submission landed.
+#: app.py
+#, python-format
+msgid "Received at: %(time)s"
+msgstr ""
+
+#: app.py
+msgid ""
+"Buzzdrop intentionally omits responder-sensitive details from this "
+"notification."
+msgstr ""
+
+#: app.py
 msgid "Drop too large"
 msgstr ""
 
