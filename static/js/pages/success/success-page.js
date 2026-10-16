@@ -96,10 +96,12 @@ export function initSuccess(root, deps) {
     // A language switch just landed: pick the fragment back up before
     // takeFragmentPassword looks for it.
     restoreFragmentAfterLanguageSwitch(root);
+    const fragment = window.location.hash;
     const pwd = takeFragmentPassword(window);
     // If there is one, let it wait out the next language switch in
     // sessionStorage — posting it would leak the password to the server.
-    stashFragmentForLanguageSwitch(root);
+    // The fragment was captured before takeFragmentPassword scrubbed it.
+    if (pwd) stashFragmentForLanguageSwitch(root, fragment);
     if (pwd) {
         pwdInput.value = pwd;
         toggleBtn.disabled = false;

@@ -1933,6 +1933,9 @@ def submit_dropzone(dropzone_id):
     if not zone:
         refusal = SUBMIT_REFUSALS['missing']
         return _fail(refusal.error, refusal.code, refusal.status)
+    if zone.get('link_consumed_at') is not None:
+        refusal = SUBMIT_REFUSALS['consumed']
+        return _fail(refusal.error, refusal.code, refusal.status)
     if (zone.get('sv') is None
             or not secrets.compare_digest(zone['sv'], sv)):
         refusal = SUBMIT_REFUSALS['bad_sv']
@@ -2240,7 +2243,7 @@ def download_dropzone_submission(dropzone_id):
     if status == 'not_released':
         return {'error': 'Forbidden'}, 403
     if status == 'claimed':
-        return {'error': 'Already released', 'code': 'claimed'}, 410
+        return {'error': 'Invalid collect ticket', 'code': 'claimed'}, 410
     if status == 'expired' and result.get('path'):
         try:
             storage.delete(result['path'])

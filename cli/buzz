@@ -1455,7 +1455,7 @@ def upload_begin(server: str, token: str) -> dict | None:
             headers={
                 'Authorization': f'Bearer {token}',
                 'X-Requested-With': 'XMLHttpRequest',
-                **(extra_headers or {}),
+                
             },
             timeout=30,
         )
@@ -1766,7 +1766,7 @@ def _report_dropzone_result(server: str, token: str, dropzone_id: str,
             headers={
                 'Authorization': f'Bearer {token}',
                 'X-Requested-With': 'XMLHttpRequest',
-                **(extra_headers or {}),
+                
             },
             json={
                 'success': bool(success),

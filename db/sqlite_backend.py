@@ -340,6 +340,13 @@ def _download_ticket(h_hex: str) -> str:
                     hashlib.sha256).hexdigest()
 
 
+def _is_valid_ticket(ticket_hex) -> bool:
+    """A claim ticket is 64 lowercase hex — anything else fails as
+    'claimed' before it can reach bytes.fromhex."""
+    return (isinstance(ticket_hex, str) and len(ticket_hex) == 64
+            and all(c in '0123456789abcdef' for c in ticket_hex))
+
+
 def _ticket_digest(ticket_hex: str) -> str:
     """What the store keeps of a ticket: its SHA-256, never the ticket."""
     return hashlib.sha256(bytes.fromhex(ticket_hex)).hexdigest()
@@ -1091,7 +1098,12 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             ).fetchone()
             if zone is None:
                 result: Dict[str, Any] = {'status': 'missing'}
-            elif self._dropzone_row_expired(zone, 'status'):
+            elif (self._dropzone_row_expired(zone, 'status')
+                    and zone['link_consumed_at'] is None):
+                # Expiry bounds the submit window only — a landed
+                # submission never gets its secrets wiped here, and the
+                # consumed answer below beats 'expired' for a late
+                # re-submit anyway.
                 self._wipe_dropzone_secrets(conn, dropzone_id,
                                             mark_expired=True)
                 destroyed = True
@@ -1273,7 +1285,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             elif row['submission_id'] is None:
                 result = {'status': 'no_submission'}
             elif (row['ticket_hash'] is None
-                    or not isinstance(ticket_hex, str)
+                    or not _is_valid_ticket(ticket_hex)
                     or not secrets.compare_digest(
                         row['ticket_hash'], _ticket_digest(ticket_hex))):
                 # Wrong or missing ticket — the claim stays live for

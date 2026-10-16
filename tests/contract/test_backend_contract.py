@@ -1014,6 +1014,57 @@ def test_purge_expired_dropzones(backend):
     assert backend.files.purge_expired_dropzones() == []
 
 
+def test_consume_on_consumed_expired_zone_never_wipes(backend):
+    """A consumed zone past expiry_at keeps its secrets: expiry bounds
+    the submit window, and a late re-submit answers 'consumed' —
+    not a wipe that would orphan the landed submission."""
+    past = to_utc_iso(utcnow() - timedelta(minutes=5))
+    _consumed_zone(backend)
+    backend.files.update_dropzone_fields('dz-1', {'expiry_at': past})
+
+    result = backend.files.consume_for_submission(
+        'dz-1', _DZ_SV, _submission_doc('dz-1'))
+    assert result['status'] == 'consumed'
+    # the zone was NOT expired/wiped — its secrets still work
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['status'] == 'active'
+    assert zone['v'] == _DZ_V
+    assert backend.files.get_dropzone_submission('dz-1') is not None
+
+
+def test_expire_dropzone_unconsumed_is_conditional(backend):
+    """The lazy expiry's conditional UPDATE: unconsumed zones expire and
+    shred; a consumed zone is left alone even past expiry_at."""
+    past = to_utc_iso(utcnow() - timedelta(minutes=5))
+    _zone(backend, 'dz-empty', expiry_at=past)
+    _consumed_zone(backend, 'dz-full')
+    backend.files.update_dropzone_fields('dz-full', {'expiry_at': past})
+
+    assert backend.files.expire_dropzone_unconsumed('dz-empty') is True
+    zone = backend.files.get_dropzone('dz-empty')
+    assert zone['status'] == 'expired'
+    assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+
+    assert backend.files.expire_dropzone_unconsumed('dz-full') is False
+    zone = backend.files.get_dropzone('dz-full')
+    assert zone['status'] == 'active'
+    assert zone['v'] == _DZ_V
+
+
+def test_claim_dropzone_submission_malformed_ticket(backend):
+    """A garbage ticket answers 'claimed' — it never reaches
+    bytes.fromhex, so no 500."""
+    _released_zone(backend)
+    for junk in ('nothex', 'aa', None):
+        result = backend.files.claim_dropzone_submission(
+            'dz-1', '1.2.3.4', junk)
+        assert result['status'] == 'claimed', junk
+    # and the real ticket still works after the rejects
+    result = backend.files.claim_dropzone_submission(
+        'dz-1', '1.2.3.4', _dz_collect_ticket(_DZ_WS))
+    assert result['status'] == 'ok'
+
+
 def test_expire_unclaimed_dropzone_releases(backend):
     """Only released, never-collected zones past the window expire."""
     _released_zone(backend, 'unclaimed')

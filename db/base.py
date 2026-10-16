@@ -417,11 +417,13 @@ class FileStore(ABC):
     def purge_expired_dropzones(self) -> List[Dict[str, Any]]:
         """
         Mark every zone past ``expiry_at`` (or with an unparseable one —
-        fail closed) as expired and wipe ``v``/``ws``/``sv``.
+        fail closed) as expired and wipe ``v``/``ws``/``sv`` — but only
+        while the link is unconsumed: ``expiry_at`` bounds the submit
+        window, so a zone holding a submission outlives it.
 
         Returns:
-            ``[{'id': dropzone_id, 'path': submission_path}, ...]`` for
-            zones holding a submission; the caller deletes the blobs.
+            ``[]`` always — zones with a submission never qualify, so
+            there is never a blob to clean up.
         """
 
     @abstractmethod

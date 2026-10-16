@@ -52,11 +52,12 @@ export function initRespond(root, deps) {
     // A language switch just landed: pick the fragment back up before
     // takeFragmentSecret looks for it.
     restoreFragmentAfterLanguageSwitch(root);
+    const fragment = window.location.hash;
     const s = takeFragmentSecret(window);
     // The language menu redirects through POST /set_language — the
     // fragment can't ride along (and must never be POSTed), so it waits
     // in sessionStorage for the round-trip.
-    if (s) stashFragmentForLanguageSwitch(root);
+    if (s) stashFragmentForLanguageSwitch(root, fragment);
     if (!s) {
         submitBtn.disabled = true;
         errorEl.hidden = false;
@@ -135,8 +136,8 @@ export function initRespond(root, deps) {
         }
         // Scrub the fragment like takeFragmentPassword does — no extra
     // history entry, no back-button landmine.
-    window.history.replaceState(null, '',
-        window.location.pathname + window.location.search);
+    window.history.replaceState(
+        null, '', window.location.pathname + window.location.search);
         // Scrub the plaintext and hide the composer — the zone is spent,
         // a second submit can only bounce off 'consumed'.
         composer.reset();

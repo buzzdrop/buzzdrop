@@ -85,3 +85,40 @@ test('leaves an address without a fragment alone', () => {
         assert.deepEqual(replaced, []);
     }
 });
+
+test('stash+restore carries the fragment through a language switch without posting it', async () => {
+    const { stashFragmentForLanguageSwitch, restoreFragmentAfterLanguageSwitch } =
+        await import('../../static/js/lib/one-click-link.js');
+
+    // a page with a language-menu form and a fragment
+    const submitted = [];
+    const storage = new Map();
+    const window = {
+        location: { hash: '#s=' + 'a'.repeat(64), pathname: '/dropzone/x', search: '' },
+        history: { replaceState: (_a, _b, url) => { submitted.push(url); } },
+        sessionStorage: {
+            getItem: (k) => storage.get(k) ?? null,
+            setItem: (k, v) => storage.set(k, v),
+            removeItem: (k) => storage.delete(k),
+        },
+    };
+    const handlers = [];
+    const doc = {
+        defaultView: window,
+        querySelectorAll: () => [{ addEventListener: (ev, fn) => handlers.push(fn) }],
+    };
+
+    stashFragmentForLanguageSwitch(doc, window.location.hash);
+    assert.equal(handlers.length, 1);
+
+    // the language menu form submits → the fragment is stashed, NOT posted
+    handlers[0]();
+    assert.equal(storage.get('buzzdrop:lang-switch-fragment'), '#s=' + 'a'.repeat(64));
+
+    // page reloads after the switch: no hash yet, the stash restores it
+    window.location.hash = '';
+    restoreFragmentAfterLanguageSwitch(doc);
+    assert.equal(submitted.at(-1), '#s=' + 'a'.repeat(64));
+    // consumed — nothing left for the storage guard to find
+    assert.equal(storage.size, 0);
+});
