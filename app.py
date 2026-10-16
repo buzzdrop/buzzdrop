@@ -392,10 +392,11 @@ def send_submission_notification_email(zone: dict) -> bool:
 app.add_template_filter(format_timestamp, 'timestamp')
 app.add_template_filter(iso_twin, 'timestamp_iso')
 
-# The recipient's pages, the "drop is gone" page included: their language
-# is their browser's, and reloading one could lose the drop, so they offer
-# no language menu (#287).
-RECIPIENT_ENDPOINTS = ('view_file', 'confirm_view_file')
+# The recipient's and responder's pages, the "drop is gone" page
+# included: their language is their browser's, and reloading one could
+# lose the drop or the link's #s fragment, so they offer no language
+# menu (#287).
+RECIPIENT_ENDPOINTS = ('view_file', 'confirm_view_file', 'respond_dropzone')
 
 
 def _language_return_path():
@@ -1807,6 +1808,16 @@ def report_decryption(file_id):
 
 _BKD1_MAGIC = b'BKD1'
 _BKD1_SALT_LENGTH = 32  # hex chars — 16 random bytes at zone creation
+# A wrapped key is iv(12) ‖ AES-GCM(32-byte key) = 60 bytes = 120 hex.
+_WRAPPED_KEY_HEX_LENGTH = 120
+
+
+def _is_valid_wrapped_key(value) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == _WRAPPED_KEY_HEX_LENGTH
+        and all(c in '0123456789abcdef' for c in value)
+    )
 
 
 def _is_valid_salt_hex(value) -> bool:
@@ -1889,7 +1900,7 @@ def submit_dropzone(dropzone_id):
     if (
         sub_type not in ('file', 'text')
         or not _is_valid_key_material(sv)
-        or not _is_valid_key_material(wk)
+        or not _is_valid_wrapped_key(wk)
         or not _is_valid_key_material(receipt_hash)
     ):
         return _fail('Invalid submission', 'invalid_submission')
@@ -1987,7 +1998,7 @@ def create_dropzone():
     sv = _hex_field('sv')
     if not (
         _is_valid_salt_hex(salt)
-        and _is_valid_key_material(ws)
+        and _is_valid_wrapped_key(ws)
         and _is_valid_key_material(v)
         and _is_valid_key_material(sv)
     ):

@@ -39,8 +39,10 @@
 {%- endif -%}
 {%- endmacro %}
 
-{# Who is on stage, as an actor card. #}
-{% macro actor(role, state, doing=none) -%}
+{# Who is on stage, as an actor card. `labels` lets a scene rename the
+   fixed roles — the dropzone's 'sender' is the requester, its 'recipient'
+   the responder. #}
+{% macro actor(role, state, doing=none, labels=none) -%}
 <span class="hiw-actor{% if state %} is-{{ state }}{% endif %}" data-node="{{ role }}">
     <span class="hiw-actor-icon">
         {%- if role == 'sender' -%}
@@ -48,17 +50,47 @@
         {%- elif role == 'server' -%}{{ icon('server', 'h-6 w-6') }}
         {%- else -%}{{ icon('browser', 'h-6 w-6') }}{%- endif -%}
     </span>
-    <span class="hiw-actor-label">{{ c.actor_label(role) }}</span>
+    <span class="hiw-actor-label">{{ c.actor_label(role, labels) }}</span>
     {%- if doing %}<span class="hiw-actor-doing">{{ doing|safe }}</span>{% endif %}
 </span>
 {%- endmacro %}
 
 {% set scenes = c.scenes %}
+{% set dropzone_scenes = c.dropzone_scenes %}
 
 {% macro wire(packets) -%}
 <span class="hiw-wire{% if not packets %} is-idle{% endif %}">
     {%- for direction, label in packets or [] %}<span class="hiw-packet is-{{ direction }}">{{ label|safe }}</span>{% endfor -%}
 </span>
+{%- endmacro %}
+
+{# One flow step: the scene above it, then its lenses and facts. The drop
+   flow's steps and the dropzone section's both render through this. #}
+{% macro step_article(id, title, number, scene, active=false, divider=false, role=none) -%}
+<article id="step-{{ id }}" class="hiw-step{% if active %} is-active{% endif %}{% if divider %} border-b border-white/6{% endif %}"{% if role %} role="{{ role }}"{% endif %} aria-labelledby="step-{{ id }}-title">
+    <div class="hiw-scene" aria-hidden="true">
+        {% for role in ['sender', 'server', 'recipient'] %}
+        {{ actor(role, 'burning' if (role == 'server' and scene.burn) else ('lit' if role in scene.lit else 'idle'),
+                 scene.local[1] if scene.local and scene.local[0] == role else none, scene.get('labels')) }}
+        {% if role == 'sender' %}{{ wire(scene.left) }}{% elif role == 'server' %}{{ wire(scene.right) }}{% endif %}
+        {% endfor %}
+        {% if scene.bypass %}
+        <span class="hiw-bypass">
+            <span class="hiw-packet is-out">{{ scene.bypass[0] }}</span>
+            <span class="hiw-packet is-out is-later">{{ scene.bypass[1] }}</span>
+        </span>
+        {% endif %}
+    </div>
+
+    <div class="hiw-step-head">
+        <h3 id="step-{{ id }}-title" class="hiw-step-title"><span class="hiw-step-kicker">{{ _('Step %(number)s', number=number) }}</span> {{ title }}</h3>
+        <div class="hiw-lenses">
+            <p class="hiw-lens is-{{ scene.lens[0] }}">{{ icon('eye-off' if scene.lens[0] == 'none' else 'eye', 'h-4 w-4 shrink-0') }}<span><span class="hiw-lens-label">{{ _('Server sees:') }}</span> {{ scene.lens[1]|safe }}</span></p>
+            <p class="hiw-lens is-none">{{ icon('eye-off', 'h-4 w-4 shrink-0') }}<span><span class="hiw-lens-label">{{ _('Never sees:') }}</span> {{ scene.lens[2]|safe }}</span></p>
+        </div>
+    </div>
+    <div role="group" aria-label="{{ c.facts_label }}"><dl class="hiw-facts">{{ c.facts(id) }}</dl></div>
+</article>
 {%- endmacro %}
 
 {% block content_width %}max-w-6xl{% endblock %}
@@ -133,31 +165,7 @@
             <div class="min-w-0">
                 <div id="hiw-steps" aria-live="polite">
                     {% for id, title in c.steps %}
-                    {% set scene = scenes[id] %}
-                    <article id="step-{{ id }}" class="hiw-step{% if loop.first %} is-active{% endif %}" aria-labelledby="step-{{ id }}-title">
-                        <div class="hiw-scene" aria-hidden="true">
-                            {% for role in ['sender', 'server', 'recipient'] %}
-                            {{ actor(role, 'burning' if (role == 'server' and scene.burn) else ('lit' if role in scene.lit else 'idle'),
-                                     scene.local[1] if scene.local and scene.local[0] == role else none) }}
-                            {% if role == 'sender' %}{{ wire(scene.left) }}{% elif role == 'server' %}{{ wire(scene.right) }}{% endif %}
-                            {% endfor %}
-                            {% if scene.bypass %}
-                            <span class="hiw-bypass">
-                                <span class="hiw-packet is-out">{{ scene.bypass[0] }}</span>
-                                <span class="hiw-packet is-out is-later">{{ scene.bypass[1] }}</span>
-                            </span>
-                            {% endif %}
-                        </div>
-
-                        <div class="hiw-step-head">
-                            <h3 id="step-{{ id }}-title" class="hiw-step-title"><span class="hiw-step-kicker">{{ _('Step %(number)s', number=loop.index) }}</span> {{ title }}</h3>
-                            <div class="hiw-lenses">
-                                <p class="hiw-lens is-{{ scene.lens[0] }}">{{ icon('eye-off' if scene.lens[0] == 'none' else 'eye', 'h-4 w-4 shrink-0') }}<span><span class="hiw-lens-label">{{ _('Server sees:') }}</span> {{ scene.lens[1]|safe }}</span></p>
-                                <p class="hiw-lens is-none">{{ icon('eye-off', 'h-4 w-4 shrink-0') }}<span><span class="hiw-lens-label">{{ _('Never sees:') }}</span> {{ scene.lens[2]|safe }}</span></p>
-                            </div>
-                        </div>
-                        <div role="group" aria-label="{{ c.facts_label }}"><dl class="hiw-facts">{{ c.facts(id) }}</dl></div>
-                    </article>
+                    {{ step_article(id, title, loop.index, scenes[id], loop.first) }}
                     {% endfor %}
                 </div>
 
@@ -180,6 +188,23 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    {# The reversed flow (ADR-0001), static — the doc's dropzone steps
+       under the same ids, mirroring "Collecting secrets: the dropzone". #}
+    <section id="hiw-dropzone" class="space-y-8" aria-labelledby="dropzone-heading">
+        <div class="max-w-2xl space-y-2">
+            <h2 id="dropzone-heading" class="section-title">{{ c.dropzone_heading }}</h2>
+            <p class="section-lead">{{ c.dropzone_lead }}</p>
+        </div>
+        <div class="hiw-flow">
+            {% for id, title in c.dropzone_steps %}
+            {# role="group": they're articles in the doc's sense, but the
+               page's own step queries (and tests) take 'article' to mean a
+               step of the interactive flow above. #}
+            {{ step_article(id, title, loop.index, dropzone_scenes[id], false, not loop.last, 'group') }}
+            {% endfor %}
         </div>
     </section>
 

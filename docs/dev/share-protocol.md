@@ -1,6 +1,8 @@
 # Share protocol: crypto, routes, lifecycle
 
-The engineering reference for how a drop is encrypted, uploaded, released and downloaded. The reasoning behind the design is `docs/true-one-time.md` §6; the user-facing account is `docs/how-it-works.md`. The tables behind it are in `db/CLAUDE.md`.
+The engineering reference for how a drop is encrypted, uploaded, released and downloaded — and for the dropzone, its reversed mirror ("send it to me, securely"), where an anonymous responder submits into a user's one-time zone and the requester collects once (`docs/adr/0001-dropzone-reverse-flow.md`). The reasoning behind the design is `docs/true-one-time.md` §6; the user-facing account is `docs/how-it-works.md`. The tables behind it are in `db/CLAUDE.md`.
+
+Two wire formats exist: **BKV3** is the envelope for drops, **BKD1** is the envelope for dropzone submissions. Everything else is rejected.
 
 ## Client-side encryption
 
@@ -61,6 +63,51 @@ The steps under *Client-side encryption* are the flow. This is the state each on
 - **Download:** `downloaded_at` set, the ticket consumed, the blob deleted. The browser then decrypts and saves the file.
 - **Released but never downloaded** is terminal: `/view` shows the "drop is gone" page, and after `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` the drop expires and the sweep deletes the blob.
 - **Expiry:** files with `expiry_at` are auto-deleted by `check_and_handle_expiry()`. It also burns the `file_keys` row inside the same transaction, so H never outlives the file.
+
+## Dropzone protocol
+
+The reversed flow (`docs/adr/0001-dropzone-reverse-flow.md`): a requester creates a one-time dropzone, an anonymous responder submits into it, the requester proves the dropzone password and collects once. There is no server-held key share like `H`; the server only stores wrapped secrets. The crypto lives in `static/js/lib/dropzone-crypto.js` (driven by `pages/respond/` for the responder and the dropzones section of `pages/index/` for the requester).
+
+### Creation (requester)
+
+1. The browser draws a random dropzone secret `s` (32B) and a salt, then the BKV3 ladder from the dropzone password: `master = PBKDF2-SHA256(password, salt, 600k)`, `Kw = HKDF(master, salt, 'dz-wrap')`, `V = HKDF(master, salt, 'ver')`.
+2. `wS = AES-GCM(Kw, s)`; `SV = HKDF(s, 'submit')` — proof of request-link possession, one-way over a random secret so not offline-crackable like `V`.
+3. `POST /api/dropzones` `{salt, ws, v, sv, expiry, notify_on_submission, notification_email, memo}` → `{dropzone_id}`. The server stores those and never sees `s` or the password.
+4. The browser assembles the request link `/dropzone/<id>#s=<hex>`: `s` rides in the fragment and never reaches the server. One zone, one link — a dead link means a new dropzone.
+
+### Submission (responder)
+
+1. `GET /dropzone/<id>` renders the respond page while the zone is live; a missing, consumed or expired zone gets the same uniform "drop is gone" page a dead drop link gets, so the page reveals nothing about which.
+2. The responder's browser draws a fresh random `K` and encrypts `BKP-FIL2 ‖ receipt(32B) ‖ name_len(2B BE) ‖ name ‖ data` under AES-GCM — the BKV3 inner layout, but a **BKD1** envelope (`BKD1 ‖ iv(12) ‖ ciphertext`): BKV3's salt exists to feed the password KDF and a random `K` has nothing to derive from it. Then `wK = AES-GCM(s, K)`. Wrapped keys travel as `iv(12) ‖ ct` in hex.
+3. `POST /dropzone/<id>/submit` (`file` or `note_text`, plus `type`, `wk`, `receipt_hash`, `sv`). The server constant-time compares `sv` to the stored `SV` **before** consuming the link, in the `consume_for_submission` transaction, so a bare `dropzone_id` from logs can't burn the zone and racing submissions get exactly one winner. A rejected `sv` leaves the link alive.
+
+### Collection (requester)
+
+1. `GET /api/dropzones/<id>` returns the zone's salt (so the browser can derive `V`) and the submission's `wk`/`type` — the same role as the salt rendered into the view page.
+2. `POST /dropzones/<id>/release` `{v}` → `{ws}` on a constant-time match inside `attempt_dropzone_release`, released exactly once with `v`/`ws`/`sv` wiped in the same transaction. Misses increment `attempts`; lockout at `DROPZONE_MAX_ATTEMPTS` (burn optional via `DROPZONE_BURN_ON_LOCKOUT`, default off — a locked zone strands a submission the responder can't re-send, so it's gentler than `KEY_RELEASE_*`). No download ticket: the winner is an authenticated session, not an anonymous link holder.
+3. `GET /dropzones/<id>/submission` claims the blob in `claim_dropzone_submission` (stamps `collected_at`/`collected_by_ip`) before streaming it once; a broken-off transfer can't resume. The browser unwraps `s`, unwraps `K`, decrypts, and posts the receipt to `POST /dropzones/<id>/report`, which validates `SHA-256(receipt)` against the stored `receipt_hash` and writes `decryption_success` once.
+
+### Routes
+
+- `/dropzone/<id>` (GET): the responder's page. Uniform "gone" page for missing/consumed/expired zones; shares the `PUBLIC_FILE_RATE_LIMIT` bucket with `/view`.
+- `/dropzone/<id>/submit` (POST): the responder's one shot, gated on `sv`. Rate-limited per `dropzone_id` via `DROPZONE_SUBMIT_RATE_LIMIT`. Checks the blob's `BKD1` magic before storing; a refused consume deletes the blob again.
+  - Answers (`code` in `SUBMIT_REFUSALS`): 404 `not_found`; 403 `invalid_link` on a bad `sv`; 410 `consumed` once the link is used; 410 `expired`; 400 `invalid_submission` for a missing/invalid field or non-BKD1 blob.
+- `/api/dropzones` (POST): creates the zone (`created_by` = the authed user; shares the `UPLOAD_RATE_LIMIT` bucket) and (GET) lists the caller's zones for the index section and API clients. `/api/dropzones/<id>` (GET) returns the salt and submission metadata, owner-only (404 otherwise).
+- `/dropzones/<id>/release` (POST): password-first `wS` release, owner-only. Rate-limited per `dropzone_id` via `DROPZONE_RELEASE_RATE_LIMIT`.
+  - Answers mirror `/release`: 403 on a wrong verifier (`attempts_remaining`), 429 on the attempt that locks, 410 after release or expiry (`code: 'expired'`), 409 `no_submission` when the link hasn't been used (wS must not leave before there is something to decrypt), a uniform 404 when the zone is missing or not the caller's.
+- `/dropzones/<id>/submission` (GET): streams the blob once to the owner who won the release. 403 `not_released`; 404 `missing`/`no_submission`; 410 `collected` after collection; 410 `expired` past `DROPZONE_COLLECT_TTL_SECONDS` since the release or the zone's expiry.
+- `/dropzones/<id>/report` (POST): receipt-gated proof of decryption, public like `/report_decryption` (403 `Invalid receipt`), rate-limited per `dropzone_id` by `REPORT_DECRYPTION_RATE_LIMIT`.
+- `/dropzones/<id>/delete` (POST): manual deletion by the owner; drops both rows, and the caller deletes the blob.
+
+### Dropzone lifecycle
+
+- **Create:** a `dropzones` row with `salt`, `ws`, `v`, `sv`, `created_by`, optional `expiry_at`, memo and notification fields.
+- **Submit:** `sv` verified, `link_consumed_at` stamped, a `dropzone_submissions` row (`path`, `type`, `wk`, `receipt_hash`) and the blob stored (local/S3). `sv` is verified then discarded — never stored beyond its `sv` column.
+- **Wrong passwords** consume `attempts`. Lockout comes at `DROPZONE_MAX_ATTEMPTS`; burn-on-lockout (off by default) NULLs `v`/`ws`/`sv`.
+- **Release:** `released_at` set, `v`/`ws`/`sv` wiped in the same transaction — a post-release DB theft yields nothing crackable.
+- **Collect:** `collected_at`/`collected_by_ip` set, the blob streams and is deleted; the browser decrypts and reports the receipt (`decryption_success` written once).
+- **Released but never collected** expires after `DROPZONE_COLLECT_TTL_SECONDS`: `expire_unclaimed_dropzone_releases` marks the zone expired, deletes the submission row, and the sweep deletes the blob.
+- **Expiry:** `purge_expired_dropzones` (and `_expire_dropzone` on read paths) wipes `v`/`ws`/`sv`, marks the zone expired, drops the submission row and deletes the blob. Zone rows stay for bookkeeping until `POST /dropzones/<id>/delete` removes zone + submission + blob.
 
 ## Explainer page
 

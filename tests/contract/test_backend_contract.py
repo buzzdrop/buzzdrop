@@ -543,6 +543,500 @@ def test_truncate_clears_key_shares(backend):
 
 
 # ---------------------------------------------------------------------------
+# FileStore contract — dropzones (the reversed one-shot flow, docs/adr/0001)
+# ---------------------------------------------------------------------------
+
+_DZ_SALT = 'aa' * 16
+_DZ_WS = 'bb' * 32
+_DZ_V = 'cc' * 32
+_DZ_SV = 'dd' * 32
+_DZ_WK = 'ee' * 32
+_DZ_RECEIPT_HASH = 'ff' * 32
+_WRONG_SV = '11' * 32
+_WRONG_V = '22' * 32
+
+
+def _dropzone_doc(dropzone_id='dz-1', **overrides):
+    doc = {
+        'id': dropzone_id,
+        'salt': _DZ_SALT,
+        'ws': _DZ_WS,
+        'v': _DZ_V,
+        'sv': _DZ_SV,
+        'attempts': 0,
+        'expiry_at': None,
+        'created_at': now_iso(),
+        'created_by': 'testuser',
+        'link_consumed_at': None,
+        'released_at': None,
+        'collected_at': None,
+        'collected_by_ip': None,
+        'status': 'active',
+        'notify_on_submission': False,
+        'notification_email': None,
+        'language': 'en',
+        'memo': None,
+    }
+    doc.update(overrides)
+    return doc
+
+
+def _submission_doc(dropzone_id='dz-1', **overrides):
+    doc = {
+        'id': f'sub-{dropzone_id}',
+        'dropzone_id': dropzone_id,
+        'path': f'uploads/sub-{dropzone_id}',
+        'type': 'file',
+        'wk': _DZ_WK,
+        'receipt_hash': _DZ_RECEIPT_HASH,
+        'created_at': now_iso(),
+    }
+    doc.update(overrides)
+    return doc
+
+
+def _zone(backend, dropzone_id='dz-1', **overrides):
+    """A live dropzone row, as POST /api/dropzones leaves it."""
+    assert backend.files.create_dropzone(
+        _dropzone_doc(dropzone_id, **overrides)) is True
+    return dropzone_id
+
+
+def _consumed_zone(backend, dropzone_id='dz-1', **zone_overrides):
+    """A dropzone whose request link was spent on one submission."""
+    _zone(backend, dropzone_id, **zone_overrides)
+    result = backend.files.consume_for_submission(
+        dropzone_id, _DZ_SV, _submission_doc(dropzone_id))
+    assert result['status'] == 'ok'
+    return dropzone_id
+
+
+def _released_zone(backend, dropzone_id='dz-1', **zone_overrides):
+    """A dropzone with a submission, released by the winning verifier."""
+    _consumed_zone(backend, dropzone_id, **zone_overrides)
+    result = backend.files.attempt_dropzone_release(dropzone_id, _DZ_V, 3, False)
+    assert result['status'] == 'ok'
+    return dropzone_id
+
+
+def test_create_and_get_dropzone(backend):
+    assert backend.files.create_dropzone(_dropzone_doc(
+        custom_field='stashed-in-extra')) is True
+    # a second zone with the same id is refused
+    assert backend.files.create_dropzone(_dropzone_doc()) is False
+
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone is not None
+    assert zone['id'] == 'dz-1'
+    assert zone['salt'] == _DZ_SALT
+    assert zone['ws'] == _DZ_WS
+    assert zone['v'] == _DZ_V
+    assert zone['sv'] == _DZ_SV
+    assert zone['attempts'] == 0
+    assert zone['status'] == 'active'
+    assert zone['created_by'] == 'testuser'
+    assert zone['link_consumed_at'] is None
+    assert zone['released_at'] is None
+    assert zone['collected_at'] is None
+    # unknown fields survive via the overflow column
+    assert zone['custom_field'] == 'stashed-in-extra'
+    assert backend.files.get_dropzone('nope') is None
+
+
+def test_list_dropzones_is_scoped_to_the_requester(backend):
+    _zone(backend, 'dz-1')
+    _zone(backend, 'dz-2')
+    _zone(backend, 'dz-other', created_by='adminuser')
+
+    assert [z['id'] for z in backend.files.list_dropzones('testuser')] == [
+        'dz-1', 'dz-2']
+    assert [z['id'] for z in backend.files.list_dropzones('adminuser')] == [
+        'dz-other']
+    assert backend.files.list_dropzones('nobody') == []
+
+
+def test_update_dropzone_fields(backend):
+    _zone(backend)
+    assert backend.files.update_dropzone_fields('dz-1', {
+        'memo': 'for the contractor',
+        'notification_sent_at': now_iso(),
+        'another_extra': 42,
+    }) is True
+
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['memo'] == 'for the contractor'
+    assert zone['notification_sent_at'] is not None
+    assert zone['another_extra'] == 42
+    # untouched fields preserved
+    assert zone['sv'] == _DZ_SV
+
+    assert backend.files.update_dropzone_fields('nope', {'memo': 'x'}) is False
+
+
+def test_consume_for_submission_stores_the_submission(backend):
+    _zone(backend)
+
+    result = backend.files.consume_for_submission(
+        'dz-1', _DZ_SV, _submission_doc())
+    assert result['status'] == 'ok'
+
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['link_consumed_at'] is not None
+    sub = backend.files.get_dropzone_submission('dz-1')
+    assert sub is not None
+    assert sub['dropzone_id'] == 'dz-1'
+    assert sub['path'] == 'uploads/sub-dz-1'
+    assert sub['wk'] == _DZ_WK
+    assert sub['receipt_hash'] == _DZ_RECEIPT_HASH
+    assert sub['decryption_success'] is None
+    assert [s['id'] for s in backend.files.list_dropzone_submissions()] == [
+        'sub-dz-1']
+
+
+def test_consume_for_submission_bad_sv_leaves_the_link_alive(backend):
+    """No sv, no consume: a bare dropzone_id can't burn the request link."""
+    _zone(backend)
+
+    result = backend.files.consume_for_submission(
+        'dz-1', _WRONG_SV, _submission_doc())
+    assert result['status'] == 'bad_sv'
+    assert backend.files.get_dropzone('dz-1')['link_consumed_at'] is None
+    assert backend.files.get_dropzone_submission('dz-1') is None
+    # a non-string or a missing stored sv can't pass the gate either
+    assert backend.files.consume_for_submission(
+        'dz-1', None, _submission_doc())['status'] == 'bad_sv'
+
+    # the real responder's sv still wins afterwards
+    result = backend.files.consume_for_submission(
+        'dz-1', _DZ_SV, _submission_doc())
+    assert result['status'] == 'ok'
+
+
+def test_consume_for_submission_consumed_and_missing(backend):
+    _consumed_zone(backend)
+
+    result = backend.files.consume_for_submission(
+        'dz-1', _DZ_SV, _submission_doc(id='sub-second'))
+    assert result['status'] == 'consumed'
+    # the first submission row stands; the loser's was never stored
+    assert backend.files.get_dropzone_submission('dz-1')['id'] == 'sub-dz-1'
+
+    assert backend.files.consume_for_submission(
+        'ghost', _DZ_SV, _submission_doc('ghost'))['status'] == 'missing'
+
+
+def test_consume_for_submission_expired_wipes_secrets(backend):
+    """An expired zone dies on touch: marked expired, v/ws/sv wiped."""
+    past = to_utc_iso(utcnow() - timedelta(minutes=5))
+    _zone(backend, expiry_at=past)
+
+    result = backend.files.consume_for_submission(
+        'dz-1', _DZ_SV, _submission_doc())
+    assert result['status'] == 'expired'
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['status'] == 'expired'
+    assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+    assert backend.files.get_dropzone_submission('dz-1') is None
+
+
+def test_consume_for_submission_concurrent_single_winner(backend):
+    """Racing submissions get exactly one winner — check+consume is one
+    transaction, so two holders of the link can't both land."""
+    _zone(backend)
+
+    workers = 8
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(
+            lambda index: backend.files.consume_for_submission(
+                'dz-1', _DZ_SV,
+                _submission_doc(id=f'sub-{index}'))['status'],
+            range(workers),
+        ))
+
+    assert results.count('ok') == 1
+    assert results.count('consumed') == workers - 1
+    subs = backend.files.list_dropzone_submissions()
+    assert len(subs) == 1
+
+
+def test_attempt_dropzone_release_statuses(backend):
+    """The dropzone mirror of attempt_key_release — each attempt one
+    transaction, ws handed out exactly once."""
+    _consumed_zone(backend)
+
+    # verifier miss → denied, attempts counted inside the attempt
+    result = backend.files.attempt_dropzone_release('dz-1', _WRONG_V, 3, False)
+    assert result['status'] == 'denied'
+    assert result['attempts'] == 1
+    assert result['attempts_remaining'] == 2
+    assert backend.files.get_dropzone('dz-1')['attempts'] == 1
+
+    # the right verifier releases wS once — and wipes v/ws/sv with the
+    # claim, so a post-release DB theft yields nothing crackable
+    result = backend.files.attempt_dropzone_release('dz-1', _DZ_V, 3, False)
+    assert result['status'] == 'ok'
+    assert result['ws'] == _DZ_WS
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['released_at'] is not None
+    assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+
+    # post-release attempts are refused — even with the right v
+    assert backend.files.attempt_dropzone_release(
+        'dz-1', _DZ_V, 3, False)['status'] == 'released'
+    assert backend.files.attempt_dropzone_release(
+        'dz-1', _WRONG_V, 3, False)['status'] == 'released'
+
+
+def test_attempt_dropzone_release_before_submission(backend):
+    """ws never leaves before a submission lands — there would be nothing
+    to decrypt, and the zone dies with its first submission."""
+    _zone(backend)
+
+    result = backend.files.attempt_dropzone_release('dz-1', _DZ_V, 3, False)
+    assert result['status'] == 'no_submission'
+    # a no_submission gate is not a password miss — attempts untouched
+    assert backend.files.get_dropzone('dz-1')['attempts'] == 0
+    assert backend.files.attempt_dropzone_release(
+        'dz-1', _WRONG_V, 3, False)['status'] == 'no_submission'
+    assert backend.files.get_dropzone('dz-1')['attempts'] == 0
+
+
+def test_attempt_dropzone_release_missing(backend):
+    assert backend.files.attempt_dropzone_release(
+        'ghost', _DZ_V, 3, False)['status'] == 'missing'
+
+
+def test_attempt_dropzone_release_lockout(backend):
+    """Exhausting attempts locks the zone; without burn the secrets stay."""
+    _consumed_zone(backend)
+    # max=1: the first miss is already the lockout event
+    result = backend.files.attempt_dropzone_release('dz-1', _WRONG_V, 1, False)
+    assert result['status'] == 'locked'
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['attempts'] == 1
+    assert zone['released_at'] is None
+    # lockout without burn keeps the secrets — availability lost, not wS
+    assert zone['ws'] == _DZ_WS and zone['v'] == _DZ_V
+    # even the correct verifier is refused after lockout
+    assert backend.files.attempt_dropzone_release(
+        'dz-1', _DZ_V, 1, False)['status'] == 'locked'
+
+
+def test_attempt_dropzone_release_burn_on_lockout(backend):
+    _consumed_zone(backend)
+    result = backend.files.attempt_dropzone_release('dz-1', _WRONG_V, 1, True)
+    assert result['status'] == 'locked'
+    # burned: v/ws/sv wiped — wS is gone for good, the zone is dead
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+    assert backend.files.attempt_dropzone_release(
+        'dz-1', _DZ_V, 1, True)['status'] == 'locked'
+
+
+def test_attempt_dropzone_release_expired(backend):
+    """Expiry is decided inside the same transaction — and shreds the
+    secrets; the submission path comes back for blob cleanup."""
+    past = to_utc_iso(utcnow() - timedelta(minutes=5))
+    _consumed_zone(backend)
+    backend.files.update_dropzone_fields('dz-1', {'expiry_at': past})
+
+    result = backend.files.attempt_dropzone_release('dz-1', _DZ_V, 3, False)
+    assert result['status'] == 'expired'
+    assert result['path'] == 'uploads/sub-dz-1'
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['status'] == 'expired'
+    assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+
+
+def test_attempt_dropzone_release_concurrent_single_winner(backend):
+    """≥8 racing releases must produce exactly one wS."""
+    _consumed_zone(backend)
+
+    workers = 8
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(
+            lambda _i: backend.files.attempt_dropzone_release(
+                'dz-1', _DZ_V, 8, False),
+            range(workers),
+        ))
+
+    assert [r['status'] for r in results].count('ok') == 1
+    assert [r['status'] for r in results].count('released') == workers - 1
+    ws_values = {r['ws'] for r in results if r['status'] == 'ok'}
+    assert ws_values == {_DZ_WS}
+
+
+def test_claim_dropzone_submission(backend):
+    _released_zone(backend)
+
+    result = backend.files.claim_dropzone_submission('dz-1', '1.2.3.4')
+    assert result['status'] == 'ok'
+    assert result['path'] == 'uploads/sub-dz-1'
+    assert result['wk'] == _DZ_WK
+    assert result['type'] == 'file'
+    assert result['submission_id'] == 'sub-dz-1'
+
+    zone = backend.files.get_dropzone('dz-1')
+    assert zone['collected_at'] is not None
+    assert zone['collected_by_ip'] == '1.2.3.4'
+
+    result = backend.files.claim_dropzone_submission('dz-1', '5.6.7.8')
+    assert result['status'] == 'already_collected'
+
+
+def test_claim_dropzone_submission_concurrent_single_winner(backend):
+    """≥8 racing claims on a released zone produce exactly one blob."""
+    _released_zone(backend)
+
+    workers = 8
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(
+            lambda index: backend.files.claim_dropzone_submission(
+                'dz-1', f'10.0.0.{index}')['status'],
+            range(workers),
+        ))
+
+    assert results.count('ok') == 1
+    assert results.count('already_collected') == workers - 1
+
+
+def test_claim_dropzone_submission_guards(backend):
+    _zone(backend, 'dz-missing')
+    backend.files.delete_dropzone('dz-missing')
+    assert backend.files.claim_dropzone_submission(
+        'dz-missing', '1.2.3.4')['status'] == 'missing'
+
+    # a consumed but never-released zone hands out nothing
+    _consumed_zone(backend, 'dz-unreleased')
+    assert backend.files.claim_dropzone_submission(
+        'dz-unreleased', '1.2.3.4')['status'] == 'not_released'
+
+    # released before any submission exists can't happen through the
+    # release route — but a hand-built state still fails closed
+    _zone(backend, 'dz-orphan')
+    backend.files.update_dropzone_fields(
+        'dz-orphan', {'released_at': now_iso()})
+    assert backend.files.claim_dropzone_submission(
+        'dz-orphan', '1.2.3.4')['status'] == 'no_submission'
+
+
+def test_claim_dropzone_submission_honours_the_collect_window(backend):
+    """A release left uncollected past the TTL expires in the claim's
+    transaction — the blob comes back for the caller to delete."""
+    _released_zone(backend, 'fresh')
+    assert backend.files.claim_dropzone_submission(
+        'fresh', '1.2.3.4', 3600)['status'] == 'ok'
+
+    _released_zone(backend, 'stale')
+    result = backend.files.claim_dropzone_submission('stale', '1.2.3.4', 0)
+    assert result == {'status': 'expired', 'path': 'uploads/sub-stale'}
+    zone = backend.files.get_dropzone('stale')
+    assert zone['status'] == 'expired'
+    assert zone['collected_at'] is None
+    assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+
+
+def test_claim_dropzone_submission_zone_expired(backend):
+    past = to_utc_iso(utcnow() - timedelta(minutes=5))
+    _released_zone(backend)
+    backend.files.update_dropzone_fields('dz-1', {'expiry_at': past})
+    result = backend.files.claim_dropzone_submission('dz-1', '1.2.3.4')
+    assert result == {'status': 'expired', 'path': 'uploads/sub-dz-1'}
+
+
+def test_delete_dropzone(backend):
+    assert backend.files.delete_dropzone('nope') is None
+
+    _zone(backend, 'dz-empty')
+    assert backend.files.delete_dropzone('dz-empty') == {
+        'existed': True, 'path': None}
+    assert backend.files.get_dropzone('dz-empty') is None
+
+    _consumed_zone(backend, 'dz-full')
+    result = backend.files.delete_dropzone('dz-full')
+    assert result == {'existed': True, 'path': 'uploads/sub-dz-full'}
+    assert backend.files.get_dropzone('dz-full') is None
+    assert backend.files.get_dropzone_submission('dz-full') is None
+    assert backend.files.list_dropzone_submissions() == []
+
+
+def test_purge_expired_dropzones(backend):
+    """Zones past expiry_at are marked expired and shredded; submissions
+    are listed for the caller's blob cleanup. Active zones untouched."""
+    past = to_utc_iso(utcnow() - timedelta(minutes=5))
+    _consumed_zone(backend, 'dz-expired')
+    backend.files.update_dropzone_fields('dz-expired', {'expiry_at': past})
+    _zone(backend, 'dz-expired-empty', expiry_at=past)
+    _consumed_zone(backend, 'dz-live')
+    _zone(backend, 'dz-no-expiry', expiry_at=None)
+
+    expired = backend.files.purge_expired_dropzones()
+    # only zones holding a submission are listed — the caller deletes blobs
+    assert expired == [{'id': 'dz-expired', 'path': 'uploads/sub-dz-expired'}]
+
+    for dropzone_id in ('dz-expired', 'dz-expired-empty'):
+        zone = backend.files.get_dropzone(dropzone_id)
+        assert zone['status'] == 'expired'
+        assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+        assert backend.files.get_dropzone_submission(dropzone_id) is None
+    assert backend.files.get_dropzone('dz-live')['status'] == 'active'
+    assert backend.files.get_dropzone_submission('dz-live') is not None
+
+    # idempotent: a second pass finds nothing left
+    assert backend.files.purge_expired_dropzones() == []
+
+
+def test_expire_unclaimed_dropzone_releases(backend):
+    """Only released, never-collected zones past the window expire."""
+    _released_zone(backend, 'unclaimed')
+    _released_zone(backend, 'collected')
+    backend.files.claim_dropzone_submission('collected', '1.2.3.4')
+    _consumed_zone(backend, 'unreleased')
+
+    # inside the window nothing is touched
+    assert backend.files.expire_unclaimed_dropzone_releases(3600) == []
+
+    expired = backend.files.expire_unclaimed_dropzone_releases(0)
+    assert expired == [{'id': 'unclaimed', 'path': 'uploads/sub-unclaimed'}]
+    zone = backend.files.get_dropzone('unclaimed')
+    assert zone['status'] == 'expired'
+    assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+    assert backend.files.get_dropzone_submission('unclaimed') is None
+    assert backend.files.get_dropzone('collected')['status'] == 'active'
+    assert backend.files.get_dropzone('unreleased')['status'] == 'active'
+
+    assert backend.files.expire_unclaimed_dropzone_releases(0) == []
+
+
+def test_record_dropzone_decryption_first_write_wins(backend):
+    """The NULL-guarded conditional write — racing reports resolve to one."""
+    _consumed_zone(backend)
+    assert backend.files.record_dropzone_decryption('dz-1', True) is True
+    assert backend.files.record_dropzone_decryption('dz-1', False) is False
+    assert backend.files.get_dropzone_submission(
+        'dz-1')['decryption_success'] is True
+    assert backend.files.record_dropzone_decryption('nope', True) is False
+
+
+def test_claim_dropzone_notification_send_once(backend):
+    _zone(backend)
+    assert backend.files.claim_dropzone_notification_send('dz-1') is True
+    assert backend.files.claim_dropzone_notification_send('dz-1') is False
+
+    backend.files.update_dropzone_fields(
+        'dz-1', {'notification_sent_at': now_iso(),
+                 'notification_claimed_at': None})
+    assert backend.files.claim_dropzone_notification_send('dz-1') is False
+
+
+def test_truncate_clears_dropzones(backend):
+    _consumed_zone(backend)
+    backend.files.truncate()
+    assert backend.files.get_dropzone('dz-1') is None
+    assert backend.files.list_dropzone_submissions() == []
+
+
+# ---------------------------------------------------------------------------
 # TokenStore contract
 # ---------------------------------------------------------------------------
 
