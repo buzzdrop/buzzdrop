@@ -275,6 +275,191 @@ class FileStore(ABC):
     def truncate(self) -> None:
         """Remove every record. Used by tests to isolate state."""
 
+    # -- dropzones: the reversed flow (docs/adr/0001) ------------------
+    #
+    # A dropzone is a one-shot "send it to me" box. The requester's
+    # browser draws a random secret ``s``, wraps it under a
+    # password-derived key (``ws``), and hands out a request link
+    # carrying ``s`` in the fragment. A responder encrypts under a fresh
+    # random ``K`` wrapped under ``s`` (``wk``); ``sv = HKDF(s,'submit')``
+    # stored on the zone gates submission on link possession, because a
+    # bare dropzone_id rides in URL paths and logs. Collection mirrors
+    # key release: prove ``v``, get ``ws`` exactly once, fetch the blob
+    # once. Expiry and lockout-burn wipe the secret columns.
+
+    @abstractmethod
+    def create_dropzone(self, doc: Mapping[str, Any]) -> bool:
+        """
+        Insert a dropzone record.
+
+        Args:
+            doc: Field dict; ``doc['id']`` is the public dropzone id.
+                Expected fields: ``salt``, ``ws``, ``v``, ``sv``,
+                ``expiry_at``, ``created_by``, ``created_at``,
+                ``notify_on_submission``, ``notification_email``,
+                ``language``, ``memo``. Fresh zones have ``attempts`` 0,
+                ``status`` 'active' and NULL lifecycle stamps.
+
+        Returns:
+            True when created, False when the id already exists.
+        """
+
+    @abstractmethod
+    def get_dropzone(self, dropzone_id: str) -> Optional[Dict[str, Any]]:
+        """Return the dropzone record, or None."""
+
+    @abstractmethod
+    def list_dropzones(self, username: str) -> List[Dict[str, Any]]:
+        """Return the requester's dropzones."""
+
+    @abstractmethod
+    def update_dropzone_fields(self, dropzone_id: str,
+                               fields: Mapping[str, Any]) -> bool:
+        """Set the given fields on one dropzone; True when updated."""
+
+    @abstractmethod
+    def consume_for_submission(self, dropzone_id: str, sv_hex: str,
+                               submission: Mapping[str, Any]) -> Dict[str, Any]:
+        """
+        Gate on ``sv``, consume the request link and store the submission
+        — all in ONE transaction that serializes against concurrent
+        submissions (e.g. ``BEGIN IMMEDIATE``), so racing submissions get
+        exactly one winner. The ``sv`` comparison MUST be constant-time.
+
+        Args:
+            submission: Field dict for the dropzone_submissions row:
+                ``id``, ``dropzone_id``, ``path``, ``type``, ``wk``,
+                ``receipt_hash``, ``created_at``.
+
+        Returns:
+            A dict with ``status`` one of:
+            ``'missing'`` (no zone), ``'bad_sv'`` (link stays alive),
+            ``'consumed'`` (link already spent), ``'expired'`` (zone
+            marked expired and its secrets wiped), or ``'ok'``
+            (``link_consumed_at`` stamped, submission row inserted).
+        """
+
+    @abstractmethod
+    def attempt_dropzone_release(self, dropzone_id: str, v_hex: str,
+                                 max_attempts: int,
+                                 burn_on_lockout: bool) -> Dict[str, Any]:
+        """
+        Execute one full collection attempt as a single atomic unit —
+        the dropzone mirror of ``attempt_key_release``. Releasing before
+        a submission lands is refused: ``ws`` may only ever be handed
+        out once.
+
+        On a match the implementation sets ``released_at`` and wipes
+        ``v``/``ws`` in the same write, returning ``ws`` exactly once.
+        The verifier comparison MUST be constant-time.
+
+        Returns:
+            A dict with ``status`` one of: ``'missing'``,
+            ``'no_submission'``, ``'released'``, ``'locked'`` (zone's
+            secrets wiped when burning), ``'expired'`` (secrets wiped,
+            submission ``path`` included for blob cleanup), ``'ok'``
+            (with ``ws``), or ``'denied'`` (with ``attempts`` and
+            ``attempts_remaining``).
+        """
+
+    @abstractmethod
+    def claim_dropzone_submission(self, dropzone_id: str, ip_address: str,
+                                  ticket_hex: Optional[str] = None,
+                                  ttl_seconds: Optional[int] = None
+                                  ) -> Dict[str, Any]:
+        """
+        Claim the released submission blob in one transaction — the
+        dropzone mirror of ``claim_download_with_ticket``, with session
+        ownership checked by the caller, plus a collect ticket
+        derived from wS at the winning release so the URL alone
+        can't burn the one-shot claim.
+
+        A release left uncollected for at least ``ttl_seconds`` (or an
+        unparseable ``released_at`` — fail closed) expires the zone and
+        wipes its secrets in the same transaction.
+
+        Returns:
+            A dict with ``status`` one of: ``'missing'``,
+            ``'not_released'``, ``'no_submission'``,
+            ``'already_collected'``, ``'expired'`` (submission ``path``
+            included for blob cleanup), or ``'ok'`` (with ``path``,
+            ``wk``, ``type``, ``submission_id``; ``collected_at`` and
+            ``collected_by_ip`` stamped).
+        """
+
+    @abstractmethod
+    def expire_dropzone_unconsumed(self, dropzone_id: str) -> bool:
+        """Expire the zone only while its request link is unconsumed
+        (atomic counterpart of the lazy expiry check — a concurrent
+        consume wins)."""
+
+    @abstractmethod
+    def get_dropzone_submission(self, dropzone_id: str
+                                ) -> Optional[Dict[str, Any]]:
+        """Return the zone's submission record, or None."""
+
+    @abstractmethod
+    def list_dropzone_submissions(self) -> List[Dict[str, Any]]:
+        """Return every submission record (startup orphan bookkeeping)."""
+
+    @abstractmethod
+    def delete_dropzone(self, dropzone_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Delete the dropzone and its submission row.
+
+        Returns:
+            None when the zone didn't exist; otherwise
+            ``{'existed': True, 'path': submission_path_or_None}`` —
+            the caller deletes the blob.
+        """
+
+    @abstractmethod
+    def purge_expired_dropzones(self) -> List[Dict[str, Any]]:
+        """
+        Mark every zone past ``expiry_at`` (or with an unparseable one —
+        fail closed) as expired and wipe ``v``/``ws``/``sv`` — but only
+        while the link is unconsumed: ``expiry_at`` bounds the submit
+        window, so a zone holding a submission outlives it.
+
+        Returns:
+            ``[]`` always — zones with a submission never qualify, so
+            there is never a blob to clean up.
+        """
+
+    @abstractmethod
+    def expire_unclaimed_dropzone_releases(self, older_than_seconds: int
+                                           ) -> List[Dict[str, Any]]:
+        """
+        Expire zones whose ``released_at`` is at least
+        ``older_than_seconds`` old (or unparseable — fail closed) and
+        whose submission was never collected. Marks expired and wipes
+        secrets; the caller deletes the blobs.
+
+        Returns:
+            ``[{'id': dropzone_id, 'path': submission_path}, ...]``.
+        """
+
+    @abstractmethod
+    def record_dropzone_decryption(self, dropzone_id: str,
+                                   success: bool) -> bool:
+        """
+        Atomically record the client-reported decryption outcome on the
+        submission row — single conditional write, first report wins.
+
+        Returns:
+            True when this call set the outcome, False otherwise.
+        """
+
+    @abstractmethod
+    def claim_dropzone_notification_send(self, dropzone_id: str) -> bool:
+        """
+        Atomically claim the pending submission-notification slot —
+        the dropzone mirror of ``claim_notification_send``.
+
+        Returns:
+            True when the claim succeeded, False otherwise.
+        """
+
 
 class TokenStore(ABC):
     """Storage operations for API token records."""

@@ -28,6 +28,9 @@ These routes call `_session_csrf_required()`, which exempts any request carrying
 - `/upload` and `/upload/begin`
 - `/logout`
 - `/api/token`
+- `/api/dropzones` (POST)
+- `/dropzones/<id>/release`
+- `/dropzones/<id>/delete`
 
 These routes call `_is_valid_csrf_token()` directly, with no `Authorization` exemption:
 - `/delete/<id>`
@@ -35,7 +38,9 @@ These routes call `_is_valid_csrf_token()` directly, with no `Authorization` exe
 - `/api/tokens/<id>/revoke`
 - `/language` (see `docs/dev/i18n.md`)
 
-The public unauthenticated POSTs (`/release`, `/report_decryption`) intentionally have no CSRF gate.
+The public unauthenticated POSTs (`/release`, `/report_decryption`) intentionally have no CSRF gate. The dropzone's public POSTs get the same treatment: `/dropzone/<id>/submit` (the responder needs no session; its credential is the request link's `sv` verifier) and `/dropzones/<id>/report` (its credential is the plaintext receipt, as on `/report_decryption`). Both are rate-limited per `dropzone_id` for the same reason `/release` is per `file_id` — a cross-site POST can do no more than the public flow already allows.
+
+The remaining dropzone routes are `@api_auth_required` (Bearer token or session cookie): `GET /api/dropzones`, `GET /api/dropzones/<id>` and `GET /dropzones/<id>/submission`. All of them, and the mutating dropzone routes above, answer 404 unless the zone's `created_by` is the caller.
 
 ## API tokens (`tokens.py`)
 

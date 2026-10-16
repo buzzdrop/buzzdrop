@@ -133,6 +133,23 @@ class Config:
     KEY_RELEASE_DOWNLOAD_TTL_SECONDS = int(
         os.getenv('KEY_RELEASE_DOWNLOAD_TTL_SECONDS', '600'))
 
+    # Dropzones (docs/adr/0001): the one-shot reversed flow. Submit is a
+    # public route gated on the link's submit verifier, so it is
+    # rate-limited per dropzone_id like /release is per file_id.
+    DROPZONE_SUBMIT_RATE_LIMIT = os.getenv(
+        'DROPZONE_SUBMIT_RATE_LIMIT', '30 per hour')
+    DROPZONE_RELEASE_RATE_LIMIT = os.getenv(
+        'DROPZONE_RELEASE_RATE_LIMIT', '10 per minute')
+    # Gentler than KEY_RELEASE_* on purpose: a locked dropzone strands a
+    # submission the responder can never re-send (their link is dead),
+    # so the default is more attempts and no burn.
+    DROPZONE_MAX_ATTEMPTS = int(os.getenv('DROPZONE_MAX_ATTEMPTS', '3'))
+    DROPZONE_BURN_ON_LOCKOUT = _env_bool('DROPZONE_BURN_ON_LOCKOUT', False)
+    # How long a released submission stays collectable, counted from the
+    # winning release. Past it the zone expires and the blob is swept.
+    DROPZONE_COLLECT_TTL_SECONDS = int(
+        os.getenv('DROPZONE_COLLECT_TTL_SECONDS', '600'))
+
     # Expired drops are always swept once at startup. This interval
     # (seconds) additionally re-sweeps on a daemon thread, so a drop
     # nobody ever opens still loses its ciphertext and key share.
@@ -224,6 +241,12 @@ class Config:
 
         if cls.KEY_RELEASE_DOWNLOAD_TTL_SECONDS < 1:
             raise ValueError("KEY_RELEASE_DOWNLOAD_TTL_SECONDS must be at least 1")
+
+        if cls.DROPZONE_MAX_ATTEMPTS < 1:
+            raise ValueError("DROPZONE_MAX_ATTEMPTS must be at least 1")
+
+        if cls.DROPZONE_COLLECT_TTL_SECONDS < 1:
+            raise ValueError("DROPZONE_COLLECT_TTL_SECONDS must be at least 1")
 
         if cls.EXPIRY_SWEEP_INTERVAL_SECONDS < 0:
             raise ValueError("EXPIRY_SWEEP_INTERVAL_SECONDS must be 0 or greater")

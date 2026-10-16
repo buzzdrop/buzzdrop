@@ -38,6 +38,19 @@ When a string needs a concept listed here, use this word, even where a synonym w
 | User | **użytkownik** | członek, klient |
 | API token | **token API** | klucz API |
 
+### Dropzones
+
+| English | Polish | Notes | _Avoid_ |
+|---|---|---|---|
+| Dropzone | **skrytka** (f.; skrytki, skrytkę, do skrytki) | A one-time box others leave a secret in. | strefa zrzutu, dropzone, skrzynka |
+| Requester | **zamawiający** | The user who creates a dropzone. | nadawca, właściciel |
+| Responder | **odpowiadający** | Whoever opens a request link and submits. | nadawca, odbiorca |
+| Request link | **link do skrytki** | | link żądania, odnośnik |
+| Submission | **zgłoszenie** (n.) | What a responder submits. | przesyłka (a submission is not a drop), wpłata |
+| Submit | **Złóż**; done: **Złożono** | | wyślij, prześlij |
+| Collect | **Odbierz**; done: **Odebrano** | | pobierz, otwórz |
+| Dropzone password | **hasło do skrytki** | | hasło skrytki, klucz |
+
 ### Passwords
 
 | English | Polish | _Avoid_ |

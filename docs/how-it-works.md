@@ -4,9 +4,9 @@ The user-facing account of what happens when you share a file or a note with Buz
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
-<!-- how-it-works-fingerprint: sha256:3207cac6e935f05c4e0d0d6d98a18859a6ce59f2a8591d57246a7630a8f6d070 -->
+<!-- how-it-works-fingerprint: sha256:592231fa3c0cf86a909222e78590767f109c8939a1d38c3b4f29f06307372ebd -->
 
-> **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto, the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release defaults, and the server code that releases, serves, expires and deletes a drop (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc and the page against the change, fix whichever is now wrong, and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer page — keep in step" says the same for reviewers.
+> **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto (drops and dropzone submissions), the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release and dropzone defaults, and the server code that releases, serves, expires and deletes a drop or a dropzone submission (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc and the page against the change, fix whichever is now wrong, and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer page — keep in step" says the same for reviewers.
 
 ## The three things to take away
 
@@ -135,6 +135,61 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 - **Never sees:** the content, then or ever.
 - **Why:** `H` never outlives the drop. Deleting the ciphertext from storage is best effort (a failed delete is not retried), but without `H` a leftover ciphertext can't be decrypted.
 
+## Collecting secrets: the dropzone
+
+The same guarantees, direction reversed: a requester creates a one-time dropzone and hands out a request link; whoever holds the link submits a file or a note, encrypted in their browser; the requester proves the dropzone password and collects it, once. There is no server half of the key here — the link's secret `s` never reaches the server at all, and everything the server stores is wrapped or one-way.
+
+<a id="step-dz-create"></a>
+
+### 1. Create the dropzone and get a request link
+
+- **Who acts:** the requester's browser, then the server.
+- **What happens:** the browser draws a random dropzone secret `s` and derives two keys from the dropzone password (PBKDF2-SHA256, 600,000 iterations, random salt): `Kw` for wrapping and the verifier `V` for proving the password later. It wraps `s` into `wS = AES-GCM(Kw, s)` and derives the submit verifier `SV = HKDF(s)` — proof that a submitter holds the link.
+- **What crosses the wire:** `POST /api/dropzones` with the salt, `wS`, `V` and `SV`, signed in by the requester's session or API token. The server answers with a `dropzone_id`.
+- **What the server sees:** the salt, `wS`, `V`, `SV`, an optional expiry, an optional memo and an optional notification address.
+- **Never sees:** `s` and the password.
+- **Then:** the browser builds the request link `/dropzone/<id>#s=…`. `s` sits after the `#`, so it never reaches the server. One zone carries exactly one link; a dead link means a new zone.
+
+<a id="step-dz-submit"></a>
+
+### 2. The responder submits, once
+
+- **Who acts:** the responder's browser, then the server. The responder needs no account — only the request link.
+- **What happens:** the browser takes `s` from the link's fragment, draws a fresh random key `K`, and encrypts the file or note into a `BKD1` envelope (`BKD1` ‖ `iv` ‖ AES-GCM ciphertext — the drop's inner layout, minus the password salt a random key doesn't need). It wraps `K` under `s` into `wK`, and posts the ciphertext, `wK`, `SHA-256(receipt)` and its own `SV` to `POST /dropzone/<id>/submit`.
+- **What the server sees:** the ciphertext and its approximate size, `wK`, the receipt's hash and `sv`. It checks `sv` against the stored `SV` before consuming the link — the check and the consume are one transaction, so racing submissions get exactly one winner and a bare `dropzone_id` from logs can't burn the link.
+- **Never sees:** `s`, `K` and the content. The filename travels inside the ciphertext here too.
+- **Then:** the request link is consumed; a second submission is refused. If the requester asked for it, an email says a submission landed.
+
+<a id="step-dz-release"></a>
+
+### 3. The requester proves the dropzone password
+
+- **Who acts:** the requester's browser, signed in, then the server.
+- **What crosses the wire:** the browser derives `V` from the typed dropzone password and posts it to `POST /dropzones/<id>/release`. Never the password.
+- **What the server sees:** `V`, and the requester's IP address, which it logs with a successful or wrong attempt. It compares `V` with the stored one in constant time, in one database transaction.
+- **On a match:** the server hands over `wS`, once, and wipes `wS`, `V` and `SV` from its database.
+- **On a wrong password:** the attempt is counted. Three wrong passwords lock the zone by default (`DROPZONE_MAX_ATTEMPTS=3`, `DROPZONE_BURN_ON_LOCKOUT` off), so the server refuses every later attempt but keeps the secrets. A locked zone strands the submission — the responder's link is already dead, which is why the default is gentler than a drop's.
+- **Why:** `wS` is the only way back to `s`, and `s` unwraps everything else. Password first, ciphertext second, exactly once.
+
+<a id="step-dz-collect"></a>
+
+### 4. Collect once
+
+- **Who acts:** the requester's browser, then the server.
+- **What crosses the wire:** `GET /dropzones/<id>/submission`, signed in as the zone's owner, with a collect ticket in `X-Collect-Ticket` — derived from the released `wS` (`HKDF` info `buzzdrop-collect-ticket`), the same one-shot ticket trick the drop download uses. The server streams the ciphertext back, once.
+- **What the server sees:** the collection, which it stores with the time and the requester's IP address.
+- **Never sees:** `s`, `K` and the content.
+- **Then:** the ciphertext is deleted from storage once the stream ends, even if it broke off. A released zone nobody collects within 10 minutes (`DROPZONE_COLLECT_TTL_SECONDS`) expires the same way. The browser unwraps `s` from `wS`, unwraps `K` from `wK`, decrypts and posts the receipt to `POST /dropzones/<id>/report`, so the requester's list shows whether decryption worked.
+
+<a id="step-dz-expiry"></a>
+
+### 5. Expiry and manual delete
+
+- **Who acts:** the server, or the requester.
+- **What happens:** when a zone's expiry passes (checked on reads and by the periodic sweep), or the requester deletes the zone, `wS`, `V` and `SV` are wiped and the submission's ciphertext is deleted from storage. The zone row stays for bookkeeping until deletion removes it.
+- **Never sees:** the content, then or ever.
+- **Why:** without `wS` the wrapped secret is unreachable, and without the ciphertext there is nothing to unwrap. A dropzone is spent after its first collection: one link, one submission, one collection.
+
 <a id="server-sees"></a>
 
 ## What the server sees
@@ -153,6 +208,7 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 - **The ciphertext:** until it is downloaded, it expires, or the sender deletes it. Then it is deleted from storage.
 - **`H` and `V`:** until the release succeeds, the drop locks, it expires, or it is deleted. Whichever comes first destroys them. With `KEY_RELEASE_BURN_ON_LOCKOUT` off, a locked drop keeps them (refusing every attempt) until it expires or is deleted; the page says so when the server runs that way.
 - **The drop's record:** the filename (or "Secret Note"), the sender's account, when it was created, its expiry, when it was opened and from which IP address, whether decryption worked, the receipt's hash, and the sender's optional memo and notification address; also the language it was sent in, which the notification is written in. Beside it stays what is left of the key share once `H` and `V` are gone (its `file_keys` row): the password's salt, the sending account, the count of wrong attempts and when it was released. All of it stays in the sender's list until the sender deletes it; there is no automatic purge.
+- **The dropzone's record:** the requester's account, when it was created, its expiry, when the request link was consumed, when it was released and collected and from which IP address, the count of wrong attempts, the password's salt, and the requester's optional memo, notification address and language. The submission's record keeps its kind (file or note), `wK`, the receipt's hash, the responder's IP and whether decryption worked. `wS`, `V` and `SV` are wiped as each step lands — on release or lockout burn, or on expiry only while the link is still unspent (a landed submission outlives the request link's deadline; expiry bounds submission, not collection). All of it stays in the requester's list until they delete the zone.
 - **Server logs:** every successful or wrong release attempt is logged with the requester's IP address. How long logs are kept is up to whoever runs the server.
 
 <a id="limits"></a>
