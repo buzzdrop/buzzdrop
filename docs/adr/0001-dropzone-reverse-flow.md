@@ -15,7 +15,8 @@ proposed here and should land in the glossary when this ships:
 - **Requester**: the user who creates a dropzone. (The glossary's *sender*
   doesn't fit — the requester sends nothing.)
 - **Responder**: whoever opens a request link and submits a file or note
-  to the dropzone. A responder has no account — the mirror of *recipient*.
+  to the dropzone. A responder needs no account — the mirror of
+  *recipient*.
 - **Request link**: the one-time URL a responder opens. The analogue of a
   drop link, direction reversed.
 - **Submission**: what a responder submits — one file or one note,
