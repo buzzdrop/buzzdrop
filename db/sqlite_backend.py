@@ -1135,7 +1135,10 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                 result: Dict[str, Any] = {'status': 'missing'}
             elif row['released_at'] is not None:
                 result = {'status': 'released'}
-            elif self._dropzone_row_expired(row):
+            elif (self._dropzone_row_expired(row)
+                    and row['submission_path'] is None):
+                # Expiry bounds the submission window, not collection:
+                # a landed submission stays collectable past it.
                 self._wipe_dropzone_secrets(conn, dropzone_id,
                                             mark_expired=True)
                 destroyed = True
@@ -1221,7 +1224,8 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                 result: Dict[str, Any] = {'status': 'missing'}
             elif row['collected_at'] is not None:
                 result = {'status': 'already_collected'}
-            elif (self._dropzone_row_expired(row)
+            elif ((self._dropzone_row_expired(row)
+                    and row['submission_id'] is None)
                     or self._release_stale(row['released_at'],
                                            ttl_seconds)):
                 self._wipe_dropzone_secrets(conn, dropzone_id,
@@ -1296,6 +1300,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                 'LEFT JOIN dropzone_submissions s '
                 '    ON s.dropzone_id = z.id '
                 "WHERE COALESCE(z.status, '') != 'expired' "
+                'AND s.id IS NULL '
                 'AND z.expiry_at IS NOT NULL '
                 'AND (z.expiry_at <= ? '
                 '     OR NOT is_iso_timestamp(z.expiry_at))',

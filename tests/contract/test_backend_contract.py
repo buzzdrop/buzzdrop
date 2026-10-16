@@ -835,17 +835,25 @@ def test_attempt_dropzone_release_burn_on_lockout(backend):
 
 def test_attempt_dropzone_release_expired(backend):
     """Expiry is decided inside the same transaction — and shreds the
-    secrets; the submission path comes back for blob cleanup."""
+    secrets; the submission path comes back for blob cleanup. But it
+    only applies while no submission landed: expiry bounds the submit
+    window, not collection."""
     past = to_utc_iso(utcnow() - timedelta(minutes=5))
-    _consumed_zone(backend)
+    _zone(backend)
     backend.files.update_dropzone_fields('dz-1', {'expiry_at': past})
 
     result = backend.files.attempt_dropzone_release('dz-1', _DZ_V, 3, False)
     assert result['status'] == 'expired'
-    assert result['path'] == 'uploads/sub-dz-1'
     zone = backend.files.get_dropzone('dz-1')
     assert zone['status'] == 'expired'
     assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+
+    # A zone whose submission landed before the deadline still releases.
+    _consumed_zone(backend, 'dz-2')
+    backend.files.update_dropzone_fields('dz-2', {'expiry_at': past})
+    result = backend.files.attempt_dropzone_release('dz-2', _DZ_V, 3, False)
+    assert result['status'] == 'ok'
+    assert result['ws']
 
 
 def test_attempt_dropzone_release_concurrent_single_winner(backend):
@@ -938,10 +946,13 @@ def test_claim_dropzone_submission_honours_the_collect_window(backend):
 
 def test_claim_dropzone_submission_zone_expired(backend):
     past = to_utc_iso(utcnow() - timedelta(minutes=5))
+    # Expiry bounded the link, not collection: a released zone past
+    # expiry_at still hands its submission over.
     _released_zone(backend)
     backend.files.update_dropzone_fields('dz-1', {'expiry_at': past})
     result = backend.files.claim_dropzone_submission('dz-1', '1.2.3.4')
-    assert result == {'status': 'expired', 'path': 'uploads/sub-dz-1'}
+    assert result['status'] == 'ok'
+    assert result['path'] == 'uploads/sub-dz-1'
 
 
 def test_delete_dropzone(backend):
@@ -961,8 +972,10 @@ def test_delete_dropzone(backend):
 
 
 def test_purge_expired_dropzones(backend):
-    """Zones past expiry_at are marked expired and shredded; submissions
-    are listed for the caller's blob cleanup. Active zones untouched."""
+    """Zones past expiry_at are marked expired and shredded — but only
+    while no submission landed: expiry bounds the submit window, not
+    collection, so a consumed zone outlives its deadline. Active zones
+    untouched."""
     past = to_utc_iso(utcnow() - timedelta(minutes=5))
     _consumed_zone(backend, 'dz-expired')
     backend.files.update_dropzone_fields('dz-expired', {'expiry_at': past})
@@ -971,16 +984,17 @@ def test_purge_expired_dropzones(backend):
     _zone(backend, 'dz-no-expiry', expiry_at=None)
 
     expired = backend.files.purge_expired_dropzones()
-    # only zones holding a submission are listed — the caller deletes blobs
-    assert expired == [{'id': 'dz-expired', 'path': 'uploads/sub-dz-expired'}]
+    assert expired == []
 
-    for dropzone_id in ('dz-expired', 'dz-expired-empty'):
+    # The empty expired zone is gone; the expired zone holding a
+    # submission stays collectable.
+    zone = backend.files.get_dropzone('dz-expired-empty')
+    assert zone['status'] == 'expired'
+    assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
+    for dropzone_id in ('dz-expired', 'dz-live'):
         zone = backend.files.get_dropzone(dropzone_id)
-        assert zone['status'] == 'expired'
-        assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
-        assert backend.files.get_dropzone_submission(dropzone_id) is None
-    assert backend.files.get_dropzone('dz-live')['status'] == 'active'
-    assert backend.files.get_dropzone_submission('dz-live') is not None
+        assert zone['status'] == 'active'
+        assert backend.files.get_dropzone_submission(dropzone_id) is not None
 
     # idempotent: a second pass finds nothing left
     assert backend.files.purge_expired_dropzones() == []

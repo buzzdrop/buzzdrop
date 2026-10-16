@@ -435,11 +435,17 @@ def test_collect_page_gone_for_collected_expired_and_missing(client, files_store
     files_store.update_dropzone_fields(
         expired, {'expiry_at': to_utc_iso(utcnow() - timedelta(minutes=5))})
 
-    for dropzone_id in (collected, expired, 'never-existed'):
+    for dropzone_id in (collected, 'never-existed'):
         response = client.get(
             url_for('collect_dropzone', dropzone_id=dropzone_id))
         assert response.status_code == 404, dropzone_id
         assert 'This drop is gone' in response.get_data(as_text=True)
+
+    # Expiry bounded the submit window, not collection — a landed
+    # submission stays collectable past expiry_at.
+    response = client.get(
+        url_for('collect_dropzone', dropzone_id=expired))
+    assert response.status_code == 200
 
 
 # ---------------------------------------------------------------------------
@@ -693,8 +699,8 @@ def test_release_burn_on_lockout_wipes_secrets(client, dropzone_settings, files_
 
 def test_release_expired_zone_is_410(client, files_store):
     login_user(client)
-    dropzone_id = _submitted_zone(client)
-    path = files_store.get_dropzone_submission(dropzone_id)['path']
+    # Never-submitted: expiry kills the zone outright.
+    dropzone_id = _create_zone(client)
     files_store.update_dropzone_fields(
         dropzone_id, {'expiry_at': to_utc_iso(utcnow() - timedelta(minutes=5))})
 
@@ -702,7 +708,21 @@ def test_release_expired_zone_is_410(client, files_store):
     assert response.status_code == 410
     assert response.get_json()['code'] == 'expired'
     assert files_store.get_dropzone(dropzone_id)['status'] == 'expired'
-    assert not os.path.exists(path)
+
+
+def test_release_expired_zone_with_submission_still_releases(client, files_store):
+    # Expiry bounds the request link, not collection: a submission that
+    # landed before the deadline stays collectable.
+    login_user(client)
+    dropzone_id = _submitted_zone(client)
+    path = files_store.get_dropzone_submission(dropzone_id)['path']
+    files_store.update_dropzone_fields(
+        dropzone_id, {'expiry_at': to_utc_iso(utcnow() - timedelta(minutes=5))})
+
+    response = _release(client, dropzone_id)
+    assert response.status_code == 200
+    assert response.get_json()['ws'] == _WS
+    assert os.path.exists(path)
 
 
 def test_release_is_owner_only(client):

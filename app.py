@@ -636,10 +636,14 @@ def _expire_dropzone(zone):
             return False
     except ValueError:
         return False
+    sub = file_repo.get_dropzone_submission(zone['id'])
+    if sub is not None:
+        # A landed submission outlives the request link's expiry — the
+        # deadline bounded the submit window, not the collection.
+        return False
     file_repo.store.update_dropzone_fields(zone['id'], {
         'status': 'expired', 'v': None, 'ws': None, 'sv': None,
     })
-    sub = file_repo.get_dropzone_submission(zone['id'])
     if sub and sub.get('path'):
         try:
             storage.delete(sub['path'])
