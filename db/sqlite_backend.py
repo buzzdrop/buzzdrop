@@ -1224,11 +1224,11 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         return result
 
     def collect_dropzone_submission(self, dropzone_id: str, ip_address: str,
-                                  ticket_hex: Optional[str] = None,
-                                  ttl_seconds: Optional[int] = None
-                                  ) -> Dict[str, Any]:
+                                    ticket_hex: Optional[str] = None,
+                                    ttl_seconds: Optional[int] = None
+                                    ) -> Dict[str, Any]:
         """
-        Claim the released submission blob in one BEGIN IMMEDIATE —
+        Collect the released submission blob in one BEGIN IMMEDIATE —
         the dropzone mirror of claim_download_with_ticket. The session
         scopes ownership; the collect ticket (derived from wS at the
         winning release) proves the caller holds the released material,
@@ -1372,7 +1372,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
         return []
 
     def expire_uncollected_dropzone_releases(self, older_than_seconds: int
-                                           ) -> List[Dict[str, Any]]:
+                                             ) -> List[Dict[str, Any]]:
         cutoff_iso = to_utc_iso(
             utcnow() - timedelta(seconds=older_than_seconds))
         conn = self._conn()

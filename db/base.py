@@ -364,11 +364,11 @@ class FileStore(ABC):
 
     @abstractmethod
     def collect_dropzone_submission(self, dropzone_id: str, ip_address: str,
-                                  ticket_hex: Optional[str] = None,
-                                  ttl_seconds: Optional[int] = None
-                                  ) -> Dict[str, Any]:
+                                    ticket_hex: Optional[str] = None,
+                                    ttl_seconds: Optional[int] = None
+                                    ) -> Dict[str, Any]:
         """
-        Claim the released submission blob in one transaction — the
+        Collect the released submission blob in one transaction — the
         dropzone mirror of ``claim_download_with_ticket``, with session
         ownership checked by the caller, plus a collect ticket
         derived from wS at the winning release so the URL alone
@@ -428,7 +428,7 @@ class FileStore(ABC):
 
     @abstractmethod
     def expire_uncollected_dropzone_releases(self, older_than_seconds: int
-                                           ) -> List[Dict[str, Any]]:
+                                             ) -> List[Dict[str, Any]]:
         """
         Expire zones whose ``released_at`` is at least
         ``older_than_seconds`` old (or unparseable — fail closed) and

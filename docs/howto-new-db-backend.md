@@ -59,6 +59,23 @@ Full signatures: `db/base.py`. The semantics the contract suite enforces:
 | `purge_stale_key_shares(older_than_seconds) -> int` | delete pending (unbound, `v` NULL) shares older than the TTL; malformed `created_at` counts as stale |
 | `delete(file_id) -> bool` / `truncate()` | — |
 
+Dropzone methods (the reversed flow, ADR-0001; `dropzones` +
+`dropzone_submissions` tables, full column doc in `db/CLAUDE.md`):
+
+| Method | Contract |
+|---|---|
+| `create_dropzone(doc) -> bool` | `False` when `id` already exists |
+| `get_dropzone(id)` / `list_dropzones(username)` / `update_dropzone_fields(id, fields)` / `delete_dropzone(id)` | same shapes as their `files` counterparts; `delete_dropzone` drops the submission row too and returns `{'path'}` for blob cleanup |
+| `consume_for_submission(id, sv, submission) -> dict` | **ATOMIC.** Check `sv` first — a bare id learns nothing: `missing`/`bad_sv` cover consumed and expired zones. On `ok`: stamp `link_consumed_at` and insert the submission in the same transaction |
+| `attempt_dropzone_release(id, v, max_attempts, burn_on_lockout) -> dict` | **ATOMIC**, the `attempt_key_release` mirror. Statuses: `missing`/`released`/`expired`/`locked`/`no_submission`/`ok`/`denied`. On `ok`: return `ws`, set `released_at`, wipe `v`/`ws`/`sv`, mint `ticket_hash` |
+| `collect_dropzone_submission(id, ip, ticket_hex, ttl_seconds) -> dict` | **ATOMIC**, the `claim_download_with_ticket` mirror. Statuses: `missing`/`already_collected`/`claimed`/`expired`/`not_released`/`no_submission`/`ok`. Compare `SHA-256(ticket)` to `ticket_hash` in constant time. On `ok`: stamp `collected_at`/`collected_by_ip`, clear `ticket_hash` |
+| `expire_dropzone_unconsumed(id) -> bool` | expire only while the link is unconsumed — a concurrent consume wins |
+| `get_dropzone_submission(id)` / `list_dropzone_submissions()` | dict or `None` / list of all submission rows (sweep uses it) |
+| `purge_expired_dropzones() -> list` | expire zones past `expiry_at` **only while unconsumed** — a landed submission outlives the deadline; returns `[{'id', 'path'}]` for blob cleanup |
+| `expire_uncollected_dropzone_releases(older_than_seconds) -> list` | the `expire_unclaimed_releases` mirror: released-but-never-collected past the TTL expires, submission row deleted, `path` returned |
+| `record_dropzone_decryption(id, success) -> bool` | first-write-wins, like `record_decryption_result` |
+| `claim_dropzone_notification_send(id) -> bool` | the `claim_notification_send` mirror |
+
 ### TokenStore
 
 Analogous: `insert`, `get_by_id`, `get_by_token_hash`, `get_by`/`list_by`/`all`,

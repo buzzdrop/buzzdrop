@@ -1160,7 +1160,7 @@ export function makeProtocolFake(opts = {}) {
     }
 
     /**
-     * download_dropzone_submission: the blob answers a released zone's
+     * collect_dropzone_submission: the blob answers a released zone's
      * collect ticket once — the session scopes ownership, X-Collect-Ticket
      * proves the caller holds the released wS.
      * @param {string} dropzoneId
@@ -1172,7 +1172,7 @@ export function makeProtocolFake(opts = {}) {
         if (!zone || zone.owner !== owner) {
             return json(404, { error: 'Not found' });
         }
-        // claim_dropzone_submission, in the store's check order.
+        // collect_dropzone_submission, in the store's check order.
         const sub = state.submissions.get(dropzoneId);
         if (zone.collectedAt !== null) {
             return json(410, { error: 'Submission already collected', code: 'collected' });
