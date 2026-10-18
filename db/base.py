@@ -363,7 +363,7 @@ class FileStore(ABC):
         """
 
     @abstractmethod
-    def claim_dropzone_submission(self, dropzone_id: str, ip_address: str,
+    def collect_dropzone_submission(self, dropzone_id: str, ip_address: str,
                                   ticket_hex: Optional[str] = None,
                                   ttl_seconds: Optional[int] = None
                                   ) -> Dict[str, Any]:
@@ -427,7 +427,7 @@ class FileStore(ABC):
         """
 
     @abstractmethod
-    def expire_unclaimed_dropzone_releases(self, older_than_seconds: int
+    def expire_uncollected_dropzone_releases(self, older_than_seconds: int
                                            ) -> List[Dict[str, Any]]:
         """
         Expire zones whose ``released_at`` is at least

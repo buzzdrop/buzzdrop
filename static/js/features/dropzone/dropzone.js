@@ -2,22 +2,27 @@
 // secrets client-side and registers {salt, wS, V, SV}; collect proves V,
 // gets wS once, fetches the submission blob and unwraps s → K → plaintext.
 
-import { bytesToHex, hexToBytes } from '../../lib/hex.js';
-import { createDropzoneSecrets, deriveCollectTicket, openDropzone } from '../../lib/dropzone-crypto.js';
+import { bytesToHex } from '../../lib/hex.js';
+import { deriveCollectTicket } from '../../lib/dropzone-crypto.js';
 
-/** @typedef {import('../../lib/hex.js').Bytes} Bytes */
+/**
+ * @typedef {import('../../lib/hex.js').Bytes} Bytes
+ * @typedef {import('../../lib/dropzone-crypto.js').OpenedDropzone} OpenedDropzone
+ * @typedef {import('../../lib/dropzone-crypto.js').DropzoneCrypto} DropzoneCrypto
+ */
 
 /**
  * Create a dropzone: derive the secrets, POST them, return the id so the
  * caller can build the request link `/dropzone/<id>#s=<s>`.
  * @param {{ createUrl: string }} endpoints
  * @param {typeof fetch} fetchFn
+ * @param {Pick<DropzoneCrypto, 'createDropzoneSecrets'>} crypto
  * @param {string} password
  * @param {{ expiry?: string | null, memo?: string | null, notifyOnSubmission?: boolean, csrfToken?: string }} options
  * @returns {Promise<{ dropzoneId: string, s: Bytes }>}
  */
-export async function createDropzone(endpoints, fetchFn, password, options = {}) {
-    const secrets = await createDropzoneSecrets(password);
+export async function createDropzone(endpoints, fetchFn, crypto, password, options = {}) {
+    const secrets = await crypto.createDropzoneSecrets(password);
     const headers = /** @type {Record<string, string>} */ ({ 'Content-Type': 'application/json' });
     if (options.csrfToken) headers['X-CSRF-Token'] = options.csrfToken;
     const response = await fetchFn(endpoints.createUrl, {
@@ -53,20 +58,21 @@ export async function createDropzone(endpoints, fetchFn, password, options = {})
  */
 
 /**
- * One collection attempt: derive V from the password, release wS, fetch
+ * One collection attempt on an opened dropzone (from the caller's
+ * crypto dep — the page opened it from the zone's salt, like the share
+ * flow's sealed share): derive V from the password, release wS, fetch
  * the blob and decrypt. `finish` reports the receipt.
  * @param {{ zoneUrl: string, releaseUrl: string, submissionUrl: string, reportUrl: string }} endpoints
  * @param {typeof fetch} fetchFn
- * @param {{ id: string, salt: string }} zone
+ * @param {OpenedDropzone} dropzone
  * @param {string} password
  * @param {string} [csrfToken]
  * @param {{ onStep?: (step: CollectStep) => void }} [hooks] - as each step starts
  * @returns {Promise<{data: Bytes, name: string, receipt: Bytes}>}
  */
-export async function collectDropzone(endpoints, fetchFn, zone, password, csrfToken, hooks = {}) {
+export async function collectDropzone(endpoints, fetchFn, dropzone, password, csrfToken, hooks = {}) {
     hooks.onStep?.('unlocking');
-    const { unlock } = openDropzone(hexToBytes(zone.salt));
-    const attempt = await unlock(password);
+    const attempt = await dropzone.unlock(password);
     const headers = /** @type {Record<string, string>} */ ({
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',

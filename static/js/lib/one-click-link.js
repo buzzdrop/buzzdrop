@@ -63,22 +63,21 @@ const _LANG_FRAGMENT_KEY = 'buzzdrop:lang-switch-fragment';
  * fragment waits in sessionStorage (same tab, dies with it) while the
  * redirect round-trips, and restoreFragmentAfterLanguageSwitch puts it
  * back before any page code reads it.
- * @param {Document} root
+ * @param {Iterable<HTMLFormElement>} forms - the language menu's POST
+ *   forms; the page looks them up, the selectors are its template's
  * @param {string} fragment - '#…' captured at init, before the page's
  *   fragment readers scrub it from the address bar
  */
-export function stashFragmentForLanguageSwitch(root, fragment) {
-    const win = root.defaultView;
-    if (!win || !fragment || fragment.length <= 1) return;
-    /** @type {NodeListOf<HTMLFormElement>} */ (
-        root.querySelectorAll('#language-menu-list form'))
-        .forEach((form) => {
-            form.addEventListener('submit', () => {
-                try {
-                    win.sessionStorage.setItem(_LANG_FRAGMENT_KEY, fragment);
-                } catch { /* storage denied — the fragment dies, not the switch */ }
-            });
+export function stashFragmentForLanguageSwitch(forms, fragment) {
+    if (!fragment || fragment.length <= 1) return;
+    for (const form of forms) {
+        form.addEventListener('submit', () => {
+            try {
+                form.ownerDocument.defaultView?.sessionStorage
+                    .setItem(_LANG_FRAGMENT_KEY, fragment);
+            } catch { /* storage denied — the fragment dies, not the switch */ }
         });
+    }
 }
 
 /**

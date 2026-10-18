@@ -344,11 +344,11 @@ class FileRepository:
         return self.store.attempt_dropzone_release(
             dropzone_id, v_hex, max_attempts, burn_on_lockout)
 
-    def claim_dropzone_submission(self, dropzone_id: str, ip_address: str,
+    def collect_dropzone_submission(self, dropzone_id: str, ip_address: str,
                                   ticket_hex: Optional[str] = None,
                                   ttl_seconds: Optional[int] = None) -> dict:
         """Claim the released submission blob, atomically."""
-        return self.store.claim_dropzone_submission(
+        return self.store.collect_dropzone_submission(
             dropzone_id, ip_address, ticket_hex, ttl_seconds)
 
     def delete_dropzone(self, dropzone_id: str) -> Optional[dict]:
@@ -360,10 +360,10 @@ class FileRepository:
         the caller to delete the submission blobs."""
         return self.store.purge_expired_dropzones()
 
-    def expire_unclaimed_dropzone_releases(self, older_than_seconds: int
+    def expire_uncollected_dropzone_releases(self, older_than_seconds: int
                                            ) -> List[dict]:
         """Expire released-but-never-collected zones past the TTL."""
-        return self.store.expire_unclaimed_dropzone_releases(
+        return self.store.expire_uncollected_dropzone_releases(
             older_than_seconds)
 
     def record_dropzone_decryption(self, dropzone_id: str,

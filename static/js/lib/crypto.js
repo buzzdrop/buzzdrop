@@ -14,19 +14,19 @@
  *   file_key = HKDF(Kp || H, salt, 'file')
  *
  * The version magic lives outside the encrypted data so future bumps stay
- * possible; only 'BKV3' is supported. The plaintext itself is
- * 'BKP-FIL2' ‖ receipt(32B random) ‖ name_len(2B BE) ‖ name(utf-8) ‖
- * payload — the receipt is the decryption proof the client returns to
- * /report_decryption (the server only ever stores its SHA-256 hash), and
- * the name is the original filename, delivered to the recipient through
- * the ciphertext so the server never renders it before the password held.
+ * possible; only 'BKV3' is supported. The plaintext itself is the
+ * 'BKP-FIL2' layout lib/bkp.js packs — a decryption receipt and the
+ * original filename inside the ciphertext, so the server never renders
+ * the name before the password held.
  *
  * The interface is a sealed share rather than a call order: seal() makes
  * one, open() parses one, and unlock() derives the master key once per
  * attempt, keeping Kp for finish() so the 600k PBKDF2 never runs twice.
  */
 
+import { packPayload, parsePayload } from './bkp.js';
 import { bytesToHex } from './hex.js';
+import { hkdf, pbkdf2Master } from './kdf.js';
 
 /** @typedef {import('./hex.js').Bytes} Bytes */
 
@@ -82,32 +82,20 @@ import { bytesToHex } from './hex.js';
 
 const encoder = new TextEncoder();
 
-// PBKDF2 iteration count for the master key.
-const ITERATIONS = 600000;
 // Outer envelope magic ('BKV3') — the only supported version.
 const ENVELOPE_MAGIC = encoder.encode('BKV3');
 // HKDF domain separation labels (docs/true-one-time.md §6.2).
 const HKDF_INFO_ENC = encoder.encode('enc');
 const HKDF_INFO_VER = encoder.encode('ver');
 const HKDF_INFO_FILE = encoder.encode('file');
-// Inner plaintext magic, prepended before encryption. 'BKP-FIL2' adds the
-// length-prefixed filename field over the original 'BKP-FILE' layout; the
-// clean break is deliberate, as with the dropped v1/v2 envelopes.
-const HEADER = encoder.encode('BKP-FIL2');
+const HKDF_INFO_DOWNLOAD_TICKET = encoder.encode('buzzdrop-download-ticket');
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const SHARE_LENGTH = 32;
-// Random 32-byte receipt encrypted inside the payload — proves decryption
-// to /report_decryption via its stored SHA-256 hash.
-const RECEIPT_LENGTH = 32;
-// The filename field's length prefix is 2 bytes big-endian — a name past
-// 65535 utf-8 bytes doesn't survive anyway, so seal() truncates there.
-const NAME_LENGTH_BYTES = 2;
-const MAX_NAME_BYTES = 0xffff;
 // Smallest legal blob: magic + salt + iv + GCM tag (16) + the inner header
 // (8) + receipt (32) + name length (2) — anything shorter can't be a BKV3
 // blob.
-const MIN_BLOB_LENGTH = 4 + 16 + 12 + 16 + 8 + 32 + NAME_LENGTH_BYTES;
+const MIN_BLOB_LENGTH = 4 + 16 + 12 + 16 + 8 + 32 + 2;
 
 /**
  * Encrypt data for a share.
@@ -121,20 +109,10 @@ export async function seal(data, password, h, name = '') {
     checkServerShare(h);
     const salt = randomBytes(SALT_LENGTH);
     const iv = randomBytes(IV_LENGTH);
-    const receipt = randomBytes(RECEIPT_LENGTH);
     const { kp, verifier } = await deriveKeys(password, salt);
     const key = await fileKey(kp, h, salt, 'encrypt');
 
-    const nameBytes = encoder.encode(name).slice(0, MAX_NAME_BYTES);
-    const headLen = HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES + nameBytes.length;
-    const plain = new Uint8Array(headLen + data.length);
-    plain.set(HEADER);
-    plain.set(receipt, HEADER.length);
-    plain[HEADER.length + RECEIPT_LENGTH] = nameBytes.length >> 8;
-    plain[HEADER.length + RECEIPT_LENGTH + 1] = nameBytes.length & 0xff;
-    plain.set(nameBytes, HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES);
-    plain.set(data, headLen);
-
+    const { plain, receipt } = packPayload(data, name);
     const encrypted = await globalThis.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
 
     const blob = new Uint8Array(ENVELOPE_MAGIC.length + salt.length + iv.length + encrypted.byteLength);
@@ -219,22 +197,7 @@ function makeShare(salt, envelope) {
                     const key = await fileKey(kp, h, salt, 'decrypt');
                     const plain = new Uint8Array(
                         await globalThis.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext));
-                    const fixedLen = HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES;
-                    if (plain.length < fixedLen || HEADER.some((byte, i) => plain[i] !== byte)) {
-                        throw new Error('Invalid password or corrupted data');
-                    }
-                    const nameLen = (plain[HEADER.length + RECEIPT_LENGTH] << 8)
-                        | plain[HEADER.length + RECEIPT_LENGTH + 1];
-                    const headLen = fixedLen + nameLen;
-                    if (plain.length < headLen) {
-                        throw new Error('Invalid password or corrupted data');
-                    }
-                    return {
-                        data: plain.slice(headLen),
-                        receipt: plain.slice(HEADER.length, HEADER.length + RECEIPT_LENGTH),
-                        name: new TextDecoder().decode(
-                            plain.slice(HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES, headLen)),
-                    };
+                    return parsePayload(plain);
                 },
             };
         },
@@ -261,16 +224,7 @@ export async function receiptHash(receipt) {
  */
 export async function downloadTicket(h) {
     checkServerShare(h);
-    const ikm = await globalThis.crypto.subtle.importKey('raw', h, 'HKDF', false, ['deriveBits']);
-    const bits = await globalThis.crypto.subtle.deriveBits(
-        {
-            name: 'HKDF',
-            hash: 'SHA-256',
-            salt: new Uint8Array(32),
-            info: encoder.encode('buzzdrop-download-ticket'),
-        },
-        ikm, 256);
-    return bytesToHex(new Uint8Array(bits));
+    return bytesToHex(await hkdf(h, new Uint8Array(32), HKDF_INFO_DOWNLOAD_TICKET));
 }
 
 /**
@@ -299,28 +253,11 @@ function randomBytes(length) {
  * @returns {Promise<{kp: Bytes, verifier: Bytes}>}
  */
 async function deriveKeys(password, salt) {
-    const keyMaterial = await globalThis.crypto.subtle.importKey(
-        'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
-    const master = new Uint8Array(await globalThis.crypto.subtle.deriveBits(
-        { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' }, keyMaterial, 256));
+    const master = await pbkdf2Master(password, salt);
     return {
         kp: await hkdf(master, salt, HKDF_INFO_ENC),
         verifier: await hkdf(master, salt, HKDF_INFO_VER),
     };
-}
-
-/**
- * HKDF-SHA256 → 32 bytes. The blob's salt doubles as the HKDF salt: it is
- * random, non-secret, and known to both parties.
- * @param {Bytes} ikm - Input key material
- * @param {Bytes} salt
- * @param {Bytes} info - Domain separation label
- * @returns {Promise<Bytes>}
- */
-async function hkdf(ikm, salt, info) {
-    const key = await globalThis.crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
-    return new Uint8Array(await globalThis.crypto.subtle.deriveBits(
-        { name: 'HKDF', hash: 'SHA-256', salt, info }, key, 256));
 }
 
 /**

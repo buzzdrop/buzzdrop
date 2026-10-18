@@ -101,7 +101,11 @@ export function initSuccess(root, deps) {
     // If there is one, let it wait out the next language switch in
     // sessionStorage — posting it would leak the password to the server.
     // The fragment was captured before takeFragmentPassword scrubbed it.
-    if (pwd) stashFragmentForLanguageSwitch(root, fragment);
+    // A page without the language menu has nothing to stash for.
+    if (pwd) {
+        const langMenu = root.querySelector('#language-menu-list');
+        if (langMenu) stashFragmentForLanguageSwitch(langMenu.querySelectorAll('form'), fragment);
+    }
     if (pwd) {
         pwdInput.value = pwd;
         toggleBtn.disabled = false;

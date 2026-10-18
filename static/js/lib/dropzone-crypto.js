@@ -9,30 +9,28 @@
  *   V      = HKDF(master, salt, 'ver')
  * — wraps s: wS = AES-GCM(Kw, s), and derives the submit verifier
  * SV = HKDF(s, 'submit'). The server stores {salt, wS, V, SV}; `s` rides
- * in the request link's fragment and never reaches it.
+ * in the request link's fragment and never reaches it. The PBKDF2/HKDF
+ * ladder itself is lib/kdf.js, shared with BKV3.
  *
  * A submission is a BKD1 envelope 'BKD1' ‖ iv(12) ‖ AES-GCM ciphertext
- * under a fresh random K; the plaintext keeps BKV3's inner layout
- * 'BKP-FIL2' ‖ receipt ‖ name_len ‖ name ‖ data. K is wrapped under s:
+ * under a fresh random K; the plaintext is the same 'BKP-FIL2' layout
+ * lib/bkp.js packs (receipt ‖ name ‖ data). K is wrapped under s:
  * wK = AES-GCM(s, K). Wrapped keys travel as iv(12) ‖ ct, hex-encoded.
  *
  * Collection: prove V → server hands wS once → unwrap s → unwrap K →
  * decrypt → report the receipt to /dropzones/<id>/report.
  */
 
+import { packPayload, parsePayload } from './bkp.js';
 import { bytesToHex, hexToBytes } from './hex.js';
+import { hkdf, pbkdf2Master } from './kdf.js';
 
 /** @typedef {import('./hex.js').Bytes} Bytes */
 
 const encoder = new TextEncoder();
-const ITERATIONS = 600000;
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const SECRET_LENGTH = 32;
-const RECEIPT_LENGTH = 32;
-const NAME_LENGTH_BYTES = 2;
-const MAX_NAME_BYTES = 0xffff;
-const HEADER = encoder.encode('BKP-FIL2');
 const SUBMISSION_MAGIC = encoder.encode('BKD1');
 const INFO_WRAP = encoder.encode('dz-wrap');
 const INFO_VER = encoder.encode('ver');
@@ -52,13 +50,41 @@ const WRAPPED_LENGTH = IV_LENGTH + SECRET_LENGTH + 16; // iv + key + GCM tag
  */
 
 /**
+ * One password attempt on a dropzone: the verifier to prove to the
+ * release route, and finish(ws, wk, blob) to unwrap s → K and decrypt
+ * the submission with them — the mirror of lib/crypto.js's Attempt.
+ * @typedef {object} DropzoneAttempt
+ * @property {Bytes} verifier
+ * @property {(wsHex: string, wkHex: string, blob: Bytes) => Promise<{data: Bytes, receipt: Bytes, name: string}>} finish - rejects on a wrong password or damaged material
+ */
+
+/**
+ * A dropzone whose salt parsed, ready for a password attempt — the
+ * mirror of lib/crypto.js's SealedShare. The page builds it through its
+ * crypto dep and hands it to features/dropzone's collectDropzone.
+ * @typedef {object} OpenedDropzone
+ * @property {(password: string) => Promise<DropzoneAttempt>} unlock
+ */
+
+/**
+ * What the pages and features use: the lib itself in the browser, a stub
+ * in the DOM tests — the BKD1 counterpart of lib/crypto.js's ShareCrypto.
+ * @typedef {object} DropzoneCrypto
+ * @property {typeof createDropzoneSecrets} createDropzoneSecrets
+ * @property {typeof deriveSubmitVerifier} deriveSubmitVerifier
+ * @property {typeof sealSubmission} sealSubmission
+ * @property {typeof deriveCollectTicket} deriveCollectTicket
+ * @property {typeof openDropzone} openDropzone - throws 'Unsupported dropzone format'
+ */
+
+/**
  * @param {string} password - the dropzone password
  * @returns {Promise<DropzoneSecrets>}
  */
 export async function createDropzoneSecrets(password) {
     const s = randomBytes(SECRET_LENGTH);
     const salt = randomBytes(SALT_LENGTH);
-    const master = await pbkdf2(password, salt);
+    const master = await pbkdf2Master(password, salt);
     const kw = await aesKey(await hkdf(master, salt, INFO_WRAP), 'encrypt');
     const verifier = await hkdf(master, salt, INFO_VER);
     return {
@@ -90,18 +116,8 @@ export async function deriveSubmitVerifier(s) {
 export async function sealSubmission(data, name, s) {
     const k = randomBytes(SECRET_LENGTH);
     const iv = randomBytes(IV_LENGTH);
-    const receipt = randomBytes(RECEIPT_LENGTH);
     const wrap = await aesKey(s, 'encrypt');
-
-    const nameBytes = encoder.encode(name).slice(0, MAX_NAME_BYTES);
-    const headLen = HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES + nameBytes.length;
-    const plain = new Uint8Array(headLen + data.length);
-    plain.set(HEADER);
-    plain.set(receipt, HEADER.length);
-    plain[HEADER.length + RECEIPT_LENGTH] = nameBytes.length >> 8;
-    plain[HEADER.length + RECEIPT_LENGTH + 1] = nameBytes.length & 0xff;
-    plain.set(nameBytes, HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES);
-    plain.set(data, headLen);
+    const { plain, receipt } = packPayload(data, name);
 
     const encrypted = await globalThis.crypto.subtle.encrypt(
         { name: 'AES-GCM', iv }, await rawKey(k, 'encrypt'), plain);
@@ -139,7 +155,7 @@ export async function deriveCollectTicket(wsHex) {
  * release route and keeps Kw; finish(ws, wk, blob) unwraps s → K and
  * decrypts. Mirrors openSalted in lib/crypto.js.
  * @param {Bytes} salt - the zone's salt (hex field, decoded by the caller)
- * @returns {{unlock: (password: string) => Promise<{verifier: Bytes, finish: Function}>}}
+ * @returns {OpenedDropzone}
  */
 export function openDropzone(salt) {
     if (!(salt instanceof Uint8Array) || salt.length !== SALT_LENGTH) {
@@ -147,17 +163,11 @@ export function openDropzone(salt) {
     }
     return {
         async unlock(password) {
-            const master = await pbkdf2(password, salt);
+            const master = await pbkdf2Master(password, salt);
             const kwRaw = await hkdf(master, salt, INFO_WRAP);
             const verifier = await hkdf(master, salt, INFO_VER);
             return {
                 verifier,
-                /**
-                 * @param {string} wsHex - wS from the release (hex iv ‖ ct)
-                 * @param {string} wkHex - wK from the submission row (hex)
-                 * @param {Bytes} blob - the BKD1 submission ciphertext
-                 * @returns {Promise<{data: Bytes, receipt: Bytes, name: string}>}
-                 */
                 async finish(wsHex, wkHex, blob) {
                     const s = await unwrapKey(
                         await aesKey(kwRaw, 'decrypt'), hexToBytes(wsHex));
@@ -174,22 +184,7 @@ export function openDropzone(salt) {
                         { name: 'AES-GCM', iv },
                         await rawKey(k, 'decrypt'),
                         blob.slice(SUBMISSION_MAGIC.length + IV_LENGTH)));
-                    const fixedLen = HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES;
-                    if (plain.length < fixedLen || HEADER.some((b, i) => plain[i] !== b)) {
-                        throw new Error('Invalid password or corrupted data');
-                    }
-                    const nameLen = (plain[HEADER.length + RECEIPT_LENGTH] << 8)
-                        | plain[HEADER.length + RECEIPT_LENGTH + 1];
-                    const headLen = fixedLen + nameLen;
-                    if (plain.length < headLen) {
-                        throw new Error('Invalid password or corrupted data');
-                    }
-                    return {
-                        data: plain.slice(headLen),
-                        receipt: plain.slice(HEADER.length, HEADER.length + RECEIPT_LENGTH),
-                        name: new TextDecoder().decode(
-                            plain.slice(HEADER.length + RECEIPT_LENGTH + NAME_LENGTH_BYTES, headLen)),
-                    };
+                    return parsePayload(plain);
                 },
             };
         },
@@ -224,32 +219,6 @@ async function unwrapKey(key, wrapped) {
     return new Uint8Array(await globalThis.crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: wrapped.slice(0, IV_LENGTH) },
         key, wrapped.slice(IV_LENGTH)));
-}
-
-/**
- * @param {string} password
- * @param {Bytes} salt
- * @returns {Promise<Bytes>}
- */
-async function pbkdf2(password, salt) {
-    const keyMaterial = await globalThis.crypto.subtle.importKey(
-        'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
-    return new Uint8Array(await globalThis.crypto.subtle.deriveBits(
-        { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
-        keyMaterial, 256));
-}
-
-/**
- * @param {Bytes} ikm
- * @param {Bytes} salt
- * @param {Bytes} info
- * @returns {Promise<Bytes>}
- */
-async function hkdf(ikm, salt, info) {
-    const key = await globalThis.crypto.subtle.importKey(
-        'raw', ikm, 'HKDF', false, ['deriveBits']);
-    return new Uint8Array(await globalThis.crypto.subtle.deriveBits(
-        { name: 'HKDF', hash: 'SHA-256', salt, info }, key, 256));
 }
 
 /**

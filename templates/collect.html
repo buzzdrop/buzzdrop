@@ -64,7 +64,7 @@
 <script id="collect-config-json" type="application/json">{{ {
     'zoneUrl': url_for('get_dropzone_route', dropzone_id=dropzone_id),
     'releaseUrl': url_for('release_dropzone', dropzone_id=dropzone_id),
-    'submissionUrl': url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+    'submissionUrl': url_for('collect_dropzone_submission', dropzone_id=dropzone_id),
     'reportUrl': url_for('report_dropzone_decryption', dropzone_id=dropzone_id),
     'salt': salt,
 } | tojson }}</script>

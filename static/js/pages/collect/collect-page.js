@@ -15,7 +15,7 @@ import { csrfToken } from '../../features/csrf/index.js';
 import { collectDropzone } from '../../features/dropzone/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
 import { hexToBytes } from '../../lib/hex.js';
-import { openDropzone } from '../../lib/dropzone-crypto.js';
+import * as dropzoneCrypto from '../../lib/dropzone-crypto.js';
 import { formatNumber } from '../../lib/format.js';
 import { required } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
@@ -25,6 +25,7 @@ import { readStrings } from '../../lib/strings.js';
 /**
  * @typedef {object} CollectDeps
  * @property {typeof fetch} fetch
+ * @property {Pick<import('../../lib/dropzone-crypto.js').DropzoneCrypto, 'openDropzone'>} crypto
  */
 
 /**
@@ -43,7 +44,7 @@ import { readStrings } from '../../lib/strings.js';
  * @returns {CollectDeps}
  */
 export function browserDeps() {
-    return { fetch: window.fetch.bind(window) };
+    return { fetch: window.fetch.bind(window), crypto: dropzoneCrypto };
 }
 
 /**
@@ -92,9 +93,12 @@ export function initCollect(root, deps) {
     }
 
     // A zone whose salt can't feed the KDF was never created by this app —
-    // same early-out as the view page's unsupported-format check.
+    // same early-out as the view page's unsupported-format check. The opened
+    // dropzone goes to collectDropzone per attempt.
+    /** @type {import('../../lib/dropzone-crypto.js').OpenedDropzone} */
+    let dropzone;
     try {
-        openDropzone(hexToBytes(typeof salt === 'string' ? salt : ''));
+        dropzone = deps.crypto.openDropzone(hexToBytes(typeof salt === 'string' ? salt : ''));
     } catch {
         lockForm();
         status.textContent = strings.text('unsupported');
@@ -188,7 +192,7 @@ export function initCollect(root, deps) {
             const opened = await collectDropzone(
                 { zoneUrl, releaseUrl, submissionUrl, reportUrl },
                 deps.fetch,
-                { id: '', salt: /** @type {string} */ (salt) },
+                dropzone,
                 password,
                 csrfToken(root),
                 { onStep: (step) => progress.busy(stepName(step)) },

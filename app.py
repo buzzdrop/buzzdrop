@@ -684,7 +684,7 @@ def sweep_expired_files() -> int:
     # Dropzones go the same way: past expiry_at, or released and never
     # collected within DROPZONE_COLLECT_TTL_SECONDS.
     file_repo.purge_expired_dropzones()
-    for stale in file_repo.expire_unclaimed_dropzone_releases(
+    for stale in file_repo.expire_uncollected_dropzone_releases(
             app.config['DROPZONE_COLLECT_TTL_SECONDS']):
         try:
             storage.delete(stale['path'])
@@ -1163,7 +1163,8 @@ def language_headers(response):
 @app.after_request
 def no_store_key_release_responses(response):
     """H-carrying endpoints must never be cached by browsers/proxies."""
-    if request.endpoint in {'upload_begin', 'release_key'}:
+    if request.endpoint in {'upload_begin', 'release_key',
+                            'release_dropzone'}:
         response.headers['Cache-Control'] = 'no-store'
     return response
 
@@ -1928,17 +1929,19 @@ def submit_dropzone(dropzone_id):
 
     # Advisory sv check before touching storage: the atomic consume
     # below stays authoritative, but a bare dropzone_id shouldn't be
-    # able to make the server write and delete blobs for free.
+    # able to make the server write and delete blobs for free. sv runs
+    # before the consumed check, like in the store — otherwise polling
+    # a bare id would reveal when the real submission landed.
     zone = file_repo.get_dropzone(dropzone_id)
     if not zone:
         refusal = SUBMIT_REFUSALS['missing']
         return _fail(refusal.error, refusal.code, refusal.status)
-    if zone.get('link_consumed_at') is not None:
-        refusal = SUBMIT_REFUSALS['consumed']
-        return _fail(refusal.error, refusal.code, refusal.status)
     if (zone.get('sv') is None
             or not secrets.compare_digest(zone['sv'], sv)):
         refusal = SUBMIT_REFUSALS['bad_sv']
+        return _fail(refusal.error, refusal.code, refusal.status)
+    if zone.get('link_consumed_at') is not None:
+        refusal = SUBMIT_REFUSALS['consumed']
         return _fail(refusal.error, refusal.code, refusal.status)
 
     # The blob lands before the row that names it; a refused consume
@@ -2044,7 +2047,9 @@ def create_dropzone():
         else i18n.current_language()
     )
     memo_raw = data.get('memo')
-    memo = str(memo_raw).strip()[:200] or None if memo_raw is not None else None
+    memo = None
+    if memo_raw is not None:
+        memo = str(memo_raw).strip()[:200] or None
 
     dropzone_id = file_repo.create_dropzone({
         'salt': salt,
@@ -2221,7 +2226,7 @@ def release_dropzone(dropzone_id):
 
 @app.route('/dropzones/<dropzone_id>/submission', methods=['GET'])
 @api_auth_required
-def download_dropzone_submission(dropzone_id):
+def collect_dropzone_submission(dropzone_id):
     """
     Serve the submission ciphertext once, to the owning requester who
     won the release. The blob's claim is consumed before the body
@@ -2234,7 +2239,7 @@ def download_dropzone_submission(dropzone_id):
     if not zone or zone.get('created_by') != g.username:
         return {'error': 'Not found'}, 404
 
-    result = file_repo.claim_dropzone_submission(
+    result = file_repo.collect_dropzone_submission(
         dropzone_id, get_client_ip(),
         request.headers.get('X-Collect-Ticket'),
         current_app.config['DROPZONE_COLLECT_TTL_SECONDS'])

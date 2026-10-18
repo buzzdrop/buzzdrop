@@ -1098,6 +1098,12 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             ).fetchone()
             if zone is None:
                 result: Dict[str, Any] = {'status': 'missing'}
+            elif (not isinstance(sv_hex, str) or zone['sv'] is None
+                    or not secrets.compare_digest(zone['sv'], sv_hex)):
+                # sv first — no sv, no information: a bare dropzone_id
+                # can't burn the link and can't tell a consumed or
+                # expired zone apart from a wrong sv.
+                result = {'status': 'bad_sv'}
             elif (self._dropzone_row_expired(zone, 'status')
                     and zone['link_consumed_at'] is None):
                 # Expiry bounds the submit window only — a landed
@@ -1108,14 +1114,6 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
                                             mark_expired=True)
                 destroyed = True
                 result = {'status': 'expired'}
-            elif (not isinstance(sv_hex, str) or zone['sv'] is None
-                    or not secrets.compare_digest(zone['sv'], sv_hex)):
-                # No sv, no consume — a bare dropzone_id can't burn
-                # the link. This check runs before the consumed one so
-                # polling a bare id can't learn when the real
-                # submission landed (a consumed zone's sv is NULL
-                # anyway, so it lands here too).
-                result = {'status': 'bad_sv'}
             elif zone['link_consumed_at'] is not None:
                 result = {'status': 'consumed'}
             else:
@@ -1225,7 +1223,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             self._backend.checkpoint_wal()
         return result
 
-    def claim_dropzone_submission(self, dropzone_id: str, ip_address: str,
+    def collect_dropzone_submission(self, dropzone_id: str, ip_address: str,
                                   ticket_hex: Optional[str] = None,
                                   ttl_seconds: Optional[int] = None
                                   ) -> Dict[str, Any]:
@@ -1373,7 +1371,7 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             self._backend.checkpoint_wal()
         return []
 
-    def expire_unclaimed_dropzone_releases(self, older_than_seconds: int
+    def expire_uncollected_dropzone_releases(self, older_than_seconds: int
                                            ) -> List[Dict[str, Any]]:
         cutoff_iso = to_utc_iso(
             utcnow() - timedelta(seconds=older_than_seconds))

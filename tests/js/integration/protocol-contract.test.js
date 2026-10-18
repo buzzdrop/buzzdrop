@@ -6,6 +6,7 @@
 // stays red until the fake matches.
 import { describe, it, expect } from 'vitest';
 import * as shareCrypto from '../../../static/js/lib/crypto.js';
+import { deriveCollectTicket } from '../../../static/js/lib/dropzone-crypto.js';
 import { bytesToHex, hexToBytes } from '../../../static/js/lib/hex.js';
 import {
     EMITS, isJsonContentType, loadContract, makeProtocolFake, routeOf,
@@ -21,6 +22,10 @@ const contract = loadContract();
 
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
 const HEX64 = /\b[0-9a-f]{64}\b/g;
+// Stored timestamps differ between recording runs; only their shape is
+// contractual. Covers the server's `+00:00` microseconds and the fake's
+// `.sssZ` form.
+const TIMESTAMP = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+(?:Z|[+-]\d{2}:\d{2})/g;
 
 // normalise, resolve and toRecorded mirror _normalise, _resolve and _record in
 // tests/fixtures/record_protocol_contract.py: change them together.
@@ -32,7 +37,8 @@ const HEX64 = /\b[0-9a-f]{64}\b/g;
  */
 function normalise(value) {
     if (typeof value === 'string') {
-        return value.replace(UUID, '<uuid>').replace(HEX64, '<hex64>');
+        return value.replace(UUID, '<uuid>').replace(HEX64, '<hex64>')
+            .replace(TIMESTAMP, '<timestamp>');
     }
     if (Array.isArray(value)) {
         return value.map(normalise);
@@ -65,6 +71,10 @@ async function resolve(value, responses) {
             return shareCrypto.downloadTicket(
                 hexToBytes(/** @type {string} */ (responses[value.$ticket].h)));
         }
+        if ('$collect_ticket' in value && typeof value.$collect_ticket === 'string') {
+            return deriveCollectTicket(
+                /** @type {string} */ (responses[value.$collect_ticket].ws));
+        }
         return Object.fromEntries(
             await Promise.all(Object.entries(value).map(
                 async ([k, v]) => [k, await resolve(v, responses)])));
@@ -96,7 +106,8 @@ function toFakeRequest(recorded) {
     return {
         method: recorded.method,
         url: `http://localhost${recorded.path.join('')}`,
-        headers: recorded.headers ?? {},
+        // $ticket/$collect_ticket placeholders are strings once resolved.
+        headers: /** @type {Record<string, string>} */ (recorded.headers ?? {}),
         body,
     };
 }
@@ -145,6 +156,9 @@ describe('protocol fake replays the recorded contract', () => {
                 maxAttempts: scenario.config.KEY_RELEASE_MAX_ATTEMPTS,
                 burnOnLockout: scenario.config.KEY_RELEASE_BURN_ON_LOCKOUT,
                 downloadTtlSeconds: scenario.config.KEY_RELEASE_DOWNLOAD_TTL_SECONDS,
+                dropzoneMaxAttempts: scenario.config.DROPZONE_MAX_ATTEMPTS,
+                dropzoneBurnOnLockout: scenario.config.DROPZONE_BURN_ON_LOCKOUT,
+                collectTtlSeconds: scenario.config.DROPZONE_COLLECT_TTL_SECONDS,
                 owner: contract.defaultUser,
                 csrfToken: contract.csrfToken,
                 notificationsConfigured: scenario.config.NOTIFICATIONS_CONFIGURED,
@@ -175,9 +189,11 @@ describe('protocol fake replays the recorded contract', () => {
 
 describe('the contract covers the fake', () => {
     // The completeness rule: every response the fake can emit has a scenario.
+    // The whole recorded path resolves the route — a mid-path $ref
+    // stringifies to '[object Object]', which the route patterns still match.
     const recorded = contract.scenarios.flatMap((scenario) => scenario.steps.map(
         (step) => JSON.stringify(
-            [routeOf(String(step.request.path[0])), step.response.status, source(step)])));
+            [routeOf(step.request.path.join('')), step.response.status, source(step)])));
     for (const [route, status, from] of EMITS) {
         it(`${route} ${status} (${from}) is recorded`, () => {
             expect(recorded).toContain(JSON.stringify([route, status, from]));

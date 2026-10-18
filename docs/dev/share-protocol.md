@@ -85,7 +85,7 @@ The reversed flow (`docs/adr/0001-dropzone-reverse-flow.md`): a requester create
 
 1. `GET /api/dropzones/<id>` returns the zone's salt (so the browser can derive `V`) and the submission's `wk`/`type` — the same role as the salt rendered into the view page.
 2. `POST /dropzones/<id>/release` `{v}` → `{ws}` on a constant-time match inside `attempt_dropzone_release`, released exactly once with `v`/`ws`/`sv` wiped in the same transaction. Misses increment `attempts`; lockout at `DROPZONE_MAX_ATTEMPTS` (burn optional via `DROPZONE_BURN_ON_LOCKOUT`, default off — a locked zone strands a submission the responder can't re-send, so it's gentler than `KEY_RELEASE_*`). The winner is an authenticated session, but the claim still carries a collect ticket derived from `wS` (like `/download`'s `X-Download-Ticket`) so a bare URL can't burn it, not an anonymous link holder.
-3. `GET /dropzones/<id>/submission` claims the blob in `claim_dropzone_submission` (stamps `collected_at`/`collected_by_ip`) before streaming it once; a broken-off transfer can't resume. The browser unwraps `s`, unwraps `K`, decrypts, and posts the receipt to `POST /dropzones/<id>/report`, which validates `SHA-256(receipt)` against the stored `receipt_hash` and writes `decryption_success` once.
+3. `GET /dropzones/<id>/submission` claims the blob in `collect_dropzone_submission` (stamps `collected_at`/`collected_by_ip`) before streaming it once; a broken-off transfer can't resume. The browser unwraps `s`, unwraps `K`, decrypts, and posts the receipt to `POST /dropzones/<id>/report`, which validates `SHA-256(receipt)` against the stored `receipt_hash` and writes `decryption_success` once.
 
 ### Routes
 
@@ -106,7 +106,7 @@ The reversed flow (`docs/adr/0001-dropzone-reverse-flow.md`): a requester create
 - **Wrong passwords** consume `attempts`. Lockout comes at `DROPZONE_MAX_ATTEMPTS`; burn-on-lockout (off by default) NULLs `v`/`ws`/`sv`.
 - **Release:** `released_at` set, `v`/`ws`/`sv` wiped in the same transaction — a post-release DB theft yields nothing crackable.
 - **Collect:** `collected_at`/`collected_by_ip` set, the blob streams and is deleted; the browser decrypts and reports the receipt (`decryption_success` written once).
-- **Released but never collected** expires after `DROPZONE_COLLECT_TTL_SECONDS`: `expire_unclaimed_dropzone_releases` marks the zone expired, deletes the submission row, and the sweep deletes the blob.
+- **Released but never collected** expires after `DROPZONE_COLLECT_TTL_SECONDS`: `expire_uncollected_dropzone_releases` marks the zone expired, deletes the submission row, and the sweep deletes the blob.
 - **Expiry:** `purge_expired_dropzones` (and `expire_dropzone_unconsumed` on read paths) wipes `v`/`ws`/`sv` and marks the zone expired — only while the link is unconsumed. `expiry_at` bounds the request link's submit window; a landed submission outlives it and stays collectable until the requester fetches it or deletes the zone. Zone rows stay for bookkeeping until `POST /dropzones/<id>/delete` removes zone + submission + blob.
 
 ## Explainer page

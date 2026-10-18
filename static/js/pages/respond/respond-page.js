@@ -6,6 +6,7 @@
 // note panel) is the feature the index page shares (features/composer).
 
 import { required } from '../../lib/required.js';
+import * as dropzoneCrypto from '../../lib/dropzone-crypto.js';
 import { restoreFragmentAfterLanguageSwitch, stashFragmentForLanguageSwitch } from '../../lib/one-click-link.js';
 import { initComposer } from '../../features/composer/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
@@ -17,11 +18,11 @@ import { hexToBytes } from '../../lib/hex.js';
 /**
  * @typedef {object} RespondDeps
  * @property {typeof XMLHttpRequest} XMLHttpRequest - supplies upload.onprogress
- * @property {{ sealSubmission: typeof import('../../lib/dropzone-crypto.js').sealSubmission }} crypto
+ * @property {Pick<import('../../lib/dropzone-crypto.js').DropzoneCrypto, 'sealSubmission'>} crypto
  */
 
 export function browserDeps() {
-    return { XMLHttpRequest: window.XMLHttpRequest };
+    return { XMLHttpRequest: window.XMLHttpRequest, crypto: dropzoneCrypto };
 }
 
 /**
@@ -56,8 +57,12 @@ export function initRespond(root, deps) {
     const s = takeFragmentSecret(window);
     // The language menu redirects through POST /set_language — the
     // fragment can't ride along (and must never be POSTed), so it waits
-    // in sessionStorage for the round-trip.
-    if (s) stashFragmentForLanguageSwitch(root, fragment);
+    // in sessionStorage for the round-trip. A page without the menu has
+    // nothing to stash for.
+    if (s) {
+        const langMenu = root.querySelector('#language-menu-list');
+        if (langMenu) stashFragmentForLanguageSwitch(langMenu.querySelectorAll('form'), fragment);
+    }
     if (!s) {
         submitBtn.disabled = true;
         errorEl.hidden = false;

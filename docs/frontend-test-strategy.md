@@ -96,7 +96,7 @@ From [What does the JS-integration layer's protocol fake look like?](https://git
   - **`fetch` and the XHR class** are thin adapters that add browser behaviour: following a 302 (`redirected: true`, final URL) and firing `upload.onprogress`.
 - **State** is what the server would hold: the pending share (H, owner, bound V), the stored blob, `downloaded`, `released_at`, the download-ticket digest the release stores, `attempts`, `receipt_hash`, `decryption_success`.
 - **One instance spans upload → view**, which gives a browser-only round trip. `seedShare({ password, plaintext })` builds a valid share directly for view-only tests.
-- **Routes:** exactly five: `/upload/begin`, `/upload`, `/download/<id>`, `/release/<id>`, `/report_decryption/<id>`. **Any other request throws.** The shared-files status poll and `/api/token` are answered by their page drivers (§7a); `/delete` is a native form POST, which the page harness records and stops.
+- **Routes:** the drop flow's five — `/upload/begin`, `/upload`, `/download/<id>`, `/release/<id>`, `/report_decryption/<id>` — plus the dropzone flow's seven — `POST`/`GET /api/dropzones`, `GET /api/dropzones/<id>`, `POST /dropzone/<id>/submit`, `POST /dropzones/<id>/release`, `GET /dropzones/<id>/submission`, `POST /dropzones/<id>/report`, `POST /dropzones/<id>/delete`. **Any other request throws.** The shared-files status poll and `/api/token` are answered by their page drivers (§7a); `/delete` is a native form POST, which the page harness records and stops.
 - **Enforces:**
   - the CSRF header on `/upload/begin` and `/upload`
   - owner and `file_id` binding

@@ -111,17 +111,17 @@ test('stash+restore carries the fragment through a language switch without posti
     };
     /** @type {Array<() => void>} */
     const handlers = [];
+    // the page hands over the menu's forms; the lib holds no selectors
     /** @type {any} */
-    const doc = {
-        defaultView: window,
-        /** @param {string} _sel */
-        querySelectorAll: (_sel) => [{
-            /** @param {string} _ev @param {() => void} fn */
-            addEventListener: (_ev, fn) => handlers.push(fn),
-        }],
+    const form = {
+        ownerDocument: { defaultView: window },
+        /** @param {string} _ev @param {() => void} fn */
+        addEventListener: (_ev, fn) => handlers.push(fn),
     };
+    /** @type {any} */
+    const doc = { defaultView: window };
 
-    stashFragmentForLanguageSwitch(doc, window.location.hash);
+    stashFragmentForLanguageSwitch([form], window.location.hash);
     assert.equal(handlers.length, 1);
 
     // the language menu form submits → the fragment is stashed, NOT posted

@@ -883,10 +883,10 @@ def test_attempt_dropzone_release_concurrent_single_winner(backend):
     assert ws_values == {_DZ_WS}
 
 
-def test_claim_dropzone_submission(backend):
+def test_collect_dropzone_submission(backend):
     _released_zone(backend)
 
-    result = backend.files.claim_dropzone_submission(
+    result = backend.files.collect_dropzone_submission(
         'dz-1', '1.2.3.4', _dz_collect_ticket(_DZ_WS))
     assert result['status'] == 'ok'
     assert result['path'] == 'uploads/sub-dz-1'
@@ -898,19 +898,19 @@ def test_claim_dropzone_submission(backend):
     assert zone['collected_at'] is not None
     assert zone['collected_by_ip'] == '1.2.3.4'
 
-    result = backend.files.claim_dropzone_submission(
+    result = backend.files.collect_dropzone_submission(
         'dz-1', '5.6.7.8', _dz_collect_ticket(_DZ_WS))
     assert result['status'] == 'already_collected'
 
 
-def test_claim_dropzone_submission_concurrent_single_winner(backend):
+def test_collect_dropzone_submission_concurrent_single_winner(backend):
     """≥8 racing claims on a released zone produce exactly one blob."""
     _released_zone(backend)
 
     workers = 8
     with ThreadPoolExecutor(max_workers=workers) as pool:
         results = list(pool.map(
-            lambda index: backend.files.claim_dropzone_submission(
+            lambda index: backend.files.collect_dropzone_submission(
                 'dz-1', f'10.0.0.{index}',
                 _dz_collect_ticket(_DZ_WS))['status'],
             range(workers),
@@ -920,15 +920,15 @@ def test_claim_dropzone_submission_concurrent_single_winner(backend):
     assert results.count('already_collected') == workers - 1
 
 
-def test_claim_dropzone_submission_guards(backend):
+def test_collect_dropzone_submission_guards(backend):
     _zone(backend, 'dz-missing')
     backend.files.delete_dropzone('dz-missing')
-    assert backend.files.claim_dropzone_submission(
+    assert backend.files.collect_dropzone_submission(
         'dz-missing', '1.2.3.4')['status'] == 'missing'
 
     # a consumed but never-released zone hands out nothing
     _consumed_zone(backend, 'dz-unreleased')
-    assert backend.files.claim_dropzone_submission(
+    assert backend.files.collect_dropzone_submission(
         'dz-unreleased', '1.2.3.4')['status'] == 'not_released'
 
     # released before any submission exists can't happen through the
@@ -936,19 +936,19 @@ def test_claim_dropzone_submission_guards(backend):
     _zone(backend, 'dz-orphan')
     backend.files.update_dropzone_fields(
         'dz-orphan', {'released_at': now_iso()})
-    assert backend.files.claim_dropzone_submission(
+    assert backend.files.collect_dropzone_submission(
         'dz-orphan', '1.2.3.4')['status'] == 'no_submission'
 
 
-def test_claim_dropzone_submission_honours_the_collect_window(backend):
+def test_collect_dropzone_submission_honours_the_collect_window(backend):
     """A release left uncollected past the TTL expires in the claim's
     transaction — the blob comes back for the caller to delete."""
     _released_zone(backend, 'fresh')
-    assert backend.files.claim_dropzone_submission(
+    assert backend.files.collect_dropzone_submission(
         'fresh', '1.2.3.4', _dz_collect_ticket(_DZ_WS), 3600)['status'] == 'ok'
 
     _released_zone(backend, 'stale')
-    result = backend.files.claim_dropzone_submission(
+    result = backend.files.collect_dropzone_submission(
         'stale', '1.2.3.4', _dz_collect_ticket(_DZ_WS), 0)
     assert result == {'status': 'expired', 'path': 'uploads/sub-stale'}
     zone = backend.files.get_dropzone('stale')
@@ -957,13 +957,13 @@ def test_claim_dropzone_submission_honours_the_collect_window(backend):
     assert zone['v'] is None and zone['ws'] is None and zone['sv'] is None
 
 
-def test_claim_dropzone_submission_zone_expired(backend):
+def test_collect_dropzone_submission_zone_expired(backend):
     past = to_utc_iso(utcnow() - timedelta(minutes=5))
     # Expiry bounded the link, not collection: a released zone past
     # expiry_at still hands its submission over.
     _released_zone(backend)
     backend.files.update_dropzone_fields('dz-1', {'expiry_at': past})
-    result = backend.files.claim_dropzone_submission(
+    result = backend.files.collect_dropzone_submission(
         'dz-1', '1.2.3.4', _dz_collect_ticket(_DZ_WS))
     assert result['status'] == 'ok'
     assert result['path'] == 'uploads/sub-dz-1'
@@ -1051,32 +1051,32 @@ def test_expire_dropzone_unconsumed_is_conditional(backend):
     assert zone['v'] == _DZ_V
 
 
-def test_claim_dropzone_submission_malformed_ticket(backend):
+def test_collect_dropzone_submission_malformed_ticket(backend):
     """A garbage ticket answers 'claimed' — it never reaches
     bytes.fromhex, so no 500."""
     _released_zone(backend)
     for junk in ('nothex', 'aa', None):
-        result = backend.files.claim_dropzone_submission(
+        result = backend.files.collect_dropzone_submission(
             'dz-1', '1.2.3.4', junk)
         assert result['status'] == 'claimed', junk
     # and the real ticket still works after the rejects
-    result = backend.files.claim_dropzone_submission(
+    result = backend.files.collect_dropzone_submission(
         'dz-1', '1.2.3.4', _dz_collect_ticket(_DZ_WS))
     assert result['status'] == 'ok'
 
 
-def test_expire_unclaimed_dropzone_releases(backend):
+def test_expire_uncollected_dropzone_releases(backend):
     """Only released, never-collected zones past the window expire."""
     _released_zone(backend, 'unclaimed')
     _released_zone(backend, 'collected')
-    backend.files.claim_dropzone_submission(
+    backend.files.collect_dropzone_submission(
         'collected', '1.2.3.4', _dz_collect_ticket(_DZ_WS))
     _consumed_zone(backend, 'unreleased')
 
     # inside the window nothing is touched
-    assert backend.files.expire_unclaimed_dropzone_releases(3600) == []
+    assert backend.files.expire_uncollected_dropzone_releases(3600) == []
 
-    expired = backend.files.expire_unclaimed_dropzone_releases(0)
+    expired = backend.files.expire_uncollected_dropzone_releases(0)
     assert expired == [{'id': 'unclaimed', 'path': 'uploads/sub-unclaimed'}]
     zone = backend.files.get_dropzone('unclaimed')
     assert zone['status'] == 'expired'
@@ -1085,7 +1085,7 @@ def test_expire_unclaimed_dropzone_releases(backend):
     assert backend.files.get_dropzone('collected')['status'] == 'active'
     assert backend.files.get_dropzone('unreleased')['status'] == 'active'
 
-    assert backend.files.expire_unclaimed_dropzone_releases(0) == []
+    assert backend.files.expire_uncollected_dropzone_releases(0) == []
 
 
 def test_record_dropzone_decryption_first_write_wins(backend):

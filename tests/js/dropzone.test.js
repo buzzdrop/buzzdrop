@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDropzone, collectDropzone } from '../../static/js/features/dropzone/index.js';
-import { createDropzoneSecrets, sealSubmission } from '../../static/js/lib/dropzone-crypto.js';
+import { createDropzoneSecrets, openDropzone, sealSubmission } from '../../static/js/lib/dropzone-crypto.js';
 import { bytesToHex, hexToBytes } from '../../static/js/lib/hex.js';
 
 const encoder = new TextEncoder();
@@ -56,7 +56,7 @@ test('createDropzone registers derived material and returns the link secret', as
     });
 
     const { dropzoneId, s } = await createDropzone(
-        { createUrl: ENDPOINTS.createUrl }, fetch, PASSWORD,
+        { createUrl: ENDPOINTS.createUrl }, fetch, { createDropzoneSecrets }, PASSWORD,
         {
             expiry: '2099-01-01T00:00:00.000Z', memo: 'for bob',
             notifyOnSubmission: true, csrfToken: 'csrf-fixture',
@@ -90,7 +90,7 @@ test('createDropzone sends no CSRF header without a token and surfaces codes', a
     });
 
     await assert.rejects(
-        createDropzone({ createUrl: ENDPOINTS.createUrl }, fetch, 'pw'),
+        createDropzone({ createUrl: ENDPOINTS.createUrl }, fetch, { createDropzoneSecrets }, 'pw'),
         (/** @type {any} */ err) => {
             assert.equal(err.code, 'invalid_dropzone');
             assert.equal(err.status, 400);
@@ -130,7 +130,7 @@ test('collectDropzone runs the whole collection: release, fetch, unwrap, report'
     });
 
     const opened = await collectDropzone(
-        ENDPOINTS, fetch, { id: 'dz-1', salt: secrets.salt }, PASSWORD, 'csrf-fixture');
+        ENDPOINTS, fetch, openDropzone(hexToBytes(secrets.salt)), PASSWORD, 'csrf-fixture');
 
     assert.deepEqual(opened.data, data);
     assert.equal(opened.name, 'creds.txt');
@@ -163,7 +163,7 @@ test('a wrong password is refused at release and fetches nothing', async () => {
     });
 
     await assert.rejects(
-        collectDropzone(ENDPOINTS, fetch, { id: 'dz-1', salt: secrets.salt }, 'wrong'),
+        collectDropzone(ENDPOINTS, fetch, openDropzone(hexToBytes(secrets.salt)), 'wrong'),
         (/** @type {any} */ err) => {
             assert.equal(err.status, 403);
             assert.equal(err.attemptsRemaining, 2);
@@ -181,7 +181,7 @@ test('a refused release carries the server code through', async () => {
     });
 
     await assert.rejects(
-        collectDropzone(ENDPOINTS, fetch, { id: 'dz-1', salt: secrets.salt }, PASSWORD),
+        collectDropzone(ENDPOINTS, fetch, openDropzone(hexToBytes(secrets.salt)), PASSWORD),
         (/** @type {any} */ err) => {
             assert.equal(err.code, 'no_submission');
             assert.equal(err.status, 409);
@@ -200,7 +200,7 @@ test('a failed submission download surfaces as download_failed', async () => {
     });
 
     await assert.rejects(
-        collectDropzone(ENDPOINTS, fetch, { id: 'dz-1', salt: secrets.salt }, PASSWORD),
+        collectDropzone(ENDPOINTS, fetch, openDropzone(hexToBytes(secrets.salt)), PASSWORD),
         (/** @type {any} */ err) => {
             assert.equal(err.code, 'download_failed');
             assert.equal(err.status, 410);
@@ -209,10 +209,10 @@ test('a failed submission download surfaces as download_failed', async () => {
 });
 
 test('a malformed zone salt is refused before any request', async () => {
-    const { fetch, calls } = stubFetch({});
-    // 'abcd' decodes to 2 bytes — not the 16-byte salt openDropzone takes
-    await assert.rejects(
-        collectDropzone(ENDPOINTS, fetch, { id: 'dz-1', salt: 'abcd' }, PASSWORD),
-        /Unsupported dropzone format/);
+    const { calls } = stubFetch({});
+    // 'abcd' decodes to 2 bytes — not the 16-byte salt openDropzone takes.
+    // The page opens the zone itself, so a bad salt throws before
+    // collectDropzone can send anything.
+    assert.throws(() => openDropzone(hexToBytes('abcd')), /Unsupported dropzone format/);
     assert.equal(calls.length, 0);
 });

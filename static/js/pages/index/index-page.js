@@ -14,6 +14,7 @@ import { createShare } from '../../features/share-protocol/index.js';
 import { initSharedFilesList } from '../../features/shared-files/index.js';
 import { createDropzone } from '../../features/dropzone/index.js';
 import * as shareCrypto from '../../lib/crypto.js';
+import * as dropzoneCrypto from '../../lib/dropzone-crypto.js';
 import { formatNumber, fullTime, parseTimestamp, relativeTime, timeZoneName } from '../../lib/format.js';
 import { bytesToHex } from '../../lib/hex.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
@@ -32,6 +33,7 @@ import { readStrings } from '../../lib/strings.js';
  * @property {typeof XMLHttpRequest} XMLHttpRequest - supplies upload.onprogress
  * @property {(url: string) => void} navigate
  * @property {import('../../features/share-protocol/index.js').CreateDeps['crypto']} crypto
+ * @property {Pick<import('../../lib/dropzone-crypto.js').DropzoneCrypto, 'createDropzoneSecrets'>} dropzoneCrypto
  * @property {() => number} now - epoch milliseconds, for the drop list's relative times
   */
 
@@ -59,6 +61,7 @@ export function browserDeps() {
         XMLHttpRequest: window.XMLHttpRequest,
         navigate: (url) => { window.location.href = url; },
         crypto: shareCrypto,
+        dropzoneCrypto,
         now: () => Date.now(),
     };
 }
@@ -327,7 +330,7 @@ export function initIndex(root, deps) {
  * the zone list and delete. Collecting a submission has its own page —
  * the Collect button navigates to /dropzones/<id>/collect.
  * @param {Document} root
- * @param {{ fetch: typeof fetch, navigate: (url: string) => void, now: () => number }} deps
+ * @param {Pick<IndexDeps, 'fetch' | 'navigate' | 'now' | 'dropzoneCrypto'>} deps
  * @param {import('../../lib/strings.js').Strings} strings
  */
 function initDropzones(root, deps, strings) {
@@ -467,7 +470,7 @@ function initDropzones(root, deps, strings) {
         try {
             const expiry = expiryInput.value ? new Date(expiryInput.value).toISOString() : null;
             const { dropzoneId, s } = await createDropzone(
-                { createUrl: endpoints.createUrl }, deps.fetch, password,
+                { createUrl: endpoints.createUrl }, deps.fetch, deps.dropzoneCrypto, password,
                 { expiry, memo: memoInput.value || null,
                   notifyOnSubmission: Boolean(notifyInput && notifyInput.checked),
                   csrfToken: csrf() });

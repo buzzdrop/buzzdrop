@@ -438,7 +438,7 @@ def test_collect_page_gone_for_collected_expired_and_missing(client, files_store
     collected = _submitted_zone(client)
     assert _release(client, collected).status_code == 200
     assert client.get(
-        url_for('download_dropzone_submission', dropzone_id=collected),
+        url_for('collect_dropzone_submission', dropzone_id=collected),
         headers={'X-Collect-Ticket': _collect_ticket()}
     ).status_code == 200
 
@@ -805,14 +805,14 @@ def test_submission_downloads_once(client, files_store):
 
     # nothing to fetch before the release — the blob is gated on it
     refused = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id))
     assert refused.status_code == 403
 
     release = _release(client, dropzone_id)
     assert release.status_code == 200
 
     download = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id),
         headers={'X-Collect-Ticket': _collect_ticket()})
     assert download.status_code == 200
     assert download.data == BLOB
@@ -820,7 +820,7 @@ def test_submission_downloads_once(client, files_store):
     assert not os.path.exists(path)
 
     again = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id))
     assert again.status_code == 410
     assert again.get_json()['code'] == 'collected'
 
@@ -833,18 +833,18 @@ def test_submission_download_needs_the_collect_ticket(client):
     assert _release(client, dropzone_id).status_code == 200
 
     no_ticket = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id))
     assert no_ticket.status_code == 410
     assert no_ticket.get_json()['code'] == 'claimed'
 
     wrong_ticket = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id),
         headers={'X-Collect-Ticket': _collect_ticket('ff' * 60)})
     assert wrong_ticket.status_code == 410
 
     # the claim itself survived both
     ok = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id),
         headers={'X-Collect-Ticket': _collect_ticket()})
     assert ok.status_code == 200
 
@@ -859,7 +859,7 @@ def test_submission_download_window_closes(client, files_store, dropzone_setting
 
     dropzone_settings['DROPZONE_COLLECT_TTL_SECONDS'] = 0
     download = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id))
     assert download.status_code == 410
     assert download.get_json()['code'] == 'expired'
     assert files_store.get_dropzone(dropzone_id)['status'] == 'expired'
@@ -873,7 +873,7 @@ def test_submission_is_owner_only(client):
 
     login_user(client, 'adminuser', 'adminpass')
     response = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id))
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id))
     assert response.status_code == 404
     # and it stays uncollected for the real owner
     assert client.get(
@@ -884,7 +884,7 @@ def test_submission_is_owner_only(client):
 def test_submission_missing_zone_is_404(client):
     login_user(client)
     response = client.get(
-        url_for('download_dropzone_submission', dropzone_id='never-existed'))
+        url_for('collect_dropzone_submission', dropzone_id='never-existed'))
     assert response.status_code == 404
 
 
@@ -897,7 +897,7 @@ def test_report_records_the_decryption(client, files_store):
     dropzone_id = _submitted_zone(client)
     assert _release(client, dropzone_id).status_code == 200
     client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id),
         headers={'X-Collect-Ticket': _collect_ticket()})
 
     response = client.post(
@@ -1040,13 +1040,13 @@ def test_dropzone_round_trip(client, files_store):
     assert release.get_json()['ws'] == _WS
 
     download = client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id),
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id),
         headers={'X-Collect-Ticket': _collect_ticket()})
     assert download.status_code == 200
     assert download.data == BLOB
 
     assert client.get(
-        url_for('download_dropzone_submission', dropzone_id=dropzone_id)
+        url_for('collect_dropzone_submission', dropzone_id=dropzone_id)
     ).status_code == 410
 
     report = client.post(
