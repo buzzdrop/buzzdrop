@@ -11,11 +11,11 @@ import { browserDeps as indexDeps } from '../../static/js/pages/index/index-page
 import { browserDeps as viewDeps } from '../../static/js/pages/view/view-page.js';
 
 // browserDeps() reads window; node --test has none, so a stand-in.
-globalThis.window = {
-    fetch: () => Promise.resolve({}),
+globalThis.window = /** @type {any} */ ({
+    fetch: () => Promise.resolve(/** @type {any} */ ({})),
     XMLHttpRequest: function XMLHttpRequest() {},
     location: { href: '', hash: '' },
-};
+});
 
 test('respond browserDeps provides the crypto seam', () => {
     const deps = respondDeps();
@@ -31,7 +31,8 @@ test('collect browserDeps provides the crypto seam', () => {
 
 test('index browserDeps provides both crypto seams', () => {
     const deps = indexDeps();
-    assert.equal(typeof deps.crypto.openSalted, 'function');
+    assert.equal(typeof deps.crypto.seal, 'function');
+    assert.equal(typeof deps.crypto.receiptHash, 'function');
     assert.equal(typeof deps.dropzoneCrypto.createDropzoneSecrets, 'function');
 });
 
