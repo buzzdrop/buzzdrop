@@ -6,14 +6,17 @@
 // null checks.
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
+import { initComposer } from '../../features/composer/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { initPasswordGate } from '../../features/password-gate/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
 import { createShare } from '../../features/share-protocol/index.js';
 import { initSharedFilesList } from '../../features/shared-files/index.js';
-import { isAllowedFile } from '../../lib/file-extensions.js';
+import { createDropzone } from '../../features/dropzone/index.js';
 import * as shareCrypto from '../../lib/crypto.js';
-import { timeZoneName } from '../../lib/format.js';
+import * as dropzoneCrypto from '../../lib/dropzone-crypto.js';
+import { formatNumber, fullTime, parseTimestamp, relativeTime, timeZoneName } from '../../lib/format.js';
+import { bytesToHex } from '../../lib/hex.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
@@ -30,8 +33,9 @@ import { readStrings } from '../../lib/strings.js';
  * @property {typeof XMLHttpRequest} XMLHttpRequest - supplies upload.onprogress
  * @property {(url: string) => void} navigate
  * @property {import('../../features/share-protocol/index.js').CreateDeps['crypto']} crypto
+ * @property {Pick<import('../../lib/dropzone-crypto.js').DropzoneCrypto, 'createDropzoneSecrets'>} dropzoneCrypto
  * @property {() => number} now - epoch milliseconds, for the drop list's relative times
- */
+  */
 
 /**
  * The extensions the upload form accepts (`allowed-extensions-json`):
@@ -57,6 +61,7 @@ export function browserDeps() {
         XMLHttpRequest: window.XMLHttpRequest,
         navigate: (url) => { window.location.href = url; },
         crypto: shareCrypto,
+        dropzoneCrypto,
         now: () => Date.now(),
     };
 }
@@ -78,8 +83,6 @@ function expiryInstant(localValue) {
  */
 export function initIndex(root, deps) {
     const window = requiredWindow(root);
-    /** @type {'file' | 'text'} */
-    let activeShareMode = 'file';
     let uploadInProgress = false;
 
     // The index page never uses URL fragments — a stray one here can only be a
@@ -105,16 +108,6 @@ export function initIndex(root, deps) {
      */
     const uploadEndpoints = JSON.parse(required(root, '#upload-endpoints-json', 'script').text);
 
-    // --- Tab Switching Logic ---
-    // The composer's two modes are an ARIA tab set: the rail is the tablist and
-    // each section is the panel its tab controls.
-    const shareModes = {
-        file: { tab: 'file-tab', panel: 'file-upload-section', action: 'sendFile' },
-        text: { tab: 'text-tab', panel: 'text-note-section', action: 'sendNote' },
-    };
-    /** @type {Array<'file' | 'text'>} */
-    const shareModeOrder = ['file', 'text'];
-
     /**
      * The action button holds an icon alongside its label, so only the label node is rewritten.
      * @param {string} label
@@ -130,80 +123,25 @@ export function initIndex(root, deps) {
         }
     }
 
-    /**
-     * Toggling one class rather than reassigning className, so the ARIA state set
-     * below survives a mode switch.
-     * @param {'file' | 'text'} mode
-     * @param {{focusTab?: boolean}} [options]
-     */
-    function selectShareMode(mode, { focusTab = false } = {}) {
-        activeShareMode = mode;
-
-        shareModeOrder.forEach((name) => {
-            const { tab, panel } = shareModes[name];
-            const isActive = name === mode;
-            const tabNode = root.getElementById(tab);
-            const panelNode = root.getElementById(panel);
-
-            // visibility, not display: the panels share a grid cell sized to
-            // the taller one (index.html), so the inactive one keeps its space.
-            if (panelNode) panelNode.style.visibility = isActive ? '' : 'hidden';
-            if (!tabNode) return;
-
-            tabNode.classList.toggle('share-tab-active', isActive);
-            tabNode.setAttribute('aria-selected', String(isActive));
-            // Roving tabindex: Tab reaches the rail once, arrows move within it.
-            tabNode.tabIndex = isActive ? 0 : -1;
-            if (isActive && focusTab) tabNode.focus();
-        });
-
-        setShareAction(composerStrings.text(shareModes[mode].action));
-    }
-
-    function showFileUpload() {
-        selectShareMode('file');
-    }
-
-    function showTextNote() {
-        selectShareMode('text');
-    }
-
-    // Tabs wire up here, not via inline onclick — CSP forbids inline handlers.
-    root.getElementById('file-tab')?.addEventListener('click', showFileUpload);
-    root.getElementById('text-tab')?.addEventListener('click', showTextNote);
-
-    // The tab role promises a keyboard contract, so honour it: arrows move between
-    // tabs, Home and End jump to the ends.
-    const shareTabRail = /** @type {HTMLElement | null} */ (root.querySelector('.tab-rail'));
-    if (shareTabRail) {
-        shareTabRail.addEventListener('keydown', (e) => {
-            const current = shareModeOrder.indexOf(activeShareMode);
-            const last = shareModeOrder.length - 1;
-            let next;
-
-            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-                next = current === last ? 0 : current + 1;
-            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                next = current === 0 ? last : current - 1;
-            } else if (e.key === 'Home') {
-                next = 0;
-            } else if (e.key === 'End') {
-                next = last;
-            } else {
-                return;
-            }
-
-            e.preventDefault();
-            selectShareMode(shareModeOrder[next], { focusTab: true });
-        });
-    }
+    // --- Composer ---
+    // The file/note tabs, the drop zone with its file chip and the note
+    // panel are a feature (features/composer, markup templates/_composer.html)
+    // shared with the dropzone responder's page; this page adds the password
+    // gate, the send settings and the upload itself. The mode switch only
+    // re-labels the send button here.
+    const composer = initComposer(root, {
+        strings: composerStrings,
+        allowedExtensions,
+        onModeChange: (mode) => setShareAction(composerStrings.text(mode === 'file' ? 'sendFile' : 'sendNote')),
+    });
 
     /**
-     * Show (or with '', clear) a refusal in one of the always-present error
-     * regions (#file-error, #note-error, #share-error). The region stays and
-     * only its text changes, so assistive tech announces every refusal rather
-     * than a one-time reveal.
-     * @param {'file-error' | 'note-error' | 'share-error'} regionId
+     * Show (or with '', clear) a refusal under the send button, in the
+     * always-present #share-error region. The region stays and only its
+     * text changes, so assistive tech announces every refusal rather than
+     * a one-time reveal. The composer's own refusals live in its regions
+     * (features/composer).
+     * @param {'share-error'} regionId
      * @param {string} message
      */
     function showRefusal(regionId, message) {
@@ -332,138 +270,25 @@ export function initIndex(root, deps) {
         progress.hide();
     }
 
-    // --- Dropzone Logic ---
-    /**
-     * Show (or clear) the chip naming the file that is queued for encryption.
-     * @param {File | null} file
-     */
-    function showSelectedFile(file) {
-        const chip = root.getElementById('file-selected');
-        const chipName = root.getElementById('file-selected-name');
-        if (!chip || !chipName) return;
-        chipName.textContent = file ? file.name : '';
-        chip.hidden = !file;
-    }
-
-    /**
-     * Reject a disallowed file, discarding any earlier selection along with it.
-     * @param {HTMLInputElement} input
-     */
-    function rejectFile(input) {
-        input.value = '';
-        showSelectedFile(null);
-        showRefusal('file-error', refusals.text('type_not_allowed'));
-    }
-
-    const dropzone = root.getElementById('dropzone');
-    if (dropzone) {
-        const fileField = required(root, '#file', 'input');
-
-        /** @param {boolean} isDragging */
-        const setDragging = (isDragging) => dropzone.classList.toggle('dropzone-active', isDragging);
-
-        ['dragenter', 'dragover'].forEach((eventName) => {
-            dropzone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                setDragging(true);
-            });
-        });
-
-        // dragleave also fires when crossing into a child, so ignore those.
-        dropzone.addEventListener('dragleave', (e) => {
-            if (!dropzone.contains(/** @type {Node | null} */ (e.relatedTarget))) {
-                setDragging(false);
-            }
-        });
-
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            setDragging(false);
-            const file = e.dataTransfer && e.dataTransfer.files[0];
-            if (!file) return;
-            if (!isAllowedFile(file.name, allowedExtensions)) {
-                rejectFile(fileField);
-                return;
-            }
-            // Hand the dropped file to the real input so the form submits it unchanged.
-            const transfer = new window.DataTransfer();
-            transfer.items.add(file);
-            fileField.files = transfer.files;
-            showSelectedFile(file);
-            showRefusal('file-error', '');
-        });
-    }
-
-    // --- File Upload Logic ---
-    const fileUploadForm = /** @type {HTMLFormElement | null} */ (root.querySelector('#file-upload-section form'));
-    if (fileUploadForm) {
-        // Validate file extension when a file is selected
-        required(root, '#file', 'input').addEventListener('change', (e) => {
-            const input = /** @type {HTMLInputElement} */ (e.target);
-            const file = input.files?.[0];
-            if (!file) {
-                showSelectedFile(null);
-                return;
-            }
-            if (!isAllowedFile(file.name, allowedExtensions)) {
-                rejectFile(input);
-                return;
-            }
-            showSelectedFile(file);
-            showRefusal('file-error', '');
-        });
-
-        // Handle form submission: encrypt file client-side, then upload
-        fileUploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (uploadInProgress) return;
-            const file = required(root, '#file', 'input').files?.[0];
-            if (!file) {
-                showRefusal('file-error', composerStrings.text('chooseFile'));
-                return;
-            }
-            const password = acceptedPassword();
-            if (password === null) return;
-
-            await share({ kind: 'file', name: file.name, bytes: new Uint8Array(await file.arrayBuffer()) }, password);
-        });
-    }
-
-    // --- Text Note Upload Logic ---
-    const noteInput = root.getElementById('note-text');
-    if (noteInput) {
-        noteInput.addEventListener('input', () => showRefusal('note-error', ''));
-    }
-
-    async function uploadNote() {
-        if (uploadInProgress) return;
-        const noteField = required(root, '#note-text', 'textarea');
-        const noteText = noteField.value;
-        if (!noteText) {
-            showRefusal('note-error', composerStrings.text('writeNote'));
-            noteField.focus();
-            return;
-        }
-        const password = acceptedPassword();
-        if (password === null) return;
-
-        await share({ kind: 'text', bytes: new TextEncoder().encode(noteText) }, password);
-    }
-
+    // --- Share action ---
+    // The button asks the composer for what to encrypt; a refusal it shows
+    // itself, a missing or weak password the gate reports.
     const shareActionButton = root.getElementById('share-action-btn');
-    if (shareActionButton) {
-        shareActionButton.addEventListener('click', () => {
+    if (shareActionButton && composer) {
+        shareActionButton.addEventListener('click', async () => {
             if (uploadInProgress) return;
             // A new attempt: the last one's failure no longer applies.
             showRefusal('share-error', '');
-            if (activeShareMode === 'text') {
-                uploadNote();
-                return;
-            }
+            const payload = composer.getPayload();
+            if (!payload) return;
+            const password = acceptedPassword();
+            if (password === null) return;
 
-            const fileForm = /** @type {HTMLFormElement | null} */ (root.querySelector('#file-upload-section form'));
-            if (fileForm) {
-                fileForm.requestSubmit();
+            if (payload.kind === 'file') {
+                const file = payload.file;
+                await share({ kind: 'file', name: file.name, bytes: new Uint8Array(await file.arrayBuffer()) }, password);
+            } else {
+                await share({ kind: 'text', bytes: new TextEncoder().encode(payload.text) }, password);
             }
         });
     }
@@ -492,6 +317,173 @@ export function initIndex(root, deps) {
         });
     });
 
+    // --- Dropzones (ADR-0001) ---
+    initDropzones(root, deps, pageStrings.section('dropzones'));
+
     // --- Shared Files Search & Pagination ---
     initSharedFilesList(root, { fetch: deps.fetch, now: deps.now, strings: pageStrings.section('shared-files') });
+}
+
+
+/**
+ * The dropzones section: create (secrets client-side, link shown once),
+ * the zone list and delete. Collecting a submission has its own page —
+ * the Collect button navigates to /dropzones/<id>/collect.
+ * @param {Document} root
+ * @param {Pick<IndexDeps, 'fetch' | 'navigate' | 'now' | 'dropzoneCrypto'>} deps
+ * @param {import('../../lib/strings.js').Strings} strings
+ */
+function initDropzones(root, deps, strings) {
+    const lang = root.documentElement.lang || 'en';
+    const island = required(root, '#dropzones-json', 'script');
+    const createBtn = /** @type {HTMLButtonElement | null} */ (root.getElementById('dz-create-btn'));
+    if (!createBtn) return;
+    const { zones, endpoints } = JSON.parse(island.text);
+    const refusals = strings.section('refusals');
+    const csrf = () => csrfToken(root);
+
+    const passwordInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-password'));
+    const expiryInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-expiry'));
+    const memoInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-memo'));
+    const notifyInput = /** @type {HTMLInputElement | null} */ (root.getElementById('dz-notify'));
+    const errorEl = /** @type {HTMLElement} */ (root.getElementById('dz-error'));
+    const linkOut = /** @type {HTMLElement} */ (root.getElementById('dz-link-out'));
+    const linkInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-link'));
+    const linkStatus = /** @type {HTMLElement} */ (root.getElementById('dz-link-status'));
+    const copyBtn = /** @type {HTMLButtonElement} */ (root.getElementById('dz-copy-btn'));
+    const listEl = /** @type {HTMLElement} */ (root.getElementById('dz-list'));
+    const emptyEl = /** @type {HTMLElement} */ (root.getElementById('dz-empty'));
+
+    /** @param {HTMLElement} el @param {string} code */
+    const refuse = (el, code) => {
+        try { el.textContent = refusals.text(code); }
+        catch { el.textContent = refusals.text('create_failed'); }
+    };
+    /** @param {Record<string, any>} z */
+    const zoneState = (z) => {
+        if (z.status === 'expired') return 'expired';
+        if (z.collected_at) return 'collected';
+        if (z.attempts_remaining === 0) return 'locked';
+        if (z.link_consumed_at) return 'ready';
+        return 'awaiting';
+    };
+
+    /** @param {Array<Record<string, any>>} list */
+    function renderZones(list) {
+        listEl.replaceChildren();
+        emptyEl.hidden = list.length > 0;
+        for (const z of list) {
+            const li = root.createElement('li');
+            li.className = 'flex flex-wrap items-center gap-3 py-3';
+            const state = zoneState(z);
+            const kind = z.submission_type === 'text' ? strings.text('noteKind') : strings.text('fileKind');
+            const meta = root.createElement('div');
+            meta.className = 'min-w-0 flex-1';
+            const title = root.createElement('p');
+            title.className = 'truncate text-sm font-medium text-white';
+            title.textContent = z.memo || z.id;
+            const sub = root.createElement('p');
+            sub.className = 'text-xs text-slate-500';
+            sub.textContent = strings.text(state) + (z.submission_type ? ' · ' + kind : '');
+            if (state === 'awaiting') {
+                const hint = root.createElement('p');
+                hint.className = 'mt-0.5 text-xs text-slate-600';
+                hint.textContent = strings.text('linkLost');
+                meta.append(hint);
+            }
+            meta.append(title, sub);
+
+            // Same meta grid the drops list renders: when it happened,
+            // the deadline, the events, who from.
+            const dl = root.createElement('dl');
+            dl.className = 'mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400';
+            /** @param {string} label @param {string} value @param {string} [title] */
+            const metaCell = (label, value, title) => {
+                const wrap = root.createElement('div');
+                wrap.className = 'flex gap-1.5 break-all';
+                const dt = root.createElement('dt');
+                dt.className = 'font-semibold uppercase tracking-wider text-slate-500';
+                dt.textContent = strings.text(label);
+                const dd = root.createElement('dd');
+                dd.className = 'tabular-nums';
+                dd.textContent = value;
+                if (title) dd.title = title;
+                wrap.append(dt, dd);
+                dl.append(wrap);
+            };
+            /** @param {string} label @param {string | null | undefined} iso @param {string} fallback */
+            const timeCell = (label, iso, fallback) => {
+                const then = iso && parseTimestamp(iso);
+                metaCell(label,
+                    then ? (relativeTime(then, deps.now(), { locale: lang }) ?? fallback) : fallback,
+                    then ? (fullTime(then, { locale: lang }) ?? undefined) : undefined);
+            };
+            timeCell('metaCreated', z.created_at, '—');
+            timeCell('metaExpiry', z.expiry_at, strings.text('noExpiry'));
+            timeCell('metaSubmitted', z.link_consumed_at, strings.text('notYet'));
+            timeCell('metaCollected', z.collected_at, strings.text('notYet'));
+            metaCell('metaFrom', z.submitted_by_ip || '—');
+            meta.append(dl);
+            li.append(meta);
+            if (state === 'ready') {
+                const btn = root.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn-secondary px-4 py-2';
+                btn.textContent = strings.text('collect');
+                btn.addEventListener('click', () => {
+                    deps.navigate(endpoints.actionBase + z.id + '/collect');
+                });
+                li.append(btn);
+            }
+            const del = root.createElement('button');
+            del.type = 'button';
+            del.className = 'btn-danger';
+            del.textContent = strings.text('deleteZone');
+            del.addEventListener('click', async () => {
+                if (!window.confirm(strings.text('confirmDelete'))) return;
+                const resp = await deps.fetch(endpoints.actionBase + z.id + '/delete', {
+                    method: 'POST', headers: { 'X-CSRF-Token': csrf() },
+                });
+                if (resp.ok) {
+                    // Drop it from the source array too, or the next
+                    // renderZones resurrects the row.
+                    zones.splice(zones.indexOf(z), 1);
+                    renderZones(zones);
+                }
+            });
+            li.append(del);
+            listEl.append(li);
+        }
+    }
+    renderZones(zones);
+
+    copyBtn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(linkInput.value);
+        linkStatus.textContent = strings.text('copied');
+    });
+
+    createBtn.addEventListener('click', async () => {
+        errorEl.textContent = '';
+        const password = passwordInput.value;
+        if (!password) { refuse(errorEl, 'noPassword'); return; }
+        createBtn.disabled = true;
+        try {
+            const expiry = expiryInput.value ? new Date(expiryInput.value).toISOString() : null;
+            const { dropzoneId, s } = await createDropzone(
+                { createUrl: endpoints.createUrl }, deps.fetch, deps.dropzoneCrypto, password,
+                { expiry, memo: memoInput.value || null,
+                  notifyOnSubmission: Boolean(notifyInput && notifyInput.checked),
+                  csrfToken: csrf() });
+            linkInput.value = endpoints.respondBase + dropzoneId + '#s=' + bytesToHex(s);
+            linkStatus.textContent = strings.text('created');
+            linkOut.hidden = false;
+            zones.push({ id: dropzoneId, salt: null, status: 'active', memo: memoInput.value || null });
+            renderZones(zones);
+        } catch (err) {
+            refuse(errorEl, /** @type {any} */ (err) && /** @type {any} */ (err).code || 'create_failed');
+        } finally {
+            createBtn.disabled = false;
+        }
+    });
+
 }

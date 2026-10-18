@@ -17,6 +17,7 @@ const JS_ROOT = new URL('../../static/js/', import.meta.url);
 
 const CONVERTED_MODULES = [
     'features/clipboard-feedback/clipboard-feedback.js',
+    'features/composer/composer.js',
     'features/password-gate/password-gate.js',
     'features/share-protocol/share-protocol.js',
     'features/shared-files/list.js',
@@ -24,11 +25,13 @@ const CONVERTED_MODULES = [
     'lib/format.js',
     'lib/passphrase.js',
     'lib/strings.js',
+    'pages/collect/collect-page.js',
     'pages/confirm-download/confirm-download-page.js',
     'pages/hero-flow/hero-flow-page.js',
     'pages/how-it-works/how-it-works-page.js',
     'pages/index/index-page.js',
     'pages/language-menu/language-menu-page.js',
+    'pages/respond/respond-page.js',
     'pages/success/success-page.js',
     'pages/users/users-page.js',
     'pages/view/view-page.js',

@@ -3,6 +3,7 @@ import os
 import secrets
 import smtplib
 import threading
+import uuid
 from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import parseaddr
@@ -217,17 +218,15 @@ def _is_valid_notification_email(email_address: str) -> bool:
     return bool(local_part and '.' in domain)
 
 
-def _get_notification_preferences(username: str) -> tuple[bool, str | None]:
-    if not _notification_requested():
-        return False, None
-
+def _notification_email_for(username: str, requested_email: str) -> str:
+    """The account email a notification may go to, or a raised
+    NotificationPreferenceError. Email is bound to the configured
+    account address — a client can't aim notifications elsewhere."""
     if not _notifications_configured():
         raise NotificationPreferenceError('Open notifications are not configured on this server',
                                          'notifications_unconfigured')
 
-    user = get_users().get(username, {})
-    configured_email = (user.get('email') or '').strip()
-    requested_email = (request.form.get('notification_email') or '').strip()
+    configured_email = (get_users().get(username, {}).get('email') or '').strip()
 
     if not configured_email:
         raise NotificationPreferenceError('Configure an account email before enabling open notifications',
@@ -241,7 +240,14 @@ def _get_notification_preferences(username: str) -> tuple[bool, str | None]:
         raise NotificationPreferenceError('Open notifications can only be sent to your configured account email',
                                          'notification_email_mismatch')
 
-    return True, configured_email
+    return configured_email
+
+
+def _get_notification_preferences(username: str) -> tuple[bool, str | None]:
+    if not _notification_requested():
+        return False, None
+    return True, _notification_email_for(
+        username, (request.form.get('notification_email') or '').strip())
 
 
 def _send_email(recipient: str, subject: str, body: str):
@@ -335,6 +341,52 @@ def send_open_notification_email(file_info: dict) -> bool:
     file_info['notification_sent_at'] = now_iso()
     return True
 
+
+def _submission_notification_text(zone: dict):
+    """The submission-landed email's subject and body, in the current
+    language. The responder's identity stays out of it — the server
+    never had it."""
+    subject = _('Buzzdrop submission received')
+    received_at = parse_timestamp(zone.get('link_consumed_at')) or utcnow()
+    lines = [
+        _('A submission landed in your dropzone.'),
+        '',
+        # An email has no browser to localize it: DEFAULT_TIMEZONE, named.
+        # Translators: %(time)s is when the submission landed.
+        _('Received at: %(time)s', time=i18n.format_full_time(
+            received_at, current_app.config['DEFAULT_TIMEZONE'], i18n.current_language())),
+        '',
+        _('Buzzdrop intentionally omits responder-sensitive details from this notification.'),
+    ]
+    return subject, '\n'.join(lines)
+
+
+def send_submission_notification_email(zone: dict) -> bool:
+    """Email the requester that a submission landed — the dropzone mirror
+    of send_open_notification_email, fired at submit (not collection)."""
+    if (
+        not zone
+        or not zone.get('notify_on_submission')
+        or not zone.get('notification_email')
+        or zone.get('notification_sent_at')
+    ):
+        return False
+
+    with i18n.in_language(i18n.served_language(zone.get('language'))):
+        subject, body = _submission_notification_text(zone)
+
+    if not file_repo.claim_dropzone_notification_send(zone['id']):
+        return False
+
+    try:
+        _send_email(zone['notification_email'], subject, body)
+    except Exception:
+        file_repo.clear_dropzone_notification_claim(zone['id'])
+        raise
+
+    file_repo.mark_dropzone_notification_sent(zone['id'])
+    return True
+
 # Stored times as text in UTC, and as the offset-aware ISO twin the token
 # table's <time datetime> carries for the page script to show in the viewer's zone.
 app.add_template_filter(format_timestamp, 'timestamp')
@@ -342,7 +394,8 @@ app.add_template_filter(iso_twin, 'timestamp_iso')
 
 # The recipient's pages, the "drop is gone" page included: their language
 # is their browser's, and reloading one could lose the drop, so they offer
-# no language menu (#287).
+# no language menu (#287). The respond page keeps its menu — its script
+# carries the #s fragment through the switch itself.
 RECIPIENT_ENDPOINTS = ('view_file', 'confirm_view_file')
 
 
@@ -505,11 +558,18 @@ def get_files_store():
     """Return the files store respecting the current app configuration."""
     return get_backend().files
 
-# Clean up orphaned files on startup (local storage only)
+# Clean up orphaned files on startup (local storage only). Submission
+# blobs are tracked files too — without them the sweep would eat live
+# dropzone submissions.
 if app.config['STORAGE_BACKEND'] == 'local':
     files_store = get_files_store()
     tracked_files = set(
         file_info['path'].split(os.sep)[-1] for file_info in files_store.all()
+    )
+    tracked_files.update(
+        sub['path'].split(os.sep)[-1]
+        for sub in files_store.list_dropzone_submissions()
+        if sub.get('path')
     )
     cleanup_orphaned_files(app.config['UPLOAD_FOLDER'], tracked_files)
 
@@ -560,6 +620,32 @@ def check_and_handle_expiry(file_info):
     return False
 
 
+def _expire_dropzone(zone):
+    """
+    check_and_handle_expiry for dropzones: a zone past expiry_at is
+    marked expired, its secret columns wiped and its submission blob
+    deleted. Returns True when the zone is expired after the call.
+    """
+    if zone.get('status') == 'expired':
+        return True
+    expiry_at = zone.get('expiry_at')
+    if not expiry_at:
+        return False
+    try:
+        if utcnow() < parse_timestamp(expiry_at):
+            return False
+    except ValueError:
+        return False
+    # Conditional wipe: a consume racing this check wins — a landed
+    # submission outlives the request link's deadline either way, and
+    # an expired-but-consumed zone is not gone for its requester.
+    if not file_repo.expire_dropzone_unconsumed(zone['id']):
+        zone = file_repo.get_dropzone(zone['id'])
+        return zone is None or zone.get('link_consumed_at') is None
+    zone['status'] = 'expired'
+    return True
+
+
 def sweep_expired_files() -> int:
     """
     Expire every active drop whose expiry_at has passed: delete the
@@ -594,6 +680,18 @@ def sweep_expired_files() -> int:
             app.logger.exception(
                 'Expiry sweep could not delete the blob of unclaimed '
                 'release %s', stale['id'])
+        expired_count += 1
+    # Dropzones go the same way: past expiry_at, or released and never
+    # collected within DROPZONE_COLLECT_TTL_SECONDS.
+    file_repo.purge_expired_dropzones()
+    for stale in file_repo.expire_uncollected_dropzone_releases(
+            app.config['DROPZONE_COLLECT_TTL_SECONDS']):
+        try:
+            storage.delete(stale['path'])
+        except Exception:
+            app.logger.exception(
+                'Expiry sweep could not delete the blob of uncollected '
+                'dropzone %s', stale['id'])
         expired_count += 1
     return expired_count
 
@@ -770,11 +868,35 @@ def index():
 
         # Get files shared with the current user
         shared_files = file_repo.get_shared_files(username)
-        
+
+        # The user's dropzones: salt rides along because collection
+        # derives V from it (it is not secret-critical — like the view
+        # page's envelope salt), plus each zone's submission kind.
+        user_dropzones = []
+        for zone in file_repo.list_dropzones(username):
+            _expire_dropzone(zone)
+            sub = file_repo.get_dropzone_submission(zone['id'])
+            user_dropzones.append({
+                'id': zone['id'],
+                'created_at': zone.get('created_at'),
+                'salt': zone.get('salt'),
+                'status': zone.get('status', 'active'),
+                'expiry_at': zone.get('expiry_at'),
+                'memo': zone.get('memo'),
+                'link_consumed_at': zone.get('link_consumed_at'),
+                'collected_at': zone.get('collected_at'),
+                'attempts_remaining': max(
+                    0, current_app.config['DROPZONE_MAX_ATTEMPTS']
+                    - (zone.get('attempts') or 0)),
+                'submission_type': sub.get('type') if sub else None,
+                'submitted_by_ip': sub.get('submitted_by_ip') if sub else None,
+            })
+
         response = make_response(render_template(
-            'index.html', 
-            user_files=user_files, 
+            'index.html',
+            user_files=user_files,
             shared_files=shared_files,
+            user_dropzones=user_dropzones,
             allowed_extensions=sorted(current_app.config.get('ALLOWED_EXTENSIONS')),
             max_content_length=current_app.config.get('MAX_CONTENT_LENGTH'),
             configured_notification_email=current_user.get('email'),
@@ -1041,7 +1163,8 @@ def language_headers(response):
 @app.after_request
 def no_store_key_release_responses(response):
     """H-carrying endpoints must never be cached by browsers/proxies."""
-    if request.endpoint in {'upload_begin', 'release_key'}:
+    if request.endpoint in {'upload_begin', 'release_key',
+                            'release_dropzone'}:
         response.headers['Cache-Control'] = 'no-store'
     return response
 
@@ -1675,6 +1798,554 @@ def report_decryption(file_id):
                 exc,
             )
     return {'status': 'recorded'}
+
+
+# --- Dropzones: the reversed one-shot flow (docs/adr/0001) ---
+
+_BKD1_MAGIC = b'BKD1'
+_DROPZONE_SALT_LENGTH = 32  # hex chars — 16 random bytes at zone creation
+# A wrapped key is iv(12) ‖ AES-GCM(32-byte key) = 60 bytes = 120 hex.
+_WRAPPED_KEY_HEX_LENGTH = 120
+
+
+def _is_valid_wrapped_key(value) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == _WRAPPED_KEY_HEX_LENGTH
+        and all(c in '0123456789abcdef' for c in value)
+    )
+
+
+def _is_valid_salt_hex(value) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == _DROPZONE_SALT_LENGTH
+        and all(c in '0123456789abcdef' for c in value)
+    )
+
+
+def _dropzone_rate_limit_key(prefix: str) -> str:
+    """Rate-limit dropzone routes per dropzone_id, like /release per file_id."""
+    return f"{prefix}:{request.view_args.get('dropzone_id') or get_client_ip()}"
+
+
+@app.route('/dropzone/<dropzone_id>', methods=['GET'])
+@limiter.shared_limit(
+    lambda: current_app.config['PUBLIC_FILE_RATE_LIMIT'],
+    'public_file_access',
+    methods=['GET'],
+    error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
+)
+def respond_dropzone(dropzone_id):
+    """The responder's page. A live, unconsumed, unexpired zone renders
+    the submit UI; everything else gets the same uniform 'gone' page a
+    dead drop link gets — the page reveals nothing about which."""
+    zone = file_repo.get_dropzone(dropzone_id)
+    if (not zone or zone.get('link_consumed_at') is not None
+            or zone.get('sv') is None
+            or _expire_dropzone(zone)):
+        return _drop_gone()
+    return render_template(
+        'respond.html',
+        dropzone_id=dropzone_id,
+        allowed_extensions=sorted(current_app.config.get('ALLOWED_EXTENSIONS')),
+        max_content_length=current_app.config.get('MAX_CONTENT_LENGTH'),
+    )
+
+
+# What /dropzone/<id>/submit answers for each refusal of the atomic
+# consume, keyed by its status. JSON `error` stays English; `code` is
+# what the respond page maps to its own text.
+class SubmitRefusal(NamedTuple):
+    error: str
+    code: str
+    status: int
+
+
+SUBMIT_REFUSALS = {
+    'missing': SubmitRefusal('Dropzone not found', 'not_found', 404),
+    'bad_sv': SubmitRefusal('This request link is not valid', 'invalid_link', 403),
+    'consumed': SubmitRefusal('This request link was already used', 'consumed', 410),
+    'expired': SubmitRefusal('This dropzone has expired', 'expired', 410),
+}
+
+
+@app.route('/dropzone/<dropzone_id>/submit', methods=['POST'])
+@limiter.limit(
+    lambda: current_app.config['DROPZONE_SUBMIT_RATE_LIMIT'],
+    key_func=lambda: _dropzone_rate_limit_key('dzsubmit'),
+    methods=['POST'],
+    error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
+)
+def submit_dropzone(dropzone_id):
+    """
+    The responder's one shot. The submission is a BKD1 blob encrypted
+    under a fresh random K wrapped under the link's s — the server sees
+    ciphertext and can derive neither key. sv (HKDF of s) is the proof
+    of link possession: the store checks it constant-time BEFORE the
+    link is consumed, inside one transaction, so a bare dropzone_id from
+    logs can't burn the zone and racing submissions get one winner.
+    """
+    def _fail(error, code, status=400):
+        return {'error': error, 'code': code}, status
+
+    sv = (request.form.get('sv') or '').strip().lower()
+    wk = (request.form.get('wk') or '').strip().lower()
+    receipt_hash = (request.form.get('receipt_hash') or '').strip().lower()
+    sub_type = request.form.get('type', 'file')
+
+    if (
+        sub_type not in ('file', 'text')
+        or not _is_valid_key_material(sv)
+        or not _is_valid_wrapped_key(wk)
+        or not _is_valid_key_material(receipt_hash)
+    ):
+        return _fail('Invalid submission', 'invalid_submission')
+
+    submission_id = str(uuid.uuid4())
+    blob_source = None
+    if sub_type == 'text':
+        note_text = request.form.get('note_text')
+        if not note_text:
+            return _fail('Invalid submission', 'invalid_submission')
+        try:
+            blob_source = base64.b64decode(note_text)
+        except Exception:
+            return _fail('Invalid submission', 'invalid_submission')
+        head = blob_source[:len(_BKD1_MAGIC)]
+    else:
+        file = request.files.get('file')
+        if file is None:
+            return _fail('No file part', 'invalid_submission')
+        try:
+            head = file.stream.read(len(_BKD1_MAGIC))
+            file.stream.seek(0)
+        except Exception:
+            return _fail('Invalid submission', 'invalid_submission')
+        blob_source = file
+
+    if head != _BKD1_MAGIC:
+        return _fail('Invalid submission', 'invalid_submission')
+
+    # Advisory sv check before touching storage: the atomic consume
+    # below stays authoritative, but a bare dropzone_id shouldn't be
+    # able to make the server write and delete blobs for free. sv runs
+    # before the consumed check, like in the store — otherwise polling
+    # a bare id would reveal when the real submission landed.
+    zone = file_repo.get_dropzone(dropzone_id)
+    if not zone:
+        refusal = SUBMIT_REFUSALS['missing']
+        return _fail(refusal.error, refusal.code, refusal.status)
+    if (zone.get('sv') is None
+            or not secrets.compare_digest(zone['sv'], sv)):
+        refusal = SUBMIT_REFUSALS['bad_sv']
+        return _fail(refusal.error, refusal.code, refusal.status)
+    if zone.get('link_consumed_at') is not None:
+        refusal = SUBMIT_REFUSALS['consumed']
+        return _fail(refusal.error, refusal.code, refusal.status)
+
+    # The blob lands before the row that names it; a refused consume
+    # deletes it again — sv is what actually gates the zone.
+    try:
+        file_path = storage.save(submission_id, blob_source)
+    except Exception:
+        return _fail('Submission failed', 'submit_failed', 500)
+
+    result = file_repo.consume_for_submission(dropzone_id, sv, {
+        'id': submission_id,
+        'dropzone_id': dropzone_id,
+        'path': file_path,
+        'type': sub_type,
+        'wk': wk,
+        'receipt_hash': receipt_hash,
+        'submitted_by_ip': get_client_ip(),
+        'created_at': now_iso(),
+    })
+    status = result['status']
+
+    if status != 'ok':
+        try:
+            storage.delete(file_path)
+        except Exception:
+            pass
+        refusal = SUBMIT_REFUSALS[status]
+        return _fail(refusal.error, refusal.code, refusal.status)
+
+    zone = file_repo.get_dropzone(dropzone_id)
+    try:
+        send_submission_notification_email(zone)
+    except Exception as exc:
+        current_app.logger.warning(
+            'Failed to send submission notification for %s: %s',
+            dropzone_id, exc)
+    return {'status': 'submitted'}
+
+
+@app.route('/api/dropzones', methods=['POST'])
+@limiter.limit(
+    lambda: current_app.config['UPLOAD_RATE_LIMIT'],
+    methods=['POST'],
+    error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
+)
+@api_auth_required
+def create_dropzone():
+    """
+    Register a dropzone (docs/adr/0001). The browser/CLI derived all
+    secrets client-side: salt, wS (s wrapped under the password key),
+    V (password verifier), SV (submit verifier). The server stores them
+    and returns the id — the request link '/dropzone/<id>#s=<s>' is
+    assembled client-side; s never arrives here.
+    """
+    if not _session_csrf_required():
+        return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return {'error': 'Invalid request', 'code': 'invalid_dropzone'}, 400
+
+    def _hex_field(name):
+        value = data.get(name)
+        return value.strip().lower() if isinstance(value, str) else None
+
+    salt = _hex_field('salt')
+    ws = _hex_field('ws')
+    v = _hex_field('v')
+    sv = _hex_field('sv')
+    if not (
+        _is_valid_salt_hex(salt)
+        and _is_valid_wrapped_key(ws)
+        and _is_valid_key_material(v)
+        and _is_valid_key_material(sv)
+    ):
+        return {'error': 'Invalid dropzone', 'code': 'invalid_dropzone'}, 400
+
+    expiry_raw = data.get('expiry')
+    expiry_iso = None
+    if expiry_raw:
+        if not isinstance(expiry_raw, str):
+            return {'error': 'Expiry must be an ISO 8601 time with a time zone, '
+                             'e.g. 2026-12-31T23:59+01:00',
+                    'code': 'invalid_expiry'}, 400
+        try:
+            expiry_iso = parse_expiry(expiry_raw)
+        except ValueError:
+            return {'error': 'Expiry must be an ISO 8601 time with a time zone, '
+                             'e.g. 2026-12-31T23:59+01:00',
+                    'code': 'invalid_expiry'}, 400
+
+    notification_email = None
+    if data.get('notify_on_submission') is True:
+        try:
+            notification_email = _notification_email_for(
+                g.username, str(data.get('notification_email') or '').strip())
+        except NotificationPreferenceError as exc:
+            return {'error': exc.error, 'code': exc.code}, 400
+
+    language = (
+        current_app.config['DEFAULT_LANGUAGE']
+        if bearer_token() is not None
+        else i18n.current_language()
+    )
+    memo_raw = data.get('memo')
+    memo = None
+    if memo_raw is not None:
+        memo = str(memo_raw).strip()[:200] or None
+
+    dropzone_id = file_repo.create_dropzone({
+        'salt': salt,
+        'ws': ws,
+        'v': v,
+        'sv': sv,
+        'expiry_at': expiry_iso,
+        'created_by': g.username,
+        'notify_on_submission': bool(data.get('notify_on_submission')),
+        'notification_email': notification_email,
+        'language': language,
+        'memo': memo,
+    })
+    return {'dropzone_id': dropzone_id}
+
+
+@app.route('/api/dropzones', methods=['GET'])
+@api_auth_required
+def list_dropzones_route():
+    """The requester's zones for the index section and the CLI."""
+    zones = file_repo.list_dropzones(g.username)
+    out = []
+    for zone in zones:
+        _expire_dropzone(zone)
+        sub = file_repo.get_dropzone_submission(zone['id'])
+        out.append({
+            'id': zone['id'],
+            'status': zone.get('status', 'active'),
+            'created_at': zone.get('created_at'),
+            'expiry_at': zone.get('expiry_at'),
+            'link_consumed_at': zone.get('link_consumed_at'),
+            'released_at': zone.get('released_at'),
+            'collected_at': zone.get('collected_at'),
+            'attempts_remaining': max(
+                0, current_app.config['DROPZONE_MAX_ATTEMPTS']
+                - (zone.get('attempts') or 0)),
+            'memo': zone.get('memo'),
+            'submission': (
+                {
+                    'type': sub.get('type'),
+                    'created_at': sub.get('created_at'),
+                    'submitted_by_ip': sub.get('submitted_by_ip'),
+                    'decryption_success': sub.get('decryption_success'),
+                }
+                if sub else None
+            ),
+        })
+    return {'dropzones': out}
+
+
+@app.route('/api/dropzones/<dropzone_id>', methods=['GET'])
+@api_auth_required
+def get_dropzone_route(dropzone_id):
+    """What a client needs before attempting collection: the zone's salt
+    (V derives from it) and submission metadata — same role as the salt
+    the view page renders into its config."""
+    zone = file_repo.get_dropzone(dropzone_id)
+    if not zone or zone.get('created_by') != g.username:
+        return {'error': 'Not found'}, 404
+    _expire_dropzone(zone)
+    sub = file_repo.get_dropzone_submission(dropzone_id)
+    return {
+        'id': zone['id'],
+        'status': zone.get('status', 'active'),
+        'salt': zone.get('salt'),
+        'link_consumed_at': zone.get('link_consumed_at'),
+        'released_at': zone.get('released_at'),
+        'collected_at': zone.get('collected_at'),
+        'attempts_remaining': max(
+            0, current_app.config['DROPZONE_MAX_ATTEMPTS']
+            - (zone.get('attempts') or 0)),
+        'memo': zone.get('memo'),
+        'submission': (
+            {'type': sub.get('type'), 'wk': sub.get('wk'),
+             'created_at': sub.get('created_at'),
+             'submitted_by_ip': sub.get('submitted_by_ip')}
+            if sub else None
+        ),
+    }
+
+
+@app.route('/dropzones/<dropzone_id>/collect', methods=['GET'])
+@login_required
+def collect_dropzone(dropzone_id):
+    """The requester's collect page — the dropzone mirror of /view: an
+    interactive page where the password is proven, then the browser
+    releases wS, fetches the submission ciphertext and decrypts it.
+
+    Uniform 'gone' for anything that isn't a live zone of this user's:
+    a stranger's zone, a missing one, an expired one, or an already
+    collected one (once collected_at is set there is nothing to
+    collect). A zone still awaiting a submission renders — its release
+    answers no_submission and the page says so."""
+    zone = file_repo.get_dropzone(dropzone_id)
+    current_user = get_current_user()
+    if (not zone or zone.get('created_by') != current_user['username']
+            or zone.get('collected_at') is not None
+            or _expire_dropzone(zone)):
+        return _drop_gone()
+    max_attempts = current_app.config['DROPZONE_MAX_ATTEMPTS']
+    attempts_remaining = max(0, max_attempts - (zone.get('attempts') or 0))
+    return render_template(
+        'collect.html',
+        dropzone_id=dropzone_id,
+        salt=zone.get('salt'),
+        max_attempts=attempts_remaining,
+        locked=attempts_remaining == 0,
+    )
+
+
+@app.route('/dropzones/<dropzone_id>/release', methods=['POST'])
+@limiter.limit(
+    lambda: current_app.config['DROPZONE_RELEASE_RATE_LIMIT'],
+    key_func=lambda: _dropzone_rate_limit_key('dzrelease'),
+    methods=['POST'],
+    error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
+)
+@api_auth_required
+def release_dropzone(dropzone_id):
+    """
+    Password-first collection (docs/adr/0001): the requester proves V;
+    the store hands wS out exactly once inside one transaction — the
+    dropzone mirror of /release, minus the download ticket (the winner
+    here is an authenticated session, not an anonymous link holder).
+    """
+    if not _session_csrf_required():
+        return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
+
+    zone = file_repo.get_dropzone(dropzone_id)
+    if not zone or zone.get('created_by') != g.username:
+        return {'error': 'Not found'}, 404
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return {'error': 'Invalid request'}, 400
+    v_hex = data.get('v')
+    if isinstance(v_hex, str):
+        v_hex = v_hex.strip().lower()
+    if not _is_valid_key_material(v_hex):
+        return {'error': 'Invalid request'}, 400
+
+    result = file_repo.attempt_dropzone_release(
+        dropzone_id,
+        v_hex,
+        current_app.config['DROPZONE_MAX_ATTEMPTS'],
+        current_app.config['DROPZONE_BURN_ON_LOCKOUT'],
+    )
+    status = result['status']
+
+    if status == 'ok':
+        current_app.logger.info(
+            'Dropzone %s released (ip=%s)', dropzone_id, get_client_ip())
+        return {'ws': result['ws']}
+    if status == 'denied':
+        return {
+            'error': 'Incorrect password',
+            'attempts_remaining': result['attempts_remaining'],
+        }, 403
+    if status == 'locked':
+        return {'error': 'Too many attempts'}, 429
+    if status == 'released':
+        return {'error': 'Already released'}, 410
+    if status == 'no_submission':
+        return {'error': 'No submission yet', 'code': 'no_submission'}, 409
+    if status == 'expired':
+        if result.get('path'):
+            try:
+                storage.delete(result['path'])
+            except Exception:
+                pass
+        return {'error': 'Dropzone has expired', 'code': 'expired'}, 410
+    return {'error': 'Not found'}, 404
+
+
+@app.route('/dropzones/<dropzone_id>/submission', methods=['GET'])
+@api_auth_required
+def collect_dropzone_submission(dropzone_id):
+    """
+    Serve the submission ciphertext once, to the owning requester who
+    won the release. The blob's claim is consumed before the body
+    streams — like /download, a broken-off transfer cannot resume. The
+    session scopes ownership; the X-Collect-Ticket header carries the
+    ticket derived from wS at the winning release, so the URL alone
+    can't burn the one-shot claim.
+    """
+    zone = file_repo.get_dropzone(dropzone_id)
+    if not zone or zone.get('created_by') != g.username:
+        return {'error': 'Not found'}, 404
+
+    result = file_repo.collect_dropzone_submission(
+        dropzone_id, get_client_ip(),
+        request.headers.get('X-Collect-Ticket'),
+        current_app.config['DROPZONE_COLLECT_TTL_SECONDS'])
+    status = result['status']
+
+    if status == 'not_released':
+        return {'error': 'Forbidden'}, 403
+    if status == 'claimed':
+        return {'error': 'Invalid collect ticket', 'code': 'claimed'}, 410
+    if status == 'expired' and result.get('path'):
+        try:
+            storage.delete(result['path'])
+        except Exception:
+            pass
+    if status in ('missing', 'no_submission'):
+        return {'error': 'Not found'}, 404
+    if status == 'already_collected':
+        return {'error': 'Submission already collected', 'code': 'collected'}, 410
+    if status == 'expired':
+        return {'error': 'Dropzone has expired', 'code': 'expired'}, 410
+
+    def generate():
+        try:
+            for chunk in storage.retrieve(result['path']):
+                yield chunk
+        except Exception:
+            current_app.logger.error(
+                'Storage retrieve failed for claimed submission %s',
+                dropzone_id)
+            raise
+        finally:
+            try:
+                storage.delete(result['path'])
+            except Exception:
+                pass
+
+    headers = {'Content-Disposition': 'attachment; filename="download"'}
+    try:
+        headers['Content-Length'] = str(storage.size(result['path']))
+    except StorageError:
+        current_app.logger.warning(
+            'Could not stat claimed submission %s — progress disabled',
+            dropzone_id)
+
+    return current_app.response_class(
+        generate(), headers=headers, mimetype='application/octet-stream')
+
+
+@app.route('/dropzones/<dropzone_id>/report', methods=['POST'])
+@limiter.limit(
+    lambda: current_app.config['REPORT_DECRYPTION_RATE_LIMIT'],
+    key_func=lambda: _dropzone_rate_limit_key('dzreport'),
+    methods=['POST'],
+    error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
+)
+def report_dropzone_decryption(dropzone_id):
+    """
+    Proof-of-decryption for a submission — the dropzone mirror of
+    /report_decryption: the receipt lived inside the ciphertext, so a
+    valid report can't be forged from the zone id alone.
+    """
+    sub = file_repo.get_dropzone_submission(dropzone_id)
+    if not sub:
+        return {'error': 'Not found'}, 404
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return {'error': 'Invalid request'}, 400
+    receipt_hex = data.get('receipt')
+    if isinstance(receipt_hex, str):
+        receipt_hex = receipt_hex.strip().lower()
+    if (
+        'success' not in data
+        or not isinstance(data['success'], bool)
+        or not _is_valid_key_material(receipt_hex)
+    ):
+        return {'error': 'Invalid request'}, 400
+
+    stored_hash = sub.get('receipt_hash')
+    candidate_hash = hashlib.sha256(bytes.fromhex(receipt_hex)).hexdigest()
+    if not stored_hash or not secrets.compare_digest(
+            stored_hash, candidate_hash):
+        return {'error': 'Invalid receipt'}, 403
+
+    file_repo.record_dropzone_decryption(dropzone_id, data['success'])
+    return {'status': 'recorded'}
+
+
+@app.route('/dropzones/<dropzone_id>/delete', methods=['POST'])
+@api_auth_required
+def delete_dropzone(dropzone_id):
+    """Delete a dropzone, its submission row and the blob."""
+    if not _session_csrf_required():
+        return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
+
+    zone = file_repo.get_dropzone(dropzone_id)
+    if not zone or zone.get('created_by') != g.username:
+        return {'error': 'Not found'}, 404
+
+    result = file_repo.delete_dropzone(dropzone_id)
+    if result and result.get('path'):
+        try:
+            storage.delete(result['path'])
+        except Exception:
+            pass
+    return {'status': 'deleted'}
 
 
 # Print configuration info on startup

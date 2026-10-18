@@ -215,3 +215,39 @@ A server-side attacker at any point holds `ct`, `wK`, `wS`, `V`, `SV`
   decision deferred to "dropzone as a feature — model decision". Until
   it lands, "collect from N people" is N dropzones: creation is meant to
   be cheap enough for that not to hurt.
+
+## Amendments (2026-10-18)
+
+Deltas the implementation PR (#344) made against the text above,
+recorded rather than rewritten:
+
+- **The submission row is kept on collection** — this ADR said
+  "deleted on collection", which contradicts the receipt report:
+  `POST /dropzones/<id>/report` lands *after* collection and writes
+  `decryption_success` onto the row, so deleting it would leave the
+  report nowhere to write. Collection stamps `collected_at`/
+  `collected_by_ip`, NULLs `ticket_hash`, streams and deletes the
+  blob; the row stays so the list shows collected/decrypted and a
+  repeat collect answers `already_collected` (410).
+- **Collect ticket.** `GET /dropzones/<id>/submission` requires the
+  `X-Collect-Ticket` header — `HKDF` over the released `wS`, hashed
+  into `ticket_hash` at the winning release, like
+  `claim_download_with_ticket` does for drops. A bare session URL
+  can't burn the one-shot claim.
+- **Collect TTL.** A released-but-uncollected submission expires
+  after `DROPZONE_COLLECT_TTL_SECONDS` (600s, same value as the
+  drops' `KEY_RELEASE_DOWNLOAD_TTL_SECONDS`): the submission row is
+  deleted, the secrets wiped, the blob swept. This mirrors the drop
+  lifecycle; the residual "release succeeded, tab died mid-collect"
+  case is accepted, as for drops.
+- **Request link path is `/dropzone/<id>#s=<s>`**, not `/d/<id>` —
+  self-describing, matching `/view/<id>` for drops.
+- **`submitted_by_ip`** is stored on the submission — a
+  server-observed audit field, the mirror of `downloaded_by_ip`. The
+  "responder metadata" this ADR keeps out of scope means
+  responder-supplied attribution ("from whom"), not what the server
+  already sees in its logs.
+- **A landed submission outlives `expiry_at`:** expiry bounds the
+  submit window only (`link_consumed_at` unconsumed), so a responder
+  who submitted in time never loses the submission to the
+  requester's deadline.

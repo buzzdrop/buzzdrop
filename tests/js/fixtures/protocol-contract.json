@@ -11,6 +11,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -228,6 +231,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -382,6 +388,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -543,6 +552,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 3,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -708,6 +720,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 2,
         "KEY_RELEASE_BURN_ON_LOCKOUT": false,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -872,6 +887,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1005,6 +1023,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1160,6 +1181,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1253,6 +1277,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1383,6 +1410,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1477,6 +1507,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1549,6 +1582,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1699,6 +1735,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1805,6 +1844,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -1851,6 +1893,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -2027,6 +2072,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "SMTP_HOST": null,
         "NOTIFICATIONS_CONFIGURED": false
       },
@@ -2101,6 +2149,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -2173,6 +2224,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -2270,6 +2324,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -2525,6 +2582,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 0,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -2716,6 +2776,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -2874,6 +2937,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "MAX_CONTENT_LENGTH": 64,
         "NOTIFICATIONS_CONFIGURED": true
       },
@@ -2948,6 +3014,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [
@@ -3021,6 +3090,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "UPLOAD_RATE_LIMIT": "1 per minute",
         "NOTIFICATIONS_CONFIGURED": true
       },
@@ -3082,6 +3154,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "UPLOAD_RATE_LIMIT": "1 per minute",
         "NOTIFICATIONS_CONFIGURED": true
       },
@@ -3194,6 +3269,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "PUBLIC_FILE_RATE_LIMIT": "1 per minute",
         "NOTIFICATIONS_CONFIGURED": true
       },
@@ -3311,6 +3389,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 3,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "KEY_RELEASE_RATE_LIMIT": "1 per minute",
         "NOTIFICATIONS_CONFIGURED": true
       },
@@ -3448,6 +3529,9 @@
         "KEY_RELEASE_MAX_ATTEMPTS": 1,
         "KEY_RELEASE_BURN_ON_LOCKOUT": true,
         "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
         "REPORT_DECRYPTION_RATE_LIMIT": "1 per minute",
         "NOTIFICATIONS_CONFIGURED": true
       },
@@ -3554,6 +3638,3767 @@
               {
                 "$ref": "begin.file_id"
               }
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 429,
+            "headers": {
+              "Content-Type": "text/html; charset=utf-8"
+            },
+            "bodyBase64": "VG9vIG1hbnkgcmVxdWVzdHMuIFBsZWFzZSB0cnkgYWdhaW4gbGF0ZXIu"
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-round-trip",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "list",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzones": [
+                {
+                  "attempts_remaining": 3,
+                  "collected_at": null,
+                  "created_at": "<timestamp>",
+                  "expiry_at": null,
+                  "id": "<uuid>",
+                  "link_consumed_at": null,
+                  "memo": null,
+                  "released_at": null,
+                  "status": "active",
+                  "submission": null
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "get",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 3,
+              "collected_at": null,
+              "id": "<uuid>",
+              "link_consumed_at": null,
+              "memo": null,
+              "released_at": null,
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "status": "active",
+              "submission": null
+            }
+          }
+        },
+        {
+          "name": "bad-sv",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "5555555555555555555555555555555555555555555555555555555555555555",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_link",
+              "error": "This request link is not valid"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "again",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "consumed",
+              "error": "This request link was already used"
+            }
+          }
+        },
+        {
+          "name": "get-landed",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 3,
+              "collected_at": null,
+              "id": "<uuid>",
+              "link_consumed_at": "<timestamp>",
+              "memo": null,
+              "released_at": null,
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "status": "active",
+              "submission": {
+                "created_at": "<timestamp>",
+                "submitted_by_ip": "127.0.0.1",
+                "type": "file",
+                "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+              }
+            }
+          }
+        },
+        {
+          "name": "list-landed",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzones": [
+                {
+                  "attempts_remaining": 3,
+                  "collected_at": null,
+                  "created_at": "<timestamp>",
+                  "expiry_at": null,
+                  "id": "<uuid>",
+                  "link_consumed_at": "<timestamp>",
+                  "memo": null,
+                  "released_at": null,
+                  "status": "active",
+                  "submission": {
+                    "created_at": "<timestamp>",
+                    "decryption_success": null,
+                    "submitted_by_ip": "127.0.0.1",
+                    "type": "file"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "fetch-before-release",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Forbidden"
+            }
+          }
+        },
+        {
+          "name": "wrong",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "2222222222222222222222222222222222222222222222222222222222222222"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 2,
+              "error": "Incorrect password"
+            }
+          }
+        },
+        {
+          "name": "release",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          }
+        },
+        {
+          "name": "release-again",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Already released"
+            }
+          }
+        },
+        {
+          "name": "get-released",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 2,
+              "collected_at": null,
+              "id": "<uuid>",
+              "link_consumed_at": "<timestamp>",
+              "memo": null,
+              "released_at": "<timestamp>",
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "status": "active",
+              "submission": {
+                "created_at": "<timestamp>",
+                "submitted_by_ip": "127.0.0.1",
+                "type": "file",
+                "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+              }
+            }
+          }
+        },
+        {
+          "name": "no-ticket",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "claimed",
+              "error": "Invalid collect ticket"
+            }
+          }
+        },
+        {
+          "name": "bad-ticket",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-Collect-Ticket": "5555555555555555555555555555555555555555555555555555555555555555"
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "claimed",
+              "error": "Invalid collect ticket"
+            }
+          }
+        },
+        {
+          "name": "fetch",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-Collect-Ticket": {
+                "$collect_ticket": "release"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/octet-stream"
+            },
+            "bodyBase64": "QktEMSBkdW1teSBzdWJtaXNzaW9uIGNpcGhlcnRleHQ="
+          }
+        },
+        {
+          "name": "collect-again",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-Collect-Ticket": {
+                "$collect_ticket": "release"
+              }
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "collected",
+              "error": "Submission already collected"
+            }
+          }
+        },
+        {
+          "name": "report",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "recorded"
+            }
+          }
+        },
+        {
+          "name": "report-again",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": false,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "recorded"
+            }
+          }
+        },
+        {
+          "name": "delete",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/delete"
+            ],
+            "headers": {
+              "X-CSRF-Token": "fixture-csrf-token"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "deleted"
+            }
+          }
+        },
+        {
+          "name": "get-deleted",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-note-round-trip",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "text",
+              "note_text": "QktEMSBkdW1teSBub3RlIGNpcGhlcnRleHQ="
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "get",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 3,
+              "collected_at": null,
+              "id": "<uuid>",
+              "link_consumed_at": "<timestamp>",
+              "memo": null,
+              "released_at": null,
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "status": "active",
+              "submission": {
+                "created_at": "<timestamp>",
+                "submitted_by_ip": "127.0.0.1",
+                "type": "text",
+                "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+              }
+            }
+          }
+        },
+        {
+          "name": "release",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          }
+        },
+        {
+          "name": "fetch",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-Collect-Ticket": {
+                "$collect_ticket": "release"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/octet-stream"
+            },
+            "bodyBase64": "QktEMSBkdW1teSBub3RlIGNpcGhlcnRleHQ="
+          }
+        },
+        {
+          "name": "report",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "recorded"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-create-invalid",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "bad-salt",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_dropzone",
+              "error": "Invalid dropzone"
+            }
+          }
+        },
+        {
+          "name": "bad-ws",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "short",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_dropzone",
+              "error": "Invalid dropzone"
+            }
+          }
+        },
+        {
+          "name": "bad-v",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_dropzone",
+              "error": "Invalid dropzone"
+            }
+          }
+        },
+        {
+          "name": "bad-expiry",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "expiry": "2099-01-01T00:00"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_expiry",
+              "error": "Expiry must be an ISO 8601 time with a time zone, e.g. 2026-12-31T23:59+01:00"
+            }
+          }
+        },
+        {
+          "name": "non-dict",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": "just-a-string"
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_dropzone",
+              "error": "Invalid request"
+            }
+          }
+        },
+        {
+          "name": "no-csrf",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "csrf_failed",
+              "error": "CSRF validation failed"
+            }
+          }
+        },
+        {
+          "name": "notify-no-email",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "notify_on_submission": true
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "account_email_missing",
+              "error": "Configure an account email before enabling open notifications"
+            }
+          }
+        },
+        {
+          "name": "notify-ok",
+          "as": "notifyuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "notify_on_submission": true,
+              "notification_email": "notify@example.test"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "with-expiry",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "expiry": "2099-01-01T00:00:00.000Z",
+              "memo": "for the contractor"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "get-with-expiry",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "with-expiry.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 3,
+              "collected_at": null,
+              "id": "<uuid>",
+              "link_consumed_at": null,
+              "memo": "for the contractor",
+              "released_at": null,
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "status": "active",
+              "submission": null
+            }
+          }
+        },
+        {
+          "name": "list-with-expiry",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzones": [
+                {
+                  "attempts_remaining": 3,
+                  "collected_at": null,
+                  "created_at": "<timestamp>",
+                  "expiry_at": "<timestamp>",
+                  "id": "<uuid>",
+                  "link_consumed_at": null,
+                  "memo": "for the contractor",
+                  "released_at": null,
+                  "status": "active",
+                  "submission": null
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-submit-enforcement",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "bad-sv-hex",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "not-hex",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_submission",
+              "error": "Invalid submission"
+            }
+          }
+        },
+        {
+          "name": "bad-wk",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "short",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_submission",
+              "error": "Invalid submission"
+            }
+          }
+        },
+        {
+          "name": "bad-receipt",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "not-hex",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_submission",
+              "error": "Invalid submission"
+            }
+          }
+        },
+        {
+          "name": "bad-type",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "bogus"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_submission",
+              "error": "Invalid submission"
+            }
+          }
+        },
+        {
+          "name": "bad-magic",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "XXXX not a BKD1 envelope"
+              }
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_submission",
+              "error": "Invalid submission"
+            }
+          }
+        },
+        {
+          "name": "no-file",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_submission",
+              "error": "No file part"
+            }
+          }
+        },
+        {
+          "name": "no-note",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "text"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "invalid_submission",
+              "error": "Invalid submission"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-submit-refusals",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "missing",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              "00000000-0000-4000-8000-00000000dead",
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "not_found",
+              "error": "Dropzone not found"
+            }
+          }
+        },
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "expiry": "2000-01-01T00:00:00.000Z"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "expired",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "expired",
+              "error": "This dropzone has expired"
+            }
+          }
+        },
+        {
+          "name": "release-expired",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "expired",
+              "error": "Dropzone has expired"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-release-enforcement",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "missing",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              "00000000-0000-4000-8000-00000000dead",
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "no-submission",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 409,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "no_submission",
+              "error": "No submission yet"
+            }
+          }
+        },
+        {
+          "name": "no-csrf",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "csrf_failed",
+              "error": "CSRF validation failed"
+            }
+          }
+        },
+        {
+          "name": "no-body",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": null
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Invalid request"
+            }
+          }
+        },
+        {
+          "name": "bad-v",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "abc"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Invalid request"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "wrong",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "2222222222222222222222222222222222222222222222222222222222222222"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 2,
+              "error": "Incorrect password"
+            }
+          }
+        },
+        {
+          "name": "release",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-release-lockout",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 2,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "wrong",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "2222222222222222222222222222222222222222222222222222222222222222"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 1,
+              "error": "Incorrect password"
+            }
+          }
+        },
+        {
+          "name": "locking",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "2222222222222222222222222222222222222222222222222222222222222222"
+            }
+          },
+          "response": {
+            "status": 429,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Too many attempts"
+            }
+          }
+        },
+        {
+          "name": "right-after-lockout",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 429,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Too many attempts"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-release-burn-on",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 1,
+        "DROPZONE_BURN_ON_LOCKOUT": true,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "locking",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "2222222222222222222222222222222222222222222222222222222222222222"
+            }
+          },
+          "response": {
+            "status": 429,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Too many attempts"
+            }
+          }
+        },
+        {
+          "name": "right-after-burn",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 429,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Too many attempts"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-collect-window-closed",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 0,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "release",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          }
+        },
+        {
+          "name": "fetch",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-Collect-Ticket": {
+                "$collect_ticket": "release"
+              }
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "expired",
+              "error": "Dropzone has expired"
+            }
+          }
+        },
+        {
+          "name": "again",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-Collect-Ticket": {
+                "$collect_ticket": "release"
+              }
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "expired",
+              "error": "Dropzone has expired"
+            }
+          }
+        },
+        {
+          "name": "release-after",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 410,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Already released"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-report-enforcement",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "missing",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              "00000000-0000-4000-8000-00000000dead",
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "no-submission",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "bad-success",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": "yes",
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Invalid request"
+            }
+          }
+        },
+        {
+          "name": "bad-receipt-hex",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "not-hex"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Invalid request"
+            }
+          }
+        },
+        {
+          "name": "wrong-receipt",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "4444444444444444444444444444444444444444444444444444444444444444"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Invalid receipt"
+            }
+          }
+        },
+        {
+          "name": "report",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "recorded"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-owner-only",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "get-other",
+          "as": "adminuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "release-other",
+          "as": "adminuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "fetch-other",
+          "as": "adminuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "delete-other",
+          "as": "adminuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/delete"
+            ],
+            "headers": {
+              "X-CSRF-Token": "fixture-csrf-token"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "list-other",
+          "as": "adminuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzones": []
+            }
+          }
+        },
+        {
+          "name": "get-owner",
+          "as": "testuser",
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 3,
+              "collected_at": null,
+              "id": "<uuid>",
+              "link_consumed_at": null,
+              "memo": null,
+              "released_at": null,
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "status": "active",
+              "submission": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-delete-enforcement",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "missing",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              "00000000-0000-4000-8000-00000000dead",
+              "/delete"
+            ],
+            "headers": {
+              "X-CSRF-Token": "fixture-csrf-token"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "no-csrf",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/delete"
+            ],
+            "headers": {}
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "csrf_failed",
+              "error": "CSRF validation failed"
+            }
+          }
+        },
+        {
+          "name": "delete",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/delete"
+            ],
+            "headers": {
+              "X-CSRF-Token": "fixture-csrf-token"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "deleted"
+            }
+          }
+        },
+        {
+          "name": "release-deleted",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        },
+        {
+          "name": "report-deleted",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 404,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "error": "Not found"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dropzone-submit-too-large",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "MAX_CONTENT_LENGTH": 512,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "injected": true,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 413,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "file_too_large",
+              "error": "File too large"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "rate-limit-dropzone-create",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "UPLOAD_RATE_LIMIT": "1 per minute",
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "create-limited",
+          "as": "testuser",
+          "injected": true,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 429,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "rate_limited",
+              "error": "Too many requests. Please try again later."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "rate-limit-dropzone-submit",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "DROPZONE_SUBMIT_RATE_LIMIT": "1 per minute",
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "submit-limited",
+          "as": null,
+          "injected": true,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 429,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "rate_limited",
+              "error": "Too many requests. Please try again later."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "rate-limit-dropzone-release",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "DROPZONE_RELEASE_RATE_LIMIT": "1 per minute",
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "wrong",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "2222222222222222222222222222222222222222222222222222222222222222"
+            }
+          },
+          "response": {
+            "status": 403,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "attempts_remaining": 2,
+              "error": "Incorrect password"
+            }
+          }
+        },
+        {
+          "name": "release-limited",
+          "as": "testuser",
+          "injected": true,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 429,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "rate_limited",
+              "error": "Too many requests. Please try again later."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "rate-limit-dropzone-report",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "REPORT_DECRYPTION_RATE_LIMIT": "1 per minute",
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "submit",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzone/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submit"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "wk": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "type": "file"
+            },
+            "files": {
+              "file": {
+                "filename": "submission",
+                "content": "BKD1 dummy submission ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "submitted"
+            }
+          }
+        },
+        {
+          "name": "report",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
+            ],
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "success": true,
+              "receipt": "3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "status": "recorded"
+            }
+          }
+        },
+        {
+          "name": "report-limited",
+          "as": "testuser",
+          "injected": true,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/report"
             ],
             "headers": {
               "Content-Type": "application/json"

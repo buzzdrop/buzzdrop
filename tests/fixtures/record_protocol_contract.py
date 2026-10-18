@@ -41,10 +41,17 @@ DEFAULT_USER = 'testuser'
 # NOTIFICATIONS_CONFIGURED (SMTP set up, as app.py's
 # _notifications_configured decides) as notificationsConfigured.
 FAKE_CONFIG = ('KEY_RELEASE_MAX_ATTEMPTS', 'KEY_RELEASE_BURN_ON_LOCKOUT',
-               'KEY_RELEASE_DOWNLOAD_TTL_SECONDS')
+               'KEY_RELEASE_DOWNLOAD_TTL_SECONDS',
+               'DROPZONE_MAX_ATTEMPTS', 'DROPZONE_BURN_ON_LOCKOUT',
+               'DROPZONE_COLLECT_TTL_SECONDS')
 
 UUID = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
 HEX64 = re.compile(r'\b[0-9a-f]{64}\b')
+# Stored timestamps (created_at, link_consumed_at, …) differ between the
+# two recording runs; only their shape is contractual. Covers both the
+# server's `+00:00` microseconds and the fake's `.sssZ` form.
+TIMESTAMP = re.compile(
+    r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+(?:Z|[+-]\d{2}:\d{2})')
 
 
 # _normalise, _resolve and _record are mirrored by normalise, resolve and
@@ -54,7 +61,8 @@ HEX64 = re.compile(r'\b[0-9a-f]{64}\b')
 
 def _normalise(value):
     if isinstance(value, str):
-        return HEX64.sub('<hex64>', UUID.sub('<uuid>', value))
+        return TIMESTAMP.sub(
+            '<timestamp>', HEX64.sub('<hex64>', UUID.sub('<uuid>', value)))
     if isinstance(value, dict):
         return {key: _normalise(item) for key, item in value.items()}
     if isinstance(value, list):
@@ -72,15 +80,28 @@ def _download_ticket(h_hex):
                     hashlib.sha256).hexdigest()
 
 
+def _collect_ticket(ws_hex):
+    """The ticket /dropzones/<id>/submission requires, derived as the
+    client derives it — HKDF-SHA256(ikm=wS, salt=zero,
+    info='buzzdrop-collect-ticket'), the dropzone mirror of
+    _download_ticket."""
+    prk = hmac.new(b'\x00' * 32, bytes.fromhex(ws_hex), hashlib.sha256).digest()
+    return hmac.new(prk, b'buzzdrop-collect-ticket' + b'\x01',
+                    hashlib.sha256).hexdigest()
+
+
 def _resolve(value, responses):
     """Replace ``{"$ref": "<step>.<field>"}`` with that step's response
-    field, and ``{"$ticket": "<step>"}`` with the download ticket derived
-    from the H that step's release returned."""
+    field, ``{"$ticket": "<step>"}`` with the download ticket derived
+    from the H that step's release returned, and ``{"$collect_ticket":
+    "<step>"}`` with the collect ticket derived from its wS."""
     if isinstance(value, dict) and set(value) == {'$ref'}:
         step, field = value['$ref'].split('.', 1)
         return responses[step][field]
     if isinstance(value, dict) and set(value) == {'$ticket'}:
         return _download_ticket(responses[value['$ticket']]['h'])
+    if isinstance(value, dict) and set(value) == {'$collect_ticket'}:
+        return _collect_ticket(responses[value['$collect_ticket']]['ws'])
     if isinstance(value, dict):
         return {key: _resolve(item, responses) for key, item in value.items()}
     if isinstance(value, list):

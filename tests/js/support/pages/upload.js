@@ -9,6 +9,7 @@ import { computeAccessibleDescription, computeAccessibleName } from 'dom-accessi
 import { expect, vi } from 'vitest';
 import { HOLD_MS, initHeroFlow } from '../../../../static/js/pages/hero-flow/hero-flow-page.js';
 import { initIndex } from '../../../../static/js/pages/index/index-page.js';
+import * as dropzoneCrypto from '../../../../static/js/lib/dropzone-crypto.js';
 import { makeProtocolFake } from '../protocol-fake.js';
 import { DEFAULT_PASSWORD, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
@@ -132,6 +133,9 @@ function indexDeps(fetch, crypto, xhr) {
             XMLHttpRequest: xhr,
             navigate: (/** @type {string} */ url) => { navigations.push(url); },
             crypto,
+            // No scenario creates a dropzone, so the real module costs
+            // nothing — it only runs if a test presses Create dropzone.
+            dropzoneCrypto,
             now: () => now,
         },
     };

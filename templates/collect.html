@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from '_page_strings.html' import page_strings %}
+{% from '_clipboard_feedback_strings.html' import strings as clipboard_feedback_strings with context %}
+{% from '_collect_strings.html' import strings as collect_strings with context %}
+{% from '_progress_bar.html' import progress_bar %}
+
+{% block content_width %}max-w-xl{% endblock %}
+
+{% block content %}
+<div class="mx-auto {{ self.content_width() }}">
+    <div class="surface-card animate-zoom-in p-8 sm:p-10">
+        <div class="text-center">
+            <span class="eyebrow">{{ _('Dropzone') }}</span>
+            <h1 class="mt-5 wrap-break-word text-2xl font-semibold tracking-tight text-white">{{ _('Collect the submission') }}</h1>
+            <p id="status" class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400" role="status" aria-live="polite">
+                {% if locked %}{{ _('Too many incorrect passwords — this dropzone is locked.') }}{% else %}{{ _('Enter the dropzone password to decrypt and save the submission.') }}{% endif %}
+            </p>
+        </div>
+
+        {% if not locked %}
+        <form id="collect-form" class="mt-7 space-y-3">
+            <div>
+                <label for="password-input" class="field-label">{{ _('Dropzone password') }}</label>
+                <input id="password-input" type="password" autocomplete="off" aria-describedby="attempts-warning" class="field-input text-center">
+            </div>
+            <p id="attempts-warning" class="field-help">
+                {{ ngettext('You have one attempt — check the password before you continue.',
+                            'You have %(num)s attempts — check the password before you continue.', max_attempts) }}
+            </p>
+            {# Disabled until pages/collect/collect-page.js handles submit: a
+               native submit would GET this POST-only flow. With the default
+               button disabled, Enter in the field does nothing either. #}
+            <button id="collect-btn" type="submit" class="btn-primary w-full" disabled>
+                <span class="relative z-10">{{ _('Collect') }}</span>
+            </button>
+        </form>
+
+        {# Each step of collecting once Collect is pressed: busy while the
+           password is checked, wS released and the submission decrypted;
+           hidden otherwise. #}
+        {{ progress_bar('collect-progress', _('Collection progress'), extra_class='mt-4') }}
+        {% endif %}
+
+        <div id="text-display" class="mt-7" style="display: none;">
+            <h2 id="text-display-heading" class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{{ _('Decrypted text') }}</h2>
+            <div class="overflow-hidden rounded-2xl border border-white/[0.07] bg-hive-850/70">
+                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                    <p class="text-xs text-honey-200/80">{{ _('Copy it now — this page can’t be reopened.') }}</p>
+                    <button id="copy-text-btn" type="button" aria-label="{{ _('Copy text') }}" class="btn-secondary shrink-0 px-3 py-1.5 text-xs">{{ _('Copy') }}</button>
+                </div>
+                {# A named, focusable region: screen readers can jump to the note, and
+                   keyboard users can scroll it once it outgrows max-h-96. #}
+                <pre id="text-content" role="region" aria-labelledby="text-display-heading" tabindex="0" class="max-h-96 overflow-y-auto whitespace-pre-wrap wrap-break-word px-4 py-4 font-mono text-sm leading-6 text-slate-200"></pre>
+            </div>
+        </div>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-slate-600">
+        {% trans %}Decryption happens entirely in your browser. Your password stays in your browser; only a derived check value is sent.{% endtrans %}
+        {# A new tab: leaving this page would lose it, as it can't be reopened. #}
+        <a href="{{ url_for('how_it_works') }}" target="_blank" rel="noopener" aria-label="{{ _('How it works (opens in new tab)') }}" class="footer-link">{{ _('How it works') }}</a>
+    </p>
+</div>
+<script id="collect-config-json" type="application/json">{{ {
+    'zoneUrl': url_for('get_dropzone_route', dropzone_id=dropzone_id),
+    'releaseUrl': url_for('release_dropzone', dropzone_id=dropzone_id),
+    'submissionUrl': url_for('collect_dropzone_submission', dropzone_id=dropzone_id),
+    'reportUrl': url_for('report_dropzone_decryption', dropzone_id=dropzone_id),
+    'salt': salt,
+} | tojson }}</script>
+{{ page_strings({'clipboard-feedback': clipboard_feedback_strings, 'collect': collect_strings}) }}
+<script type="module" src="{{ url_for('static', filename='js/pages/collect/entry.js') }}" integrity="{{ sri_hash('js/pages/collect/entry.js') }}" crossorigin="anonymous"></script>
+{% endblock %}
