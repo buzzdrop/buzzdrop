@@ -38,10 +38,7 @@
 
 **Docker:** a single-service compose with volume mounts for `uploads/` and `buzzdrop.db` persistence.
 
-The `Dockerfile` copies the whole context, so `.dockerignore` keeps these out of the image:
-- secrets: `.env*` except the placeholder `.env.example`, and keys;
-- local state: `*.db*`, `data/`, `uploads/`;
-- dev clutter.
+The `Dockerfile` copies the whole context, so `.dockerignore` keeps secrets, local state and dev clutter out of the image — the pattern list lives in that file, not here.
 
 `tests/`, `docs/` and `cli/` stay in, because CI runs pytest inside the image.
 
