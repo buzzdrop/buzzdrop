@@ -317,7 +317,7 @@ def test_login_and_logout_flashes_in_polish(client, csrf_form_data):
     assert 'Zalogowano' in client.get('/').get_data(as_text=True)
 
     client.post(url_for('logout'), data=csrf_form_data())
-    assert 'Wylogowano' in client.get('/').get_data(as_text=True)
+    assert 'Wylogowano' in client.get('/', follow_redirects=True).get_data(as_text=True)
 
 
 def test_the_header_in_polish_when_logged_in_as_admin(client):

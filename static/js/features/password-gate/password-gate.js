@@ -44,8 +44,7 @@ const LEVEL = {
  */
 
 /**
- * Wire up the password field, or return null where the page has none (an
- * anonymous visitor's landing page).
+ * Wire up the password field, or return null where the page has none.
  * @param {Document} root
  * @param {PasswordGateOptions} options
  * @returns {PasswordGate | null}

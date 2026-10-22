@@ -14,17 +14,6 @@ The design behind it, and the reasoning for each choice, is in [`true-one-time.m
 - **One time really means one time.** The server holds half of the key and gives it out once, only to someone who proves they know the password. Then it destroys it.
 - **We do keep some metadata.** Who uploaded what and when, the filename of a file, when it was opened and from which IP address. See [What we keep, and for how long](#what-we-keep).
 
-## In brief
-
-The landing page tells the flow in six steps, from the sender's side, in these words (`brief` in `_how_it_works_content.html`), and links on to the page. Each is a short form of the steps below.
-
-1. **Pick a file, or write a note.** Either one gets the same treatment.
-2. **Set a password.** Your browser encrypts the drop before anything is uploaded.
-3. **Add an expiry.** Optional. When it passes, the drop is deleted, opened or not.
-4. **Get one link.** It names the drop. On its own, it opens nothing.
-5. **Send the link.** Send the password another way: a different app, a call.
-6. **They prove the password, once.** Then the drop downloads once and is deleted from the server. It decrypts on their device.
-
 ## Two switches, one protocol
 
 Whether you send from the web app or the `buzz` CLI, and whether you send a file or a text note, it is the same protocol and the same crypto. The page shows one flow with two switches; each step below lists what each switch changes.

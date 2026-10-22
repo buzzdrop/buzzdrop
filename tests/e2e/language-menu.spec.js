@@ -37,7 +37,7 @@ test('the keyboard opens the menu, picks Polski, and the choice holds across pag
 });
 
 test('Space on the button opens the menu at the current language', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/how-it-works');
 
     await tabToLanguageButton(page);
     await page.keyboard.press('Space');
@@ -47,7 +47,7 @@ test('Space on the button opens the menu at the current language', async ({ page
 });
 
 test('Escape closes the menu and gives focus back to the button', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/login');
     await languageButton(page).click();
     await expect(page.getByRole('menu')).toBeVisible();
 

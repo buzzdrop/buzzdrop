@@ -40,9 +40,8 @@ def _login(client):
         sess['is_admin'] = False
 
 
-@pytest.mark.parametrize('path', ['/', '/login'])
-def test_import_map_pins_every_static_module(client, path):
-    html = client.get(path).data.decode('utf-8')
+def test_import_map_pins_every_static_module(client):
+    html = client.get('/login').data.decode('utf-8')
     integrity = json.loads(_import_map(html))['integrity']
 
     expected = {
@@ -76,7 +75,7 @@ def test_import_map_precedes_every_module_script(client):
 
 
 def test_csp_allows_the_import_map_by_hash(client):
-    response = client.get('/')
+    response = client.get('/login')
     content = _import_map(response.data.decode('utf-8'))
     digest = base64.b64encode(hashlib.sha256(content.encode('utf-8')).digest()).decode()
 

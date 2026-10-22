@@ -1,6 +1,6 @@
 import { within } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
-import { openLandingPage, openUploadPage, screen } from '../support/pages/upload.js';
+import { openUploadPage, screen } from '../support/pages/upload.js';
 
 // Six EFF words score ~77.5 bits (strong); seven score ~90.5, past the 90 bits
 // that fill the meter.
@@ -582,12 +582,5 @@ describe('index page', () => {
 
             expect(upload.sharesShown()).toEqual(['For the auditor']);
         });
-    });
-
-    it('scrubs a stray fragment from the URL without adding a history entry', () => {
-        const landing = openLandingPage({ path: '/?x=1#leaked%20password' });
-
-        expect(landing.url()).toBe('http://localhost/?x=1');
-        expect(landing.historyLength()).toBe(1);
     });
 });

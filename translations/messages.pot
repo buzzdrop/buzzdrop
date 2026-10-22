@@ -98,12 +98,11 @@ msgstr ""
 msgid "Type: %(type)s"
 msgstr ""
 
-#: app.py templates/_composer.html templates/index.html utils.py
+#: app.py templates/_composer.html utils.py
 msgid "Note"
 msgstr ""
 
 #: app.py templates/_composer.html templates/how_it_works.html
-#: templates/index.html
 msgid "File"
 msgstr ""
 
@@ -574,64 +573,6 @@ msgstr ""
 
 #: templates/_dropzones_strings.html
 msgid "Could not download the submission."
-msgstr ""
-
-#: templates/_hero_flow_strings.html
-msgid "Play walkthrough"
-msgstr ""
-
-#: templates/_hero_flow_strings.html
-msgid "Pause walkthrough"
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Pick a file, or write a note."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Either one gets the same treatment."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Set a password."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Your browser encrypts the drop before anything is uploaded."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Add an expiry."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Optional. When it passes, the drop is deleted, opened or not."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Get one link."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "It names the drop. On its own, it opens nothing."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Send the link."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "Send the password another way: a different app, a call."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid "They prove the password, once."
-msgstr ""
-
-#: templates/_how_it_works_content.html
-msgid ""
-"Then the drop downloads once and is deleted from the server. It decrypts "
-"on their device."
 msgstr ""
 
 #: templates/_how_it_works_content.html
@@ -2221,193 +2162,6 @@ msgid "Sending progress"
 msgstr ""
 
 #: templates/index.html
-msgid ""
-"File sharing that stings&nbsp;— <span class=\"honey-text\">just "
-"once.</span>"
-msgstr ""
-
-#: templates/index.html
-msgid ""
-"Send a file or a note as a single link.<br>It opens once, then "
-"it’s&nbsp;gone."
-msgstr ""
-
-#: templates/index.html
-msgid ""
-"<strong class=\"font-semibold text-slate-200\">We can’t read your files "
-"or notes:</strong> they’re encrypted before they leave your device."
-msgstr ""
-
-#: templates/index.html templates/login.html
-msgid "Enter the hive"
-msgstr ""
-
-#: templates/index.html
-msgid "View source"
-msgstr ""
-
-#: templates/index.html
-msgid "AES-GCM · PBKDF2, 600k iterations · Local or S3 storage · CLI included"
-msgstr ""
-
-#: templates/index.html
-msgid "How a drop works"
-msgstr ""
-
-#: templates/index.html
-msgid "contract.pdf"
-msgstr ""
-
-#: templates/index.html
-msgid "Wire details inside"
-msgstr ""
-
-#. the walkthrough's mock countdown, 24 hours. Keep it this short.
-#: templates/index.html
-msgid "24h"
-msgstr ""
-
-#. an example expiry in the walkthrough's artwork, any date.
-#: templates/index.html
-msgid "Expires 12 Oct, 18:00"
-msgstr ""
-
-#: templates/index.html
-msgid "Copied"
-msgstr ""
-
-#: templates/index.html
-msgid "You"
-msgstr ""
-
-#: templates/index.html
-msgid "Them"
-msgstr ""
-
-#: templates/index.html
-msgid "Deleted from the server"
-msgstr ""
-
-#: templates/index.html
-msgid "How Buzzdrop works, in detail"
-msgstr ""
-
-#: templates/index.html
-msgid "What’s guaranteed"
-msgstr ""
-
-#: templates/index.html
-msgid "Four things you can rely on, each with a link to how it works."
-msgstr ""
-
-#: templates/index.html
-msgid "The server never sees your key"
-msgstr ""
-
-#: templates/index.html
-msgid ""
-"Your password derives half the key in the browser via PBKDF2 — 600,000 "
-"iterations — and never leaves the device. The other half is a server-held"
-" share released exactly once, so a stolen ciphertext alone is dead bytes."
-" Buzzdrop stores ciphertext and metadata; it cannot read the drop."
-msgstr ""
-
-#: templates/index.html
-msgid "How the key is split"
-msgstr ""
-
-#: templates/index.html
-msgid "The password opens it once"
-msgstr ""
-
-#: templates/index.html
-msgid ""
-"The recipient needs no account, only the link and the password, which "
-"they prove before anything downloads. A wrong guess gets no second "
-"attempt, and once the drop is open, nobody who finds the link later gets "
-"in."
-msgstr ""
-
-#: templates/index.html
-#, python-format
-msgid ""
-"The recipient needs no account, only the link and the password, which "
-"they prove before anything downloads. After %(attempts)s wrong guesses "
-"the drop locks, and once the drop is open, nobody who finds the link "
-"later gets in."
-msgstr ""
-
-#: templates/index.html
-msgid "How the password is checked"
-msgstr ""
-
-#: templates/index.html
-msgid "An expiry is a hard cut-off"
-msgstr ""
-
-#: templates/index.html
-msgid ""
-"Give a drop a deadline and the link stops working once it passes. The "
-"attempt is refused and the copy swept away — whether or not anyone ever "
-"opened it."
-msgstr ""
-
-#: templates/index.html
-msgid "How expiry deletes a drop"
-msgstr ""
-
-#: templates/index.html
-msgid "You find out it happened"
-msgstr ""
-
-#: templates/index.html
-msgid ""
-"Buzzdrop records when the drop was fetched and from which IP, and can "
-"email you once, the moment the recipient decrypts it."
-msgstr ""
-
-#: templates/index.html
-msgid "How decryption is reported"
-msgstr ""
-
-#: templates/index.html
-msgid "Read the code. Then trust it."
-msgstr ""
-
-#: templates/index.html
-msgid ""
-"Buzzdrop is small enough to audit in an afternoon. Explore it, run it on "
-"your own box, or drop a star so more people find secure one-time sharing."
-msgstr ""
-
-#: templates/index.html
-msgid "Full feature list and security notes live in the README."
-msgstr ""
-
-#: templates/index.html
-msgid ""
-"Grab the <code class=\"rounded-md border border-white/10 bg-hive-850 "
-"px-1.5 py-0.5 text-xs text-honey-200\">buzz</code> CLI to send encrypted "
-"drops from your terminal."
-msgstr ""
-
-#: templates/index.html
-msgid "Browse the source code (opens in new tab)"
-msgstr ""
-
-#: templates/index.html
-msgid "Browse the source code"
-msgstr ""
-
-#: templates/index.html
-msgid "Read the README (opens in new tab)"
-msgstr ""
-
-#: templates/index.html
-msgid "Read the README"
-msgstr ""
-
-#: templates/index.html
 msgid "Your drops"
 msgstr ""
 
@@ -2506,6 +2260,10 @@ msgid "Private access"
 msgstr ""
 
 #: templates/login.html
+msgid "Enter the hive"
+msgstr ""
+
+#: templates/login.html
 msgid ""
 "Sign in to upload encrypted drops, manage one-time links, and see who "
 "opened them."
@@ -2517,6 +2275,10 @@ msgstr ""
 
 #: templates/login.html
 msgid "Accounts are provisioned at deploy time through environment variables."
+msgstr ""
+
+#: templates/login.html
+msgid "See how Buzzdrop works"
 msgstr ""
 
 #: templates/respond.html

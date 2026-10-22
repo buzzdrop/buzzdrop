@@ -1,9 +1,8 @@
 // Driver for the header's language menu (#287), on the pages that have it
 // (docs/frontend-test-strategy.md §7a). The sender's pages all render the
-// same menu, so it opens on the landing page, or on the login page in Polish
-// (the one Polish page with no script of its own to start).
+// same menu, so it opens on the login page, where an anonymous visitor lands.
 import { initLanguageMenu } from '../../../../static/js/pages/language-menu/language-menu-page.js';
-import { openPage } from './page.js';
+import { inLanguage, openPage } from './page.js';
 
 export { screen } from './page.js';
 
@@ -17,9 +16,7 @@ export { screen } from './page.js';
  * @param {LanguageMenuOptions} [options]
  */
 export function openLanguageMenuPage({ language = 'en' } = {}) {
-    const page = language === 'pl'
-        ? openPage('login--default.pl', { path: '/login' })
-        : openPage('index--anonymous', { path: '/' });
+    const page = openPage(inLanguage('login--default', language), { path: '/login' });
     initLanguageMenu(page.window.document, {});
     const { screen, user } = page;
     const menuButton = () => screen.getByRole('button', { name: /^(Language|Język): / });

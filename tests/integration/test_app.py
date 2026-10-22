@@ -4,6 +4,7 @@ import re
 from flask import url_for, session
 
 import io
+from urllib.parse import urlparse
 # Fixtures: 'app', 'client', 'db_instance', 'files_store' from conftest.py
 # Test users from conftest.py: 'testuser:password:false', 'adminuser:adminpass:true'
 
@@ -40,33 +41,20 @@ def upload_file_for_user(client, app, files_store, filename, content, username_f
     file_info = files_store.get_by(original_name=filename, uploaded_by=username_for_db_record)
     return (file_info['id'], receipt.hex()) if file_info else (None, None)
 
-def test_index_anonymous_user(client, app):
-    # Ensure ALLOWED_EXTENSIONS and MAX_CONTENT_LENGTH are available in app.config
-    # The app fixture in conftest.py should set these.
-    # If not, ensure they are set here or in the fixture for the template rendering.
-    # These are typically accessed via current_app.config in templates/routes
-    # No need to manually set them here if conftest.py's app fixture is comprehensive
-
+def test_index_anonymous_user_is_sent_to_login(client):
     response = client.get(url_for('index'))
-    assert response.status_code == 200
-    # Anonymous visitors should see the marketing landing page, not the upload UI.
-    assert b'Share Your File' not in response.data
-    assert b'File sharing that stings' in response.data
-    assert b'Buzzdrop: secure, one-time file sharing.' in response.data
-    assert b'Read the code. Then trust it.' in response.data
-    assert b'Browse the source code' in response.data
-    assert b'Login to start sharing' not in response.data
-    assert b'View on GitHub' not in response.data
-    assert b'https://github.com/buzzdrop/buzzdrop' in response.data
-    assert b'https://github.com/buzzdrop/buzzdrop#readme' in response.data
-    assert b'aria-label="Source code (opens in new tab)"' in response.data
-    assert b'aria-label="Read the README (opens in new tab)"' in response.data
-    # The repository may live anywhere SOURCE_CODE_URL points.
-    assert b'GitHub' not in response.data
-    assert b'Login' in response.data # Login link in header
-    assert b'Your drops' not in response.data # Should not see this section title
-    assert b'/static/css/app.css' in response.data
-    assert b'cdn.jsdelivr.net/npm/@tailwindcss/browser' not in response.data
+    assert response.status_code == 302
+    assert urlparse(response.headers['Location']).path == url_for('login')
+
+
+def test_a_flash_set_before_the_redirect_shows_on_the_login_page(client):
+    # Too-large drops and dead download links flash, then send the browser to
+    # `/`: the message must survive the extra hop to /login (#359).
+    page = client.get(url_for('download_file', file_id='nonexistentid'), follow_redirects=True)
+
+    assert page.request.path == url_for('login')
+    assert 'Drop not found' in page.get_data(as_text=True)
+
 
 def test_local_stylesheet_is_served(client):
     response = client.get('/static/css/app.css')

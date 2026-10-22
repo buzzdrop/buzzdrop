@@ -13,7 +13,7 @@ test('log in, upload, log out', async ({ page, sharePassword }) => {
 
     await page.getByRole('button', { name: 'Logout' }).click();
     await expect(flash(page)).toHaveText('Logged out successfully');
-    await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Enter the hive' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Send file' })).toHaveCount(0);
 
     // The session is gone, not just hidden: a login-only page sends us back.

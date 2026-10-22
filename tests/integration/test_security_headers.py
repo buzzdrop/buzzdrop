@@ -86,9 +86,9 @@ def _assert_no_inline_handlers(html):
         "inline event handler attribute found"
 
 
-def test_index_has_all_security_headers(client):
+def test_index_redirect_has_all_security_headers(client):
     response = client.get('/')
-    assert response.status_code == 200
+    assert response.status_code == 302
     for header in EXPECTED_HEADERS:
         assert header in response.headers, f"{header} missing from /"
 

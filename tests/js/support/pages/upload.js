@@ -7,7 +7,6 @@
 import { within } from '@testing-library/dom';
 import { computeAccessibleDescription, computeAccessibleName } from 'dom-accessibility-api';
 import { expect, vi } from 'vitest';
-import { HOLD_MS, initHeroFlow } from '../../../../static/js/pages/hero-flow/hero-flow-page.js';
 import { initIndex } from '../../../../static/js/pages/index/index-page.js';
 import * as dropzoneCrypto from '../../../../static/js/lib/dropzone-crypto.js';
 import { makeProtocolFake } from '../protocol-fake.js';
@@ -58,12 +57,6 @@ const LIST_WORDS = {
         search: 'Szybkie wyszukiwanie', sort: 'Sortuj według', next: 'Następna', previous: 'Poprzednia', delete: 'Usuń',
         copyLinkFor: (/** @type {string} */ name) => `Skopiuj link: ${name}`,
     },
-};
-
-/** The walkthrough and its play toggle, as each language names them. */
-const LANDING_WORDS = {
-    en: { walkthrough: 'How a drop works', pause: 'Pause walkthrough', play: 'Play walkthrough' },
-    pl: { walkthrough: 'Jak działa przesyłka', pause: 'Wstrzymaj przykład', play: 'Odtwórz przykład' },
 };
 
 /** When the page is looked at: the day after the fixture's newest upload. */
@@ -141,42 +134,6 @@ function indexDeps(fetch, crypto, xhr) {
     };
 }
 
-/** How long each walkthrough stage holds, in order. */
-export const WALKTHROUGH_HOLD_MS = HOLD_MS;
-
-/**
- * Open the landing page an anonymous visitor sees, with both its scripts.
- * @param {{ path?: string, reducedMotion?: boolean, language?: 'en' | 'pl' }} [options]
- */
-export function openLandingPage({ path = '/', reducedMotion = false, language = 'en' } = {}) {
-    const page = openPage(inLanguage('index--anonymous', language), { path, reducedMotion });
-    const { deps } = indexDeps(async (input) => {
-        throw new Error(`the landing page sent ${input}`);
-    }, cryptoFor('stub').service, page.window.XMLHttpRequest);
-    initIndex(page.window.document, deps);
-    initHeroFlow(page.window.document, {});
-    const { screen, user } = page;
-    const words = LANDING_WORDS[language];
-    const walkthrough = () => screen.getByRole('region', { name: words.walkthrough });
-    // happy-dom never hides a tab, so a tab switch is the flag and the event
-    // a browser would give.
-    const { document } = page.window;
-    const setTabHidden = (/** @type {boolean} */ hidden) => {
-        Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
-        document.dispatchEvent(new page.window.Event('visibilitychange'));
-    };
-    return {
-        url: page.url,
-        historyLength: page.historyLength,
-        pauseWalkthrough: () => user.click(screen.getByRole('button', { name: words.pause })),
-        playWalkthrough: () => user.click(screen.getByRole('button', { name: words.play })),
-        pointAtWalkthrough: () => user.hover(walkthrough()),
-        moveAwayFromWalkthrough: () => user.unhover(walkthrough()),
-        leaveTab: () => setTabHidden(true),
-        returnToTab: () => setTabHidden(false),
-    };
-}
-
 /**
  * Open the index page as a logged-in user.
  * @param {UploadOptions} [options]
@@ -230,7 +187,6 @@ export function openUploadPage({
     const { deps, navigations } = indexDeps(
         fetch, cryptoService, server.XMLHttpRequest);
     initIndex(window.document, deps);
-    initHeroFlow(window.document, {});
 
     // Every value the upload bar shows while it is on screen.
     const progressShown = recordProgress(page);

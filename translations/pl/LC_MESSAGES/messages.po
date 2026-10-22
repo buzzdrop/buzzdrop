@@ -104,12 +104,11 @@ msgstr "Twoją przesyłkę otwarto."
 msgid "Type: %(type)s"
 msgstr "Typ: %(type)s"
 
-#: app.py templates/_composer.html templates/index.html utils.py
+#: app.py templates/_composer.html utils.py
 msgid "Note"
 msgstr "Notatka"
 
 #: app.py templates/_composer.html templates/how_it_works.html
-#: templates/index.html
 msgid "File"
 msgstr "Plik"
 
@@ -597,66 +596,6 @@ msgstr "Ta skrytka wygasła."
 #: templates/_dropzones_strings.html
 msgid "Could not download the submission."
 msgstr "Nie udało się pobrać zgłoszenia."
-
-#: templates/_hero_flow_strings.html
-msgid "Play walkthrough"
-msgstr "Odtwórz przykład"
-
-#: templates/_hero_flow_strings.html
-msgid "Pause walkthrough"
-msgstr "Wstrzymaj przykład"
-
-#: templates/_how_it_works_content.html
-msgid "Pick a file, or write a note."
-msgstr "Wybierz plik albo napisz notatkę."
-
-#: templates/_how_it_works_content.html
-msgid "Either one gets the same treatment."
-msgstr "Jedno i drugie jest chronione tak samo."
-
-#: templates/_how_it_works_content.html
-msgid "Set a password."
-msgstr "Ustaw hasło."
-
-#: templates/_how_it_works_content.html
-msgid "Your browser encrypts the drop before anything is uploaded."
-msgstr "Twoja przeglądarka szyfruje przesyłkę, zanim cokolwiek zostanie wysłane."
-
-#: templates/_how_it_works_content.html
-msgid "Add an expiry."
-msgstr "Dodaj termin ważności."
-
-#: templates/_how_it_works_content.html
-msgid "Optional. When it passes, the drop is deleted, opened or not."
-msgstr "Opcjonalnie. Gdy minie, przesyłka zostaje usunięta – otwarta czy nie."
-
-#: templates/_how_it_works_content.html
-msgid "Get one link."
-msgstr "Dostajesz jeden link."
-
-#: templates/_how_it_works_content.html
-msgid "It names the drop. On its own, it opens nothing."
-msgstr "Wskazuje przesyłkę. Sam niczego nie otwiera."
-
-#: templates/_how_it_works_content.html
-msgid "Send the link."
-msgstr "Wyślij link."
-
-#: templates/_how_it_works_content.html
-msgid "Send the password another way: a different app, a call."
-msgstr "Hasło przekaż inną drogą: w innej aplikacji, przez telefon."
-
-#: templates/_how_it_works_content.html
-msgid "They prove the password, once."
-msgstr "Odbiorca potwierdza hasło, raz."
-
-#: templates/_how_it_works_content.html
-msgid ""
-"Then the drop downloads once and is deleted from the server. It decrypts "
-"on their device."
-msgstr ""
-"Wtedy przesyłka pobiera się raz i zostaje usunięta z serwera. "
-"Odszyfrowuje się na urządzeniu odbiorcy."
 
 #: templates/_how_it_works_content.html
 msgid "Upload, phase 1"
@@ -2503,226 +2442,6 @@ msgid "Sending progress"
 msgstr "Postęp wysyłania"
 
 #: templates/index.html
-msgid ""
-"File sharing that stings&nbsp;— <span class=\"honey-text\">just "
-"once.</span>"
-msgstr ""
-"Przesyłanie plików, które żądli&nbsp;– <span class=\"honey-text\">tylko "
-"raz.</span>"
-
-#: templates/index.html
-msgid ""
-"Send a file or a note as a single link.<br>It opens once, then "
-"it’s&nbsp;gone."
-msgstr ""
-"Wyślij plik albo notatkę jako jeden link.<br>Otworzy się raz, a potem "
-"zniknie."
-
-#: templates/index.html
-msgid ""
-"<strong class=\"font-semibold text-slate-200\">We can’t read your files "
-"or notes:</strong> they’re encrypted before they leave your device."
-msgstr ""
-"<strong class=\"font-semibold text-slate-200\">Nie możemy czytać twoich "
-"plików ani notatek:</strong> są szyfrowane, zanim opuszczą twoje "
-"urządzenie."
-
-#: templates/index.html templates/login.html
-msgid "Enter the hive"
-msgstr "Wejdź do ula"
-
-#: templates/index.html
-msgid "View source"
-msgstr "Zobacz kod źródłowy"
-
-#: templates/index.html
-msgid "AES-GCM · PBKDF2, 600k iterations · Local or S3 storage · CLI included"
-msgstr "AES-GCM · PBKDF2, 600 tys. iteracji · Dysk lokalny lub S3 · CLI w zestawie"
-
-#: templates/index.html
-msgid "How a drop works"
-msgstr "Jak działa przesyłka"
-
-#: templates/index.html
-msgid "contract.pdf"
-msgstr "umowa.pdf"
-
-#: templates/index.html
-msgid "Wire details inside"
-msgstr "W środku dane do przelewu"
-
-#. the walkthrough's mock countdown, 24 hours. Keep it this short.
-#: templates/index.html
-msgid "24h"
-msgstr "24 h"
-
-#. an example expiry in the walkthrough's artwork, any date.
-#: templates/index.html
-msgid "Expires 12 Oct, 18:00"
-msgstr "Wygasa 12 paź, 18:00"
-
-#: templates/index.html
-msgid "Copied"
-msgstr "Skopiowano"
-
-#: templates/index.html
-msgid "You"
-msgstr "Ty"
-
-#: templates/index.html
-msgid "Them"
-msgstr "Odbiorca"
-
-#: templates/index.html
-msgid "Deleted from the server"
-msgstr "Usunięta z serwera"
-
-#: templates/index.html
-msgid "How Buzzdrop works, in detail"
-msgstr "Jak działa Buzzdrop, szczegółowo"
-
-#: templates/index.html
-msgid "What’s guaranteed"
-msgstr "Co jest gwarantowane"
-
-#: templates/index.html
-msgid "Four things you can rely on, each with a link to how it works."
-msgstr ""
-"Cztery rzeczy, na których możesz polegać, każda z linkiem do wyjaśnienia,"
-" jak działa."
-
-#: templates/index.html
-msgid "The server never sees your key"
-msgstr "Serwer nigdy nie widzi twojego klucza"
-
-#: templates/index.html
-msgid ""
-"Your password derives half the key in the browser via PBKDF2 — 600,000 "
-"iterations — and never leaves the device. The other half is a server-held"
-" share released exactly once, so a stolen ciphertext alone is dead bytes."
-" Buzzdrop stores ciphertext and metadata; it cannot read the drop."
-msgstr ""
-"Z twojego hasła przeglądarka wyprowadza połowę klucza przez PBKDF2 – 600 "
-"000 iteracji – a samo hasło nigdy nie opuszcza urządzenia. Druga połowa "
-"to udział trzymany przez serwer i wydawany dokładnie raz, więc sam "
-"skradziony szyfrogram to martwe bajty. Buzzdrop przechowuje szyfrogram i "
-"metadane; nie może odczytać przesyłki."
-
-#: templates/index.html
-msgid "How the key is split"
-msgstr "Jak dzielony jest klucz"
-
-#: templates/index.html
-msgid "The password opens it once"
-msgstr "Hasło otwiera ją raz"
-
-#: templates/index.html
-msgid ""
-"The recipient needs no account, only the link and the password, which "
-"they prove before anything downloads. A wrong guess gets no second "
-"attempt, and once the drop is open, nobody who finds the link later gets "
-"in."
-msgstr ""
-"Odbiorca nie potrzebuje konta, tylko linku i hasła, które potwierdza, "
-"zanim cokolwiek się pobierze. Po błędnym haśle nie ma drugiej próby, a "
-"gdy przesyłkę otwarto, nikt, kto później znajdzie link, już jej nie "
-"otworzy."
-
-#: templates/index.html
-#, python-format
-msgid ""
-"The recipient needs no account, only the link and the password, which "
-"they prove before anything downloads. After %(attempts)s wrong guesses "
-"the drop locks, and once the drop is open, nobody who finds the link "
-"later gets in."
-msgstr ""
-"Odbiorca nie potrzebuje konta, tylko linku i hasła, które potwierdza, "
-"zanim cokolwiek się pobierze. Po %(attempts)s błędnych próbach przesyłka "
-"zostaje zablokowana na stałe, a gdy przesyłkę otwarto, nikt, kto później "
-"znajdzie link, już jej nie otworzy."
-
-#: templates/index.html
-msgid "How the password is checked"
-msgstr "Jak sprawdzane jest hasło"
-
-#: templates/index.html
-msgid "An expiry is a hard cut-off"
-msgstr "Termin ważności to twarda granica"
-
-#: templates/index.html
-msgid ""
-"Give a drop a deadline and the link stops working once it passes. The "
-"attempt is refused and the copy swept away — whether or not anyone ever "
-"opened it."
-msgstr ""
-"Nadaj przesyłce termin ważności, a link przestanie działać, gdy minie. "
-"Próba otwarcia zostaje odrzucona, a kopia usunięta – niezależnie od tego,"
-" czy przesyłkę kiedykolwiek otwarto."
-
-#: templates/index.html
-msgid "How expiry deletes a drop"
-msgstr "Jak wygasła przesyłka zostaje usunięta"
-
-#: templates/index.html
-msgid "You find out it happened"
-msgstr "Dowiesz się, że to się stało"
-
-#: templates/index.html
-msgid ""
-"Buzzdrop records when the drop was fetched and from which IP, and can "
-"email you once, the moment the recipient decrypts it."
-msgstr ""
-"Buzzdrop zapisuje, kiedy i z jakiego adresu IP pobrano przesyłkę, i może "
-"wysłać ci jeden e-mail w chwili, gdy odbiorca ją odszyfruje."
-
-#: templates/index.html
-msgid "How decryption is reported"
-msgstr "Jak zgłaszane jest odszyfrowanie"
-
-#: templates/index.html
-msgid "Read the code. Then trust it."
-msgstr "Przeczytaj kod. Potem mu zaufaj."
-
-#: templates/index.html
-msgid ""
-"Buzzdrop is small enough to audit in an afternoon. Explore it, run it on "
-"your own box, or drop a star so more people find secure one-time sharing."
-msgstr ""
-"Buzzdrop jest na tyle mały, że przejrzysz go w jedno popołudnie. Zajrzyj "
-"do niego, uruchom go na własnym serwerze albo zostaw gwiazdkę, żeby "
-"więcej osób znalazło bezpieczne, jednorazowe przesyłanie."
-
-#: templates/index.html
-msgid "Full feature list and security notes live in the README."
-msgstr "Pełna lista funkcji i uwagi o bezpieczeństwie są w README."
-
-#: templates/index.html
-msgid ""
-"Grab the <code class=\"rounded-md border border-white/10 bg-hive-850 "
-"px-1.5 py-0.5 text-xs text-honey-200\">buzz</code> CLI to send encrypted "
-"drops from your terminal."
-msgstr ""
-"Pobierz CLI <code class=\"rounded-md border border-white/10 bg-hive-850 "
-"px-1.5 py-0.5 text-xs text-honey-200\">buzz</code>, żeby wysyłać "
-"zaszyfrowane przesyłki z terminala."
-
-#: templates/index.html
-msgid "Browse the source code (opens in new tab)"
-msgstr "Przeglądaj kod źródłowy (otwiera się w nowej karcie)"
-
-#: templates/index.html
-msgid "Browse the source code"
-msgstr "Przeglądaj kod źródłowy"
-
-#: templates/index.html
-msgid "Read the README (opens in new tab)"
-msgstr "Przeczytaj README (otwiera się w nowej karcie)"
-
-#: templates/index.html
-msgid "Read the README"
-msgstr "Przeczytaj README"
-
-#: templates/index.html
 msgid "Your drops"
 msgstr "Twoje przesyłki"
 
@@ -2824,6 +2543,10 @@ msgid "Private access"
 msgstr "Dostęp prywatny"
 
 #: templates/login.html
+msgid "Enter the hive"
+msgstr "Wejdź do ula"
+
+#: templates/login.html
 msgid ""
 "Sign in to upload encrypted drops, manage one-time links, and see who "
 "opened them."
@@ -2838,6 +2561,10 @@ msgstr "Nazwa użytkownika"
 #: templates/login.html
 msgid "Accounts are provisioned at deploy time through environment variables."
 msgstr "Konta zakłada się przy wdrożeniu, w zmiennych środowiskowych."
+
+#: templates/login.html
+msgid "See how Buzzdrop works"
+msgstr "Zobacz, jak działa Buzzdrop"
 
 #: templates/respond.html
 msgid "Submit securely"
