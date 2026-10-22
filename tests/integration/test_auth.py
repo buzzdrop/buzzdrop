@@ -1,3 +1,5 @@
+import re
+from urllib.parse import urlparse
 from html.parser import HTMLParser
 
 import pytest
@@ -20,6 +22,19 @@ def test_login_page_loads(client):
     response = client.get(url_for('login'))
     assert response.status_code == 200
     assert b'Login' in response.data # Check for a keyword in login.html
+
+
+def test_login_page_links_to_how_it_works(client):
+    page = client.get(url_for('login')).get_data(as_text=True)
+
+    assert f'href="{url_for("how_it_works")}" class="more-link"' in page
+
+
+def test_login_page_loads_its_script_under_sri(client):
+    # The script scrubs a password leaked in the URL fragment (#359).
+    page = client.get(url_for('login')).get_data(as_text=True)
+
+    assert re.search(r'src="[^"]*pages/login/entry\.js[^"]*" integrity="sha384-[^"]+" crossorigin="anonymous"', page)
 
 def test_login_successful_normal_user(client, app):
     # 'testuser:password:false'
@@ -209,7 +224,8 @@ def test_removed_session_user_is_logged_out_on_index(client, monkeypatch, clear_
 
     response = client.get(url_for('index'))
 
-    assert response.status_code == 200
+    assert response.status_code == 302
+    assert urlparse(response.headers['Location']).path == url_for('login')
     with client.session_transaction() as sess:
         assert 'username' not in sess
         assert 'is_admin' not in sess

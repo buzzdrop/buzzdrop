@@ -41,8 +41,7 @@ import { required, requiredWindow } from '../../lib/required.js';
  */
 
 /**
- * Wire up the composer, or return null where the page has none (the index
- * page's anonymous landing).
+ * Wire up the composer, or return null where the page has none.
  * @param {Document} root
  * @param {ComposerOptions} options
  * @returns {Composer | null}

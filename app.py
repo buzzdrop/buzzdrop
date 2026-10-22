@@ -905,11 +905,9 @@ def index():
         response.headers['Cache-Control'] = 'no-store'
         return response
     
-    return render_template(
-        'index.html',
-        allowed_extensions=sorted(current_app.config.get('ALLOWED_EXTENSIONS')),
-        max_content_length=current_app.config.get('MAX_CONTENT_LENGTH'),
-    )
+    # There is no anonymous landing page (#359): the front door is the login
+    # page. Flashes live in the session, so they render there after the hop.
+    return redirect(url_for('login'))
 
 @app.route('/how-it-works')
 def how_it_works():

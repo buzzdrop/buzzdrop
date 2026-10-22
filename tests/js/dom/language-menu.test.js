@@ -48,7 +48,7 @@ describe('language menu', () => {
         expect(menu.formsSubmitted()).toEqual([{
             action: 'http://localhost/language',
             method: 'post',
-            fields: { csrf_token: 'fixture-csrf-token', lang: 'pl', next: '/' },
+            fields: { csrf_token: 'fixture-csrf-token', lang: 'pl', next: '/login' },
         }]);
     });
 

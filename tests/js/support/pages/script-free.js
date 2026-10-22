@@ -1,6 +1,6 @@
-// Page driver for the pages with no script of their own: the login page and
-// the "drop is gone" dead end (docs/frontend-test-strategy.md §7a). They only
-// have fixtures in Polish (#268); the English ones are covered by pytest.
+// Page driver for the "drop is gone" dead end, a page with no script of its
+// own (docs/frontend-test-strategy.md §7a). It only has a fixture in Polish
+// (#268); the English one is covered by pytest.
 import { openPage } from './page.js';
 
 export { screen } from './page.js';
@@ -23,14 +23,6 @@ function opened(page) {
         /** The document title the browser shows on the tab. */
         title: () => page.window.document.title,
     };
-}
-
-/**
- * Open the login page.
- * @param {ScriptFreeOptions} [options]
- */
-export function openLoginPage({ language = 'pl' } = {}) {
-    return opened(openPage(`login--default.${language}`, { path: '/login' }));
 }
 
 /**

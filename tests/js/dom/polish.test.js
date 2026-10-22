@@ -3,9 +3,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { openConfirmPage } from '../support/pages/confirm.js';
 import { openHowItWorks } from '../support/pages/how-it-works.js';
 import { openLanguageMenuPage } from '../support/pages/language-menu.js';
-import { openGonePage, openLoginPage, screen } from '../support/pages/script-free.js';
+import { openLoginPage } from '../support/pages/login.js';
+import { openGonePage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
-import { openLandingPage, openUploadPage } from '../support/pages/upload.js';
+import { openUploadPage } from '../support/pages/upload.js';
 import { openUsersPage } from '../support/pages/users.js';
 import { DEFAULT_MESSAGE, DEFAULT_PASSWORD, openShare } from '../support/pages/view.js';
 
@@ -28,6 +29,7 @@ describe('in Polish', () => {
         expect(screen.getByLabelText('Nazwa użytkownika')).toBeVisible();
         expect(screen.getByLabelText('Hasło')).toBeVisible();
         expect(screen.getByRole('button', { name: 'Zaloguj' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Zobacz, jak działa Buzzdrop' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Jak to działa' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Kod źródłowy (otwiera się w\u00a0nowej karcie)' })).toBeVisible();
     });
@@ -108,37 +110,6 @@ describe('in Polish', () => {
         await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Skopiuj hasło' })).toHaveTextContent('Błąd'));
         expect(screen.getByRole('status', { name: 'Schowek' }))
             .toHaveTextContent('Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano hasła.');
-    });
-
-    it('serves the landing page', () => {
-        openLandingPage({ language: 'pl' });
-
-        expect(screen.getByRole('heading', { level: 1, name: 'Przesyłanie plików, które żądli\u00a0– tylko raz.' }))
-            .toBeVisible();
-        expect(screen.getByRole('link', { name: 'Wejdź do ula' })).toBeVisible();
-        expect(screen.getByRole('heading', { name: 'Co jest gwarantowane' })).toBeVisible();
-        expect(screen.getByRole('link', { name: 'Jak sprawdzane jest hasło' })).toBeVisible();
-    });
-
-    it('serves the landing walkthrough\'s artwork and play toggle in Polish', async () => {
-        const landing = openLandingPage({ language: 'pl' });
-
-        const walkthrough = screen.getByRole('region', { name: 'Jak działa przesyłka' });
-        expect(walkthrough).toBeVisible();
-        expect(screen.getByRole('link', { name: 'Jak działa Buzzdrop, szczegółowo' })).toBeVisible();
-
-        await landing.pauseWalkthrough();
-        expect(screen.getByRole('button', { name: 'Odtwórz przykład' })).toBeVisible();
-        await landing.playWalkthrough();
-        expect(screen.getByRole('button', { name: 'Wstrzymaj przykład' })).toBeVisible();
-    });
-
-    it('tells the landing walkthrough in Polish', () => {
-        openLandingPage({ language: 'pl' });
-
-        const walkthrough = within(screen.getByRole('region', { name: 'Jak działa przesyłka' }));
-        expect(walkthrough.getByText('Ustaw hasło.')).toBeInTheDocument();
-        expect(walkthrough.getByText('Odbiorca potwierdza hasło, raz.')).toBeInTheDocument();
     });
 
     it('serves the how-it-works page', () => {

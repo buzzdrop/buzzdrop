@@ -255,10 +255,6 @@ def _unknown_url(client):
     return client.get('/does-not-exist')
 
 
-def _landing_page(client):
-    return client.get(url_for('index'))
-
-
 def _composer(client):
     client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
     return client.get(url_for('index'))
@@ -390,7 +386,6 @@ CONVERTED_PAGES = {
     'unknown URL': _unknown_url,
     'success, file': _success_page('file'),
     'success, note': _success_page('text'),
-    'landing page': _landing_page,
     'composer': _composer,
     'drop list': _drop_list,
     'confirm, file': _confirm_page('file'),

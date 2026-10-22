@@ -113,10 +113,6 @@ The reversed flow (`docs/adr/0001-dropzone-reverse-flow.md`): a requester create
 
 `/how-it-works` takes its words from `templates/_how_it_works_content.html`, is laid out by `templates/how_it_works.html`, and has its script in `static/js/pages/how-it-works/`. `docs/how-it-works.md` is its source of truth. The page mirrors the doc step for step under the same `step-…` ids, and every claim it makes (what the server sees, what is deleted when, what is kept) is in the doc first.
 
-The landing page's hero walkthrough is its one short account of the flow (#271).
-- Its captions are `brief` in the same content file and must read word for word like the doc's "In brief" (`tests/integration/test_how_it_works.py`). They link on to `/how-it-works`.
-- Each "What's guaranteed" card links to the doc step that makes it true (`#step-…`, checked against the doc's step ids).
-
-The page and the walkthrough are translated; the doc stays English (`docs/dev/i18n.md`, #291). A change to the page's English fuzzes its Polish entries, so the same PR updates the Polish too.
+The page is translated; the doc stays English (`docs/dev/i18n.md`, #291). A change to the page's English fuzzes its Polish entries, so the same PR updates the Polish too.
 
 `tests/unit/test_how_it_works_fingerprint.py` hashes the code that defines the flow. What it covers is listed in the doc's "Keeping this true" note and in the test's `WHOLE_FILES`, `FUNCTIONS`, `QUOTED_LINES` and `MODULE_ASSIGNMENTS` tables. The doc carries that hash, and the test's failure message prints the new one.

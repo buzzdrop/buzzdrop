@@ -102,7 +102,7 @@ def test_picking_an_item_switches_the_language(client):
     assert client.get(url_for('login')).headers['Content-Language'] == 'pl'
 
 
-@pytest.mark.parametrize('page', ['index', 'login', 'how_it_works', 'not found'])
+@pytest.mark.parametrize('page', ['login', 'how_it_works', 'not found'])
 def test_the_menu_is_on_the_senders_pages(client, page):
     path = '/does-not-exist' if page == 'not found' else url_for(page)
 

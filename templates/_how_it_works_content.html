@@ -1,14 +1,14 @@
 {# The words of the "How it works" page (#245), kept apart from its layout
    (how_it_works.html) so they can be read against docs/how-it-works.md, their
    source of truth: every claim here is made there first, under the same step
-   ids. `brief` is the landing page's walkthrough (#271), the doc's "In brief".
+   ids.
 
    The words are translated (#291): one {% trans %} or _() per paragraph,
    list item or label, inline markup in the msgid. The doc stays English.
    Where a sentence differs per switch, each variant is a whole sentence of
    its own, so no translation is built from fragments.
 
-   Import it with context, the landing page's `brief` included: the words
+   Import it with context: the words
    follow the request's language, the variants the page's sender and
    content, and the release step the configured key-release policy.
    Parts that differ per switch carry data-show="<switch>:<value>"; the
@@ -18,18 +18,6 @@
 {% macro show(switch, value) -%}
 data-show="{{ switch }}:{{ value }}"{% if (sender if switch == 'sender' else content) != value %} hidden{% endif %}
 {%- endmacro %}
-
-{# The flow in brief, as the landing page's walkthrough tells it, from the
-   sender's side: title, body. The doc's "In brief" says the same, word for
-   word. #}
-{% set brief = [
-    (_('Pick a file, or write a note.'), _('Either one gets the same treatment.')),
-    (_('Set a password.'), _('Your browser encrypts the drop before anything is uploaded.')),
-    (_('Add an expiry.'), _('Optional. When it passes, the drop is deleted, opened or not.')),
-    (_('Get one link.'), _('It names the drop. On its own, it opens nothing.')),
-    (_('Send the link.'), _('Send the password another way: a different app, a call.')),
-    (_('They prove the password, once.'), _('Then the drop downloads once and is deleted from the server. It decrypts on their device.')),
-] %}
 
 {# id, title #}
 {% set steps = [
