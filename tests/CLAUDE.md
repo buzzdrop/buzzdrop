@@ -34,7 +34,7 @@ Remove a scenario only together with the server behaviour it records. A new rout
 
 ## E2E (`e2e/`)
 
-Playwright runs on the host against the app image (spec §7–§9 of `docs/frontend-test-strategy.md`). The config's `webServer` starts one container per run, using the profile in `tests/e2e/e2e.env` on `127.0.0.1:5055` (`E2E_PORT`), and stops it afterwards. `E2E_IMAGE` picks another tag.
+Playwright runs on the host against the app image (spec §7–§9 of `docs/frontend-test-strategy.md`). The config's `webServer` starts one container per run, using the profile in `tests/e2e/e2e.env` on `127.0.0.1:5055` (`E2E_PORT`), and stops it afterwards. `E2E_IMAGE` picks another tag. With `E2E_BASE_URL` set, the config starts nothing and uses the App already running there: that is how CI runs it, in the Playwright image, whose version must match `@playwright/test` (`tests/js/ci.test.js`).
 
 ```bash
 docker build -t buzzdrop-e2e .                   # again after any app-code change

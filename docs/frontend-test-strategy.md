@@ -293,7 +293,7 @@ From [Pin down E2E harness facts: Playwright against the Buzzdrop Docker image](
   - `stdout`/`stderr: 'pipe'`
 
   Both `--init` and graceful shutdown are required, or the container outlives the run.
-- **Host port 5055** (`E2E_PORT`), because 5000 is taken by the macOS AirPlay Receiver. `baseURL` is derived from it.
+- **Host port 5055** (`E2E_PORT`), because 5000 is taken by the macOS AirPlay Receiver. `baseURL` is derived from it, unless `E2E_BASE_URL` names an App that is already running; then no `webServer` is started (CI, §9).
 - **Profile `tests/e2e/e2e.env` (committed):** sets every variable the run relies on explicitly.
 
   | Variable | Value | Why |
@@ -326,7 +326,7 @@ All gating CI lives in `ci.yml`. **`build-test.yml` is deleted** (it duplicated 
 | `js-fast` | — | `setup-node` (`.nvmrc`, `cache: npm`) → `npm ci` → `npm run typecheck` → `npm run test:unit` → `npm run test:dom` → `npm run build:css` + `git diff --exit-code static/css/app.css` |
 | `build` | — | plant decoy `.env`/DB/upload files → `docker build -t buzzdrop-test .` → fail if a decoy is in the image (`.dockerignore`, #163) → `docker save` → upload the image as an artifact |
 | `pytest` | `build` | `docker load` → pytest in the image → `db.json` migration smoke test → **DOM-fixture drift check** → **protocol-contract drift check** |
-| `e2e` | `build` | `docker load` → `setup-node` + `npm ci` → `npx playwright install --with-deps chromium firefox webkit` (no browser cache) → `E2E_IMAGE=buzzdrop-test npx playwright test` |
+| `e2e` | `build` | `docker load` → `setup-node` + `npm ci` → start the App image on the runner (`--init`, `e2e.env`, `127.0.0.1:5055`) → `npx playwright test` inside `mcr.microsoft.com/playwright:v<version>-noble` with `--network host` and `E2E_BASE_URL` (browsers and OS packages come with the image: no apt, no browser download; `tests/js/ci.test.js` keeps the tag equal to the installed `@playwright/test`) → stop the App |
 
 - **Drift checks:** mount the workspace into the image, run the generators (`render_dom_fixtures.py`, `record_protocol_contract.py`), then `git diff --exit-code tests/js/fixtures/` on the runner.
 - **E2E failure artifacts:** `playwright-report/` and `test-results/` are uploaded `if: failure()` and kept for 7 days.

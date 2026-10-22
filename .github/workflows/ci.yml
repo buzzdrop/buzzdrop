@@ -118,9 +118,14 @@ jobs:
   e2e:
     needs: build
     runs-on: ubuntu-latest
-    # playwright install --with-deps apt-installs OS packages, which can take
-    # 12+ minutes on a slow mirror (#363); the tests themselves take about 4.
-    timeout-minutes: 30
+    timeout-minutes: 15
+    env:
+      E2E_PORT: 5055
+      # The browsers and their OS packages come with this image, so there is
+      # no apt install or browser download. It must match @playwright/test
+      # (tests/js/ci.test.js); a container: job can't be used, because the
+      # App runs as a sibling container on the runner's Docker.
+      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -138,15 +143,34 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      # Not cached: restoring takes about as long as downloading, and the
-      # OS dependencies can't be cached anyway.
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
-      # playwright.config.js starts the image (webServer) and stops it after.
+      # What playwright.config.js's webServer does locally. --init matters:
+      # flask as PID 1 ignores SIGTERM, so `docker stop` would wait out its
+      # timeout and kill it.
+      - name: Start the App
+        run: |
+          docker run -d --name buzzdrop-e2e --init --env-file tests/e2e/e2e.env \
+            -p 127.0.0.1:${E2E_PORT}:5000 buzzdrop-test
+          for _ in $(seq 60); do
+            curl -fs -o /dev/null "http://127.0.0.1:${E2E_PORT}/login" && exit 0
+            sleep 1
+          done
+          echo '::error::the App did not come up'
+          docker logs buzzdrop-e2e
+          exit 1
+      # Host networking, so the browsers reach the App on 127.0.0.1. The
+      # runner's user keeps the report and traces in the workspace readable.
       - name: Run E2E tests
-        run: npx playwright test
-        env:
-          E2E_IMAGE: buzzdrop-test
+        run: |
+          docker run --rm --init --ipc=host --network host \
+            --user "$(id -u):$(id -g)" -e HOME=/tmp -e CI=true \
+            -e E2E_BASE_URL="http://127.0.0.1:${E2E_PORT}" \
+            -v "$PWD:/work" -w /work "$PLAYWRIGHT_IMAGE" npx playwright test
+      - name: Show the App's log
+        if: failure()
+        run: docker logs buzzdrop-e2e
+      - name: Stop the App
+        if: always()
+        run: docker stop -t 10 buzzdrop-e2e
       - name: Upload Playwright report and traces
         if: failure()
         uses: actions/upload-artifact@v4
