@@ -118,7 +118,9 @@ jobs:
   e2e:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # playwright install --with-deps apt-installs OS packages, which can take
+    # 12+ minutes on a slow mirror (#363); the tests themselves take about 4.
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
