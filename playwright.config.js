@@ -1,11 +1,15 @@
-// E2E: Playwright on the host against the Buzzdrop image
+// E2E: Playwright against the Buzzdrop image
 // (docs/frontend-test-strategy.md §8). One fresh container per run, shared
-// by every browser project and worker.
+// by every browser project and worker. Locally the webServer below starts it;
+// CI starts it itself and runs Playwright in the Playwright image, and says
+// where the App is with E2E_BASE_URL (.github/workflows/ci.yml).
 import { defineConfig, devices } from '@playwright/test';
 
 // 5000 is taken by the macOS AirPlay Receiver.
 const port = process.env.E2E_PORT || '5055';
 const image = process.env.E2E_IMAGE || 'buzzdrop-e2e';
+// An App that is already running; no webServer is started for it.
+const externalBaseURL = process.env.E2E_BASE_URL;
 
 export default defineConfig({
     testDir: 'tests/e2e',
@@ -17,7 +21,7 @@ export default defineConfig({
     reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
     use: {
         // localhost is a secure context, so crypto.subtle works without TLS.
-        baseURL: `http://localhost:${port}`,
+        baseURL: externalBaseURL || `http://localhost:${port}`,
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
         video: 'off',
@@ -39,7 +43,7 @@ export default defineConfig({
         { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
         { name: 'webkit', use: { ...devices['Desktop Safari'] } },
     ],
-    webServer: {
+    webServer: externalBaseURL ? undefined : {
         // --init and the SIGTERM shutdown are both needed, or the container
         // outlives the run: flask as PID 1 ignores SIGTERM, and a SIGKILLed
         // `docker run` client can't forward anything.
