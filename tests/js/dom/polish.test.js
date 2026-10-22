@@ -1,7 +1,6 @@
 import { getDefaultNormalizer, within } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
 import { openConfirmPage } from '../support/pages/confirm.js';
-import { openHowItWorks } from '../support/pages/how-it-works.js';
 import { openLanguageMenuPage } from '../support/pages/language-menu.js';
 import { openLoginPage } from '../support/pages/login.js';
 import { openGonePage, screen } from '../support/pages/script-free.js';
@@ -30,7 +29,7 @@ describe('in Polish', () => {
         expect(screen.getByLabelText('Hasło')).toBeVisible();
         expect(screen.getByRole('button', { name: 'Zaloguj' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Zobacz, jak działa Buzzdrop' })).toBeVisible();
-        expect(screen.getByRole('link', { name: 'Jak to działa' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Jak to działa (otwiera się w\u00a0nowej karcie)' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Kod źródłowy (otwiera się w\u00a0nowej karcie)' })).toBeVisible();
     });
 
@@ -47,7 +46,7 @@ describe('in Polish', () => {
         expect(gone.language()).toBe('pl');
         expect(screen.getByRole('heading', { name: 'Tej przesyłki już nie ma' })).toBeVisible();
         expect(screen.getByText('Poproś nadawcę o nową.')).toBeVisible();
-        expect(screen.getByRole('link', { name: 'Przejdź do Buzzdropa' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Jak działa Buzzdrop' })).toBeVisible();
         expect(screen.getByRole('link', { name: 'Zaloguj' })).toBeVisible();
     });
 
@@ -110,35 +109,6 @@ describe('in Polish', () => {
         await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Skopiuj hasło' })).toHaveTextContent('Błąd'));
         expect(screen.getByRole('status', { name: 'Schowek' }))
             .toHaveTextContent('Przeglądarka zablokowała dostęp do schowka, więc nie skopiowano hasła.');
-    });
-
-    it('serves the how-it-works page', () => {
-        const page = openHowItWorks({ language: 'pl' });
-
-        expect(page.language()).toBe('pl');
-        expect(screen.getByRole('heading', { level: 1, name: 'Jak działa Buzzdrop' })).toBeVisible();
-        expect(screen.getByRole('article')).toHaveAccessibleName('Krok 1 Wysyłanie, etap 1');
-        expect(screen.getByRole('heading', { name: 'Co widzi serwer' })).toBeVisible();
-        expect(screen.getByRole('heading', { name: 'Ograniczenia' })).toBeVisible();
-        expect(screen.getByText('Jedno nieprawidłowe hasło blokuje przesyłkę i\u00a0niszczy', { exact: false, ...keepingNonBreakingSpaces }))
-            .toBeInTheDocument();
-    });
-
-    it('writes the how-it-works page script\'s words in Polish', async () => {
-        vi.useFakeTimers();
-        const page = openHowItWorks({ language: 'pl' });
-        expect(screen.getByText('Krok 1 z\u00a08', keepingNonBreakingSpaces)).toBeVisible();
-
-        await page.nextStep();
-        expect(screen.getByRole('article')).toHaveAccessibleName('Krok 2 Szyfrowanie na miejscu');
-        expect(screen.getByText('Krok 2 z\u00a08', keepingNonBreakingSpaces)).toBeVisible();
-
-        await page.chooseSender('CLI buzz');
-        expect(screen.getByRole('status')).toHaveTextContent('Widok: CLI buzz wysyła plik.');
-        expect(screen.getByText('Notatki są wyłączone: CLI wysyła tylko pliki.')).toBeVisible();
-
-        await page.play();
-        expect(screen.getByRole('button', { name: 'Wstrzymaj' })).toBeVisible();
     });
 
     it('serves the composer', () => {

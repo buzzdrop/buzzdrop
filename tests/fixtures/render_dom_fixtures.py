@@ -151,8 +151,6 @@ def render_all():
     fixtures.append(_render('index--files', _client('testuser'), 'GET', '/'))
     fixtures.append(_render('index--files.pl', _client('testuser'), 'GET', '/', language='pl'))
 
-    fixtures.append(_render('how_it_works--default', _client(), 'GET', '/how-it-works'))
-    fixtures.append(_render('how_it_works--default.pl', _client(), 'GET', '/how-it-works', language='pl'))
 
     fixtures.append(_render('login--default', _client(), 'GET', '/login'))
     fixtures.append(_render('login--default.pl', _client(), 'GET', '/login', language='pl'))

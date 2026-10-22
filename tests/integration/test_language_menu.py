@@ -86,11 +86,11 @@ def test_the_current_language_is_checked(client):
 
 
 def test_each_item_posts_its_language_back_to_this_page(client):
-    menu = _menu(client.get(url_for('how_it_works', sender='cli')))
+    menu = _menu(client.get(url_for('login', sender='cli')))
 
     assert [item['method'] for item in menu.items] == ['post', 'post']
     assert [item['fields'] for item in menu.items] == [
-        {'csrf_token': CSRF_TOKEN, 'lang': code, 'next': '/how-it-works?sender=cli'}
+        {'csrf_token': CSRF_TOKEN, 'lang': code, 'next': '/login?sender=cli'}
         for code in ('en', 'pl')]
 
 
@@ -102,7 +102,7 @@ def test_picking_an_item_switches_the_language(client):
     assert client.get(url_for('login')).headers['Content-Language'] == 'pl'
 
 
-@pytest.mark.parametrize('page', ['login', 'how_it_works', 'not found'])
+@pytest.mark.parametrize('page', ['login', 'not found'])
 def test_the_menu_is_on_the_senders_pages(client, page):
     path = '/does-not-exist' if page == 'not found' else url_for(page)
 

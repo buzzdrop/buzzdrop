@@ -1,12 +1,12 @@
 # How Buzzdrop works
 
-The user-facing account of what happens when you share a file or a note with Buzzdrop: what runs where, what crosses the wire, what the server can and can't see, and why. It is the written source of truth for the public page at `/how-it-works`, which mirrors it step for step under the same step ids. The page's words, the diagrams' labels and "server sees" lenses included, live in `templates/_how_it_works_content.html`, laid out by `templates/how_it_works.html`. Every claim the page makes lives here first.
+The user-facing account of what happens when you share a file or a note with Buzzdrop: what runs where, what crosses the wire, what the server can and can't see, and why. This is the technical account, and the written source of truth for the Website's explainer, the reader-level page that every "How it works" link in the app points to (`EXPLAINER_URL`). Every claim that page makes lives here first.
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
 <!-- how-it-works-fingerprint: sha256:4272313923fefbc60abe4edaa134cfcd518f203247918a98efa0f1cbb11e8afb -->
 
-> **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto (drops and dropzone submissions), the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release and dropzone defaults, and the server code that releases, serves, expires and deletes a drop or a dropzone submission (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc and the page against the change, fix whichever is now wrong, and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer page — keep in step" says the same for reviewers.
+> **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto (drops and dropzone submissions), the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release and dropzone defaults, and the server code that releases, serves, expires and deletes a drop or a dropzone submission (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc against the change, fix what is now wrong (and, if a claim the Website's explainer makes has changed, open an issue in `buzzdrop/website`), and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer — keep in step" says the same for reviewers.
 
 ## The three things to take away
 
@@ -16,7 +16,7 @@ The design behind it, and the reasoning for each choice, is in [`true-one-time.m
 
 ## Two switches, one protocol
 
-Whether you send from the web app or the `buzz` CLI, and whether you send a file or a text note, it is the same protocol and the same crypto. The page shows one flow with two switches; each step below lists what each switch changes.
+Whether you send from the web app or the `buzz` CLI, and whether you send a file or a text note, it is the same protocol and the same crypto. Each step below lists what the sender (web or CLI) and the content (file or note) change.
 
 | | Web app | `buzz` CLI |
 |---|---|---|
@@ -34,7 +34,7 @@ Whether you send from the web app or the `buzz` CLI, and whether you send a file
 
 The recipient's side (steps 5–7) always runs in a browser, whichever sender was used.
 
-**CLI + text note doesn't exist yet.** `buzz` only sends files (no note mode, no stdin), so the page disables Text while the CLI is selected, with the hint "the CLI sends files only". It turns on when [#247](https://github.com/buzzdrop/buzzdrop/issues/247) (CLI note mode) lands.
+**CLI + text note doesn't exist yet.** `buzz` only sends files (no note mode, no stdin), so a text note can only be sent from the web app. That changes when [#247](https://github.com/buzzdrop/buzzdrop/issues/247) (CLI note mode) lands.
 
 **The filename is sender-facing, not recipient-facing.** A file's name still travels in plain text at upload (the multipart filename) and is stored so the sender's drop list can show it. But it is never rendered to whoever holds only the link: the recipient's pages stay nameless, the download's `Content-Disposition` is neutral, and the name the browser finally saves the file under arrives inside the ciphertext itself — readable only after the password held ([#246](https://github.com/buzzdrop/buzzdrop/issues/246)).
 
@@ -195,7 +195,7 @@ The same guarantees, direction reversed: a requester creates a one-time dropzone
 ## What we keep, and for how long
 
 - **The ciphertext:** until it is downloaded, it expires, or the sender deletes it. Then it is deleted from storage.
-- **`H` and `V`:** until the release succeeds, the drop locks, it expires, or it is deleted. Whichever comes first destroys them. With `KEY_RELEASE_BURN_ON_LOCKOUT` off, a locked drop keeps them (refusing every attempt) until it expires or is deleted; the page says so when the server runs that way.
+- **`H` and `V`:** until the release succeeds, the drop locks, it expires, or it is deleted. Whichever comes first destroys them. With `KEY_RELEASE_BURN_ON_LOCKOUT` off, a locked drop keeps them (refusing every attempt) until it expires or is deleted.
 - **The drop's record:** the filename (or "Secret Note"), the sender's account, when it was created, its expiry, when it was opened and from which IP address, whether decryption worked, the receipt's hash, and the sender's optional memo and notification address; also the language it was sent in, which the notification is written in. Beside it stays what is left of the key share once `H` and `V` are gone (its `file_keys` row): the password's salt, the sending account, the count of wrong attempts and when it was released. All of it stays in the sender's list until the sender deletes it; there is no automatic purge.
 - **The dropzone's record:** the requester's account, when it was created, its expiry, when the request link was consumed, when it was released and collected and from which IP address, the count of wrong attempts, the password's salt, and the requester's optional memo, notification address and language. The submission's record keeps its kind (file or note), `wK`, the receipt's hash, the responder's IP and whether decryption worked. `wS`, `V` and `SV` are wiped as each step lands — on release or lockout burn, or on expiry only while the link is still unspent (a landed submission outlives the request link's deadline; expiry bounds submission, not collection). All of it stays in the requester's list until they delete the zone.
 - **Server logs:** every successful or wrong release attempt is logged with the requester's IP address. How long logs are kept is up to whoever runs the server.
@@ -210,4 +210,4 @@ What Buzzdrop does not protect against. None of these is fixable by any design; 
 - **The server operator controls the code.** The web app's encryption code comes from the server, and Subresource Integrity can't help against the server itself. Someone in control of the server could serve code that leaks the password, or log `V` and `H`. The CLI's code comes from GitHub Releases instead, but the recipient's side always runs in a browser.
 - **Weak passwords.** If someone steals the database while a drop is waiting to be opened, they can try passwords against its `V` offline: the database holds `V` and the salt it was derived with, so the stored files aren't needed. (Once a drop is released, `V` is wiped.) 600,000 PBKDF2 iterations make every guess slow; a long passphrase makes the search hopeless, a short password doesn't.
 - **A one-click link is the key.** Whoever has it can open the drop.
-- **A wrong guess can destroy a drop.** Anyone with the link can spend the attempt and lock it, so the real recipient can't open it. (With other `KEY_RELEASE_MAX_ATTEMPTS` or `KEY_RELEASE_BURN_ON_LOCKOUT` settings the page names the number of attempts, and says "lock" rather than "destroy".)
+- **A wrong guess can destroy a drop.** Anyone with the link can spend the attempt and lock it, so the real recipient can't open it. (On an instance with a higher `KEY_RELEASE_MAX_ATTEMPTS`, that many wrong guesses are allowed before the drop locks. With `KEY_RELEASE_BURN_ON_LOCKOUT` off, a locked drop is refused rather than destroyed.)

@@ -21,8 +21,8 @@ export default defineConfig({
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
         video: 'off',
-        // No animations: entrance animations and the how-it-works diagrams move
-        // elements while tests click them. The app collapses every animation
+        // No animations: entrance animations move elements
+        // while tests click them. The app collapses every animation
         // under prefers-reduced-motion.
         contextOptions: { reducedMotion: 'reduce' },
         // The viewer's zone, far from the server's (TZ in tests/e2e/e2e.env),

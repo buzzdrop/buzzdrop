@@ -24,12 +24,6 @@ def test_login_page_loads(client):
     assert b'Login' in response.data # Check for a keyword in login.html
 
 
-def test_login_page_links_to_how_it_works(client):
-    page = client.get(url_for('login')).get_data(as_text=True)
-
-    assert f'href="{url_for("how_it_works")}" class="more-link"' in page
-
-
 def test_login_page_loads_its_script_under_sri(client):
     # The script scrubs a password leaked in the URL fragment (#359).
     page = client.get(url_for('login')).get_data(as_text=True)

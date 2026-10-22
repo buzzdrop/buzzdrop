@@ -1,6 +1,7 @@
 """
-Keeps docs/how-it-works.md and the /how-it-works page in step with the code
-that defines the flow they explain (#245).
+Keeps docs/how-it-works.md, the technical account of the share flow, in step
+with the code that defines it (#245). The reader-level explainer is on the
+Website (EXPLAINER_URL), which is built from this doc (#360).
 
 The doc carries a fingerprint: a hash of the recorded protocol contract, the
 browser crypto (drops and dropzone submissions), the CLI's crypto, upload and
@@ -8,8 +9,8 @@ passphrase code, the web app's passphrase length, the database schema, the
 key-release and dropzone defaults, and the server code that releases, serves,
 expires and deletes a drop or a dropzone submission. When any of
 them changes, this test fails until someone
-has re-read the doc and the page against the change and pasted the new
-fingerprint, the same way CI fails on stale fixtures.
+has re-read the doc against the change and pasted the new fingerprint, the
+same way CI fails on stale fixtures.
 """
 import ast
 import hashlib
@@ -18,7 +19,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / 'docs' / 'how-it-works.md'
-PAGE = 'templates/_how_it_works_content.html'
 
 FINGERPRINT = re.compile(r'<!-- how-it-works-fingerprint: sha256:([0-9a-f]{64}) -->')
 
@@ -136,8 +136,9 @@ def test_explainer_is_in_step_with_the_flow():
     current = compute_fingerprint()
     assert match.group(1) == current, (
         'The code behind the share flow changed since docs/how-it-works.md was '
-        f'last reviewed. Re-read docs/how-it-works.md and {PAGE} against the '
-        'change and fix whatever is no longer true; then set the fingerprint '
-        f'in the doc to sha256:{current}'
+        'last reviewed. Re-read docs/how-it-works.md against the change and '
+        'fix whatever is no longer true; if a claim the Website\'s explainer '
+        'makes has changed, open an issue in buzzdrop/website; then set the '
+        f'fingerprint in the doc to sha256:{current}'
     )
 

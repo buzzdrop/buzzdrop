@@ -396,6 +396,22 @@ def test_collect_page_renders_for_the_owner(client):
     assert _SALT in html
 
 
+@pytest.mark.parametrize('value', [None, 'https://example.com/explainer', ''])
+def test_collect_page_explainer_link_follows_the_setting(app, client, monkeypatch, value):
+    """The link to the Website's explainer reads EXPLAINER_URL (#360); an
+    empty value hides it."""
+    if value is not None:
+        monkeypatch.setitem(app.config, 'EXPLAINER_URL', value)
+    login_user(client)
+    dropzone_id = _submitted_zone(client)
+
+    html = client.get(url_for('collect_dropzone', dropzone_id=dropzone_id)).get_data(as_text=True)
+
+    expected = 'https://buzzdrop.io/how-it-works/' if value is None else value
+    assert (f'href="{expected}"' in html) == bool(expected)
+    assert ('How it works' in html) == bool(expected)
+
+
 def test_collect_page_renders_while_awaiting_and_released(client):
     """No submission yet renders — the release answers no_submission and
     the page words it; a released-but-uncollected zone still collects."""

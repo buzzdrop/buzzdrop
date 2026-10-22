@@ -63,6 +63,6 @@ test('switching to English with the menu holds across pages', async ({ page, con
     await logIn(page);
     await expectLanguage(page, 'en');
     await shareNote(page, `Note ${randomUUID()}`, sharePassword());
-    await page.goto('/how-it-works');
+    await page.goto('/does-not-exist');
     await expect(languageButton(page)).toHaveAccessibleName('Language: English');
 });

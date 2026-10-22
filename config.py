@@ -165,6 +165,11 @@ class Config:
     SOURCE_CODE_URL = (os.getenv('SOURCE_CODE_URL', '').strip()
                        or 'https://github.com/buzzdrop/buzzdrop')
 
+    # Where the explainer lives: the Website, not this app. Unlike
+    # SOURCE_CODE_URL, an empty value is meant: it hides every explainer
+    # link, so a deployment with no explainer renders none.
+    EXPLAINER_URL = os.getenv('EXPLAINER_URL', 'https://buzzdrop.io/how-it-works/').strip()
+
     @classmethod
     def validate(cls):
         """
