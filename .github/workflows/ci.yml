@@ -17,6 +17,7 @@ concurrency:
 jobs:
   js-fast:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,6 +41,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       # One decoy per secret/state pattern in .dockerignore, some nested.
       DECOYS: >-
@@ -82,6 +84,7 @@ jobs:
   pytest:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -115,6 +118,7 @@ jobs:
   e2e:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
