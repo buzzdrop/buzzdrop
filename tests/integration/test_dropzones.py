@@ -407,7 +407,7 @@ def test_collect_page_explainer_link_follows_the_setting(app, client, monkeypatc
 
     html = client.get(url_for('collect_dropzone', dropzone_id=dropzone_id)).get_data(as_text=True)
 
-    expected = 'https://buzzdrop.io/how-it-works' if value is None else value
+    expected = 'https://buzzdrop.io/how-it-works/' if value is None else value
     assert (f'href="{expected}"' in html) == bool(expected)
     assert ('How it works' in html) == bool(expected)
 

@@ -8,7 +8,7 @@ from flask import url_for
 
 from conftest import CSRF_TOKEN
 
-DEFAULT = 'https://buzzdrop.io/how-it-works'
+DEFAULT = 'https://buzzdrop.io/how-it-works/'
 CUSTOM = 'https://example.com/explainer'
 
 
