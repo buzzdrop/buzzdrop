@@ -140,10 +140,10 @@ def test_json_responses_stay_english(client):
 # --- POST /language -------------------------------------------------------
 
 def test_choosing_a_language_sets_the_cookie_and_goes_back(client):
-    response = _choose(client, 'pl', '/how-it-works?sender=cli')
+    response = _choose(client, 'pl', '/login?sender=cli')
 
     assert response.status_code == 303
-    assert response.headers['Location'] == '/how-it-works?sender=cli'
+    assert response.headers['Location'] == '/login?sender=cli'
     assert client.get_cookie('lang').value == 'pl'
     assert _language_of(_login_page(client, **{'Accept-Language': 'en'})) == 'pl'
 
@@ -288,7 +288,7 @@ def test_the_gone_page_in_polish(client):
     assert response.status_code == 404
     html = response.get_data(as_text=True)
     assert 'Tej przesyłki już nie ma' in html
-    assert 'Przejdź do Buzzdropa' in html
+    assert 'Jak działa Buzzdrop' in html
     assert _language_of(response) == 'pl'
 
 

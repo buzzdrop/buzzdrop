@@ -6,7 +6,7 @@ describe('the login page', () => {
         openLoginPage();
 
         expect(screen.getByRole('heading', { name: 'Enter the hive' })).toBeVisible();
-        expect(screen.getByRole('link', { name: 'See how Buzzdrop works' })).toHaveAttribute('href', '/how-it-works');
+        expect(screen.getByRole('link', { name: 'See how Buzzdrop works' })).toHaveAttribute('href', 'https://buzzdrop.io/how-it-works');
     });
 
     it('scrubs a stray fragment from the URL without adding a history entry', () => {

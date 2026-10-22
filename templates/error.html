@@ -21,9 +21,16 @@
 
         <p class="mx-auto mt-3 max-w-sm text-sm text-slate-400">{{ message }}</p>
 
+        {# A logged-in visitor goes home; an anonymous one has no home page here, so the way on is the explainer (hidden when it is unset). #}
+        {% if session.get('username') %}
         <a href="{{ url_for('index') }}" class="btn-primary mt-7 w-full">
             <span class="relative z-10">{{ _('Go to Buzzdrop') }}</span>
         </a>
+        {% elif config.EXPLAINER_URL %}
+        <a href="{{ config.EXPLAINER_URL }}" class="btn-primary mt-7 w-full">
+            <span class="relative z-10">{{ _('How Buzzdrop works') }}</span>
+        </a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -58,7 +58,7 @@
     <p class="mt-6 text-center text-xs text-slate-600">
         {% trans %}Decryption happens entirely in your browser. Your password stays in your browser; only a derived check value is sent.{% endtrans %}
         {# A new tab: leaving this page would lose it, as it can't be reopened. #}
-        <a href="{{ url_for('how_it_works') }}" target="_blank" rel="noopener" aria-label="{{ _('How it works (opens in new tab)') }}" class="footer-link">{{ _('How it works') }}</a>
+        {% if config.EXPLAINER_URL %}<a href="{{ config.EXPLAINER_URL }}" target="_blank" rel="noopener noreferrer" aria-label="{{ _('How it works (opens in new tab)') }}" class="footer-link">{{ _('How it works') }}</a>{% endif %}
     </p>
 </div>
 <script id="collect-config-json" type="application/json">{{ {

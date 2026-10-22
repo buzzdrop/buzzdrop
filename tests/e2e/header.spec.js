@@ -34,7 +34,7 @@ for (const width of [375, 320]) {
 
         const language = header.getByRole('button', { name: 'Language: English' });
 
-        await page.goto('/how-it-works');
+        await page.goto('/does-not-exist');
         await expectOneRow(page, [
             language,
             header.getByRole('link', { name: 'Login' }),

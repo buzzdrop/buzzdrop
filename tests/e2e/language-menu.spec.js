@@ -20,7 +20,7 @@ async function tabToLanguageButton(page) {
 }
 
 test('the keyboard opens the menu, picks Polski, and the choice holds across pages', async ({ page }) => {
-    await page.goto('/how-it-works');
+    await page.goto('/does-not-exist');
 
     await tabToLanguageButton(page);
     await page.keyboard.press('Enter');
@@ -29,7 +29,7 @@ test('the keyboard opens the menu, picks Polski, and the choice holds across pag
     await expect(page.getByRole('menuitemradio', { name: 'Polski' })).toBeFocused();
     await page.keyboard.press('Enter');
 
-    await expect(page).toHaveURL(/\/how-it-works$/);
+    await expect(page).toHaveURL(/\/does-not-exist$/);
     await expect(languageButton(page)).toHaveAccessibleName('Język: Polski');
 
     await page.goto('/login');
@@ -37,7 +37,7 @@ test('the keyboard opens the menu, picks Polski, and the choice holds across pag
 });
 
 test('Space on the button opens the menu at the current language', async ({ page }) => {
-    await page.goto('/how-it-works');
+    await page.goto('/does-not-exist');
 
     await tabToLanguageButton(page);
     await page.keyboard.press('Space');

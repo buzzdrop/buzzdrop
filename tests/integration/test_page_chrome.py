@@ -98,7 +98,6 @@ def test_other_pages_keep_the_footer_note(client):
 
 @pytest.mark.parametrize('endpoint, values', [
     ('login', {}),
-    ('how_it_works', {}),
 ])
 def test_footer_says_how_it_is_built(client, endpoint, values):
     footer = _footer(client, endpoint, **values)

@@ -49,7 +49,6 @@ The server renders the BKV3 envelope salt into the view page config, so nothing 
   - Rate-limited per `file_id`, not per IP. Sends `Cache-Control: no-store`.
 - `/report_decryption/<file_id>` (POST): Records whether client-side decryption succeeded. Requires the plaintext `receipt` matching the stored `receipt_hash` (403 otherwise), and only the first valid report takes effect. Unauthenticated but rate-limited per `file_id` via `REPORT_DECRYPTION_RATE_LIMIT`
 - `/delete/<file_id>` (POST): Manual deletion by the uploader (also drops the `file_keys` row)
-- `/how-it-works` (GET): Public explainer of the share flow (see *Explainer page* below). `?sender=web|cli&content=file|text` picks the view; CLI + text falls back to file until the CLI can send notes (#247)
 - `/language` (POST): see `docs/dev/i18n.md`
 
 ## File lifecycle
@@ -109,10 +108,8 @@ The reversed flow (`docs/adr/0001-dropzone-reverse-flow.md`): a requester create
 - **Released but never collected** expires after `DROPZONE_COLLECT_TTL_SECONDS`: `expire_uncollected_dropzone_releases` marks the zone expired, deletes the submission row, and the sweep deletes the blob.
 - **Expiry:** `purge_expired_dropzones` (and `expire_dropzone_unconsumed` on read paths) wipes `v`/`ws`/`sv` and marks the zone expired — only while the link is unconsumed. `expiry_at` bounds the request link's submit window; a landed submission outlives it and stays collectable until the requester fetches it or deletes the zone. Zone rows stay for bookkeeping until `POST /dropzones/<id>/delete` removes zone + submission + blob.
 
-## Explainer page
+## Explainer
 
-`/how-it-works` takes its words from `templates/_how_it_works_content.html`, is laid out by `templates/how_it_works.html`, and has its script in `static/js/pages/how-it-works/`. `docs/how-it-works.md` is its source of truth. The page mirrors the doc step for step under the same `step-…` ids, and every claim it makes (what the server sees, what is deleted when, what is kept) is in the doc first.
-
-The page is translated; the doc stays English (`docs/dev/i18n.md`, #291). A change to the page's English fuzzes its Polish entries, so the same PR updates the Polish too.
+The App serves no explainer page: every "How it works" link reads `EXPLAINER_URL` (`docs/dev/configuration.md`), by default the Website's explainer. `docs/how-it-works.md` is the technical account of the flow and the source of truth for that page: every claim the Website's explainer makes (what the server sees, what is deleted when, what is kept) is in the doc first. The page lives in another, private repository, so a change that makes one of its claims untrue gets a `buzzdrop/website` issue linked from the PR.
 
 `tests/unit/test_how_it_works_fingerprint.py` hashes the code that defines the flow. What it covers is listed in the doc's "Keeping this true" note and in the test's `WHOLE_FILES`, `FUNCTIONS`, `QUOTED_LINES` and `MODULE_ASSIGNMENTS` tables. The doc carries that hash, and the test's failure message prints the new one.

@@ -356,27 +356,6 @@ def _users_page_refused(as_user):
     return render
 
 
-def _how_it_works(client):
-    """/how-it-works: the template renders every variant, hidden or not."""
-    return client.get(url_for('how_it_works'))
-
-
-def _how_it_works_under(max_attempts, burn_on_lockout):
-    """/how-it-works under another key-release policy, whose release step,
-    what we keep and limits each read differently."""
-    def render(client):
-        # A render gets only the client, not monkeypatch or the
-        # key_release_settings fixture, so it puts the policy back itself.
-        config = client.application.config
-        saved = {key: config[key] for key in ('KEY_RELEASE_MAX_ATTEMPTS', 'KEY_RELEASE_BURN_ON_LOCKOUT')}
-        config.update(KEY_RELEASE_MAX_ATTEMPTS=max_attempts, KEY_RELEASE_BURN_ON_LOCKOUT=burn_on_lockout)
-        try:
-            return client.get(url_for('how_it_works'))
-        finally:
-            config.update(saved)
-    return render
-
-
 # The pages converted so far; each i18n issue adds its own.
 CONVERTED_PAGES = {
     'login': _login_page,
@@ -397,10 +376,6 @@ CONVERTED_PAGES = {
     'users, token not found': _users_page_after_revoking(token_exists=False),
     'users refused, logged out': _users_page_refused(as_user=False),
     'users refused, not an admin': _users_page_refused(as_user=True),
-    'how it works': _how_it_works,
-    'how it works, three attempts, burn': _how_it_works_under(3, burn_on_lockout=True),
-    'how it works, one attempt, no burn': _how_it_works_under(1, burn_on_lockout=False),
-    'how it works, three attempts, no burn': _how_it_works_under(3, burn_on_lockout=False),
 }
 # Parts of a converted page that a later issue converts, as #id or .class.
 PENDING = {}
