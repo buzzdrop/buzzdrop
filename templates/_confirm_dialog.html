@@ -1,0 +1,13 @@
+{# The dialog features/confirm-submit opens before a destructive action
+   (#320). The page script writes the question and the confirm button's
+   label each time; Cancel is the template's, and takes the focus, so Enter
+   destroys nothing. #}
+{% macro confirm_dialog() %}
+<dialog id="confirm-dialog" class="confirm-dialog" role="alertdialog" aria-labelledby="confirm-dialog-question">
+    <p id="confirm-dialog-question" class="confirm-dialog-question text-sm leading-6 text-slate-200"></p>
+    <div class="mt-6 flex flex-wrap justify-end gap-3">
+        <button type="button" class="confirm-dialog-cancel btn-secondary px-4 py-2" autofocus>{{ _('Cancel') }}</button>
+        <button type="button" class="confirm-dialog-action btn-danger"></button>
+    </div>
+</dialog>
+{% endmacro %}

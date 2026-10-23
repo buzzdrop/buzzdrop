@@ -485,6 +485,10 @@ msgstr ""
 "Przesyłka mogła zostać wysłana, ale nie udało się odczytać odpowiedzi "
 "serwera."
 
+#: templates/_confirm_dialog.html
+msgid "Cancel"
+msgstr "Anuluj"
+
 #: templates/_confirm_download_strings.html
 msgid "This link already carries the key — continue and the drop goes BZZT."
 msgstr "Ten link zawiera już hasło – przejdź dalej, a przesyłka zrobi BZZT."
@@ -785,6 +789,10 @@ msgstr "Ten użytkownik już nie istnieje."
 #: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."
 msgstr "Nie udało się wygenerować tokenu. Spróbuj ponownie."
+
+#: templates/_users_strings.html templates/users.html
+msgid "Revoke"
+msgstr "Unieważnij"
 
 #. the recipient's wrong passwords locked the drop; the lock can't be lifted.
 #: templates/_view_strings.html
@@ -1402,10 +1410,6 @@ msgstr "Akcje"
 #: templates/users.html
 msgid "Never"
 msgstr "Nigdy"
-
-#: templates/users.html
-msgid "Revoke"
-msgstr "Unieważnij"
 
 #: templates/users.html
 msgid "No active API tokens."

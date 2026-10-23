@@ -10,7 +10,7 @@ import { expect, vi } from 'vitest';
 import { initIndex } from '../../../../static/js/pages/index/index-page.js';
 import * as dropzoneCrypto from '../../../../static/js/lib/dropzone-crypto.js';
 import { makeProtocolFake } from '../protocol-fake.js';
-import { DEFAULT_PASSWORD, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
+import { DEFAULT_PASSWORD, answerConfirmation, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { screen } from './page.js';
 
@@ -50,11 +50,11 @@ const COMPOSER_WORDS = {
 /** The drop list's controls, as each language names them. */
 const LIST_WORDS = {
     en: {
-        search: 'Quick search', sort: 'Sort by', next: 'Next', previous: 'Previous', delete: 'Delete',
+        search: 'Quick search', sort: 'Sort by', next: 'Next', previous: 'Previous', delete: 'Delete', cancel: 'Cancel',
         copyLinkFor: (/** @type {string} */ name) => `Copy link for ${name}`,
     },
     pl: {
-        search: 'Szybkie wyszukiwanie', sort: 'Sortuj według', next: 'Następna', previous: 'Poprzednia', delete: 'Usuń',
+        search: 'Szybkie wyszukiwanie', sort: 'Sortuj według', next: 'Następna', previous: 'Poprzednia', delete: 'Usuń', cancel: 'Anuluj',
         copyLinkFor: (/** @type {string} */ name) => `Skopiuj link: ${name}`,
     },
 };
@@ -344,21 +344,17 @@ export function openUploadPage({
             within(shareRow(name)).getByRole('button', { name: listWords.copyLinkFor(name) })),
 
         /**
-         * Press Delete on a share and answer the confirmation.
+         * Press Delete on a share and answer the dialog: its Delete or its
+         * Cancel.
          * @param {ShareName} name
          * @param {{ confirm: boolean }} answer
          * @returns {Promise<{ asked: string[], deleted: boolean }>}
          */
         async deleteShare(name, { confirm }) {
-            /** @type {string[]} */
-            const asked = [];
-            window.confirm = (message) => {
-                asked.push(String(message));
-                return confirm;
-            };
-            const before = page.formsSubmitted().length;
-            await user.click(within(shareRow(name)).getByRole('button', { name: listWords.delete }));
-            return { asked, deleted: page.formsSubmitted().length > before };
+            const { asked, sent } = await answerConfirmation(page,
+                () => user.click(within(shareRow(name)).getByRole('button', { name: listWords.delete })),
+                confirm ? listWords.delete : listWords.cancel);
+            return { asked, deleted: sent };
         },
         /** The shares each status refresh asked about, by name. */
         statusChecks: () => statusChecks.map((names) => [...names]),

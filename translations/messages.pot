@@ -465,6 +465,10 @@ msgstr ""
 msgid "The drop may have been sent, but the server's reply could not be read."
 msgstr ""
 
+#: templates/_confirm_dialog.html
+msgid "Cancel"
+msgstr ""
+
 #: templates/_confirm_download_strings.html
 msgid "This link already carries the key — continue and the drop goes BZZT."
 msgstr ""
@@ -748,6 +752,10 @@ msgstr ""
 
 #: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."
+msgstr ""
+
+#: templates/_users_strings.html templates/users.html
+msgid "Revoke"
 msgstr ""
 
 #. the recipient's wrong passwords locked the drop; the lock can't be lifted.
@@ -1322,10 +1330,6 @@ msgstr ""
 
 #: templates/users.html
 msgid "Never"
-msgstr ""
-
-#: templates/users.html
-msgid "Revoke"
 msgstr ""
 
 #: templates/users.html

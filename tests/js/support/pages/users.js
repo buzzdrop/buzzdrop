@@ -4,7 +4,7 @@
 import { within } from '@testing-library/dom';
 import { expect } from 'vitest';
 import { initUsers } from '../../../../static/js/pages/users/users-page.js';
-import { inLanguage, openPage, waitUntil } from './page.js';
+import { answerConfirmation, inLanguage, openPage, waitUntil } from './page.js';
 
 export { screen } from './page.js';
 
@@ -34,8 +34,8 @@ export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
 
 /** The card's buttons, as each language names them. */
 const WORDS = {
-    en: { generate: 'Generate token', copy: 'Copy token', revoke: 'Revoke' },
-    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token', revoke: 'Unieważnij' },
+    en: { generate: 'Generate token', copy: 'Copy token', revoke: 'Revoke', cancel: 'Cancel' },
+    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token', revoke: 'Unieważnij', cancel: 'Anuluj' },
 };
 
 /**
@@ -111,22 +111,18 @@ export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
         },
         /**
          * Press Revoke on one of a user's tokens, newest first, and answer the
-         * confirmation.
+         * dialog: its Revoke or its Cancel.
          * @param {string} username
          * @param {number} index - the token's row in the user's table, from 0
          * @param {{ confirm: boolean }} answer
          * @returns {Promise<{ asked: string[], revoked: boolean }>}
          */
         async revokeToken(username, index, { confirm }) {
-            /** @type {string[]} */
-            const asked = [];
-            window.confirm = (message) => {
-                asked.push(String(message));
-                return confirm;
-            };
-            const before = page.formsSubmitted().length;
-            await user.click(card(username).getAllByRole('button', { name: WORDS[language].revoke })[index]);
-            return { asked, revoked: page.formsSubmitted().length > before };
+            const words = WORDS[language];
+            const { asked, sent } = await answerConfirmation(page,
+                () => user.click(card(username).getAllByRole('button', { name: words.revoke })[index]),
+                confirm ? words.revoke : words.cancel);
+            return { asked, revoked: sent };
         },
         /** @param {string} username */
         copyToken: (username) => user.click(card(username).getByRole('button', { name: WORDS[language].copy })),

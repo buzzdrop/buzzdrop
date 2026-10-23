@@ -2,6 +2,7 @@
 {% from '_page_strings.html' import page_strings %}
 {% from '_clipboard_feedback_strings.html' import strings as clipboard_feedback_strings with context %}
 {% from '_users_strings.html' import strings as users_strings with context %}
+{% from '_confirm_dialog.html' import confirm_dialog with context %}
 
 {% block content_width %}max-w-4xl{% endblock %}
 
@@ -116,6 +117,7 @@
         <p id="copy-status" class="sr-only" role="status" aria-label="{{ _('Clipboard') }}"></p>
     </section>
 </div>
+{{ confirm_dialog() }}
 {{ page_strings({'clipboard-feedback': clipboard_feedback_strings, 'users': users_strings}) }}
 <script type="module" src="{{ url_for('static', filename='js/pages/users/entry.js') }}" integrity="{{ sri_hash('js/pages/users/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}

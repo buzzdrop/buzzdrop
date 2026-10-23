@@ -7,6 +7,7 @@
 {% from '_shared_files_strings.html' import strings as shared_files_strings with context %}
 {% from '_dropzones_strings.html' import strings as dropzones_strings with context %}
 {% from '_progress_bar.html' import progress_bar %}
+{% from '_confirm_dialog.html' import confirm_dialog with context %}
 
 {# The composer and the drop list share one column. #}
 {% block content_width %}{{ 'max-w-5xl' if session.get('username') }}{% endblock %}
@@ -232,7 +233,7 @@
                                 <span class="btn-label-sizer" data-label="{{ clipboard_feedback_strings.failed }}" aria-hidden="true"></span>
                             </span>
                         </button>
-                        <form method="post" action="{{ url_for('delete_file', file_id=file.id) }}" class="inline-block" data-confirm-message="{{ _('Delete this drop?') }}">
+                        <form method="post" action="{{ url_for('delete_file', file_id=file.id) }}" class="inline-block" data-confirm-message="{{ _('Delete this drop?') }}" data-confirm-action="{{ _('Delete') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn-danger">{{ _('Delete') }}</button>
                         </form>
@@ -322,6 +323,7 @@
         'respondBase': url_for('respond_dropzone', dropzone_id='', _external=True),
     },
 } | tojson }}</script>
+{{ confirm_dialog() }}
 {{ page_strings({
     'clipboard-feedback': clipboard_feedback_strings,
     'password-gate': password_gate_strings,

@@ -4,7 +4,7 @@
 // so the result panel stays visible until the page is reloaded. Revoke asks
 // first, naming the token: a revoked token can't come back.
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
-import { confirmBeforeSubmit } from '../../features/confirm-submit/index.js';
+import { confirmBeforeSubmit, confirmDialog } from '../../features/confirm-submit/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { fullTime, parseTimestamp } from '../../lib/format.js';
 import { required, requiredClosest } from '../../lib/required.js';
@@ -117,11 +117,15 @@ export function initUsers(root, deps) {
         button.addEventListener('click', () => generateToken(button));
     });
 
+    const ask = confirmDialog(root);
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('.revoke-token-form')).forEach((form) => {
         const created = form.dataset.created ?? '';
-        confirmBeforeSubmit(form, strings.text('confirmRevoke', {
-            user: form.dataset.username ?? '', created: inViewerZone(created, created),
-        }));
+        confirmBeforeSubmit(form, ask, {
+            question: strings.text('confirmRevoke', {
+                user: form.dataset.username ?? '', created: inViewerZone(created, created),
+            }),
+            action: strings.text('revoke'),
+        });
     });
 
     /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.copy-token-btn')).forEach((button) => {

@@ -17,8 +17,9 @@ test('the uploader deletes a file and the link is dead', async ({ page, recipien
     const row = page.getByRole('article', { name: file.name });
     await expect(row).toHaveCount(1);
 
-    page.once('dialog', (dialog) => dialog.accept());
     await row.getByRole('button', { name: 'Delete' }).click();
+    const confirm = page.getByRole('alertdialog', { name: 'Delete this drop?' });
+    await confirm.getByRole('button', { name: 'Delete' }).click();
     await expect(flash(page)).toHaveText('Drop deleted');
     await expect(row).toHaveCount(0);
 

@@ -7,7 +7,7 @@
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { initComposer } from '../../features/composer/index.js';
-import { confirmBeforeSubmit } from '../../features/confirm-submit/index.js';
+import { confirmBeforeSubmit, confirmDialog } from '../../features/confirm-submit/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { initPasswordGate } from '../../features/password-gate/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
@@ -308,13 +308,17 @@ export function initIndex(root, deps) {
         });
     });
 
-    // Destructive forms carry their confirmation text in data-confirm-message.
+    // Destructive forms carry their question in data-confirm-message and the
+    // confirm button's label in data-confirm-action.
+    const ask = confirmDialog(root);
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('form[data-confirm-message]')).forEach((form) => {
-        confirmBeforeSubmit(form, form.dataset.confirmMessage ?? '');
+        confirmBeforeSubmit(form, ask, {
+            question: form.dataset.confirmMessage ?? '', action: form.dataset.confirmAction ?? '',
+        });
     });
 
     // --- Dropzones (ADR-0001) ---
-    initDropzones(root, deps, pageStrings.section('dropzones'));
+    initDropzones(root, deps, pageStrings.section('dropzones'), ask);
 
     // --- Shared Files Search & Pagination ---
     initSharedFilesList(root, { fetch: deps.fetch, now: deps.now, strings: pageStrings.section('shared-files') });
@@ -328,8 +332,9 @@ export function initIndex(root, deps) {
  * @param {Document} root
  * @param {Pick<IndexDeps, 'fetch' | 'navigate' | 'now' | 'dropzoneCrypto'>} deps
  * @param {import('../../lib/strings.js').Strings} strings
+ * @param {import('../../features/confirm-submit/index.js').Ask} ask - asks before a delete
  */
-function initDropzones(root, deps, strings) {
+function initDropzones(root, deps, strings, ask) {
     const lang = root.documentElement.lang || 'en';
     const island = required(root, '#dropzones-json', 'script');
     const createBtn = /** @type {HTMLButtonElement | null} */ (root.getElementById('dz-create-btn'));
@@ -436,7 +441,7 @@ function initDropzones(root, deps, strings) {
             del.className = 'btn-danger';
             del.textContent = strings.text('deleteZone');
             del.addEventListener('click', async () => {
-                if (!window.confirm(strings.text('confirmDelete'))) return;
+                if (!await ask({ question: strings.text('confirmDelete'), action: strings.text('deleteZone') })) return;
                 const resp = await deps.fetch(endpoints.actionBase + z.id + '/delete', {
                     method: 'POST', headers: { 'X-CSRF-Token': csrf() },
                 });

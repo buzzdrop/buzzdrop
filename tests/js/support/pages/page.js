@@ -6,7 +6,8 @@
 // text — never by id, class or selector.
 import { isInaccessible, within } from '@testing-library/dom';
 import { userEvent } from '@testing-library/user-event';
-import { vi } from 'vitest';
+import { computeAccessibleName } from 'dom-accessibility-api';
+import { expect, vi } from 'vitest';
 import * as shareCrypto from '../../../../static/js/lib/crypto.js';
 import { browserView, loadFixture } from '../dom-fixture.js';
 import { makeStubCrypto } from '../stub-crypto.js';
@@ -249,6 +250,26 @@ export const screen = /** @type {Screen} */ (new Proxy({}, {
  */
 export function waitUntil(check, timeout = 1000) {
     return vi.waitFor(check, { timeout, interval: 20 });
+}
+
+/**
+ * Do what opens the page's confirmation dialog (templates/_confirm_dialog.html)
+ * and answer it by pressing the button named `answer`: the action's label to
+ * confirm, Cancel's to decline. Returns the questions asked and whether a form
+ * was sent.
+ * @param {Page} page
+ * @param {() => Promise<void>} open
+ * @param {string} answer
+ * @returns {Promise<{ asked: string[], sent: boolean }>}
+ */
+export async function answerConfirmation(page, open, answer) {
+    const before = page.formsSubmitted().length;
+    await open();
+    const dialog = page.screen.getByRole('alertdialog');
+    const asked = [computeAccessibleName(dialog)];
+    await page.user.click(within(dialog).getByRole('button', { name: answer }));
+    await waitUntil(() => expect(page.screen.queryByRole('alertdialog')).toBeNull());
+    return { asked, sent: page.formsSubmitted().length > before };
 }
 
 /**
