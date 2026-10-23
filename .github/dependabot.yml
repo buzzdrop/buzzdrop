@@ -14,3 +14,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # One PR for all action bumps rather than one per action.
+    groups:
+      actions:
+        patterns: ["*"]
