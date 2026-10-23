@@ -396,18 +396,21 @@ def test_collect_page_renders_for_the_owner(client):
     assert _SALT in html
 
 
-@pytest.mark.parametrize('value', [None, 'https://example.com/explainer', ''])
-def test_collect_page_explainer_link_follows_the_setting(app, client, monkeypatch, value):
-    """The link to the Website's explainer reads EXPLAINER_URL (#360); an
-    empty value hides it."""
+@pytest.mark.parametrize('value, expected', [
+    (None, 'https://buzzdrop.io/en/how-it-works/'),
+    ('https://example.com', 'https://example.com/en/how-it-works/'),
+    ('', ''),
+])
+def test_collect_page_explainer_link_follows_the_setting(app, client, monkeypatch, value, expected):
+    """The link to the Website's explainer is built from WEBSITE_URL (#360,
+    #371); an empty value hides it."""
     if value is not None:
-        monkeypatch.setitem(app.config, 'EXPLAINER_URL', value)
+        monkeypatch.setitem(app.config, 'WEBSITE_URL', value)
     login_user(client)
     dropzone_id = _submitted_zone(client)
 
     html = client.get(url_for('collect_dropzone', dropzone_id=dropzone_id)).get_data(as_text=True)
 
-    expected = 'https://buzzdrop.io/how-it-works/' if value is None else value
     assert (f'href="{expected}"' in html) == bool(expected)
     assert ('How it works' in html) == bool(expected)
 

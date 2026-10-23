@@ -165,10 +165,11 @@ class Config:
     SOURCE_CODE_URL = (os.getenv('SOURCE_CODE_URL', '').strip()
                        or 'https://github.com/buzzdrop/buzzdrop')
 
-    # Where the explainer lives: the Website, not this app. Unlike
-    # SOURCE_CODE_URL, an empty value is meant: it hides every explainer
-    # link, so a deployment with no explainer renders none.
-    EXPLAINER_URL = os.getenv('EXPLAINER_URL', 'https://buzzdrop.io/how-it-works/').strip()
+    # The Website, where the explainer lives (not this app). Every link to
+    # it goes through website.website_url(), which adds the page's
+    # language prefix and slug. Unlike SOURCE_CODE_URL, an empty value is
+    # meant: it hides every link to the Website.
+    WEBSITE_URL = os.getenv('WEBSITE_URL', 'https://buzzdrop.io').strip()
 
     @classmethod
     def validate(cls):
@@ -255,6 +256,14 @@ class Config:
 
         if cls.EXPIRY_SWEEP_INTERVAL_SECONDS < 0:
             raise ValueError("EXPIRY_SWEEP_INTERVAL_SECONDS must be 0 or greater")
+
+        # Replaced by WEBSITE_URL (#371): a full page URL can't follow the
+        # visitor's language, so refuse it rather than ignore it silently.
+        if os.getenv('EXPLAINER_URL') is not None:
+            raise ValueError(
+                "EXPLAINER_URL was replaced by WEBSITE_URL (the Website's base URL, "
+                "e.g. https://buzzdrop.io; empty hides its links)"
+            )
 
     @classmethod
     def get_database_url(cls) -> str:

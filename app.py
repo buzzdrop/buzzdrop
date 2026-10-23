@@ -55,6 +55,7 @@ from utils import (
 from models import FileRepository
 import i18n
 from i18n import gettext as _, pgettext
+import website
 
 app = Flask(__name__)
 
@@ -76,6 +77,7 @@ config_class.validate()
 
 app.secret_key = app.config['SECRET_KEY']
 i18n.init_app(app)
+website.init_app(app)
 # English for API clients; translated where it is flashed.
 RATE_LIMIT_EXCEEDED_MESSAGE = i18n.gettext_noop('Too many requests. Please try again later.')
 

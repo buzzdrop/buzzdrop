@@ -779,6 +779,14 @@ msgstr ""
 msgid "Incorrect password or corrupted drop. Ask the sender to send it again."
 msgstr ""
 
+#: templates/_website_links.html
+msgid "How it works (opens in new tab)"
+msgstr ""
+
+#: templates/_website_links.html
+msgid "How it works"
+msgstr ""
+
 #: templates/base.html
 msgid ""
 "Buzzdrop: secure, one-time file sharing. Encrypt files or notes, send a "
@@ -807,16 +815,6 @@ msgstr ""
 
 #: templates/base.html
 msgid "Each drop opens once, then it's gone."
-msgstr ""
-
-#: templates/base.html templates/collect.html templates/confirm_download.html
-#: templates/view.html
-msgid "How it works (opens in new tab)"
-msgstr ""
-
-#: templates/base.html templates/collect.html templates/confirm_download.html
-#: templates/view.html
-msgid "How it works"
 msgstr ""
 
 #: templates/base.html

@@ -1,6 +1,6 @@
 # How Buzzdrop works
 
-The user-facing account of what happens when you share a file or a note with Buzzdrop: what runs where, what crosses the wire, what the server can and can't see, and why. This is the technical account, and the written source of truth for the Website's explainer, the reader-level page that every "How it works" link in the app points to (`EXPLAINER_URL`). Every claim that page makes lives here first.
+The user-facing account of what happens when you share a file or a note with Buzzdrop: what runs where, what crosses the wire, what the server can and can't see, and why. This is the technical account, and the written source of truth for the Website's explainer, the reader-level page that every "How it works" link in the app points to (`WEBSITE_URL`). Every claim that page makes lives here first.
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
