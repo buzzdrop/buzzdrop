@@ -41,9 +41,10 @@
     <p class="mt-6 text-center text-xs text-slate-600">
         {% trans %}Accounts are provisioned at deploy time through environment variables.{% endtrans %}
     </p>
-    {% if website_url('how_it_works') %}
+    {% set how_it_works_url = website_url('how_it_works') %}
+    {% if how_it_works_url %}
     <p class="mt-3 text-center text-sm">
-        <a href="{{ website_url('how_it_works') }}" class="more-link">{{ _('See how Buzzdrop works') }}<span aria-hidden="true"> &rarr;</span></a>
+        <a href="{{ how_it_works_url }}" class="more-link">{{ _('See how Buzzdrop works') }}<span aria-hidden="true"> &rarr;</span></a>
     </p>
     {% endif %}
 </div>

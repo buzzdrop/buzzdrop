@@ -48,6 +48,15 @@ def test_every_explainer_link_follows_the_page_language(client, bound_share, fil
         assert DEFAULT not in html, name
 
 
+def test_the_language_menu_choice_beats_the_browser_language(client, bound_share, file_record):
+    client.set_cookie('lang', 'pl')
+
+    for name, response in _pages(client, bound_share, file_record, **{'Accept-Language': 'en'}).items():
+        html = response.get_data(as_text=True)
+        assert f'href="{DEFAULT_PL}"' in html, name
+        assert DEFAULT not in html, name
+
+
 def test_no_explainer_link_when_the_setting_is_empty(app, client, bound_share, file_record, monkeypatch):
     monkeypatch.setitem(app.config, 'WEBSITE_URL', '')
 

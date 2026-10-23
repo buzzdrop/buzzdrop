@@ -1,0 +1,14 @@
+{# The "How it works" link to the Website (#371), in the page's language. It
+   leaves the app, so it opens a new tab and the reader keeps their place.
+   Renders nothing when WEBSITE_URL is empty. Called from a {% call(link) %}
+   block, it hands the link to the caller to place among its own text, which
+   is then hidden with it. #}
+{% macro how_it_works_link() -%}
+{%- set url = website_url('how_it_works') -%}
+{%- if url -%}
+{%- set link -%}
+<a href="{{ url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ _('How it works (opens in new tab)') }}" class="footer-link">{{ _('How it works') }}</a>
+{%- endset -%}
+{{ caller(link) if caller else link }}
+{%- endif -%}
+{%- endmacro %}
