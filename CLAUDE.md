@@ -38,7 +38,7 @@ CI fails while the DOM fixtures, the protocol contract, the catalogs or the comp
 
 Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their own when you work in that folder.
 
-- **`app.py`** holds the routes, security headers and the expiry sweep. It is helped by `auth.py` (users, login decorators), `tokens.py` (API tokens), `storage.py` (local/S3 blobs, `STORAGE_BACKEND`), `i18n.py` (language selection; translate through it, not `flask_babel`), `timestamps.py`, `config.py`, `models.py` (`FileRepository`, the facade over `db/`'s `FileStore`) and `utils.py` (display timestamps, upload checks, client IP, orphan cleanup). `migrate_db.py` is a one-off TinyDB → SQLite migration.
+- **`app.py`** holds the routes, security headers and the expiry sweep. It is helped by `auth.py` (users, login decorators), `tokens.py` (API tokens), `storage.py` (local/S3 blobs, `STORAGE_BACKEND`), `i18n.py` (language selection; translate through it, not `flask_babel`), `website.py` (links to the Website in the page's language), `timestamps.py`, `config.py`, `models.py` (`FileRepository`, the facade over `db/`'s `FileStore`) and `utils.py` (display timestamps, upload checks, client IP, orphan cleanup). `migrate_db.py` is a one-off TinyDB → SQLite migration.
 - **Share protocol**, i.e. the crypto, `/upload*`, `/view`, `/release`, `/download`, `/report_decryption`, expiry and the file lifecycle → `docs/dev/share-protocol.md`. The design rationale is in `docs/true-one-time.md` §6.
 - **Database** (`files`, `api_tokens`, `file_keys`, adding a backend) → `db/CLAUDE.md`.
 - **User-facing text**, i.e. any template or flash text, JS-written text, a JSON error the UI shows, or a new language → `docs/dev/i18n.md`.
@@ -56,7 +56,7 @@ Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their
 - **`BKV3` and `BKD1` are the only share formats.** BKV3 envelopes drops, BKD1 envelopes dropzone submissions (`docs/dev/share-protocol.md`). Legacy formats are rejected — a deliberate pre-production break, with no backward compatibility.
 - **JSON responses stay English.** An error the web UI may show carries a stable `code` that the browser maps to its own text.
 - **Protocol contract — keep in step.** When a response of `/upload/begin`, `/upload`, `/download`, `/release`, `/report_decryption` or the dropzone routes (`/api/dropzones*`, `/dropzone/<id>/submit`, `/dropzones/<id>/release|submission|report|delete`) changes (its status, its body or the condition that triggers it), the JS protocol fake must follow. The steps are in `tests/CLAUDE.md` §Protocol contract.
-- **Explainer — keep in step.** `docs/how-it-works.md` is the technical account of the share flow. The reader-level explainer is a page on the Website (`EXPLAINER_URL`), written from it; the App serves no explainer page.
+- **Explainer — keep in step.** `docs/how-it-works.md` is the technical account of the share flow. The reader-level explainer is a page on the Website (`WEBSITE_URL`), written from it; the App serves no explainer page.
   - A change to the upload/view/release/download/expiry flow, the crypto, what is stored or how long it is kept must update the doc in the same PR, and say whether a claim the Website's explainer makes has changed, in which case the PR links a `buzzdrop/website` issue. Otherwise the PR says the flow is unaffected.
   - `tests/unit/test_how_it_works_fingerprint.py` fails until someone has re-read the doc and pasted the new hash.
   - Details: `docs/dev/share-protocol.md` §Explainer.

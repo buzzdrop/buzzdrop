@@ -110,6 +110,6 @@ The reversed flow (`docs/adr/0001-dropzone-reverse-flow.md`): a requester create
 
 ## Explainer
 
-The App serves no explainer page: every "How it works" link reads `EXPLAINER_URL` (`docs/dev/configuration.md`), by default the Website's explainer. `docs/how-it-works.md` is the technical account of the flow and the source of truth for that page: every claim the Website's explainer makes (what the server sees, what is deleted when, what is kept) is in the doc first. The page lives in another, private repository, so a change that makes one of its claims untrue gets a `buzzdrop/website` issue linked from the PR.
+The App serves no explainer page: every "How it works" link is built from `WEBSITE_URL` (`docs/dev/configuration.md`), by default the Website's explainer. `docs/how-it-works.md` is the technical account of the flow and the source of truth for that page: every claim the Website's explainer makes (what the server sees, what is deleted when, what is kept) is in the doc first. The page lives in another, private repository, so a change that makes one of its claims untrue gets a `buzzdrop/website` issue linked from the PR.
 
 `tests/unit/test_how_it_works_fingerprint.py` hashes the code that defines the flow. What it covers is listed in the doc's "Keeping this true" note and in the test's `WHOLE_FILES`, `FUNCTIONS`, `QUOTED_LINES` and `MODULE_ASSIGNMENTS` tables. The doc carries that hash, and the test's failure message prints the new one.

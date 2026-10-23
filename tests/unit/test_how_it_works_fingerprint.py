@@ -1,7 +1,7 @@
 """
 Keeps docs/how-it-works.md, the technical account of the share flow, in step
 with the code that defines it (#245). The reader-level explainer is on the
-Website (EXPLAINER_URL), which is built from this doc (#360).
+Website (WEBSITE_URL), which is built from this doc (#360).
 
 The doc carries a fingerprint: a hash of the recorded protocol contract, the
 browser crypto (drops and dropzone submissions), the CLI's crypto, upload and

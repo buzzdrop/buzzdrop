@@ -26,8 +26,8 @@
         <a href="{{ url_for('index') }}" class="btn-primary mt-7 w-full">
             <span class="relative z-10">{{ _('Go to Buzzdrop') }}</span>
         </a>
-        {% elif config.EXPLAINER_URL %}
-        <a href="{{ config.EXPLAINER_URL }}" class="btn-primary mt-7 w-full">
+        {% elif website_url('how_it_works') %}
+        <a href="{{ website_url('how_it_works') }}" class="btn-primary mt-7 w-full">
             <span class="relative z-10">{{ _('How Buzzdrop works') }}</span>
         </a>
         {% endif %}
