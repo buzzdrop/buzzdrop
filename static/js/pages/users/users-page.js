@@ -1,8 +1,10 @@
 // --- Users page logic ---
 // "Generate token" buttons on /users POST /api/token and render the raw token
 // inline. The token is returned exactly once and is never stored server-side,
-// so the result panel stays visible until the page is reloaded.
+// so the result panel stays visible until the page is reloaded. Revoke asks
+// first, naming the token: a revoked token can't come back.
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
+import { confirmBeforeSubmit } from '../../features/confirm-submit/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { fullTime, parseTimestamp } from '../../lib/format.js';
 import { required, requiredClosest } from '../../lib/required.js';
@@ -113,6 +115,13 @@ export function initUsers(root, deps) {
 
     /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.generate-token-btn')).forEach((button) => {
         button.addEventListener('click', () => generateToken(button));
+    });
+
+    /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('.revoke-token-form')).forEach((form) => {
+        const created = form.dataset.created ?? '';
+        confirmBeforeSubmit(form, () => strings.text('confirmRevoke', {
+            user: form.dataset.username ?? '', created: inViewerZone(created, created),
+        }));
     });
 
     /** @type {NodeListOf<HTMLButtonElement>} */ (root.querySelectorAll('.copy-token-btn')).forEach((button) => {

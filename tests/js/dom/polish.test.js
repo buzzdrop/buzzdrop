@@ -387,6 +387,14 @@ describe('in Polish', () => {
         expect(screen.getByRole('status', { name: 'Schowek' })).toHaveTextContent('Skopiowano token do schowka.');
     });
 
+    it('asks in Polish before revoking a token', async () => {
+        const users = openUsersPage({ language: 'pl' });
+
+        expect((await users.revokeToken('testuser', 0, { confirm: false })).asked).toEqual([
+            'Unieważnić token użytkownika testuser utworzony 3 sty 2025, 06:00 GMT-5? Wszystko, co z\u00a0niego korzysta, przestanie działać.',
+        ]);
+    });
+
     it.each([
         ['forbidden', 'Token dla innego użytkownika może wygenerować tylko administrator.'],
         ['unexplained', 'Nie udało się wygenerować tokenu. Spróbuj ponownie.'],

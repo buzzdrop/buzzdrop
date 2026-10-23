@@ -7,6 +7,7 @@
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { initComposer } from '../../features/composer/index.js';
+import { confirmBeforeSubmit } from '../../features/confirm-submit/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { initPasswordGate } from '../../features/password-gate/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
@@ -307,14 +308,9 @@ export function initIndex(root, deps) {
         });
     });
 
-    // Destructive forms carry their confirmation text in data-confirm-message —
-    // a submit listener replaces the old inline onclick, which CSP forbids.
+    // Destructive forms carry their confirmation text in data-confirm-message.
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('form[data-confirm-message]')).forEach((form) => {
-        form.addEventListener('submit', (e) => {
-            if (!window.confirm(form.dataset.confirmMessage)) {
-                e.preventDefault();
-            }
-        });
+        confirmBeforeSubmit(form, () => form.dataset.confirmMessage ?? '');
     });
 
     // --- Dropzones (ADR-0001) ---

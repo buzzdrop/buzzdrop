@@ -18,6 +18,7 @@ const JS_ROOT = new URL('../../static/js/', import.meta.url);
 const CONVERTED_MODULES = [
     'features/clipboard-feedback/clipboard-feedback.js',
     'features/composer/composer.js',
+    'features/confirm-submit/confirm-submit.js',
     'features/password-gate/password-gate.js',
     'features/share-protocol/share-protocol.js',
     'features/shared-files/list.js',

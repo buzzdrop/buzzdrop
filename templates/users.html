@@ -97,7 +97,7 @@
                                 <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.last_used_at, _('Never')) }}</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.expires_at, _('Never')) }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="{{ url_for('revoke_api_token_route', token_id=token.id) }}" class="inline-block">
+                                    <form method="post" action="{{ url_for('revoke_api_token_route', token_id=token.id) }}" class="revoke-token-form inline-block" data-username="{{ username }}" data-created="{{ token.created_at|timestamp_iso or '' }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">{{ _('Revoke') }}</button>
                                     </form>

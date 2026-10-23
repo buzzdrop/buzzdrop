@@ -762,6 +762,18 @@ msgstr[2] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłek"
 msgid "Expires %(time)s. Reload to see it in the list below."
 msgstr "Wygasa %(time)s. Odśwież stronę, by zobaczyć go na liście poniżej."
 
+#. asked before an API token is revoked; %(user)s is whose token it is,
+#. %(created)s when it was created, in the viewer's zone, e.g. "Dec 31, 2098,
+#. 19:00 CET".
+#: templates/_users_strings.html
+#, python-format
+msgid ""
+"Revoke the %(user)s token created %(created)s? Anything that uses it "
+"stops working."
+msgstr ""
+"Unieważnić token użytkownika %(user)s utworzony %(created)s? Wszystko, co"
+" z niego korzysta, przestanie działać."
+
 #: templates/_users_strings.html
 msgid "Only an admin can generate a token for another user."
 msgstr "Token dla innego użytkownika może wygenerować tylko administrator."

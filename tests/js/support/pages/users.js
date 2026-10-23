@@ -34,8 +34,8 @@ export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
 
 /** The card's buttons, as each language names them. */
 const WORDS = {
-    en: { generate: 'Generate token', copy: 'Copy token' },
-    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token' },
+    en: { generate: 'Generate token', copy: 'Copy token', revoke: 'Revoke' },
+    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token', revoke: 'Unieważnij' },
 };
 
 /**
@@ -108,6 +108,25 @@ export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
         async generateToken(username) {
             await user.click(generateButton(username));
             await finishTokenRequest(username);
+        },
+        /**
+         * Press Revoke on one of a user's tokens, newest first, and answer the
+         * confirmation.
+         * @param {string} username
+         * @param {number} index - the token's row in the user's table, from 0
+         * @param {{ confirm: boolean }} answer
+         * @returns {Promise<{ asked: string[], revoked: boolean }>}
+         */
+        async revokeToken(username, index, { confirm }) {
+            /** @type {string[]} */
+            const asked = [];
+            window.confirm = (message) => {
+                asked.push(String(message));
+                return confirm;
+            };
+            const before = page.formsSubmitted().length;
+            await user.click(card(username).getAllByRole('button', { name: WORDS[language].revoke })[index]);
+            return { asked, revoked: page.formsSubmitted().length > before };
         },
         /** @param {string} username */
         copyToken: (username) => user.click(card(username).getByRole('button', { name: WORDS[language].copy })),

@@ -728,6 +728,16 @@ msgstr[1] ""
 msgid "Expires %(time)s. Reload to see it in the list below."
 msgstr ""
 
+#. asked before an API token is revoked; %(user)s is whose token it is,
+#. %(created)s when it was created, in the viewer's zone, e.g. "Dec 31, 2098,
+#. 19:00 CET".
+#: templates/_users_strings.html
+#, python-format
+msgid ""
+"Revoke the %(user)s token created %(created)s? Anything that uses it "
+"stops working."
+msgstr ""
+
 #: templates/_users_strings.html
 msgid "Only an admin can generate a token for another user."
 msgstr ""
