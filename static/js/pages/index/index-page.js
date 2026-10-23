@@ -310,7 +310,7 @@ export function initIndex(root, deps) {
 
     // Destructive forms carry their confirmation text in data-confirm-message.
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('form[data-confirm-message]')).forEach((form) => {
-        confirmBeforeSubmit(form, () => form.dataset.confirmMessage ?? '');
+        confirmBeforeSubmit(form, form.dataset.confirmMessage ?? '');
     });
 
     // --- Dropzones (ADR-0001) ---

@@ -119,7 +119,7 @@ export function initUsers(root, deps) {
 
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('.revoke-token-form')).forEach((form) => {
         const created = form.dataset.created ?? '';
-        confirmBeforeSubmit(form, () => strings.text('confirmRevoke', {
+        confirmBeforeSubmit(form, strings.text('confirmRevoke', {
             user: form.dataset.username ?? '', created: inViewerZone(created, created),
         }));
     });
