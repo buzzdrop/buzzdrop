@@ -247,7 +247,7 @@
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2025-01-06T08:30:00+00:00" translate="no">2025-01-06 08:30:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="/api/tokens/2/revoke" class="inline-block">
+                                    <form method="post" action="/api/tokens/2/revoke" class="revoke-token-form inline-block" data-username="testuser" data-created="2025-01-03T11:00:00+00:00">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Revoke</button>
                                     </form>
@@ -259,7 +259,7 @@
                                 <td class="px-4 py-3 tabular-nums text-slate-500">Never</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="/api/tokens/1/revoke" class="inline-block">
+                                    <form method="post" action="/api/tokens/1/revoke" class="revoke-token-form inline-block" data-username="testuser" data-created="2025-01-01T11:00:00+00:00">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Revoke</button>
                                     </form>
@@ -342,7 +342,16 @@
         <p id="copy-status" class="sr-only" role="status" aria-label="Clipboard"></p>
     </section>
 </div>
-<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "users": {"expires": "Expires %(time)s. Reload to see it in the list below.", "failed": "Could not generate a token. Please try again.", "refusals": {"admin_required": "Only an admin can generate a token for another user.", "csrf_failed": "Your session has expired. Reload the page and try again.", "rate_limited": "Too many requests. Please try again later.", "unknown_user": "That user no longer exists."}}}</script>
+
+<dialog id="confirm-dialog" class="confirm-dialog" role="alertdialog" aria-labelledby="confirm-dialog-question">
+    <p id="confirm-dialog-question" class="confirm-dialog-question text-sm leading-6 text-slate-200"></p>
+    <div class="mt-6 flex flex-wrap justify-end gap-3">
+        <button type="button" class="confirm-dialog-cancel btn-secondary px-4 py-2" autofocus>Cancel</button>
+        <button type="button" class="confirm-dialog-action btn-danger"></button>
+    </div>
+</dialog>
+
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "users": {"confirmRevoke": "Revoke the %(user)s token created %(created)s? Anything that uses it stops working.", "expires": "Expires %(time)s. Reload to see it in the list below.", "failed": "Could not generate a token. Please try again.", "refusals": {"admin_required": "Only an admin can generate a token for another user.", "csrf_failed": "Your session has expired. Reload the page and try again.", "rate_limited": "Too many requests. Please try again later.", "unknown_user": "That user no longer exists."}, "revoke": "Revoke"}}</script>
 
         </main>
 

@@ -465,6 +465,10 @@ msgstr ""
 msgid "The drop may have been sent, but the server's reply could not be read."
 msgstr ""
 
+#: templates/_confirm_dialog.html
+msgid "Cancel"
+msgstr ""
+
 #: templates/_confirm_download_strings.html
 msgid "This link already carries the key — continue and the drop goes BZZT."
 msgstr ""
@@ -728,6 +732,16 @@ msgstr[1] ""
 msgid "Expires %(time)s. Reload to see it in the list below."
 msgstr ""
 
+#. asked before an API token is revoked; %(user)s is whose token it is,
+#. %(created)s when it was created, in the viewer's zone, e.g. "Dec 31, 2098,
+#. 19:00 CET".
+#: templates/_users_strings.html
+#, python-format
+msgid ""
+"Revoke the %(user)s token created %(created)s? Anything that uses it "
+"stops working."
+msgstr ""
+
 #: templates/_users_strings.html
 msgid "Only an admin can generate a token for another user."
 msgstr ""
@@ -738,6 +752,10 @@ msgstr ""
 
 #: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."
+msgstr ""
+
+#: templates/_users_strings.html templates/users.html
+msgid "Revoke"
 msgstr ""
 
 #. the recipient's wrong passwords locked the drop; the lock can't be lifted.
@@ -1312,10 +1330,6 @@ msgstr ""
 
 #: templates/users.html
 msgid "Never"
-msgstr ""
-
-#: templates/users.html
-msgid "Revoke"
 msgstr ""
 
 #: templates/users.html

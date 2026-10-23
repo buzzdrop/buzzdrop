@@ -379,6 +379,16 @@
     @apply inline-flex items-center justify-center gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-300 transition duration-200 hover:border-rose-500/50 hover:bg-rose-500/20 hover:text-rose-200;
   }
 
+  /* ------------------------------------------------------ Confirm dialog */
+
+  /* templates/_confirm_dialog.html, opened with showModal(). */
+  .confirm-dialog {
+    @apply m-auto w-[calc(100%-2rem)] max-w-md rounded-3xl border border-white/[0.07] bg-hive-900 p-6 shadow-buzz;
+  }
+  .confirm-dialog::backdrop {
+    @apply bg-hive-950/70 backdrop-blur-sm;
+  }
+
   /* ----------------------------------------------------------------- Tabs */
 
   /* .share-tab stays put; main.js toggles -active on top of it. */

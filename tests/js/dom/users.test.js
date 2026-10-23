@@ -97,4 +97,24 @@ describe('users page', () => {
         expect(copy).toHaveTextContent('Copy');
         expect(clipboardStatus).toBeEmptyDOMElement();
     });
+
+    describe('revoke confirmation', () => {
+        it('declining the confirmation keeps the token', async () => {
+            const users = openUsersPage();
+
+            expect(await users.revokeToken('testuser', 0, { confirm: false })).toEqual({
+                question: 'Revoke the testuser token created Jan 3, 2025, 06:00 EST? Anything that uses it stops working.',
+                revoked: false,
+            });
+        });
+
+        it('accepting the confirmation revokes the token', async () => {
+            const users = openUsersPage();
+
+            expect(await users.revokeToken('testuser', 1, { confirm: true })).toEqual({
+                question: 'Revoke the testuser token created Jan 1, 2025, 06:00 EST? Anything that uses it stops working.',
+                revoked: true,
+            });
+        });
+    });
 });

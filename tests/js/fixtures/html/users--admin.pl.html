@@ -247,7 +247,7 @@
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2025-01-06T08:30:00+00:00" translate="no">2025-01-06 08:30:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="/api/tokens/2/revoke" class="inline-block">
+                                    <form method="post" action="/api/tokens/2/revoke" class="revoke-token-form inline-block" data-username="testuser" data-created="2025-01-03T11:00:00+00:00">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Unieważnij</button>
                                     </form>
@@ -259,7 +259,7 @@
                                 <td class="px-4 py-3 tabular-nums text-slate-500">Nigdy</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="/api/tokens/1/revoke" class="inline-block">
+                                    <form method="post" action="/api/tokens/1/revoke" class="revoke-token-form inline-block" data-username="testuser" data-created="2025-01-01T11:00:00+00:00">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Unieważnij</button>
                                     </form>
@@ -342,7 +342,16 @@
         <p id="copy-status" class="sr-only" role="status" aria-label="Schowek"></p>
     </section>
 </div>
-<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Skopiowano do schowka link do przesy\u0142ki.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku do przesy\u0142ki."}, "link": {"copied": "Skopiowano link do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku."}, "oneClickLink": {"copied": "Skopiowano link z\u00a0has\u0142em do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku z\u00a0has\u0142em."}, "password": {"copied": "Skopiowano has\u0142o do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano has\u0142a."}, "text": {"copied": "Skopiowano tekst do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tekstu."}, "token": {"copied": "Skopiowano token do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tokenu."}}, "copied": "Skopiowano!", "failed": "B\u0142\u0105d"}, "users": {"expires": "Wygasa %(time)s. Od\u015bwie\u017c stron\u0119, by zobaczy\u0107 go na li\u015bcie poni\u017cej.", "failed": "Nie uda\u0142o si\u0119 wygenerowa\u0107 tokenu. Spr\u00f3buj ponownie.", "refusals": {"admin_required": "Token dla innego u\u017cytkownika mo\u017ce wygenerowa\u0107 tylko administrator.", "csrf_failed": "Sesja wygas\u0142a. Od\u015bwie\u017c stron\u0119 i\u00a0spr\u00f3buj ponownie.", "rate_limited": "Zbyt wiele \u017c\u0105da\u0144. Spr\u00f3buj ponownie p\u00f3\u017aniej.", "unknown_user": "Ten u\u017cytkownik ju\u017c nie istnieje."}}}</script>
+
+<dialog id="confirm-dialog" class="confirm-dialog" role="alertdialog" aria-labelledby="confirm-dialog-question">
+    <p id="confirm-dialog-question" class="confirm-dialog-question text-sm leading-6 text-slate-200"></p>
+    <div class="mt-6 flex flex-wrap justify-end gap-3">
+        <button type="button" class="confirm-dialog-cancel btn-secondary px-4 py-2" autofocus>Anuluj</button>
+        <button type="button" class="confirm-dialog-action btn-danger"></button>
+    </div>
+</dialog>
+
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Skopiowano do schowka link do przesy\u0142ki.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku do przesy\u0142ki."}, "link": {"copied": "Skopiowano link do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku."}, "oneClickLink": {"copied": "Skopiowano link z\u00a0has\u0142em do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku z\u00a0has\u0142em."}, "password": {"copied": "Skopiowano has\u0142o do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano has\u0142a."}, "text": {"copied": "Skopiowano tekst do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tekstu."}, "token": {"copied": "Skopiowano token do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tokenu."}}, "copied": "Skopiowano!", "failed": "B\u0142\u0105d"}, "users": {"confirmRevoke": "Uniewa\u017cni\u0107 token u\u017cytkownika %(user)s utworzony %(created)s? Wszystko, co z\u00a0niego korzysta, przestanie dzia\u0142a\u0107.", "expires": "Wygasa %(time)s. Od\u015bwie\u017c stron\u0119, by zobaczy\u0107 go na li\u015bcie poni\u017cej.", "failed": "Nie uda\u0142o si\u0119 wygenerowa\u0107 tokenu. Spr\u00f3buj ponownie.", "refusals": {"admin_required": "Token dla innego u\u017cytkownika mo\u017ce wygenerowa\u0107 tylko administrator.", "csrf_failed": "Sesja wygas\u0142a. Od\u015bwie\u017c stron\u0119 i\u00a0spr\u00f3buj ponownie.", "rate_limited": "Zbyt wiele \u017c\u0105da\u0144. Spr\u00f3buj ponownie p\u00f3\u017aniej.", "unknown_user": "Ten u\u017cytkownik ju\u017c nie istnieje."}, "revoke": "Uniewa\u017cnij"}}</script>
 
         </main>
 

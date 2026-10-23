@@ -485,6 +485,10 @@ msgstr ""
 "Przesyłka mogła zostać wysłana, ale nie udało się odczytać odpowiedzi "
 "serwera."
 
+#: templates/_confirm_dialog.html
+msgid "Cancel"
+msgstr "Anuluj"
+
 #: templates/_confirm_download_strings.html
 msgid "This link already carries the key — continue and the drop goes BZZT."
 msgstr "Ten link zawiera już hasło – przejdź dalej, a przesyłka zrobi BZZT."
@@ -762,6 +766,18 @@ msgstr[2] "Pokazano %(first)s–%(last)s, łącznie %(count)s przesyłek"
 msgid "Expires %(time)s. Reload to see it in the list below."
 msgstr "Wygasa %(time)s. Odśwież stronę, by zobaczyć go na liście poniżej."
 
+#. asked before an API token is revoked; %(user)s is whose token it is,
+#. %(created)s when it was created, in the viewer's zone, e.g. "Dec 31, 2098,
+#. 19:00 CET".
+#: templates/_users_strings.html
+#, python-format
+msgid ""
+"Revoke the %(user)s token created %(created)s? Anything that uses it "
+"stops working."
+msgstr ""
+"Unieważnić token użytkownika %(user)s utworzony %(created)s? Wszystko, co"
+" z niego korzysta, przestanie działać."
+
 #: templates/_users_strings.html
 msgid "Only an admin can generate a token for another user."
 msgstr "Token dla innego użytkownika może wygenerować tylko administrator."
@@ -773,6 +789,10 @@ msgstr "Ten użytkownik już nie istnieje."
 #: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."
 msgstr "Nie udało się wygenerować tokenu. Spróbuj ponownie."
+
+#: templates/_users_strings.html templates/users.html
+msgid "Revoke"
+msgstr "Unieważnij"
 
 #. the recipient's wrong passwords locked the drop; the lock can't be lifted.
 #: templates/_view_strings.html
@@ -1390,10 +1410,6 @@ msgstr "Akcje"
 #: templates/users.html
 msgid "Never"
 msgstr "Nigdy"
-
-#: templates/users.html
-msgid "Revoke"
-msgstr "Unieważnij"
 
 #: templates/users.html
 msgid "No active API tokens."

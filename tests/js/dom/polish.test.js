@@ -178,7 +178,14 @@ describe('in Polish', () => {
         expect(screen.getByRole('combobox', { name: 'Sortuj według' })).toHaveDisplayValue('Najnowsze wysłane');
 
         expect(await upload.deleteShare('report.pdf', { confirm: false }))
-            .toEqual({ asked: ['Usunąć tę przesyłkę?'], deleted: false });
+            .toEqual({ question: 'Usunąć tę przesyłkę?', deleted: false });
+    });
+
+    it('asks in Polish before deleting a dropzone', async () => {
+        const upload = openUploadPage({ account: 'with-shares', language: 'pl' });
+
+        expect(await upload.deleteDropzone('Tax documents', { confirm: false }))
+            .toEqual({ question: 'Usunąć tę skrytkę?', deleted: false });
     });
 
     it('writes the drop list\'s times in Polish', () => {
@@ -385,6 +392,14 @@ describe('in Polish', () => {
         await users.copyToken('testuser');
         await vi.waitFor(() => expect(card.getByRole('button', { name: 'Skopiuj token' })).toHaveTextContent('Skopiowano!'));
         expect(screen.getByRole('status', { name: 'Schowek' })).toHaveTextContent('Skopiowano token do schowka.');
+    });
+
+    it('asks in Polish before revoking a token', async () => {
+        const users = openUsersPage({ language: 'pl' });
+
+        expect((await users.revokeToken('testuser', 0, { confirm: false })).question).toBe(
+            'Unieważnić token użytkownika testuser utworzony 3 sty 2025, 06:00 GMT-5? Wszystko, co z\u00a0niego korzysta, przestanie działać.',
+        );
     });
 
     it.each([

@@ -29,6 +29,22 @@ export function requiredClosest(element, selector, tag) {
 }
 
 /**
+ * The `data-*` attribute `key` (as `dataset` names it, e.g. `confirmMessage`)
+ * that the template renders on `element`.
+ * @param {HTMLElement} element
+ * @param {string} key
+ * @returns {string}
+ */
+export function requiredData(element, key) {
+    const value = element.dataset[key];
+    if (value === undefined) {
+        const attribute = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+        throw new Error(`Expected data-${attribute} on <${element.localName}> in the page`);
+    }
+    return value;
+}
+
+/**
  * The window a page's document belongs to.
  * @param {Document} document
  * @returns {Window & typeof globalThis}

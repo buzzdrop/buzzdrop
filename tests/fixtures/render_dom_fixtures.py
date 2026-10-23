@@ -50,6 +50,24 @@ def _file(file_id, name, **fields):
     return record
 
 
+# testuser's one dropzone, awaiting its submission, so the index page renders
+# a zone row with its Delete (#320). The secrets are placeholders: no
+# scenario collects it.
+LISTED_DROPZONE = {
+    'id': '00000000-0000-4000-8000-0000000000d1',
+    'salt': '11' * 16,
+    'ws': '22' * 48,
+    'v': '33' * 32,
+    'sv': '44' * 32,
+    'attempts': 0,
+    'expiry_at': None,
+    'created_by': 'testuser',
+    'created_at': '2025-01-05T11:00:00.000000+00:00',
+    'status': 'active',
+    'memo': 'Tax documents',
+}
+
+
 # One row per status the index list renders, each uploaded on its own day
 # (newest first here, as the list sorts them), plus a file shared with
 # testuser by another account.
@@ -148,6 +166,8 @@ def render_all():
     fixtures.append(_render('index--empty.pl', _client('testuser'), 'GET', '/', language='pl'))
 
     _reset(LISTED_FILES)
+    with flask_app.app_context():
+        get_backend().files.create_dropzone(dict(LISTED_DROPZONE))
     fixtures.append(_render('index--files', _client('testuser'), 'GET', '/'))
     fixtures.append(_render('index--files.pl', _client('testuser'), 'GET', '/', language='pl'))
 

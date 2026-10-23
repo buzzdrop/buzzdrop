@@ -7,6 +7,7 @@
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { initComposer } from '../../features/composer/index.js';
+import { confirmBeforeSubmit, confirmDialog } from '../../features/confirm-dialog/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { initPasswordGate } from '../../features/password-gate/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
@@ -18,7 +19,7 @@ import * as dropzoneCrypto from '../../lib/dropzone-crypto.js';
 import { formatNumber, fullTime, parseTimestamp, relativeTime, timeZoneName } from '../../lib/format.js';
 import { bytesToHex } from '../../lib/hex.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
-import { required, requiredWindow } from '../../lib/required.js';
+import { required, requiredData, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
 
 /**
@@ -307,18 +308,17 @@ export function initIndex(root, deps) {
         });
     });
 
-    // Destructive forms carry their confirmation text in data-confirm-message —
-    // a submit listener replaces the old inline onclick, which CSP forbids.
+    // Destructive forms carry their question in data-confirm-message and the
+    // confirm button's label in data-confirm-action.
+    const ask = confirmDialog(root);
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('form[data-confirm-message]')).forEach((form) => {
-        form.addEventListener('submit', (e) => {
-            if (!window.confirm(form.dataset.confirmMessage)) {
-                e.preventDefault();
-            }
+        confirmBeforeSubmit(form, ask, {
+            question: requiredData(form, 'confirmMessage'), action: requiredData(form, 'confirmAction'),
         });
     });
 
     // --- Dropzones (ADR-0001) ---
-    initDropzones(root, deps, pageStrings.section('dropzones'));
+    initDropzones(root, deps, pageStrings.section('dropzones'), ask);
 
     // --- Shared Files Search & Pagination ---
     initSharedFilesList(root, { fetch: deps.fetch, now: deps.now, strings: pageStrings.section('shared-files') });
@@ -332,8 +332,9 @@ export function initIndex(root, deps) {
  * @param {Document} root
  * @param {Pick<IndexDeps, 'fetch' | 'navigate' | 'now' | 'dropzoneCrypto'>} deps
  * @param {import('../../lib/strings.js').Strings} strings
+ * @param {import('../../features/confirm-dialog/index.js').Ask} ask - asks before a delete
  */
-function initDropzones(root, deps, strings) {
+function initDropzones(root, deps, strings, ask) {
     const lang = root.documentElement.lang || 'en';
     const island = required(root, '#dropzones-json', 'script');
     const createBtn = /** @type {HTMLButtonElement | null} */ (root.getElementById('dz-create-btn'));
@@ -440,7 +441,7 @@ function initDropzones(root, deps, strings) {
             del.className = 'btn-danger';
             del.textContent = strings.text('deleteZone');
             del.addEventListener('click', async () => {
-                if (!window.confirm(strings.text('confirmDelete'))) return;
+                if (!await ask({ question: strings.text('confirmDelete'), action: strings.text('deleteZone') })) return;
                 const resp = await deps.fetch(endpoints.actionBase + z.id + '/delete', {
                     method: 'POST', headers: { 'X-CSRF-Token': csrf() },
                 });

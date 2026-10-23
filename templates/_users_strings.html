@@ -1,9 +1,13 @@
 {# The words pages/users/ writes once a token is generated: its expiry line,
    and why POST /api/token refused one, keyed by the response's `code`
-   (#285); a refusal it can't explain is `failed`. What the copy announces
+   (#285); a refusal it can't explain is `failed`. `confirmRevoke` is what
+   Revoke asks before its form posts, and `revoke` the dialog's button
+   (#320). What the copy announces
    is clipboard-feedback's (_clipboard_feedback_strings.html). #}
 {# Translators: shown under a new API token; %(time)s is when it expires, in the viewer's zone, e.g. "Dec 31, 2098, 19:00 CET". #}
 {% set expires = script_gettext('Expires %(time)s. Reload to see it in the list below.') %}
+{# Translators: asked before an API token is revoked; %(user)s is whose token it is, %(created)s when it was created, in the viewer's zone, e.g. "Dec 31, 2098, 19:00 CET". #}
+{% set confirm_revoke = script_gettext('Revoke the %(user)s token created %(created)s? Anything that uses it stops working.') %}
 {% set strings = {
     'expires': expires,
     'refusals': {
@@ -13,4 +17,6 @@
         'rate_limited': _('Too many requests. Please try again later.'),
     },
     'failed': _('Could not generate a token. Please try again.'),
+    'confirmRevoke': confirm_revoke,
+    'revoke': _('Revoke'),
 } %}
