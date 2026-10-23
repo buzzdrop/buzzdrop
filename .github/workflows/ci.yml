@@ -20,12 +20,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       # Installs the pnpm version in package.json's packageManager.
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -55,7 +55,7 @@ jobs:
         .claude/settings.json .venv/pyvenv.cfg node_modules/stray.js
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       # A clean checkout has no secrets or local state, so plant decoys
       # where a developer's tree has them: .dockerignore must keep them out
       # of the image (#163). The image is built from this same context.
@@ -78,7 +78,7 @@ jobs:
       - name: Save Docker image
         run: docker save buzzdrop-test -o ${{ runner.temp }}/buzzdrop-test.tar
       - name: Upload Docker image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: buzzdrop-test-image
           path: ${{ runner.temp }}/buzzdrop-test.tar
@@ -90,9 +90,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Download Docker image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: buzzdrop-test-image
           path: ${{ runner.temp }}
@@ -131,9 +131,9 @@ jobs:
       PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Download Docker image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: buzzdrop-test-image
           path: ${{ runner.temp }}
@@ -141,9 +141,9 @@ jobs:
         run: docker load -i ${{ runner.temp }}/buzzdrop-test.tar
       # Installs the pnpm version in package.json's packageManager.
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -180,7 +180,7 @@ jobs:
         run: docker stop -t 10 buzzdrop-e2e
       - name: Upload Playwright report and traces
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-output
           path: |

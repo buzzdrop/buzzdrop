@@ -9,3 +9,13 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+  # Each action's major version decides which Node it runs on, and GitHub
+  # retires old Node runtimes. Check weekly for newer action versions (#296).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Bundle all action updates into one PR instead of one PR per action.
+    groups:
+      actions:
+        patterns: ["*"]
