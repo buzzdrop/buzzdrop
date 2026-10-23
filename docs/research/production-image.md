@@ -24,7 +24,7 @@ This file gives facts and trade-offs. It flags options but decides nothing.
 | Startup sweep at import | `app.py:704` | Runs once in every process that imports `app`. |
 | `start_expiry_sweep_thread` at import | `app.py:752` | One `buzzdrop-expiry-sweep` daemon thread per process, every `EXPIRY_SWEEP_INTERVAL_SECONDS` (default 300). The docstring calls the sweep idempotent and "safe under WSGI deployments with several workers". |
 | SQLite: one connection per thread | `db/sqlite_backend.py:1541` | `threading.local()` connection, `isolation_level=None`, `PRAGMA journal_mode=WAL`, then `PRAGMA busy_timeout=10000`, `secure_delete=ON`. |
-| One-time release | `db/sqlite_backend.py:606` (`attempt_key_release`) and the other `BEGIN IMMEDIATE` blocks | Read, check and claim happen inside one `BEGIN IMMEDIATE`. After an H-destroying write it runs `PRAGMA wal_checkpoint(TRUNCATE)`. |
+| One-time release | `db/sqlite_backend.py:605` (`attempt_key_release`) and the other `BEGIN IMMEDIATE` blocks | Read, check and claim happen inside one `BEGIN IMMEDIATE`. After an H-destroying write it runs `PRAGMA wal_checkpoint(TRUNCATE)`. |
 
 ### SQLite facts that apply
 
