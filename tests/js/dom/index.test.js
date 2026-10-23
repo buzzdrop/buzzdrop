@@ -421,6 +421,22 @@ describe('index page', () => {
             expect(await upload.deleteShare('report.pdf', { confirm: true }))
                 .toEqual({ asked: ['Delete this drop?'], deleted: true });
         });
+
+        it('cancelling stops a dropzone\'s delete', async () => {
+            const upload = openUploadPage();
+
+            expect(await upload.deleteDropzone('Tax documents', { confirm: false }))
+                .toEqual({ asked: ['Delete this dropzone?'], deleted: false });
+            expect(upload.dropzoneShown('Tax documents')).toBe(true);
+        });
+
+        it('accepting deletes the dropzone and takes it off the list', async () => {
+            const upload = openUploadPage();
+
+            expect(await upload.deleteDropzone('Tax documents', { confirm: true }))
+                .toEqual({ asked: ['Delete this dropzone?'], deleted: true });
+            expect(upload.dropzoneShown('Tax documents')).toBe(false);
+        });
     });
 
     describe('shared files list', () => {

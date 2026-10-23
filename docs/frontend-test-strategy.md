@@ -74,7 +74,7 @@ From [How are DOM fixtures rendered from the real Jinja templates?](https://gith
 - **Determinism:** fixed users, seed IDs, timestamps and session CSRF token; expiry dates far in the past or future, so nothing rendered depends on the current time (no `freezegun` needed). The drop list's relative times are computed in the browser from the page's injected clock (`IndexDeps.now`), which the index driver fixes at its `NOW`. The developer's `.env` is ignored. The generator fails if two renders differ. Only values that can't be controlled at the source are rewritten afterwards (e.g. `sha384-…` → `sha384-FIXTURE`).
 - **Stripped:** `<script src>` tags and the import map, which was added by [#166](https://github.com/buzzdrop/buzzdrop/issues/166) (tests import or `init()` the module themselves; `test_sri_in_templates.py` keeps covering script references). **Kept:** the JSON config blocks (`allowed-extensions-json`, `upload-endpoints-json`, `view-config-json`).
 - **States** (fixture names in brackets):
-  - `index`: anonymous (`anonymous`); logged-in with no files (`empty`); logged-in with files in each status: active, downloaded, expired, with a memo, shared with them (`files`); admin (`admin`); user with `configured_notification_email` (`notification-email`)
+  - `index`: anonymous (`anonymous`); logged-in with no files (`empty`); logged-in with files in each status: active, downloaded, expired, with a memo, shared with them, and one dropzone awaiting its submission (`files`; the dropzone since #320); admin (`admin`); user with `configured_notification_email` (`notification-email`)
   - `view`: file, text
   - `confirm_download`: file, text
   - `success`: file, text
@@ -90,11 +90,11 @@ From [What does the JS-integration layer's protocol fake look like?](https://git
 
 **One stateful, hand-written fake that enforces what the server enforces and answers the way the server answers.** No library.
 
-- **Shape:** `makeProtocolFake(opts)` → `{ handle, fetch, XMLHttpRequest, state, log, failNext, seedShare }`.
+- **Shape:** `makeProtocolFake(opts)` → `{ handle, fetch, XMLHttpRequest, state, log, failNext, seedShare, seedDropzone }`.
   - **`handle(request) → { status, headers, body }`** is the raw core that holds all protocol logic.
   - **`fetch` and the XHR class** are thin adapters that add browser behaviour: following a 302 (`redirected: true`, final URL) and firing `upload.onprogress`.
 - **State** is what the server would hold: the pending share (H, owner, bound V), the stored blob, `downloaded`, `released_at`, the download-ticket digest the release stores, `attempts`, `receipt_hash`, `decryption_success`.
-- **One instance spans upload → view**, which gives a browser-only round trip. `seedShare({ password, plaintext })` builds a valid share directly for view-only tests.
+- **One instance spans upload → view**, which gives a browser-only round trip. `seedShare({ password, plaintext })` builds a valid share directly for view-only tests. `seedDropzone({ id, memo })` holds a dropzone a fixture rendered, so the page can list and delete it (not collect it: its secrets are placeholders).
 - **Routes:** the drop flow's five — `/upload/begin`, `/upload`, `/download/<id>`, `/release/<id>`, `/report_decryption/<id>` — plus the dropzone flow's seven — `POST`/`GET /api/dropzones`, `GET /api/dropzones/<id>`, `POST /dropzone/<id>/submit`, `POST /dropzones/<id>/release`, `GET /dropzones/<id>/submission`, `POST /dropzones/<id>/report`, `POST /dropzones/<id>/delete`. **Any other request throws.** The shared-files status poll and `/api/token` are answered by their page drivers (§7a); `/delete` is a native form POST, which the page harness records and stops.
 - **Enforces:**
   - the CSRF header on `/upload/begin` and `/upload`
@@ -171,7 +171,7 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
   - Open notifications: an account without an email has the box disabled and is told why; with one, the account email shows once the box is ticked.
   - Dropzone: a disallowed extension shows the error and no chip; the selected-file chip; the error regions.
   - Copy-to-clipboard status.
-  - Delete confirmation via `data-confirm-message`, asked in the page's own dialog (`templates/_confirm_dialog.html`, `features/confirm-submit/`, shared with the users page's Revoke, #320): Cancel stops the delete, Delete lets it through. Drivers answer it with `answerConfirmation()` from `page.js`, never by stubbing `window.confirm`.
+  - Delete confirmation via `data-confirm-message`, asked in the page's own dialog (`templates/_confirm_dialog.html`, `features/confirm-submit/`, shared with the users page's Revoke, #320): Cancel stops the delete, Delete lets it through; the same for a dropzone's Delete, which then takes the zone off the list. Drivers answer it with `answerConfirmation()` from `page.js`, never by stubbing `window.confirm`.
   - Shared files: search, sort (newest upload first by default), pagination and their URL sync; the page controls hidden while everything fits on one page. Each status's label; a note titled by its memo, or by its time; plain words for a missing expiry, opening or address; times relative to the driver's fixed clock, with the full timestamp in the title. Copy link offered only on an active drop. Status refresh updates the row (status, opened time, address, Copy link withdrawn) and its search text (one row, answered by the driver).
 - **View page (`pages/view/`):** the plaintext view for text notes, the copy-text button, the error messages (including those for 410, 429 and 404 from `/release`), the field filled from a well-formed fragment, Enter in the field decrypting without navigating, Decrypt enabled at once with no request sent before the password is proven (the ciphertext downloads only after a winning release), the attempts warning (and the field's description of it) going after the first try, the status line as a live region.
 - **Success page (`pages/success/`):** copy link, password and one-click link (with "Failed" when the clipboard is blocked or missing, while Copy link, which copies by selection, still works without a Clipboard API), password visibility toggle, the fields filled from a well-formed fragment and the one-click link shown with its fragment masked.
@@ -242,7 +242,7 @@ From [Frontend tests: drive pages through user-behaviour helpers instead of setu
   | Module | Opens | Verbs (examples) |
   |---|---|---|
   | `page.js` | the core: a fixture in its own happy-dom window, Testing Library queries bound to it, a user-event session | `openPage`, `screen`, `waitUntil`, `typeable`, `answerConfirmation` |
-  | `upload.js` | `openUploadPage(options)` (index, logged in) | `switchToNote`, `writeNote`, `selectFile`, `dropFile`, `enterPassword`, `generatePassword`, `showPassword`, `hidePassword`, `copyPassword`, `setSendOptions`, `send`, `sendFile`, `sendNote`, `press`, `searchShares`, `sortSharesBy`, `nextSharesPage`, `copyShareLink`, `deleteShare` |
+  | `upload.js` | `openUploadPage(options)` (index, logged in) | `switchToNote`, `writeNote`, `selectFile`, `dropFile`, `enterPassword`, `generatePassword`, `showPassword`, `hidePassword`, `copyPassword`, `setSendOptions`, `send`, `sendFile`, `sendNote`, `press`, `searchShares`, `sortSharesBy`, `nextSharesPage`, `copyShareLink`, `deleteShare`, `deleteDropzone`, `dropzoneShown` |
   | `success.js` | `openSuccessPage(options)` (`type: 'file' \| 'message'`, `language: 'en' \| 'pl'`) | `copyShareLink`, `copyOneClickLink`, `copyPassword`, `revealPassword`, `hidePassword` |
   | `confirm.js` | `openConfirmPage(options)` | `proceedToView` |
   | `view.js` | `openShare(options)` | `decryptWithPassword`, `decryptWithEnter`, `copyMessage`, `finishDownload` |

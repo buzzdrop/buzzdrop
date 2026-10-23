@@ -35,6 +35,9 @@ const SHARE_IDS = {
     'locked.zip': '00000000-0000-4000-8000-000000000007',
 };
 
+/** The with-shares account's one dropzone (render_dom_fixtures.py's LISTED_DROPZONE). */
+const DROPZONE = { id: '00000000-0000-4000-8000-0000000000d1', memo: 'Tax documents' };
+
 /** The composer's controls, as each language names them. */
 const COMPOSER_WORDS = {
     en: {
@@ -150,6 +153,8 @@ export function openUploadPage({
 } = {}) {
     const { fixture, user: owner } = ACCOUNTS[account];
     const server = backend ?? makeProtocolFake({ owner });
+    // The fake holds what the fixture rendered, so the zone can be deleted.
+    if (!backend && account === 'with-shares') server.seedDropzone(DROPZONE);
     const page = openPage(inLanguage(fixture, language), {
         path,
         clipboard,
@@ -197,6 +202,13 @@ export function openUploadPage({
     const fileField = () => screen.getByLabelText(words.fileField);
     /** @param {ShareName} name */
     const shareRow = (name) => screen.getByRole('article', { name });
+    /**
+     * A dropzone's row, by its memo; undefined once it is gone.
+     * @param {string} memo
+     */
+    const zoneRow = (memo) => screen.queryAllByRole('listitem').find((item) => within(item).queryByText(memo));
+    const zoneDeletes = () => server.log
+        .filter((r) => r.method === 'POST' && /^\/dropzones\/[^/]+\/delete$/.test(new URL(r.url).pathname)).length;
     /** @param {string} name */
     const toFile = (name, bytes = new Uint8Array([120])) => new window.File([bytes], name);
 
@@ -356,6 +368,25 @@ export function openUploadPage({
                 confirm ? listWords.delete : listWords.cancel);
             return { asked, deleted: sent };
         },
+        /**
+         * Press Delete on a dropzone and answer the dialog: its Delete or its
+         * Cancel. Confirmed, it waits until the row is gone.
+         * @param {string} memo
+         * @param {{ confirm: boolean }} answer
+         * @returns {Promise<{ asked: string[], deleted: boolean }>}
+         */
+        async deleteDropzone(memo, { confirm }) {
+            const row = zoneRow(memo);
+            if (!row) throw new Error(`no dropzone ${memo} on the page`);
+            const before = zoneDeletes();
+            const { asked } = await answerConfirmation(page,
+                () => user.click(within(row).getByRole('button', { name: listWords.delete })),
+                confirm ? listWords.delete : listWords.cancel);
+            if (confirm) await waitUntil(() => expect(zoneRow(memo)).toBeUndefined());
+            return { asked, deleted: zoneDeletes() > before };
+        },
+        /** @param {string} memo */
+        dropzoneShown: (memo) => zoneRow(memo) !== undefined,
         /** The shares each status refresh asked about, by name. */
         statusChecks: () => statusChecks.map((names) => [...names]),
 

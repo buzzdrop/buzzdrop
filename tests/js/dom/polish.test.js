@@ -181,6 +181,13 @@ describe('in Polish', () => {
             .toEqual({ asked: ['Usunąć tę przesyłkę?'], deleted: false });
     });
 
+    it('asks in Polish before deleting a dropzone', async () => {
+        const upload = openUploadPage({ account: 'with-shares', language: 'pl' });
+
+        expect(await upload.deleteDropzone('Tax documents', { confirm: false }))
+            .toEqual({ asked: ['Usunąć tę skrytkę?'], deleted: false });
+    });
+
     it('writes the drop list\'s times in Polish', () => {
         openUploadPage({ account: 'with-shares', language: 'pl' });
 

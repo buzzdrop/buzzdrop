@@ -1441,6 +1441,21 @@ export function makeProtocolFake(opts = {}) {
         return fileId;
     }
 
+    /**
+     * Put a dropzone the user already has into the fake, as a fixture renders
+     * one: awaiting its submission, with placeholder secrets, so it can be
+     * listed and deleted but not collected.
+     * @param {{ id: string, memo: string | null }} zone
+     */
+    function seedDropzone({ id, memo }) {
+        state.dropzones.set(id, {
+            salt: '', ws: '', v: '', sv: '', owner: state.user ?? 'testuser', attempts: 0, expiryAt: null,
+            createdAt: nowIso(), status: 'active',
+            linkConsumedAt: null, releasedAt: null, collectedAt: null,
+            ticketHash: null, memo,
+        });
+    }
+
     return {
         handle,
         fetch: fakeFetch,
@@ -1451,6 +1466,7 @@ export function makeProtocolFake(opts = {}) {
         log,
         failNext,
         seedShare,
+        seedDropzone,
     };
 }
 
