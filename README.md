@@ -32,7 +32,7 @@ One honest caveat: "one-time" means no *second* read — nothing takes back what
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-npm install && npm run build:css   # compiled Tailwind CSS (committed; rebuild after changing styles or template classes, CI checks it)
+pnpm install && pnpm build:css     # compiled Tailwind CSS (committed; rebuild after changing styles or template classes, CI checks it)
 
 cp .env.example .env               # set FLASK_SECRET_KEY and at least one FLASK_USER_N
 python app.py
@@ -131,13 +131,13 @@ Full protocol and threat-model documentation lives in [docs/](docs/) — especia
 
 ```bash
 pytest -v                    # Python unit + integration tests
-npm run typecheck            # JSDoc type-checking of browser JS
-npm run test:dom             # DOM/JS tests
-npx playwright install chromium firefox webkit         # once, for E2E
-docker build -t buzzdrop-e2e . && npx playwright test   # E2E (Playwright)
+pnpm typecheck               # JSDoc type-checking of browser JS
+pnpm test:dom                # DOM/JS tests
+pnpm exec playwright install chromium firefox webkit          # once, for E2E
+docker build -t buzzdrop-e2e . && pnpm exec playwright test   # E2E (Playwright)
 ```
 
-Regenerate committed JS fixtures after touching templates, `db/`, or protocol responses: `npm run fixtures`.
+Regenerate committed JS fixtures after touching templates, `db/`, or protocol responses: `pnpm fixtures`.
 
 ## License
 

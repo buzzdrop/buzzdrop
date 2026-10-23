@@ -24,7 +24,7 @@ From [Choose the runner and DOM environment for DOM + JS-integration tests](http
 - **jsdom is rejected.** It puts byte arrays in two realms, so `TextEncoder`/`subtle` output fails `instanceof Uint8Array`, which breaks `lib/crypto.js`. It also has no navigation, and `new Response(blob)` throws.
 - Real 600k-iteration PBKDF2 runs in happy-dom at acceptable cost. Tests don't stub the KDF.
 - **Node 24** via a committed `.nvmrc`.
-- **npm scripts:** `test:unit` (today's `test:js`, renamed), `test:dom` (`vitest run --coverage`), `test` (both), `fixtures` (regenerates the DOM fixtures and the protocol contract), `typecheck` (`tsc -p jsconfig.json`).
+- **`package.json` scripts:** `test:unit` (today's `test:js`, renamed), `test:dom` (`vitest run --coverage`), `test` (both), `fixtures` (regenerates the DOM fixtures and the protocol contract), `typecheck` (`tsc -p jsconfig.json`).
 - **Type checking** (from [#203](https://github.com/buzzdrop/buzzdrop/issues/203)): `tsc --checkJs` under `strict` checks `static/js/` and `tests/js/` from their JSDoc, with no build step and no `.ts` files (`noEmit`; the browser loads the same `.js`). Config: root `jsconfig.json`; devDeps `typescript` and `@types/node`. Its `include` is all of `static/js/**/*.js` and `tests/js/**/*.js`. No `@ts-ignore`/`@ts-nocheck`; an `@ts-expect-error` carries a one-line reason.
 - **Typed DOM tests:** page modules are typed against lib.dom, happy-dom's window against its own classes. The page drivers (§7a) open each page through `browserView(window)` from `tests/js/support/dom-fixture.js`, the one bridge between the two.
 - **Testing Library** (from [#235](https://github.com/buzzdrop/buzzdrop/issues/235)): devDeps `@testing-library/dom` (queries), `@testing-library/jest-dom` (matchers such as `toBeDisabled`, `toBeVisible`, `toHaveAccessibleName`) and `@testing-library/user-event` (typing, clicking, keys, file upload), plus `dom-accessibility-api` for the accessible names a driver lists. `tests/js/support/setup.js` is Vitest's `setupFiles` entry: it registers the jest-dom matchers and, after each test, restores timers and mocks and closes every page a driver opened. Queries go through the driver's page, never Testing Library's own `screen`, which is bound to the global document rather than to a fixture's window.
@@ -70,7 +70,7 @@ The fragment scrub lives in `takeFragmentPassword(window)`, so every page that r
 From [How are DOM fixtures rendered from the real Jinja templates?](https://github.com/buzzdrop/buzzdrop/issues/157). Fixtures are rendered from the real templates and are never copied by hand.
 
 - **Generator:** `tests/fixtures/render_dom_fixtures.py` requests the **real routes** through `test_client` (`GET /`, `POST /view/<id>/confirm`, the upload → success path, …). It seeds the database with fixed IDs and timestamps and logs in as the conftest test users. It saves the full response HTML, including `base.html` (nav, flashes, `<meta name="csrf-token">`).
-- **Output:** `tests/js/fixtures/html/<template>--<state>.html`, committed. `npm run fixtures` regenerates them (and the protocol contract, §6), and the pre-commit hook in `.githooks/` does it automatically for commits that touch `templates/`, `db/`, a root `*.py`, `.env.example`, `babel.cfg`, `translations/` or anything under `tests/fixtures/` (the generators and the protocol scenarios).
+- **Output:** `tests/js/fixtures/html/<template>--<state>.html`, committed. `pnpm fixtures` regenerates them (and the protocol contract, §6), and the pre-commit hook in `.githooks/` does it automatically for commits that touch `templates/`, `db/`, a root `*.py`, `.env.example`, `babel.cfg`, `translations/` or anything under `tests/fixtures/` (the generators and the protocol scenarios).
 - **Determinism:** fixed users, seed IDs, timestamps and session CSRF token; expiry dates far in the past or future, so nothing rendered depends on the current time (no `freezegun` needed). The drop list's relative times are computed in the browser from the page's injected clock (`IndexDeps.now`), which the index driver fixes at its `NOW`. The developer's `.env` is ignored. The generator fails if two renders differ. Only values that can't be controlled at the source are rewritten afterwards (e.g. `sha384-…` → `sha384-FIXTURE`).
 - **Stripped:** `<script src>` tags and the import map, which was added by [#166](https://github.com/buzzdrop/buzzdrop/issues/166) (tests import or `init()` the module themselves; `test_sri_in_templates.py` keeps covering script references). **Kept:** the JSON config blocks (`allowed-extensions-json`, `upload-endpoints-json`, `view-config-json`).
 - **States** (fixture names in brackets):
@@ -144,7 +144,7 @@ From [How is the protocol fake kept honest against the real server?](https://git
   - No other headers are compared.
 - **Coverage:** every response the fake produces from state, plus the recorded 413 and rate-limit 429. **Completeness rule:** the fake declares what it can emit in a table (`EMITS`), as `(route, status, source)` with source `state` or `injected`, so a lockout 429 and a rate-limit 429 are separate entries. The contract test fails on any entry that no scenario covers, and on any replayed response missing from the table.
 - **Contract test:** `tests/js/integration/protocol-contract.test.js` replays each scenario against `handle()` and compares raw responses. One adapter test checks that `fetch` follows the 302.
-- **Workflow:** after changing a protocol response in `app.py`, run `npm run fixtures`. `js-fast` stays red until the fake matches.
+- **Workflow:** after changing a protocol response in `app.py`, run `pnpm fixtures`. `js-fast` stays red until the fake matches.
 
 ## 7. Scenario catalogue
 
@@ -256,7 +256,7 @@ From [Frontend tests: drive pages through user-behaviour helpers instead of setu
 - **One driver, two layers.** A driver takes `crypto: 'stub' | 'real'`: DOM tests run the stub (`tests/js/support/stub-crypto.js`: no PBKDF2, but a verifier the fake can check and a receipt matching the share's `receipt_hash`), JS-integration tests run the real `lib/crypto.js`. An integration test can hand one fake from the upload driver to `openShare({ uploaded: { backend, fileId } })` for a browser-only round trip.
 - **What a driver returns:** verbs, plus the outcomes a test can't see on screen: `url()`, `historyLength()`, `clipboardText()`, `formsSubmitted()` (submissions the page let through, which would navigate), `storage()`, `reportsSent()`, `requestsSent()`, `navigatedTo()`, `sharesIssued()`, `progressShown()`, `savedFile()`, and the fake itself (`backend`) for checks on server state. It hands out **no element handles**: everything on screen is asserted through Testing Library (§7b).
 - **Lifecycle:** each `open…` call is a fresh page; `screen` queries the page opened last; the setup file closes them all after each test.
-- Drivers are JSDoc-typed and pass `npm run typecheck`.
+- Drivers are JSDoc-typed and pass `pnpm typecheck`.
 
 ## 7b. Querying through accessibility
 
@@ -323,10 +323,10 @@ All gating CI lives in `ci.yml`. **`build-test.yml` is deleted** (it duplicated 
 
 | Job | Needs | Does |
 |---|---|---|
-| `js-fast` | — | `setup-node` (`.nvmrc`, `cache: npm`) → `npm ci` → `npm run typecheck` → `npm run test:unit` → `npm run test:dom` → `npm run build:css` + `git diff --exit-code static/css/app.css` |
+| `js-fast` | — | `pnpm/action-setup` (`packageManager`) → `setup-node` (`.nvmrc`, `cache: pnpm`) → `pnpm install --frozen-lockfile` → `pnpm typecheck` → `pnpm test:unit` → `pnpm test:dom` → `pnpm build:css` + `git diff --exit-code static/css/app.css` |
 | `build` | — | plant decoy `.env`/DB/upload files → `docker build -t buzzdrop-test .` → fail if a decoy is in the image (`.dockerignore`, #163) → `docker save` → upload the image as an artifact |
 | `pytest` | `build` | `docker load` → pytest in the image → `db.json` migration smoke test → **DOM-fixture drift check** → **protocol-contract drift check** |
-| `e2e` | `build` | `docker load` → `setup-node` + `npm ci` → start the App image on the runner (`--init`, `e2e.env`, `127.0.0.1:5055`) → `npx playwright test` inside `mcr.microsoft.com/playwright:v<version>-noble` with `--network host` and `E2E_BASE_URL` (browsers and OS packages come with the image: no apt, no browser download; `tests/js/ci.test.js` keeps the tag equal to the installed `@playwright/test`) → stop the App |
+| `e2e` | `build` | `docker load` → `pnpm/action-setup` + `setup-node` + `pnpm install --frozen-lockfile` → start the App image on the runner (`--init`, `e2e.env`, `127.0.0.1:5055`) → `corepack pnpm exec playwright test` inside `mcr.microsoft.com/playwright:v<version>-noble` with `--network host` and `E2E_BASE_URL` (browsers and OS packages come with the image: no apt, no browser download; `tests/js/ci.test.js` keeps the tag equal to the installed `@playwright/test`) → stop the App |
 
 - **Drift checks:** mount the workspace into the image, run the generators (`render_dom_fixtures.py`, `record_protocol_contract.py`), then `git diff --exit-code tests/js/fixtures/` on the runner.
 - **E2E failure artifacts:** `playwright-report/` and `test-results/` are uploaded `if: failure()` and kept for 7 days.

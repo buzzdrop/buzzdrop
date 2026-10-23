@@ -15,7 +15,7 @@ rewritten afterwards, and ``<script src>`` tags and the import map are
 stripped (tests import the page modules themselves, and the map would
 churn whenever a JS file changes; JSON config blocks are kept).
 
-Usage: python tests/fixtures/render_dom_fixtures.py   (or: npm run fixtures)
+Usage: python tests/fixtures/render_dom_fixtures.py   (or: pnpm fixtures)
 """
 import re
 import sys
