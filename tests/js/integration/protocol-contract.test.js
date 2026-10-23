@@ -2,7 +2,7 @@
 // (docs/frontend-test-strategy.md §6). Every scenario in
 // tests/js/fixtures/protocol-contract.json is replayed against the fake's raw
 // core, handle(), and each response must match the recorded one. When app.py
-// changes a response, `npm run fixtures` re-records the contract and this test
+// changes a response, `pnpm fixtures` re-records the contract and this test
 // stays red until the fake matches.
 import { describe, it, expect } from 'vitest';
 import * as shareCrypto from '../../../static/js/lib/crypto.js';

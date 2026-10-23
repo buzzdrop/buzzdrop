@@ -9,7 +9,7 @@ const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), '
 
 test('the E2E job runs in the Playwright image matching @playwright/test', () => {
     const image = read('.github/workflows/ci.yml').match(/mcr\.microsoft\.com\/playwright:v([\d.]+)-/)?.[1];
-    const installed = JSON.parse(read('package-lock.json')).packages['node_modules/@playwright/test'].version;
+    const installed = read('pnpm-lock.yaml').match(/'@playwright\/test':\s+specifier: \S+\s+version: ([\d.]+)/)?.[1];
 
     assert.equal(image, installed);
 });

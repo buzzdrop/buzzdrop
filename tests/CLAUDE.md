@@ -27,8 +27,8 @@ DOM and JS-integration tests drive each page through its driver in `tests/js/sup
 The JS protocol fake (`tests/js/support/protocol-fake.js`) is held to responses recorded from `app.py`, but only for requests that a scenario sends. A new server response that nothing exercises passes every check silently. So when a response of one of the routes named in root `CLAUDE.md`, *Protocol contract — keep in step*, changes:
 
 1. Add or adjust a scenario in `tests/fixtures/protocol_scenarios.py`.
-2. Run `npm run fixtures`.
-3. Update the fake and its `EMITS` table until `npm run test:dom` passes.
+2. Run `pnpm fixtures`.
+3. Update the fake and its `EMITS` table until `pnpm test:dom` passes.
 
 Remove a scenario only together with the server behaviour it records. A new route that the browser calls in the upload/view flow is added to the fake the same way.
 
@@ -37,9 +37,9 @@ Remove a scenario only together with the server behaviour it records. A new rout
 Playwright runs on the host against the app image (spec §7–§9 of `docs/frontend-test-strategy.md`). The config's `webServer` starts one container per run, using the profile in `tests/e2e/e2e.env` on `127.0.0.1:5055` (`E2E_PORT`), and stops it afterwards. `E2E_IMAGE` picks another tag. With `E2E_BASE_URL` set, the config starts nothing and uses the App already running there: that is how CI runs it, in the Playwright image, whose version must match `@playwright/test` (`tests/js/ci.test.js`).
 
 ```bash
-docker build -t buzzdrop-e2e .                   # again after any app-code change
-npx playwright install chromium firefox webkit   # once
-npx playwright test
+docker build -t buzzdrop-e2e .                         # again after any app-code change
+pnpm exec playwright install chromium firefox webkit   # once
+pnpm exec playwright test
 ```
 
 Every spec imports `test` from `tests/e2e/fixtures.js`, never from `@playwright/test`. Its always-on guard fails a test whose share password reaches any request or cookie, or that leaves anything in localStorage or sessionStorage. So draw every password from the `sharePassword` fixture.

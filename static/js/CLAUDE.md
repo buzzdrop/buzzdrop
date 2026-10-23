@@ -1,6 +1,6 @@
 # static/js
 
-The browser code is its own codebase with three layers. `tests/js/architecture.test.js` (run by `npm run test:unit`) enforces the import rules below and names the file, the import and the broken rule.
+The browser code is its own codebase with three layers. `tests/js/architecture.test.js` (run by `pnpm test:unit`) enforces the import rules below and names the file, the import and the broken rule.
 
 ## Layers
 

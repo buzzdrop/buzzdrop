@@ -16,7 +16,7 @@ base64 for any other body except a redirect's. Server-minted values are
 normalised to ``<uuid>`` / ``<hex64>``. The script fails if a step raises
 or if two runs differ.
 
-Usage: python tests/fixtures/record_protocol_contract.py   (or: npm run fixtures)
+Usage: python tests/fixtures/record_protocol_contract.py   (or: pnpm fixtures)
 """
 import base64
 import hashlib

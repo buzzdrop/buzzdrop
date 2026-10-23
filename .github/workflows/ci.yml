@@ -21,23 +21,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      # Installs the pnpm version in package.json's packageManager.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
+          cache: pnpm
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Type-check JS
-        run: npm run typecheck
+        run: pnpm typecheck
       - name: Run JS unit tests
-        run: npm run test:unit
+        run: pnpm test:unit
       - name: Run JS DOM tests
-        run: npm run test:dom
+        run: pnpm test:dom
       - name: Check app.css is up to date
         run: |
-          npm run build:css
-          git diff --exit-code static/css/app.css || { echo '::error::app.css is stale; run npm run build:css and commit the result'; exit 1; }
+          pnpm build:css
+          git diff --exit-code static/css/app.css || { echo '::error::app.css is stale; run pnpm build:css and commit the result'; exit 1; }
 
   build:
     runs-on: ubuntu-latest
@@ -106,14 +109,14 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/app buzzdrop-test python tests/fixtures/render_dom_fixtures.py
           git status --porcelain tests/js/fixtures/
           git diff --exit-code tests/js/fixtures/
-          test -z "$(git status --porcelain tests/js/fixtures/)" || { echo '::error::DOM fixtures are stale; run npm run fixtures and commit the result'; exit 1; }
+          test -z "$(git status --porcelain tests/js/fixtures/)" || { echo '::error::DOM fixtures are stale; run pnpm fixtures and commit the result'; exit 1; }
       # The contract is recorded from the checked-out app.py; a response
       # change without a re-record fails here, and js-fast then holds the
       # fake to the new recording.
       - name: Check the protocol contract is up to date
         run: |
           docker run --rm -v ${{ github.workspace }}:/app buzzdrop-test python tests/fixtures/record_protocol_contract.py
-          git diff --exit-code tests/js/fixtures/protocol-contract.json || { echo '::error::The protocol contract is stale; run npm run fixtures and commit the result'; exit 1; }
+          git diff --exit-code tests/js/fixtures/protocol-contract.json || { echo '::error::The protocol contract is stale; run pnpm fixtures and commit the result'; exit 1; }
 
   e2e:
     needs: build
@@ -136,13 +139,16 @@ jobs:
           path: ${{ runner.temp }}
       - name: Load Docker image
         run: docker load -i ${{ runner.temp }}/buzzdrop-test.tar
+      # Installs the pnpm version in package.json's packageManager.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
+          cache: pnpm
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       # What playwright.config.js's webServer does locally. --init matters:
       # flask as PID 1 ignores SIGTERM, so `docker stop` would wait out its
       # timeout and kill it.
@@ -159,12 +165,13 @@ jobs:
           exit 1
       # Host networking, so the browsers reach the App on 127.0.0.1. The
       # runner's user keeps the report and traces in the workspace readable.
+      # The image has no pnpm, so corepack fetches the packageManager one.
       - name: Run E2E tests
         run: |
           docker run --rm --init --ipc=host --network host \
             --user "$(id -u):$(id -g)" -e HOME=/tmp -e CI=true \
             -e E2E_BASE_URL="http://127.0.0.1:${E2E_PORT}" \
-            -v "$PWD:/work" -w /work "$PLAYWRIGHT_IMAGE" npx playwright test
+            -v "$PWD:/work" -w /work "$PLAYWRIGHT_IMAGE" corepack pnpm exec playwright test
       - name: Show the App's log
         if: failure()
         run: docker logs buzzdrop-e2e
