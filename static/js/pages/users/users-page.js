@@ -4,10 +4,10 @@
 // so the result panel stays visible until the page is reloaded. Revoke asks
 // first, naming the token: a revoked token can't come back.
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
-import { confirmBeforeSubmit, confirmDialog } from '../../features/confirm-submit/index.js';
+import { confirmBeforeSubmit, confirmDialog } from '../../features/confirm-dialog/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { fullTime, parseTimestamp } from '../../lib/format.js';
-import { required, requiredClosest } from '../../lib/required.js';
+import { required, requiredClosest, requiredData } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
 
 /**
@@ -119,10 +119,10 @@ export function initUsers(root, deps) {
 
     const ask = confirmDialog(root);
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('.revoke-token-form')).forEach((form) => {
-        const created = form.dataset.created ?? '';
+        // A token with no creation time shows '—' in its row; so does the question.
         confirmBeforeSubmit(form, ask, {
             question: strings.text('confirmRevoke', {
-                user: form.dataset.username ?? '', created: inViewerZone(created, created),
+                user: requiredData(form, 'username'), created: inViewerZone(requiredData(form, 'created'), '—'),
             }),
             action: strings.text('revoke'),
         });

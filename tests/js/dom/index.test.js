@@ -412,21 +412,21 @@ describe('index page', () => {
             const upload = openUploadPage();
 
             expect(await upload.deleteShare('report.pdf', { confirm: false }))
-                .toEqual({ asked: ['Delete this drop?'], deleted: false });
+                .toEqual({ question: 'Delete this drop?', deleted: false });
         });
 
         it('accepting the confirmation lets the delete through', async () => {
             const upload = openUploadPage();
 
             expect(await upload.deleteShare('report.pdf', { confirm: true }))
-                .toEqual({ asked: ['Delete this drop?'], deleted: true });
+                .toEqual({ question: 'Delete this drop?', deleted: true });
         });
 
         it('cancelling stops a dropzone\'s delete', async () => {
             const upload = openUploadPage();
 
             expect(await upload.deleteDropzone('Tax documents', { confirm: false }))
-                .toEqual({ asked: ['Delete this dropzone?'], deleted: false });
+                .toEqual({ question: 'Delete this dropzone?', deleted: false });
             expect(upload.dropzoneShown('Tax documents')).toBe(true);
         });
 
@@ -434,7 +434,7 @@ describe('index page', () => {
             const upload = openUploadPage();
 
             expect(await upload.deleteDropzone('Tax documents', { confirm: true }))
-                .toEqual({ asked: ['Delete this dropzone?'], deleted: true });
+                .toEqual({ question: 'Delete this dropzone?', deleted: true });
             expect(upload.dropzoneShown('Tax documents')).toBe(false);
         });
     });

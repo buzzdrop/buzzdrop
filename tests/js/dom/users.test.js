@@ -103,7 +103,7 @@ describe('users page', () => {
             const users = openUsersPage();
 
             expect(await users.revokeToken('testuser', 0, { confirm: false })).toEqual({
-                asked: ['Revoke the testuser token created Jan 3, 2025, 06:00 EST? Anything that uses it stops working.'],
+                question: 'Revoke the testuser token created Jan 3, 2025, 06:00 EST? Anything that uses it stops working.',
                 revoked: false,
             });
         });
@@ -112,7 +112,7 @@ describe('users page', () => {
             const users = openUsersPage();
 
             expect(await users.revokeToken('testuser', 1, { confirm: true })).toEqual({
-                asked: ['Revoke the testuser token created Jan 1, 2025, 06:00 EST? Anything that uses it stops working.'],
+                question: 'Revoke the testuser token created Jan 1, 2025, 06:00 EST? Anything that uses it stops working.',
                 revoked: true,
             });
         });

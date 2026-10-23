@@ -17,8 +17,16 @@ test('the uploader deletes a file and the link is dead', async ({ page, recipien
     const row = page.getByRole('article', { name: file.name });
     await expect(row).toHaveCount(1);
 
+    // The dialog opens on Cancel, and Esc declines: the drop stays.
+    // (happy-dom doesn't close a dialog on Esc, so only E2E can check it.)
     await row.getByRole('button', { name: 'Delete' }).click();
     const confirm = page.getByRole('alertdialog', { name: 'Delete this drop?' });
+    await expect(confirm.getByRole('button', { name: 'Cancel' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(confirm).toBeHidden();
+    await expect(row).toHaveCount(1);
+
+    await row.getByRole('button', { name: 'Delete' }).click();
     await confirm.getByRole('button', { name: 'Delete' }).click();
     await expect(flash(page)).toHaveText('Drop deleted');
     await expect(row).toHaveCount(0);

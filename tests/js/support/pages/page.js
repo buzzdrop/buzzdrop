@@ -252,24 +252,26 @@ export function waitUntil(check, timeout = 1000) {
     return vi.waitFor(check, { timeout, interval: 20 });
 }
 
+/** The confirmation dialog's Cancel, as each language names it. */
+const CANCEL = { en: 'Cancel', pl: 'Anuluj' };
+
 /**
  * Do what opens the page's confirmation dialog (templates/_confirm_dialog.html)
- * and answer it by pressing the button named `answer`: the action's label to
- * confirm, Cancel's to decline. Returns the questions asked and whether a form
- * was sent.
+ * and answer it: confirmed, by pressing the button named `action`; declined,
+ * by pressing Cancel. Returns the question asked and whether a form was sent.
  * @param {Page} page
  * @param {() => Promise<void>} open
- * @param {string} answer
- * @returns {Promise<{ asked: string[], sent: boolean }>}
+ * @param {{ confirm: boolean, action: string, language: 'en' | 'pl' }} answer
+ * @returns {Promise<{ question: string, sent: boolean }>}
  */
-export async function answerConfirmation(page, open, answer) {
+export async function answerConfirmation(page, open, { confirm, action, language }) {
     const before = page.formsSubmitted().length;
     await open();
     const dialog = page.screen.getByRole('alertdialog');
-    const asked = [computeAccessibleName(dialog)];
-    await page.user.click(within(dialog).getByRole('button', { name: answer }));
+    const question = computeAccessibleName(dialog);
+    await page.user.click(within(dialog).getByRole('button', { name: confirm ? action : CANCEL[language] }));
     await waitUntil(() => expect(page.screen.queryByRole('alertdialog')).toBeNull());
-    return { asked, sent: page.formsSubmitted().length > before };
+    return { question, sent: page.formsSubmitted().length > before };
 }
 
 /**

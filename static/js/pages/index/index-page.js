@@ -7,7 +7,7 @@
 
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { initComposer } from '../../features/composer/index.js';
-import { confirmBeforeSubmit, confirmDialog } from '../../features/confirm-submit/index.js';
+import { confirmBeforeSubmit, confirmDialog } from '../../features/confirm-dialog/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
 import { initPasswordGate } from '../../features/password-gate/index.js';
 import { createProgressBar } from '../../features/progress-bar/index.js';
@@ -19,7 +19,7 @@ import * as dropzoneCrypto from '../../lib/dropzone-crypto.js';
 import { formatNumber, fullTime, parseTimestamp, relativeTime, timeZoneName } from '../../lib/format.js';
 import { bytesToHex } from '../../lib/hex.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
-import { required, requiredWindow } from '../../lib/required.js';
+import { required, requiredData, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
 
 /**
@@ -313,7 +313,7 @@ export function initIndex(root, deps) {
     const ask = confirmDialog(root);
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('form[data-confirm-message]')).forEach((form) => {
         confirmBeforeSubmit(form, ask, {
-            question: form.dataset.confirmMessage ?? '', action: form.dataset.confirmAction ?? '',
+            question: requiredData(form, 'confirmMessage'), action: requiredData(form, 'confirmAction'),
         });
     });
 
@@ -332,7 +332,7 @@ export function initIndex(root, deps) {
  * @param {Document} root
  * @param {Pick<IndexDeps, 'fetch' | 'navigate' | 'now' | 'dropzoneCrypto'>} deps
  * @param {import('../../lib/strings.js').Strings} strings
- * @param {import('../../features/confirm-submit/index.js').Ask} ask - asks before a delete
+ * @param {import('../../features/confirm-dialog/index.js').Ask} ask - asks before a delete
  */
 function initDropzones(root, deps, strings, ask) {
     const lang = root.documentElement.lang || 'en';

@@ -34,8 +34,8 @@ export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
 
 /** The card's buttons, as each language names them. */
 const WORDS = {
-    en: { generate: 'Generate token', copy: 'Copy token', revoke: 'Revoke', cancel: 'Cancel' },
-    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token', revoke: 'Unieważnij', cancel: 'Anuluj' },
+    en: { generate: 'Generate token', copy: 'Copy token', revoke: 'Revoke' },
+    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token', revoke: 'Unieważnij' },
 };
 
 /**
@@ -115,14 +115,14 @@ export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
          * @param {string} username
          * @param {number} index - the token's row in the user's table, from 0
          * @param {{ confirm: boolean }} answer
-         * @returns {Promise<{ asked: string[], revoked: boolean }>}
+         * @returns {Promise<{ question: string, revoked: boolean }>}
          */
         async revokeToken(username, index, { confirm }) {
             const words = WORDS[language];
-            const { asked, sent } = await answerConfirmation(page,
+            const { question, sent } = await answerConfirmation(page,
                 () => user.click(card(username).getAllByRole('button', { name: words.revoke })[index]),
-                confirm ? words.revoke : words.cancel);
-            return { asked, revoked: sent };
+                { confirm, action: words.revoke, language });
+            return { question, revoked: sent };
         },
         /** @param {string} username */
         copyToken: (username) => user.click(card(username).getByRole('button', { name: WORDS[language].copy })),

@@ -36,7 +36,9 @@ const SHARE_IDS = {
 };
 
 /** The with-shares account's one dropzone (render_dom_fixtures.py's LISTED_DROPZONE). */
-const DROPZONE = { id: '00000000-0000-4000-8000-0000000000d1', memo: 'Tax documents' };
+const DROPZONE = {
+    id: '00000000-0000-4000-8000-0000000000d1', memo: 'Tax documents', createdAt: '2025-01-05T11:00:00.000000+00:00',
+};
 
 /** The composer's controls, as each language names them. */
 const COMPOSER_WORDS = {
@@ -53,11 +55,11 @@ const COMPOSER_WORDS = {
 /** The drop list's controls, as each language names them. */
 const LIST_WORDS = {
     en: {
-        search: 'Quick search', sort: 'Sort by', next: 'Next', previous: 'Previous', delete: 'Delete', cancel: 'Cancel',
+        search: 'Quick search', sort: 'Sort by', next: 'Next', previous: 'Previous', delete: 'Delete',
         copyLinkFor: (/** @type {string} */ name) => `Copy link for ${name}`,
     },
     pl: {
-        search: 'Szybkie wyszukiwanie', sort: 'Sortuj według', next: 'Następna', previous: 'Poprzednia', delete: 'Usuń', cancel: 'Anuluj',
+        search: 'Szybkie wyszukiwanie', sort: 'Sortuj według', next: 'Następna', previous: 'Poprzednia', delete: 'Usuń',
         copyLinkFor: (/** @type {string} */ name) => `Skopiuj link: ${name}`,
     },
 };
@@ -360,30 +362,30 @@ export function openUploadPage({
          * Cancel.
          * @param {ShareName} name
          * @param {{ confirm: boolean }} answer
-         * @returns {Promise<{ asked: string[], deleted: boolean }>}
+         * @returns {Promise<{ question: string, deleted: boolean }>}
          */
         async deleteShare(name, { confirm }) {
-            const { asked, sent } = await answerConfirmation(page,
+            const { question, sent } = await answerConfirmation(page,
                 () => user.click(within(shareRow(name)).getByRole('button', { name: listWords.delete })),
-                confirm ? listWords.delete : listWords.cancel);
-            return { asked, deleted: sent };
+                { confirm, action: listWords.delete, language });
+            return { question, deleted: sent };
         },
         /**
          * Press Delete on a dropzone and answer the dialog: its Delete or its
          * Cancel. Confirmed, it waits until the row is gone.
          * @param {string} memo
          * @param {{ confirm: boolean }} answer
-         * @returns {Promise<{ asked: string[], deleted: boolean }>}
+         * @returns {Promise<{ question: string, deleted: boolean }>}
          */
         async deleteDropzone(memo, { confirm }) {
             const row = zoneRow(memo);
             if (!row) throw new Error(`no dropzone ${memo} on the page`);
             const before = zoneDeletes();
-            const { asked } = await answerConfirmation(page,
+            const { question } = await answerConfirmation(page,
                 () => user.click(within(row).getByRole('button', { name: listWords.delete })),
-                confirm ? listWords.delete : listWords.cancel);
+                { confirm, action: listWords.delete, language });
             if (confirm) await waitUntil(() => expect(zoneRow(memo)).toBeUndefined());
-            return { asked, deleted: zoneDeletes() > before };
+            return { question, deleted: zoneDeletes() > before };
         },
         /** @param {string} memo */
         dropzoneShown: (memo) => zoneRow(memo) !== undefined,
