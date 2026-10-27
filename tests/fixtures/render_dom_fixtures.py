@@ -174,6 +174,22 @@ def render_all():
 
     fixtures.append(_render('login--default', _client(), 'GET', '/login'))
     fixtures.append(_render('login--default.pl', _client(), 'GET', '/login', language='pl'))
+
+    # AUTH_BACKEND=clerk: /login mounts clerk.js's SignIn instead of the
+    # env form. The publishable key and Frontend API origin are dummies —
+    # the fixture only shapes the markup the page script reads.
+    clerk_keys = ('AUTH_BACKEND', 'CLERK_FRONTEND_API_URL', 'CLERK_SECRET_KEY',
+                  'CLERK_PUBLISHABLE_KEY')
+    saved = {key: flask_app.config.get(key) for key in clerk_keys}
+    flask_app.config.update({
+        'AUTH_BACKEND': 'clerk',
+        'CLERK_FRONTEND_API_URL': 'https://clerk.fixture.example.com',
+        'CLERK_SECRET_KEY': 'sk_test_fixture',
+        'CLERK_PUBLISHABLE_KEY': 'pk_test_fixture',
+    })
+    fixtures.append(_render('login--clerk', _client(), 'GET', '/login'))
+    fixtures.append(_render('login--clerk.pl', _client(), 'GET', '/login', language='pl'))
+    flask_app.config.update(saved)
     fixtures.append(_render('error--gone.pl', _client(), 'GET', f"/view/{SHARE_FILE['id']}",
                             status=404, language='pl'))
 
