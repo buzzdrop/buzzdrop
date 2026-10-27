@@ -64,9 +64,12 @@
                     <div class="flex min-w-0 items-center gap-2 sm:gap-3">
                         {% include "_language_menu.html" %}
                         {% if session.get('username') %}
-                            <span class="status-badge status-badge-amber min-w-0 max-w-32 sm:max-w-56{{ ' max-[22rem]:hidden' if session.get('is_admin') }}" title="{{ session.get('username') }}">
+                            {# display_name is what the auth backend wants shown
+                               (a Clerk email/name); username stays the id. #}
+                            {% set nav_name = session.get('display_name') or session.get('username') %}
+                            <span class="status-badge status-badge-amber min-w-0 max-w-32 sm:max-w-56{{ ' max-[22rem]:hidden' if session.get('is_admin') }}" title="{{ nav_name }}">
                                 <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400" aria-hidden="true"></span>
-                                <span class="truncate">{{ session.get('username') }}</span>
+                                <span class="truncate">{{ nav_name }}</span>
                             </span>
                             <form method="post" action="{{ url_for('logout') }}" class="inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
