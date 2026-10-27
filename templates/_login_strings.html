@@ -1,0 +1,12 @@
+{# The words pages/login/ writes under AUTH_BACKEND=clerk: why the
+   Clerk→Flask session bridge refused, keyed by the response's `code`;
+   a refusal it can't explain is `failed`. `notLoaded` is clerk.js
+   never arriving (network, adblocker, a CSP too tight). #}
+{% set strings = {
+    'refusals': {
+        'auth_failed': _('Sign-in could not be completed. Try again.'),
+        'rate_limited': _('Too many requests. Please try again later.'),
+    },
+    'failed': _('Sign-in could not be completed. Try again.'),
+    'notLoaded': _('The sign-in service did not load. Refresh the page and try again.'),
+} %}

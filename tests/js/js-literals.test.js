@@ -30,6 +30,7 @@ const CONVERTED_MODULES = [
     'pages/confirm-download/confirm-download-page.js',
     'pages/index/index-page.js',
     'pages/language-menu/language-menu-page.js',
+    'pages/login/login-page.js',
     'pages/respond/respond-page.js',
     'pages/success/success-page.js',
     'pages/users/users-page.js',
