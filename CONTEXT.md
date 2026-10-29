@@ -145,3 +145,7 @@ _Avoid_: unavailable, not found
 **Buzzdrop**:
 The product's name, always spelled with one capital.
 _Avoid_: BuzzDrop, Buzz Drop
+
+**Version**:
+A numbered, published Buzzdrop that self-hosters run and upgrade to, e.g. Buzzdrop 0.4.2.
+_Avoid_: release, build
