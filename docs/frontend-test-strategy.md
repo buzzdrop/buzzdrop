@@ -23,7 +23,7 @@ From [Choose the runner and DOM environment for DOM + JS-integration tests](http
 - **DOM + integration:** Vitest with happy-dom, pinned at **>= 20.8.9** (security advisories). Vitest's `include` covers only `tests/js/dom/**` and `tests/js/integration/**`. Its `env` pins `TZ=America/New_York`, so the viewer's zone is neither UTC nor Warsaw (#250); the pure-module unit tests pass a zone explicitly instead.
 - **jsdom is rejected.** It puts byte arrays in two realms, so `TextEncoder`/`subtle` output fails `instanceof Uint8Array`, which breaks `lib/crypto.js`. It also has no navigation, and `new Response(blob)` throws.
 - Real 600k-iteration PBKDF2 runs in happy-dom at acceptable cost. Tests don't stub the KDF.
-- **Node 24** via a committed `.nvmrc`.
+- **Node 26** via a committed `.nvmrc`.
 - **`package.json` scripts:** `test:unit` (today's `test:js`, renamed), `test:dom` (`vitest run --coverage`), `test` (both), `fixtures` (regenerates the DOM fixtures and the protocol contract), `typecheck` (`tsc -p jsconfig.json`).
 - **Type checking** (from [#203](https://github.com/buzzdrop/buzzdrop/issues/203)): `tsc --checkJs` under `strict` checks `static/js/` and `tests/js/` from their JSDoc, with no build step and no `.ts` files (`noEmit`; the browser loads the same `.js`). Config: root `jsconfig.json`; devDeps `typescript` and `@types/node`. Its `include` is all of `static/js/**/*.js` and `tests/js/**/*.js`. No `@ts-ignore`/`@ts-nocheck`; an `@ts-expect-error` carries a one-line reason.
 - **Typed DOM tests:** page modules are typed against lib.dom, happy-dom's window against its own classes. The page drivers (§7a) open each page through `browserView(window)` from `tests/js/support/dom-fixture.js`, the one bridge between the two.
