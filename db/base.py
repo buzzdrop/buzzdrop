@@ -182,6 +182,12 @@ class FileStore(ABC):
         ``downloaded_at IS NULL`` guard AND consumes the stored ticket
         digest in the same transaction.
 
+        The ticket check MUST run before any state is told apart: a
+        missing drop, an unreleased share and a wrong or spent ticket all
+        answer ``'forbidden'`` indistinguishably (#240). The share
+        destruction below therefore only ever runs for a real ticket
+        holder.
+
         A released share whose ``released_at`` is at least
         ``download_ttl_seconds`` old (or unparseable — fail closed) is
         expired in the same transaction, exactly like a file past
@@ -195,11 +201,10 @@ class FileStore(ABC):
                 honoured; None disables the window.
 
         Returns:
-            A dict with ``status`` one of: ``'missing'``,
+            A dict with ``status`` one of: ``'forbidden'`` (missing drop,
+            unreleased share, wrong or spent ticket — one answer for all),
             ``'already_downloaded'``, ``'expired'`` (share row destroyed,
-            ``path`` included for blob cleanup), ``'not_released'`` (no
-            share row or H never released — nobody legitimately holds a
-            ticket), ``'bad_ticket'``, or ``'ok'``.
+            ``path`` included for blob cleanup), or ``'ok'``.
         """
 
     @abstractmethod

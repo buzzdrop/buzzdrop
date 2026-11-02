@@ -331,7 +331,10 @@ async function fetchBlob(url, ticket, deps) {
         return { kind: 'unreachable' };
     }
 
-    if (response.status === 403) return { kind: 'gone', reason: 'refused' };
+    // The only ticket holder is this page, so a 403 means the ticket no
+    // longer matches — the share was claimed (spent or won by someone
+    // else). The server deliberately can't tell which (#240).
+    if (response.status === 403) return { kind: 'gone', reason: 'claimed' };
     if (response.status === 404) return { kind: 'gone', reason: 'missing' };
     // The released material is kept, so a try after the rate limit's 429
     // downloads again without spending another release.

@@ -112,30 +112,6 @@ UPLOAD_REFUSAL_FLASHES = {
 }
 
 
-# What /download answers for each refusal, keyed by the claim's status
-# (#338): the English JSON `error`, its stable `code` and its status for
-# the page's XHR, or the flash a browser is redirected with. The pre-checks reuse the same
-# entries, so one situation reads the same wherever it is caught.
-class DownloadRefusal(NamedTuple):
-    error: str
-    code: str
-    status: int
-    flash: str
-
-
-_DROP_ALREADY_OPENED = i18n.gettext_noop('This drop has already been opened.')
-DOWNLOAD_REFUSALS = {
-    'missing': DownloadRefusal(
-        'File not found', 'not_found', 404, i18n.gettext_noop('Drop not found')),
-    'already_downloaded': DownloadRefusal(
-        'This file has already been downloaded', 'opened', 410, _DROP_ALREADY_OPENED),
-    'bad_ticket': DownloadRefusal(
-        'This drop has already been claimed', 'claimed', 410, _DROP_ALREADY_OPENED),
-    'expired': DownloadRefusal(
-        'File has expired', 'expired', 410, i18n.gettext_noop('This drop has expired.')),
-}
-
-
 class NotificationPreferenceError(Exception):
     """
     Safe validation error for uploader notification inputs. ``error`` is
@@ -843,8 +819,8 @@ def _drop_gone():
     """
     The /view page for a drop link that leads nowhere. It is the same whether
     the drop was already opened, expired or never existed, so the page
-    reveals nothing about which, just as /release answers a uniform 404.
-    (/download still flashes the reason; only /view is uniform.)
+    reveals nothing about which — just as /release answers a uniform 404
+    and /download without a ticket answers a uniform 403 (#240).
     """
     # Like the text, which never says why (translations/pl/GLOSSARY.md, Gone).
     return _error_page(404, _('Dead link'), _('This drop is gone'),
@@ -1477,49 +1453,43 @@ def download_file(file_id):
     is no longer the one-time claim, so fetching it early protects
     nothing. The ticket is consumed with the claim, before the body
     streams, and the blob is deleted after it: a transfer that breaks off
-    is not resumable — deliberately, no retry surface. Without a
-    valid ticket an unreleased share answers a bare 403 to everyone; a
-    released share answers 'claimed', since only the release winner holds
-    the ticket.
+    is not resumable — deliberately, no retry surface. Only the release
+    winner holds a ticket, so everyone else gets one uniform 403 —
+    whether the drop is live, dead or imaginary reveals nothing (#240).
     """
-    xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-
-    def _refuse(key):
-        refusal = DOWNLOAD_REFUSALS[key]
-        if xhr:
-            return {'error': refusal.error, 'code': refusal.code}, refusal.status
-        flash(_(refusal.flash))
-        return redirect(url_for('index'))
-
-    file_info = file_repo.get_by_id(file_id)
-    if not file_info:
-        return _refuse('missing')
-    if 'downloaded_at' in file_info and file_info['downloaded_at'] is not None:
-        return _refuse('already_downloaded')
-    if check_and_handle_expiry(file_info):
-        return _refuse('expired')
-
     ticket = request.headers.get('X-Download-Ticket')
     if isinstance(ticket, str):
         ticket = ticket.strip().lower()
+    if not ticket:
+        return {'error': 'Forbidden'}, 403
 
     # Verify the ticket and claim the blob in one transaction — exactly
     # one concurrent requester wins, and the ticket is consumed with the
-    # claim.
+    # claim. Only the page script ever holds a ticket, so every outcome
+    # below is plain JSON.
     result = file_repo.claim_download_with_ticket(
         file_id, ticket, get_client_ip(),
         current_app.config['KEY_RELEASE_DOWNLOAD_TTL_SECONDS'])
     status = result['status']
 
-    if status == 'not_released':
+    # A missing drop, an unreleased share and a wrong or spent ticket are
+    # one 'forbidden' — the same answer the no-ticket gate above gives.
+    if status == 'forbidden':
         return {'error': 'Forbidden'}, 403
-    if status == 'expired' and result.get('path'):
-        try:
-            storage.delete(result['path'])
-        except Exception:
-            pass
-    if status in DOWNLOAD_REFUSALS:
-        return _refuse(status)
+    if status == 'already_downloaded':
+        return {'error': 'This file has already been downloaded'}, 410
+    if status == 'expired':
+        if result.get('path'):
+            try:
+                storage.delete(result['path'])
+            except Exception:
+                pass
+        # `code` lets the page tell an expired drop from an opened one —
+        # the same convention /release uses (#338); the uniform 403 above
+        # deliberately carries none (#240).
+        return {'error': 'File has expired', 'code': 'expired'}, 410
+
+    file_info = file_repo.get_by_id(file_id)
 
     # Stream file from storage
     def generate():
