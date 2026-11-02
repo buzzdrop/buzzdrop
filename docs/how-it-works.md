@@ -175,7 +175,7 @@ The same guarantees, direction reversed: a requester creates a one-time dropzone
 ### 5. Expiry and manual delete
 
 - **Who acts:** the server, or the requester.
-- **What happens:** when a zone's expiry passes (checked on reads and by the periodic sweep), or the requester deletes the zone, `wS`, `V` and `SV` are wiped and the submission's ciphertext is deleted from storage. The zone row stays for bookkeeping until deletion removes it.
+- **What happens:** when a zone's expiry passes before anything is submitted (checked on reads and by the periodic sweep), the request link stops working and `wS`, `V` and `SV` are wiped; the zone row stays for bookkeeping until the requester deletes it. A submission that landed in time outlives the deadline: expiry bounds submitting, not collecting. When the requester deletes the zone, its row and its submission's row are removed and the submission's ciphertext, if any, is deleted from storage.
 - **Never sees:** the content, then or ever.
 - **Why:** without `wS` the wrapped secret is unreachable, and without the ciphertext there is nothing to unwrap. A dropzone is spent after its first collection: one link, one submission, one collection.
 
