@@ -71,11 +71,53 @@ def test_index_logged_in_user_no_files(client, app, db_instance):
     assert b'id="shared-password"' in response.data
     assert b'id="note-password"' not in response.data
     assert b'id="note-expiry"' not in response.data
-    # Check that "Your Shared Files" section is not present if no files
-    # The template has: {% if session.get('username') and user_files %}
+    # No drops means no drop list...
     assert b'Your drops' not in response.data
+    # ...but the Collect half is there all the same (#410).
+    assert b'id="dz-create-btn"' in response.data
     # And no shared files section means no "No files shared with you" text either.
     # Also, no "No files uploaded yet" text because the section itself is conditional.
+
+def _mode_panels(html):
+    """Which of the Send / Collect panels and tabs the page opens on (#410)."""
+    def opening_tag(element_id):
+        start = html.index(f'id="{element_id}"')
+        return html[html.rindex('<', 0, start):html.index('>', start)]
+    return {
+        mode: {
+            'selected': 'aria-selected="true"' in opening_tag(f'{mode}-mode-tab'),
+            'hidden': ' hidden' in opening_tag(f'{mode}-mode-panel'),
+        }
+        for mode in ('send', 'collect')
+    }
+
+
+def test_index_opens_on_send_by_default(client, app, db_instance):
+    login_user(client, 'testuser', 'password')
+    html = client.get(url_for('index')).data.decode('utf-8')
+
+    assert _mode_panels(html) == {
+        'send': {'selected': True, 'hidden': False},
+        'collect': {'selected': False, 'hidden': True},
+    }
+
+
+def test_index_mode_collect_opens_on_collect(client, app, db_instance):
+    login_user(client, 'testuser', 'password')
+    html = client.get(url_for('index', mode='collect')).data.decode('utf-8')
+
+    assert _mode_panels(html) == {
+        'send': {'selected': False, 'hidden': True},
+        'collect': {'selected': True, 'hidden': False},
+    }
+
+
+def test_index_unknown_mode_falls_back_to_send(client, app, db_instance):
+    login_user(client, 'testuser', 'password')
+    html = client.get(url_for('index', mode='nonsense')).data.decode('utf-8')
+
+    assert _mode_panels(html)['send'] == {'selected': True, 'hidden': False}
+
 
 def test_index_logged_in_user_uses_shared_controls_for_both_tabs(client, app, db_instance):
     login_user(client, 'testuser', 'password')

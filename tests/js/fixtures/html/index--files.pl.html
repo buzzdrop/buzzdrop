@@ -129,20 +129,46 @@
 
             
 
-
 <div class="mx-auto max-w-5xl space-y-8">
-    <header class="animate-fade-up space-y-4">
-        <span class="eyebrow">
-            <span class="h-1.5 w-1.5 rounded-full bg-honey-400" aria-hidden="true"></span>
-            Bezpieczne przekazanie
-        </span>
-        <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            Niech <span class="honey-text">zabzyczy</span>, a potem zniknie.
-        </h1>
-        <h2 class="max-w-2xl text-sm leading-relaxed text-slate-400">
-            <strong>Zaszyfruj plik albo notatkę w przeglądarce</strong>, wyślij jeden link, a przesyłka usunie się sama, gdy tylko zostanie pobrana. Dla serwera treść to szyfrogram; szczegóły takie jak nazwa pliku czy twój dopisek – już nie.
-        </h2>
+    <header class="animate-fade-up space-y-6">
+        <div class="space-y-4">
+            <span class="eyebrow">
+                <span class="h-1.5 w-1.5 rounded-full bg-honey-400" aria-hidden="true"></span>
+                Bezpieczne przekazanie
+            </span>
+            <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                Niech <span class="honey-text">zabzyczy</span>, a potem zniknie.
+            </h1>
+        </div>
+
+        
+        <div id="page-mode-rail" class="mode-rail" role="tablist" aria-label="Co chcesz zrobić?">
+            <button id="send-mode-tab" type="button" role="tab" aria-selected="true" aria-controls="send-mode-panel" data-mode="send" class="mode-tab mode-tab-active">
+                <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M10 17a1 1 0 0 1-1-1V6.414L5.707 9.707a1 1 0 0 1-1.414-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L11 6.414V16a1 1 0 0 1-1 1Z" clip-rule="evenodd"/>
+                </svg>
+                <span class="min-w-0 text-left">
+                    <span class="block">Wyślij</span>
+                    <span class="mode-tab-hint">Udostępnij plik lub notatkę</span>
+                </span>
+            </button>
+            <button id="collect-mode-tab" type="button" role="tab" aria-selected="false" aria-controls="collect-mode-panel" tabindex="-1" data-mode="collect" class="mode-tab">
+                <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 0 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L9 13.586V4a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
+                </svg>
+                <span class="min-w-0 text-left">
+                    <span class="block">Odbierz</span>
+                    <span class="mode-tab-hint">Poproś kogoś o plik lub notatkę</span>
+                </span>
+            </button>
+        </div>
     </header>
+
+
+<div id="send-mode-panel" role="tabpanel" aria-labelledby="send-mode-tab" class="space-y-8">
+    <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
+        <strong>Zaszyfruj plik albo notatkę w przeglądarce</strong>, wyślij jeden link, a przesyłka usunie się sama, gdy tylko zostanie pobrana. Dla serwera treść to szyfrogram; szczegóły takie jak nazwa pliku czy twój dopisek – już nie.
+    </p>
 
     <div class="surface-card animate-fade-up delay-1 p-6 sm:p-8">
         <span id="share-mode-label" class="field-label">Co wysyłasz?</span>
@@ -303,12 +329,9 @@
             </div>
         </div>
     </div>
-</div>
 
-
-
-
-<div class="mx-auto mt-10 max-w-5xl">
+    
+    
     <section class="surface-card animate-fade-up delay-2 p-6 sm:p-8" aria-labelledby="shared-files-heading">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -607,14 +630,20 @@
             </div>
         </div>
     </section>
-
     
-    <section class="surface-card p-6 sm:p-8">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="max-w-xl space-y-2">
-                <h2 class="text-xl font-semibold tracking-tight text-white">Twoje skrytki</h2>
-                <p class="section-lead">Jednorazowe skrytki, do których inni mogą złożyć sekret. Jeden link, jedno zgłoszenie i po sprawie.</p>
-            </div>
+</div>
+
+
+
+<div id="collect-mode-panel" role="tabpanel" aria-labelledby="collect-mode-tab" class="space-y-8" hidden>
+    <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
+        <strong>Poproś o plik lub notatkę</strong> jednorazowym linkiem do skrytki. Kto ma link, szyfruje jedno zgłoszenie w swojej przeglądarce; ty odbierasz je hasłem skrytki i wtedy znika.
+    </p>
+
+    <section class="surface-card p-6 sm:p-8" aria-labelledby="dz-create-heading">
+        <div class="max-w-xl space-y-2">
+            <h2 id="dz-create-heading" class="text-xl font-semibold tracking-tight text-white">Nowa skrytka</h2>
+            <p class="section-lead">Jednorazowe skrytki, do których inni mogą złożyć sekret. Jeden link, jedno zgłoszenie i po sprawie.</p>
         </div>
 
         <div class="mt-6 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -650,11 +679,14 @@
                 <button id="dz-copy-btn" type="button" class="btn-secondary px-4 py-2">Skopiuj link do skrytki</button>
             </div>
         </div>
+    </section>
 
+    <section class="surface-card p-6 sm:p-8" aria-labelledby="dz-list-heading">
+        <h2 id="dz-list-heading" class="text-xl font-semibold tracking-tight text-white">Twoje skrytki</h2>
         <ul id="dz-list" class="mt-6 divide-y divide-white/6"></ul>
         <p id="dz-empty" class="mt-4 text-sm text-slate-500" hidden>Nie masz jeszcze skrytek.</p>
     </section>
-
+</div>
 </div>
 
 

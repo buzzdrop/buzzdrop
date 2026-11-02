@@ -879,6 +879,8 @@ def index():
             max_content_length=current_app.config.get('MAX_CONTENT_LENGTH'),
             configured_notification_email=current_user.get('email'),
             status_labels=status_labels(_),
+            # Send or Collect (#410): ?mode=collect opens the dropzones half.
+            page_mode='collect' if request.args.get('mode') == 'collect' else 'send',
         ))
         response.headers['Cache-Control'] = 'no-store'
         return response

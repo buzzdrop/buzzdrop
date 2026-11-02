@@ -23,13 +23,80 @@ const copyLinkButton = (name) => shareRow(name).getByRole('button', { name: `Cop
 const queryCopyLinkButton = (name) => shareRow(name).queryByRole('button', { name: `Copy link for ${name}` });
 
 describe('index page', () => {
+    describe('send / collect switch', () => {
+        const sendTab = () => screen.getByRole('tab', { name: /^Send / });
+        const collectTab = () => screen.getByRole('tab', { name: /^Collect / });
+        const createDropzone = () => screen.queryByRole('button', { name: 'Create dropzone' });
+
+        it('opens on Send, with the composer shown and the dropzones out of view', () => {
+            const upload = openUploadPage();
+
+            expect(upload.selectedMode()).toBe('send');
+            expect(fileField()).toBeVisible();
+            expect(createDropzone()).toBeNull();
+        });
+
+        it('choosing Collect shows the dropzones, hides the composer and puts ?mode=collect in the address', async () => {
+            const upload = openUploadPage();
+
+            await upload.chooseMode('collect');
+
+            expect(upload.selectedMode()).toBe('collect');
+            expect(collectTab()).toHaveAttribute('tabindex', '0');
+            expect(sendTab()).toHaveAttribute('tabindex', '-1');
+            expect(createDropzone()).toBeVisible();
+            expect(fileField()).not.toBeVisible();
+            expect(new URL(upload.url()).search).toBe('?mode=collect');
+            expect(upload.dropzoneShown('Tax documents')).toBe(true);
+        });
+
+        it('back on Send, the address drops ?mode and keeps the rest of the query', async () => {
+            const upload = openUploadPage({ path: '/?shared_search=cet' });
+
+            await upload.chooseMode('collect');
+            expect(new URL(upload.url()).search).toBe('?shared_search=cet&mode=collect');
+            await upload.chooseMode('send');
+
+            expect(new URL(upload.url()).search).toBe('?shared_search=cet');
+            expect(fileField()).toBeVisible();
+        });
+
+        it('switching replaces the history entry instead of adding one', async () => {
+            const upload = openUploadPage();
+            const before = upload.historyLength();
+
+            await upload.chooseMode('collect');
+
+            expect(upload.historyLength()).toBe(before);
+        });
+
+        it('arrow keys move between the two halves; Home and End jump to the ends', async () => {
+            const upload = openUploadPage();
+            await upload.chooseMode('send');
+
+            expect(await upload.press('ArrowRight')).toBe('handled');
+            expect(collectTab()).toHaveFocus();
+            expect(upload.selectedMode()).toBe('collect');
+
+            await upload.press('ArrowLeft');
+            expect(sendTab()).toHaveFocus();
+
+            await upload.press('End');
+            expect(collectTab()).toHaveFocus();
+
+            await upload.press('Home');
+            expect(sendTab()).toHaveFocus();
+        });
+    });
+
     describe('share mode tabs', () => {
         it('clicking the Note tab shows its panel and moves the ARIA state', async () => {
             const upload = openUploadPage();
 
             await upload.switchToNote();
 
-            expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Note');
+            expect(screen.queryByRole('tabpanel', { name: 'File' })).toBeNull();
+            expect(screen.getByRole('tabpanel', { name: 'Note' })).toBeVisible();
             expect(screen.getByLabelText('Your note')).toBeVisible();
             const noteTab = screen.getByRole('tab', { name: 'Note' });
             const fileTab = screen.getByRole('tab', { name: 'File' });
@@ -424,6 +491,7 @@ describe('index page', () => {
 
         it('cancelling stops a dropzone\'s delete', async () => {
             const upload = openUploadPage();
+            await upload.chooseMode('collect');
 
             expect(await upload.deleteDropzone('Tax documents', { confirm: false }))
                 .toEqual({ question: 'Delete this dropzone?', deleted: false });
@@ -432,6 +500,7 @@ describe('index page', () => {
 
         it('accepting deletes the dropzone and takes it off the list', async () => {
             const upload = openUploadPage();
+            await upload.chooseMode('collect');
 
             expect(await upload.deleteDropzone('Tax documents', { confirm: true }))
                 .toEqual({ question: 'Delete this dropzone?', deleted: true });

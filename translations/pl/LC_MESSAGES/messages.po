@@ -514,6 +514,7 @@ msgid "Copied."
 msgstr "Skopiowano."
 
 #: templates/_dropzones_strings.html templates/collect.html
+#: templates/index.html
 msgid "Collect"
 msgstr "Odbierz"
 
@@ -992,6 +993,22 @@ msgid "Make it <span class=\"honey-text\">buzz</span>, then vanish."
 msgstr "Niech <span class=\"honey-text\">zabzyczy</span>, a potem zniknie."
 
 #: templates/index.html
+msgid "What do you want to do?"
+msgstr "Co chcesz zrobić?"
+
+#: templates/index.html
+msgid "Send"
+msgstr "Wyślij"
+
+#: templates/index.html
+msgid "Share a file or a note"
+msgstr "Udostępnij plik lub notatkę"
+
+#: templates/index.html
+msgid "Ask someone for one"
+msgstr "Poproś kogoś o plik lub notatkę"
+
+#: templates/index.html
 msgid ""
 "<strong>Encrypt a file or a note in your browser</strong>, send one link,"
 " and let the drop delete itself the moment it is downloaded. The contents"
@@ -1168,8 +1185,18 @@ msgid "Next"
 msgstr "Następna"
 
 #: templates/index.html
-msgid "Your dropzones"
-msgstr "Twoje skrytki"
+msgid ""
+"<strong>Ask for a file or a note</strong> with a one-time dropzone link. "
+"Whoever has the link encrypts one submission in their browser; you "
+"collect it with the dropzone password, and then it is gone."
+msgstr ""
+"<strong>Poproś o plik lub notatkę</strong> jednorazowym linkiem do "
+"skrytki. Kto ma link, szyfruje jedno zgłoszenie w swojej przeglądarce; ty"
+" odbierasz je hasłem skrytki i wtedy znika."
+
+#: templates/index.html
+msgid "New dropzone"
+msgstr "Nowa skrytka"
 
 #: templates/index.html
 msgid ""
@@ -1190,6 +1217,10 @@ msgstr "Dopisek"
 #: templates/index.html
 msgid "Email me when a submission lands"
 msgstr "Powiadom mnie e-mailem o nowym zgłoszeniu"
+
+#: templates/index.html
+msgid "Your dropzones"
+msgstr "Twoje skrytki"
 
 #: templates/index.html
 msgid "No dropzones yet."

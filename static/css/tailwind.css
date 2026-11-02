@@ -405,6 +405,33 @@
     @apply flex gap-1 rounded-xl border border-white/[0.07] bg-hive-850/70 p-1;
   }
 
+  /* The index page's Send / Collect switch (#410): two equal halves, larger
+     than the composer's File / Note rail it sits above. pages/index toggles
+     -active on top of .mode-tab. */
+  .mode-rail {
+    @apply grid grid-cols-2 gap-1.5 rounded-2xl border border-white/[0.07] bg-hive-850/70 p-1.5;
+  }
+
+  .mode-tab {
+    @apply flex min-w-0 items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-base font-semibold text-slate-400 transition duration-200 hover:bg-white/[0.03] hover:text-slate-100 sm:px-5 sm:py-4;
+  }
+
+  .mode-tab-active {
+    @apply border-honey-400/30 bg-linear-to-br from-honey-400/15 to-honey-400/[0.04] text-white shadow-honey hover:bg-transparent hover:text-white;
+  }
+
+  .mode-tab-hint {
+    @apply mt-0.5 block truncate text-xs font-normal text-slate-500;
+  }
+
+  .mode-tab-active .mode-tab-hint {
+    @apply text-honey-200/80;
+  }
+
+  .mode-tab-active svg {
+    @apply text-honey-300;
+  }
+
   /* --------------------------------------------------------------- Status */
 
   .status-badge {
