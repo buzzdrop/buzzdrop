@@ -11,9 +11,12 @@ Those attributes cover only entry files. So `base.html` also renders a `<script 
 - **CSP:** the CSP allows that one inline block by its SHA-256, added per response by `set_security_headers`.
 - **Imports:** the SRI above holds only for imports that follow `static/js/CLAUDE.md` §Import rules.
 
-## Authentication (`auth.py`)
+## Authentication (`auth/`)
 
-There is no users table: users come from `.env` as `FLASK_USER_N=username:password:is_admin`. Passwords are hashed with PBKDF2-SHA256 via Werkzeug. `get_users()` reads every `FLASK_USER_*` variable and is `@lru_cache`d.
+`AUTH_BACKEND` picks the user source — a swappable-backend package like `db/` (`auth/CLAUDE.md`, `docs/howto-new-auth-backend.md`). The decorators and the session are the same under both.
+
+- **`env` (default):** there is no users table: users come from `.env` as `FLASK_USER_N=username:password:is_admin`. Passwords are hashed with PBKDF2-SHA256 via Werkzeug. `get_users()` reads every `FLASK_USER_*` variable and is `@lru_cache`d.
+- **`clerk`:** sign-in is Clerk's. `/login` loads `clerk.js` from the instance's Frontend API origin and mounts its SignIn; the page POSTs the session token to `/auth/session`, which verifies it (RS256, `CLERK_JWT_KEY` or the JWKS endpoint; `iss` = the Frontend API origin, `azp` in `CLERK_AUTHORIZED_PARTIES` when set) and calls `start_session` — an ordinary Flask session, so everything downstream is backend-agnostic. The bridge has no CSRF gate (there is no session to ride yet) but requires `X-Requested-With`, which a cross-site form cannot send, and shares `LOGIN_RATE_LIMIT`. `auth/clerk_backend.py` details the mapping: the Buzzdrop username is the Clerk user id (stable across email changes), `display_name` is what the UI shows, `is_admin` is `CLERK_ADMIN_USERS` evaluated live per request, `CLERK_ALLOWED_USERS` is the admission allowlist (the Hobby plan has none hosted). `get_users()` answers from the Backend API, cached a minute. `/logout` clears the Flask session and lands on `/login?signed_out=1`, which signs Clerk out — its session lives in clerk.js, not our cookie. clerk.js and its calls need CSP room beyond the same-origin baseline (`g.csp_extra`, granted only on the clerk `/login` response); the clerk.js script tag carries no SRI — it comes from the instance's own Frontend API, which also answers the JWKS the tokens verify against.
 
 Decorators:
 - `@login_required`: checks the session for a username

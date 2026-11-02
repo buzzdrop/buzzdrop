@@ -2,7 +2,14 @@
 
 ## Environment variables (`.env`)
 
-- **Users:** `FLASK_USER_N=username:password:is_admin` (see `docs/dev/security.md`)
+- **Users:** `AUTH_BACKEND` — `env` (default): `FLASK_USER_N=username:password:is_admin` (see `docs/dev/security.md`); `clerk`: sign-in via Clerk (below).
+- **Clerk** (`AUTH_BACKEND=clerk`; operator walkthrough: `docs/howto-clerk-auth.md`; internals: `docs/dev/security.md` §Authentication):
+  - `CLERK_PUBLISHABLE_KEY` (`pk_…`) and `CLERK_FRONTEND_API_URL` (the instance's Frontend API origin, e.g. `https://clerk.example.com`) go to the browser: the login page loads `clerk.js` from `CLERK_FRONTEND_API_URL` at `@CLERK_JS_VERSION` (default 5).
+  - `CLERK_SECRET_KEY` (`sk_…`) authorizes Backend API calls: the user lookup at session bridge and the admin's user list.
+  - `CLERK_JWT_KEY` (public PEM): with it session tokens verify without network; without it the JWKS of the Frontend API is fetched once and cached.
+  - `CLERK_AUTHORIZED_PARTIES` (CSV of origins): the session token's `azp` must be one. Set it in production — empty accepts any `azp`.
+  - `CLERK_ADMIN_USERS` (CSV of Clerk user ids or emails): who gets `is_admin`.
+  - `CLERK_ALLOWED_USERS` (CSV): who may sign in at all; empty allows every Clerk-authenticated user.
 - **Storage:** `STORAGE_BACKEND` (`local`: files in `UPLOAD_FOLDER` with UUID names; `s3`: under `uploads/{uuid}` keys, `storage.py`), `UPLOAD_FOLDER`
 - **S3:** `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`
 - **Limits:** `MAX_CONTENT_LENGTH` (default 100 MB), `ALLOWED_EXTENSIONS`

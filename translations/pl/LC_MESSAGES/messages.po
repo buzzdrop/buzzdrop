@@ -18,7 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app.py templates/_composer_strings.html templates/_users_strings.html
+#: app.py templates/_composer_strings.html templates/_login_strings.html
+#: templates/_users_strings.html
 msgid "Too many requests. Please try again later."
 msgstr "Zbyt wiele żądań. Spróbuj ponownie później."
 
@@ -190,14 +191,6 @@ msgid "Ask the sender for a new one."
 msgstr "Poproś nadawcę o nową."
 
 #: app.py
-msgid "Logged in successfully"
-msgstr "Zalogowano"
-
-#: app.py
-msgid "Invalid username or password"
-msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
-
-#: app.py
 msgid "Invalid request"
 msgstr "Nieprawidłowe żądanie"
 
@@ -209,7 +202,7 @@ msgstr "Wylogowano"
 msgid "API token not found"
 msgstr "Nie znaleziono tokenu API"
 
-#: app.py auth.py
+#: app.py auth/decorators.py
 msgid "Admin access required"
 msgstr "Wymagany dostęp administratora"
 
@@ -228,10 +221,6 @@ msgstr "Nie wybrano pliku"
 #: app.py
 msgid "Drop deleted"
 msgstr "Przesyłkę usunięto"
-
-#: auth.py
-msgid "Please log in to access this page"
-msgstr "Zaloguj się, aby zobaczyć tę stronę"
 
 #: utils.py
 msgid "Active"
@@ -261,6 +250,18 @@ msgstr "Wygasła"
 #, python-format
 msgid "Note · %(time)s"
 msgstr "Notatka · %(time)s"
+
+#: auth/decorators.py
+msgid "Please log in to access this page"
+msgstr "Zaloguj się, aby zobaczyć tę stronę"
+
+#: auth/env_backend.py
+msgid "Logged in successfully"
+msgstr "Zalogowano"
+
+#: auth/env_backend.py
+msgid "Invalid username or password"
+msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
 
 #. a Copy button's label, flashed after a copy. Keep it short.
 #: templates/_clipboard_feedback_strings.html
@@ -607,6 +608,14 @@ msgstr "Nie udało się pobrać zgłoszenia."
 #, python-format
 msgid "Language: %(language)s"
 msgstr "Język: %(language)s"
+
+#: templates/_login_strings.html
+msgid "Sign-in could not be completed. Try again."
+msgstr "Logowanie nie powiodło się. Spróbuj ponownie."
+
+#: templates/_login_strings.html
+msgid "The sign-in service did not load. Refresh the page and try again."
+msgstr "Usługa logowania nie załadowała się. Odśwież stronę i spróbuj ponownie."
 
 #. %(reason)s is one of the strength messages, e.g. "Too weak (~30 bits). …".
 #: templates/_password_gate_strings.html
@@ -1335,6 +1344,16 @@ msgstr "Zarządzanie użytkownikami"
 
 #: templates/users.html
 msgid ""
+"Users are managed in the Clerk dashboard. Roles come from <code class"
+"=\"rounded-sm border border-white/10 bg-hive-850 px-1.5 py-0.5 text-"
+"xs\">CLERK_ADMIN_USERS</code>."
+msgstr ""
+"Użytkownikami zarządza się w panelu Clerk. Role pochodzą z <code class"
+"=\"rounded-sm border border-white/10 bg-hive-850 px-1.5 py-0.5 text-"
+"xs\">CLERK_ADMIN_USERS</code>."
+
+#: templates/users.html
+msgid ""
 "Users are managed through environment variables. To add or modify users, "
 "update the <code class=\"rounded-sm border border-white/10 bg-hive-850 "
 "px-1.5 py-0.5 text-xs\">.env</code> file and redeploy."
@@ -1380,10 +1399,10 @@ msgstr[2] "%(num)s tokenów"
 #, python-format
 msgid ""
 "New token for <span class=\"font-semibold text-"
-"white\">%(username)s</span> — shown once. Store it now."
+"white\">%(shown_name)s</span> — shown once. Store it now."
 msgstr ""
 "Nowy token dla <span class=\"font-semibold text-"
-"white\">%(username)s</span> – widoczny tylko raz. Zapisz go teraz."
+"white\">%(shown_name)s</span> – widoczny tylko raz. Zapisz go teraz."
 
 #: templates/users.html
 msgid "New API token"

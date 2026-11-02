@@ -63,6 +63,38 @@ class Config:
         os.getenv('ALLOWED_EXTENSIONS', 'txt,pdf,png,jpg,jpeg,gif,doc,docx,xls,xlsx').split(',')
     )
     
+    # Auth backend: 'env' reads FLASK_USER_* (the self-hosted default, no
+    # users table — auth.py); 'clerk' delegates sign-in to Clerk and
+    # bridges the session JWT into a normal Flask session (clerk_auth.py).
+    AUTH_BACKEND = os.getenv('AUTH_BACKEND', 'env').strip().lower()
+
+    # Clerk (used only when AUTH_BACKEND=clerk). The publishable key and
+    # Frontend API origin go to the browser (clerk.js); the secret key
+    # authorizes Backend API calls (user lookup at session bridge, the
+    # admin's user list). CLERK_JWT_KEY is the instance's public PEM key —
+    # with it session tokens verify without a network call; without it
+    # the JWKS of the Frontend API is fetched and cached.
+    CLERK_PUBLISHABLE_KEY = os.getenv('CLERK_PUBLISHABLE_KEY')
+    CLERK_SECRET_KEY = os.getenv('CLERK_SECRET_KEY')
+    CLERK_FRONTEND_API_URL = os.getenv('CLERK_FRONTEND_API_URL', '').strip().rstrip('/')
+    CLERK_JWT_KEY = os.getenv('CLERK_JWT_KEY')
+    # clerk.js is pinned by major at @CLERK_JS_VERSION; the URL is built
+    # from the Frontend API origin (login.html).
+    CLERK_JS_VERSION = os.getenv('CLERK_JS_VERSION', '5').strip()
+    # CSV of origins the session token's azp may name (e.g.
+    # "https://buzzdrop.example.com,http://localhost:5000"). Empty
+    # accepts any azp — set it in production.
+    CLERK_AUTHORIZED_PARTIES = frozenset(
+        p.strip() for p in os.getenv('CLERK_AUTHORIZED_PARTIES', '').split(',') if p.strip())
+    # CSV of Clerk user ids or emails that get is_admin.
+    CLERK_ADMIN_USERS = frozenset(
+        p.strip().lower() for p in os.getenv('CLERK_ADMIN_USERS', '').split(',') if p.strip())
+    # CSV allowlist of Clerk user ids or emails that may sign in at all
+    # (the Hobby plan has no hosted allowlist). Empty allows everyone
+    # Clerk authenticates.
+    CLERK_ALLOWED_USERS = frozenset(
+        p.strip().lower() for p in os.getenv('CLERK_ALLOWED_USERS', '').split(',') if p.strip())
+
     # Storage backend
     STORAGE_BACKEND = os.getenv('STORAGE_BACKEND', 'local')  # 'local' or 's3'
     
@@ -198,6 +230,23 @@ class Config:
                 raise ValueError(
                     "TOKEN_HASH_SECRET must differ from FLASK_SECRET_KEY"
                 )
+
+        # Auth backend
+        if cls.AUTH_BACKEND not in {'env', 'clerk'}:
+            raise ValueError("AUTH_BACKEND must be 'env' or 'clerk'")
+        if cls.AUTH_BACKEND == 'clerk':
+            missing = [
+                name for name in ('CLERK_PUBLISHABLE_KEY', 'CLERK_SECRET_KEY',
+                                  'CLERK_FRONTEND_API_URL')
+                if not getattr(cls, name)
+            ]
+            if missing:
+                raise ValueError(
+                    "AUTH_BACKEND=clerk requires: " + ', '.join(missing))
+            if not cls.CLERK_FRONTEND_API_URL.startswith('https://'):
+                raise ValueError(
+                    "CLERK_FRONTEND_API_URL must be an https:// origin "
+                    "(e.g. https://clerk.example.com)")
 
         # Validate S3 configuration if using S3 backend
         if cls.STORAGE_BACKEND == 's3':

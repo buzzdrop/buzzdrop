@@ -14,7 +14,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app.py templates/_composer_strings.html templates/_users_strings.html
+#: app.py templates/_composer_strings.html templates/_login_strings.html
+#: templates/_users_strings.html
 msgid "Too many requests. Please try again later."
 msgstr ""
 
@@ -182,14 +183,6 @@ msgid "Ask the sender for a new one."
 msgstr ""
 
 #: app.py
-msgid "Logged in successfully"
-msgstr ""
-
-#: app.py
-msgid "Invalid username or password"
-msgstr ""
-
-#: app.py
 msgid "Invalid request"
 msgstr ""
 
@@ -201,7 +194,7 @@ msgstr ""
 msgid "API token not found"
 msgstr ""
 
-#: app.py auth.py
+#: app.py auth/decorators.py
 msgid "Admin access required"
 msgstr ""
 
@@ -219,10 +212,6 @@ msgstr ""
 
 #: app.py
 msgid "Drop deleted"
-msgstr ""
-
-#: auth.py
-msgid "Please log in to access this page"
 msgstr ""
 
 #: utils.py
@@ -252,6 +241,18 @@ msgstr ""
 #: templates/_shared_files_strings.html utils.py
 #, python-format
 msgid "Note · %(time)s"
+msgstr ""
+
+#: auth/decorators.py
+msgid "Please log in to access this page"
+msgstr ""
+
+#: auth/env_backend.py
+msgid "Logged in successfully"
+msgstr ""
+
+#: auth/env_backend.py
+msgid "Invalid username or password"
 msgstr ""
 
 #. a Copy button's label, flashed after a copy. Keep it short.
@@ -584,6 +585,14 @@ msgstr ""
 #: templates/_language_menu.html
 #, python-format
 msgid "Language: %(language)s"
+msgstr ""
+
+#: templates/_login_strings.html
+msgid "Sign-in could not be completed. Try again."
+msgstr ""
+
+#: templates/_login_strings.html
+msgid "The sign-in service did not load. Refresh the page and try again."
 msgstr ""
 
 #. %(reason)s is one of the strength messages, e.g. "Too weak (~30 bits). …".
@@ -1263,6 +1272,13 @@ msgstr ""
 
 #: templates/users.html
 msgid ""
+"Users are managed in the Clerk dashboard. Roles come from <code class"
+"=\"rounded-sm border border-white/10 bg-hive-850 px-1.5 py-0.5 text-"
+"xs\">CLERK_ADMIN_USERS</code>."
+msgstr ""
+
+#: templates/users.html
+msgid ""
 "Users are managed through environment variables. To add or modify users, "
 "update the <code class=\"rounded-sm border border-white/10 bg-hive-850 "
 "px-1.5 py-0.5 text-xs\">.env</code> file and redeploy."
@@ -1303,7 +1319,7 @@ msgstr[1] ""
 #, python-format
 msgid ""
 "New token for <span class=\"font-semibold text-"
-"white\">%(username)s</span> — shown once. Store it now."
+"white\">%(shown_name)s</span> — shown once. Store it now."
 msgstr ""
 
 #: templates/users.html
