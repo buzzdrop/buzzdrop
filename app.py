@@ -1484,7 +1484,10 @@ def download_file(file_id):
                 storage.delete(result['path'])
             except Exception:
                 pass
-        return {'error': 'File has expired'}, 410
+        # `code` lets the page tell an expired drop from an opened one —
+        # the same convention /release uses (#338); the uniform 403 above
+        # deliberately carries none (#240).
+        return {'error': 'File has expired', 'code': 'expired'}, 410
 
     file_info = file_repo.get_by_id(file_id)
 

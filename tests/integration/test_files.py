@@ -213,7 +213,7 @@ def test_download_file_already_downloaded(client, app, files_store, key_release_
 @pytest.mark.parametrize('status, http, body', [
     ('forbidden', 403, {'error': 'Forbidden'}),
     ('already_downloaded', 410, {'error': 'This file has already been downloaded'}),
-    ('expired', 410, {'error': 'File has expired'}),
+    ('expired', 410, {'error': 'File has expired', 'code': 'expired'}),
 ])
 def test_download_maps_the_claim_status_to_plain_json(
         client, file_record, monkeypatch, status, http, body):
@@ -257,7 +257,7 @@ def test_download_when_the_download_window_has_passed(
                           headers={'X-Download-Ticket': ticket})
 
     assert response.status_code == 410
-    assert response.get_json() == {'error': 'File has expired'}
+    assert response.get_json() == {'error': 'File has expired', 'code': 'expired'}
 
 
 def test_view_file_success(client, app, files_store, key_release_upload):

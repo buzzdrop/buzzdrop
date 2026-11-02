@@ -48,12 +48,13 @@ def test_index_anonymous_user_is_sent_to_login(client):
 
 
 def test_a_flash_set_before_the_redirect_shows_on_the_login_page(client):
-    # Too-large drops and dead download links flash, then send the browser to
-    # `/`: the message must survive the extra hop to /login (#359).
-    page = client.get(url_for('download_file', file_id='nonexistentid'), follow_redirects=True)
+    # A CSRF-refused POST /logout flashes 'Invalid request' and redirects to
+    # `/`: the message must survive the extra hop to /login (#359). (A dead
+    # /download link no longer flashes — it answers a bare 403, #240.)
+    page = client.post(url_for('logout'), follow_redirects=True)
 
     assert page.request.path == url_for('login')
-    assert 'Drop not found' in page.get_data(as_text=True)
+    assert 'Invalid request' in page.get_data(as_text=True)
 
 
 def test_local_stylesheet_is_served(client):

@@ -663,13 +663,13 @@ export function makeProtocolFake(opts = {}) {
         }
         if (isExpired(file)) {
             expire(fileId, file);
-            return json(410, { error: 'File has expired' });
+            return json(410, { error: 'File has expired', code: 'expired' });
         }
         // A release nobody downloaded within the window expires the drop.
         if (key.releasedAt !== null
                 && Date.now() >= Date.parse(key.releasedAt) + downloadTtlSeconds * 1000) {
             expire(fileId, file);
-            return json(410, { error: 'File has expired' });
+            return json(410, { error: 'File has expired', code: 'expired' });
         }
         const blob = file.blob ?? new Uint8Array();
         file.downloaded = true;
