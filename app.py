@@ -946,6 +946,11 @@ def user_file_statuses():
     error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
 )
 def login():
+    # An active session skips the form — the mirror of / sending anonymous
+    # visitors here (#404).
+    if get_current_user():
+        return redirect(url_for('index'))
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')

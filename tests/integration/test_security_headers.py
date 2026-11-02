@@ -177,12 +177,16 @@ def test_permissions_policy_is_restrictive(client):
 
 def test_no_inline_scripts_in_templates(client, key_release_upload):
     """The rendered pages must not rely on inline JS that CSP blocks."""
+    # /login only renders for anonymous visitors (#404) — check it first.
+    response = client.get('/login')
+    _assert_no_inline_script(response)
+    _assert_no_inline_handlers(response.data.decode('utf-8'))
+
     _login(client)
 
-    for path in ('/', '/login'):
-        response = client.get(path)
-        _assert_no_inline_script(response)
-        _assert_no_inline_handlers(response.data.decode('utf-8'))
+    response = client.get('/')
+    _assert_no_inline_script(response)
+    _assert_no_inline_handlers(response.data.decode('utf-8'))
 
     # /view/<id> (confirm_download.html) — the page that used to carry an
     # inline fragment→sessionStorage script.
