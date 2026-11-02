@@ -51,6 +51,10 @@ def _collect_ticket(ws_hex=_WS):
 
 
 def login_user(client, username='testuser', password='password'):
+    # /login ignores a POST while a session is active (#404), so switching
+    # accounts mid-test starts by clearing the old session.
+    with client.session_transaction() as session:
+        session.clear()
     response = client.post(
         url_for('login'),
         data={'username': username, 'password': password},

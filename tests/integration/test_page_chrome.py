@@ -70,7 +70,6 @@ def test_users_page_has_no_back_to_home_link(client, as_admin):
 
 
 @pytest.mark.parametrize('endpoint, values', [
-    ('login', {}),
     ('manage_users', {}),
     ('view_file', {'file_id': 'missing'}),
 ])
@@ -93,7 +92,12 @@ def test_success_page_footer_tells_the_uploader_to_split_link_and_password(clien
 
 
 def test_other_pages_keep_the_footer_note(client):
-    assert 'Each drop opens once' in _footer(client, 'login')
+    # /login only renders for anonymous visitors (#404), so its neutral
+    # footer is checked here rather than under as_admin.
+    footer = _footer(client, 'login')
+    assert 'Each drop opens once' in footer
+    assert 'key' not in footer.lower()
+    assert 'password' not in footer.lower()
 
 
 @pytest.mark.parametrize('endpoint, values', [
