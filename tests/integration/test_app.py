@@ -119,6 +119,29 @@ def test_index_unknown_mode_falls_back_to_send(client, app, db_instance):
     assert _mode_panels(html)['send'] == {'selected': True, 'hidden': False}
 
 
+def test_a_collect_link_survives_the_login_hop(client):
+    # A logged-out visitor opening /?mode=collect signs in and lands on
+    # Collect, not on the default Send half (#410).
+    response = client.get('/?mode=collect')
+    assert response.status_code == 302
+    login_url = response.headers['Location']
+    assert urlparse(login_url).path == url_for('login')
+
+    response = client.post(login_url, data={'username': 'testuser', 'password': 'password'})
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/?mode=collect'
+
+    html = client.get(response.headers['Location']).data.decode('utf-8')
+    assert _mode_panels(html)['collect'] == {'selected': True, 'hidden': False}
+
+
+def test_login_ignores_a_next_that_leaves_the_site(client):
+    response = client.post('/login?next=//evil.example/', data={'username': 'testuser', 'password': 'password'})
+    assert response.status_code == 302
+    assert urlparse(response.headers['Location']).netloc in ('', 'localhost')
+    assert urlparse(response.headers['Location']).path == url_for('index')
+
+
 def test_index_logged_in_user_uses_shared_controls_for_both_tabs(client, app, db_instance):
     login_user(client, 'testuser', 'password')
     response = client.get(url_for('index'))

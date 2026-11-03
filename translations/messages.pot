@@ -1129,7 +1129,7 @@ msgstr ""
 
 #: templates/index.html
 msgid ""
-"<strong>Ask for a file or a note</strong> with a one-time dropzone link. "
+"<strong>Ask for a file or a note</strong> with a one-time request link. "
 "Whoever has the link encrypts one submission in their browser; you "
 "collect it with the dropzone password, and then it is gone."
 msgstr ""

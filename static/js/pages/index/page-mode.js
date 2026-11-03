@@ -5,7 +5,7 @@
 // the language menu's way back in step, so a reload or a language change
 // stays on the same half.
 
-import { required } from '../../lib/required.js';
+import { required, requiredWindow } from '../../lib/required.js';
 
 /** @typedef {'send' | 'collect'} PageMode */
 
@@ -33,7 +33,7 @@ export function modeHref(href, mode) {
 export function initPageMode(root) {
     const rail = root.getElementById('page-mode-rail');
     if (!rail) return;
-    const window = /** @type {Window} */ (root.defaultView);
+    const window = requiredWindow(root);
 
     /** @type {Record<PageMode, HTMLButtonElement>} */
     const tabs = {

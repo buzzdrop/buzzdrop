@@ -1002,7 +1002,7 @@ msgstr "Wyślij"
 
 #: templates/index.html
 msgid "Share a file or a note"
-msgstr "Udostępnij plik lub notatkę"
+msgstr "Wyślij plik lub notatkę"
 
 #: templates/index.html
 msgid "Ask someone for one"
@@ -1186,13 +1186,13 @@ msgstr "Następna"
 
 #: templates/index.html
 msgid ""
-"<strong>Ask for a file or a note</strong> with a one-time dropzone link. "
+"<strong>Ask for a file or a note</strong> with a one-time request link. "
 "Whoever has the link encrypts one submission in their browser; you "
 "collect it with the dropzone password, and then it is gone."
 msgstr ""
 "<strong>Poproś o plik lub notatkę</strong> jednorazowym linkiem do "
 "skrytki. Kto ma link, szyfruje jedno zgłoszenie w swojej przeglądarce; ty"
-" odbierasz je hasłem skrytki i wtedy znika."
+" odbierasz je hasłem do skrytki i wtedy znika."
 
 #: templates/index.html
 msgid "New dropzone"
