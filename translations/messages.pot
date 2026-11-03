@@ -492,6 +492,7 @@ msgid "Copied."
 msgstr ""
 
 #: templates/_dropzones_strings.html templates/collect.html
+#: templates/index.html
 msgid "Collect"
 msgstr ""
 
@@ -946,6 +947,22 @@ msgid "Make it <span class=\"honey-text\">buzz</span>, then vanish."
 msgstr ""
 
 #: templates/index.html
+msgid "What do you want to do?"
+msgstr ""
+
+#: templates/index.html
+msgid "Send"
+msgstr ""
+
+#: templates/index.html
+msgid "Share a file or a note"
+msgstr ""
+
+#: templates/index.html
+msgid "Ask someone for one"
+msgstr ""
+
+#: templates/index.html
 msgid ""
 "<strong>Encrypt a file or a note in your browser</strong>, send one link,"
 " and let the drop delete itself the moment it is downloaded. The contents"
@@ -1111,7 +1128,14 @@ msgid "Next"
 msgstr ""
 
 #: templates/index.html
-msgid "Your dropzones"
+msgid ""
+"<strong>Ask for a file or a note</strong> with a one-time request link. "
+"Whoever has the link encrypts one submission in their browser; you "
+"collect it with the dropzone password, and then it is gone."
+msgstr ""
+
+#: templates/index.html
+msgid "New dropzone"
 msgstr ""
 
 #: templates/index.html
@@ -1130,6 +1154,10 @@ msgstr ""
 
 #: templates/index.html
 msgid "Email me when a submission lands"
+msgstr ""
+
+#: templates/index.html
+msgid "Your dropzones"
 msgstr ""
 
 #: templates/index.html

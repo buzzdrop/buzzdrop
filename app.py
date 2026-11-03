@@ -879,12 +879,19 @@ def index():
             max_content_length=current_app.config.get('MAX_CONTENT_LENGTH'),
             configured_notification_email=current_user.get('email'),
             status_labels=status_labels(_),
+            # Send or Collect (#410): ?mode=collect opens the dropzones half.
+            page_mode='collect' if request.args.get('mode') == 'collect' else 'send',
         ))
         response.headers['Cache-Control'] = 'no-store'
         return response
     
     # There is no anonymous landing page (#359): the front door is the login
     # page. Flashes live in the session, so they render there after the hop.
+    # A query (e.g. ?mode=collect, #410) rides along as next, so signing in
+    # lands on the page the link named.
+    query = request.query_string.decode('latin-1')
+    if query:
+        return redirect(url_for('login', next=f'{request.script_root}{request.path}?{query}'))
     return redirect(url_for('login'))
 
 
@@ -922,10 +929,14 @@ def user_file_statuses():
     error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
 )
 def login():
+    # Where to go once signed in: the local path / sent along, else home.
+    # The form posts back to this URL, so next survives the POST.
+    after_login = _local_path(request.args.get('next')) or url_for('index')
+
     # An active session skips the form — the mirror of / sending anonymous
     # visitors here (#404).
     if get_current_user():
-        return redirect(url_for('index'))
+        return redirect(after_login)
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -933,7 +944,7 @@ def login():
 
         if login_user(username, password):
             flash(_('Logged in successfully'), 'success')
-            return redirect(url_for('index'))
+            return redirect(after_login)
         else:
             flash(_('Invalid username or password'))
 
