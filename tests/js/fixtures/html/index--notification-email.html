@@ -143,29 +143,29 @@
 
         
         <div id="page-mode-rail" class="mode-rail" role="tablist" aria-label="What do you want to do?">
-            <button id="send-mode-tab" type="button" role="tab" aria-selected="true" aria-controls="send-mode-panel" data-mode="send" class="mode-tab mode-tab-active">
+            <button id="send-mode-tab" type="button" role="tab" aria-selected="true" aria-controls="send-mode-panel" aria-labelledby="send-mode-label" aria-describedby="send-mode-hint" data-mode="send" class="mode-tab mode-tab-active">
                 <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M10 17a1 1 0 0 1-1-1V6.414L5.707 9.707a1 1 0 0 1-1.414-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L11 6.414V16a1 1 0 0 1-1 1Z" clip-rule="evenodd"/>
                 </svg>
                 <span class="min-w-0 text-left">
-                    <span class="block">Send</span>
-                    <span class="mode-tab-hint">Share a file or a note</span>
+                    <span id="send-mode-label" class="block">Send</span>
+                    <span id="send-mode-hint" class="mode-tab-hint">Share a file or a note</span>
                 </span>
             </button>
-            <button id="collect-mode-tab" type="button" role="tab" aria-selected="false" aria-controls="collect-mode-panel" tabindex="-1" data-mode="collect" class="mode-tab">
+            <button id="collect-mode-tab" type="button" role="tab" aria-selected="false" aria-controls="collect-mode-panel" aria-labelledby="collect-mode-label" aria-describedby="collect-mode-hint" tabindex="-1" data-mode="collect" class="mode-tab">
                 <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 0 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L9 13.586V4a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
                 </svg>
                 <span class="min-w-0 text-left">
-                    <span class="block">Collect</span>
-                    <span class="mode-tab-hint">Ask someone for one</span>
+                    <span id="collect-mode-label" class="block">Collect</span>
+                    <span id="collect-mode-hint" class="mode-tab-hint">Ask someone for one</span>
                 </span>
             </button>
         </div>
     </header>
 
 
-<div id="send-mode-panel" role="tabpanel" aria-labelledby="send-mode-tab" class="space-y-8">
+<div id="send-mode-panel" role="tabpanel" aria-labelledby="send-mode-label" class="space-y-8">
     <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
         <strong>Encrypt a file or a note in your browser</strong>, send one link, and let the drop delete itself the moment it is downloaded. The contents are ciphertext to the server; details like the filename and your memo are not.
     </p>
@@ -347,7 +347,7 @@
 
 
 
-<div id="collect-mode-panel" role="tabpanel" aria-labelledby="collect-mode-tab" class="space-y-8" hidden>
+<div id="collect-mode-panel" role="tabpanel" aria-labelledby="collect-mode-label" class="space-y-8" hidden>
     <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
         <strong>Ask for a file or a note</strong> with a one-time request link. Whoever has the link encrypts one submission in their browser; you collect it with the dropzone password, and then it is gone.
     </p>

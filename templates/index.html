@@ -35,31 +35,34 @@
         {# Sending and collecting are the page's two equal halves (#410), an
            ARIA tab set (pages/index/page-mode.js). The server renders the
            mode ?mode= names, so a link or a reload lands on it without a
-           flash; the script keeps the address in step. #}
+           flash; the script keeps the address in step. Each tab is named by
+           its label alone and the hint is its description: "Send", not "Send
+           Share a file or a note", which also matched the composer's Note and
+           File tabs. #}
         <div id="page-mode-rail" class="mode-rail" role="tablist" aria-label="{{ _('What do you want to do?') }}">
-            <button id="send-mode-tab" type="button" role="tab" aria-selected="{{ 'true' if page_mode == 'send' else 'false' }}" aria-controls="send-mode-panel"{% if page_mode != 'send' %} tabindex="-1"{% endif %} data-mode="send" class="mode-tab{{ ' mode-tab-active' if page_mode == 'send' }}">
+            <button id="send-mode-tab" type="button" role="tab" aria-selected="{{ 'true' if page_mode == 'send' else 'false' }}" aria-controls="send-mode-panel" aria-labelledby="send-mode-label" aria-describedby="send-mode-hint"{% if page_mode != 'send' %} tabindex="-1"{% endif %} data-mode="send" class="mode-tab{{ ' mode-tab-active' if page_mode == 'send' }}">
                 <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M10 17a1 1 0 0 1-1-1V6.414L5.707 9.707a1 1 0 0 1-1.414-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L11 6.414V16a1 1 0 0 1-1 1Z" clip-rule="evenodd"/>
                 </svg>
                 <span class="min-w-0 text-left">
-                    <span class="block">{{ _('Send') }}</span>
-                    <span class="mode-tab-hint">{{ _('Share a file or a note') }}</span>
+                    <span id="send-mode-label" class="block">{{ _('Send') }}</span>
+                    <span id="send-mode-hint" class="mode-tab-hint">{{ _('Share a file or a note') }}</span>
                 </span>
             </button>
-            <button id="collect-mode-tab" type="button" role="tab" aria-selected="{{ 'true' if page_mode == 'collect' else 'false' }}" aria-controls="collect-mode-panel"{% if page_mode != 'collect' %} tabindex="-1"{% endif %} data-mode="collect" class="mode-tab{{ ' mode-tab-active' if page_mode == 'collect' }}">
+            <button id="collect-mode-tab" type="button" role="tab" aria-selected="{{ 'true' if page_mode == 'collect' else 'false' }}" aria-controls="collect-mode-panel" aria-labelledby="collect-mode-label" aria-describedby="collect-mode-hint"{% if page_mode != 'collect' %} tabindex="-1"{% endif %} data-mode="collect" class="mode-tab{{ ' mode-tab-active' if page_mode == 'collect' }}">
                 <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 0 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L9 13.586V4a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
                 </svg>
                 <span class="min-w-0 text-left">
-                    <span class="block">{{ _('Collect') }}</span>
-                    <span class="mode-tab-hint">{{ _('Ask someone for one') }}</span>
+                    <span id="collect-mode-label" class="block">{{ _('Collect') }}</span>
+                    <span id="collect-mode-hint" class="mode-tab-hint">{{ _('Ask someone for one') }}</span>
                 </span>
             </button>
         </div>
     </header>
 
 {# ----------------------------------------------------------------- Send #}
-<div id="send-mode-panel" role="tabpanel" aria-labelledby="send-mode-tab" class="space-y-8"{% if page_mode != 'send' %} hidden{% endif %}>
+<div id="send-mode-panel" role="tabpanel" aria-labelledby="send-mode-label" class="space-y-8"{% if page_mode != 'send' %} hidden{% endif %}>
     <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
         {% trans %}<strong>Encrypt a file or a note in your browser</strong>, send one link, and let the drop delete itself
         the moment it is downloaded. The contents are ciphertext to the server; details like the filename and your memo are not.{% endtrans %}
@@ -287,7 +290,7 @@
 
 {# -------------------------------------------------------------- Collect #}
 {# Dropzones (ADR-0001): the reversed one-shot flow. #}
-<div id="collect-mode-panel" role="tabpanel" aria-labelledby="collect-mode-tab" class="space-y-8"{% if page_mode != 'collect' %} hidden{% endif %}>
+<div id="collect-mode-panel" role="tabpanel" aria-labelledby="collect-mode-label" class="space-y-8"{% if page_mode != 'collect' %} hidden{% endif %}>
     <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
         {% trans %}<strong>Ask for a file or a note</strong> with a one-time request link. Whoever has the link encrypts one
         submission in their browser; you collect it with the dropzone password, and then it is gone.{% endtrans %}

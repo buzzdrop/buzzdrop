@@ -45,12 +45,12 @@ const COMPOSER_WORDS = {
     en: {
         password: 'Password', fileField: 'Drop a file here, or browse', noteTab: 'Note', fileTab: 'File',
         noteField: 'Your note', generate: 'Generate', send: /^Send (file|note)$/,
-        modes: { send: /^Send /, collect: /^Collect / },
+        modes: { send: 'Send', collect: 'Collect' },
     },
     pl: {
         password: 'Hasło', fileField: 'Upuść tu plik albo wybierz go', noteTab: 'Notatka', fileTab: 'Plik',
         noteField: 'Treść notatki', generate: 'Wygeneruj', send: /^Wyślij (plik|notatkę)$/,
-        modes: { send: /^Wyślij /, collect: /^Odbierz / },
+        modes: { send: 'Wyślij', collect: 'Odbierz' },
     },
 };
 

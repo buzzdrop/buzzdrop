@@ -18,7 +18,7 @@ const keepingNonBreakingSpaces = { normalizer: getDefaultNormalizer({ collapseWh
 /** A drop list row, by its drop's title. @param {string} name */
 const row = (name) => within(screen.getByRole('article', { name }));
 /** The composer's half of the index page; the Collect half has its own Expiry and Memo. */
-const sendPanel = () => within(screen.getByRole('tabpanel', { name: /^Wyślij / }));
+const sendPanel = () => within(screen.getByRole('tabpanel', { name: 'Wyślij' }));
 
 describe('in Polish', () => {
     it('serves the login page', () => {

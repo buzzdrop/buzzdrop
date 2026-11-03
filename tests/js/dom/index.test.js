@@ -24,14 +24,16 @@ const queryCopyLinkButton = (name) => shareRow(name).queryByRole('button', { nam
 
 describe('index page', () => {
     describe('send / collect switch', () => {
-        const sendTab = () => screen.getByRole('tab', { name: /^Send / });
-        const collectTab = () => screen.getByRole('tab', { name: /^Collect / });
+        const sendTab = () => screen.getByRole('tab', { name: 'Send' });
+        const collectTab = () => screen.getByRole('tab', { name: 'Collect' });
         const createDropzone = () => screen.queryByRole('button', { name: 'Create dropzone' });
 
         it('opens on Send, with the composer shown and the dropzones out of view', () => {
             const upload = openUploadPage();
 
             expect(upload.selectedMode()).toBe('send');
+            // The tab is named by its label; the hint only describes it.
+            expect(sendTab()).toHaveAccessibleDescription('Share a file or a note');
             expect(fileField()).toBeVisible();
             expect(createDropzone()).toBeNull();
         });
