@@ -33,6 +33,11 @@ def _looks_like_placeholder(value: Optional[str]) -> bool:
     )
 
 
+# Production refuses shorter secrets; `openssl rand -hex 32` gives 64.
+MIN_SECRET_LENGTH = 32
+SECRET_HINT = "Generate one with: openssl rand -hex 32"
+
+
 class Config:
     """Base configuration class."""
     
@@ -183,7 +188,9 @@ class Config:
 
         # Check secret key in production
         if not cls.SECRET_KEY and is_production:
-            raise ValueError("FLASK_SECRET_KEY must be set in production environment")
+            raise ValueError(
+                "FLASK_SECRET_KEY must be set in production environment. "
+                + SECRET_HINT)
 
         # One secret must not protect both session cookies and token hashes:
         # require a dedicated TOKEN_HASH_SECRET in production. Outside
@@ -192,12 +199,22 @@ class Config:
             if not cls.TOKEN_HASH_SECRET:
                 raise ValueError(
                     "TOKEN_HASH_SECRET must be set in production — refusing to reuse "
-                    "FLASK_SECRET_KEY for API token hashing"
+                    "FLASK_SECRET_KEY for API token hashing. " + SECRET_HINT
                 )
             if cls.TOKEN_HASH_SECRET == cls.SECRET_KEY:
                 raise ValueError(
                     "TOKEN_HASH_SECRET must differ from FLASK_SECRET_KEY"
                 )
+            # A guessable session key lets anyone forge a login (#379).
+            for name, value in (('FLASK_SECRET_KEY', cls.SECRET_KEY),
+                                ('TOKEN_HASH_SECRET', cls.TOKEN_HASH_SECRET)):
+                if len(value) < MIN_SECRET_LENGTH:
+                    raise ValueError(
+                        f"{name} must be at least {MIN_SECRET_LENGTH} characters "
+                        "in production. " + SECRET_HINT)
+                if _looks_like_placeholder(value):
+                    raise ValueError(
+                        f"{name} looks like the .env.example placeholder. " + SECRET_HINT)
 
         # Validate S3 configuration if using S3 backend
         if cls.STORAGE_BACKEND == 's3':

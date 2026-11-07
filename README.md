@@ -34,7 +34,7 @@ source .venv/bin/activate
 pip install -r requirements-dev.txt   # runtime deps + pytest
 pnpm install && pnpm build:css     # compiled Tailwind CSS (committed; rebuild after changing styles or template classes, CI checks it)
 
-cp .env.example .env               # set FLASK_SECRET_KEY and at least one FLASK_USER_N
+cp .env.example .env               # set FLASK_SECRET_KEY and ADMIN_PASSWORD
 python app.py
 ```
 
@@ -57,7 +57,7 @@ For local development only: set `FLASK_ENV=development` in `.env`, since the ima
 
 ## Using it
 
-1. Log in (users are configured via `FLASK_USER_N=username:password:is_admin[:email]` in `.env`).
+1. Log in (the first admin comes from `ADMIN_USERNAME`/`ADMIN_PASSWORD` in `.env`, more users from `FLASK_USER_N=username:password:is_admin[:email]`).
 2. Upload a file or write a secret text note. Set a password and optional expiry.
 3. Share the link two ways:
    - **One-click link** — password embedded in the URL fragment (convenient)
@@ -120,8 +120,8 @@ Full protocol and threat-model documentation lives in [docs/](docs/) — especia
 
 ## Production checklist
 
-1. Strong `FLASK_SECRET_KEY` and a separate `TOKEN_HASH_SECRET`.
-2. Real passwords in `FLASK_USER_*` entries.
+1. Strong `FLASK_SECRET_KEY` and a separate `TOKEN_HASH_SECRET`, each from `openssl rand -hex 32`. Production refuses anything shorter than 32 characters.
+2. A real `ADMIN_PASSWORD`, and real passwords in any `FLASK_USER_*` entries.
 3. HTTPS via reverse proxy — HSTS assumes it; preserve real client IPs.
 4. Review the limiter env vars (`LOGIN_RATE_LIMIT`, `API_TOKEN_RATE_LIMIT`, `UPLOAD_RATE_LIMIT`, `PUBLIC_FILE_RATE_LIMIT`, `KEY_RELEASE_RATE_LIMIT`, `REPORT_DECRYPTION_RATE_LIMIT`, `RATE_LIMIT_ENABLED`, `RATE_LIMIT_STORAGE_URI`) and layer nginx/Cloudflare/WAF limits on top.
 5. If you run modified code, set `SOURCE_CODE_URL` to your own source — the AGPL-3.0 §13 footer link points users at it.

@@ -28,6 +28,10 @@ os.environ['LANGUAGES'] = 'en,pl'
 
 # Load .env.example for all test runs
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env.example'), override=False)
+# Its first-admin lines are for a real install; the test users above are
+# the only ones. A test that needs ADMIN_* sets it itself.
+for _var in ('ADMIN_USERNAME', 'ADMIN_PASSWORD', 'ADMIN_EMAIL'):
+    os.environ.pop(_var, None)
 
 # Add parent directory to sys.path to allow direct import of 'app'
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

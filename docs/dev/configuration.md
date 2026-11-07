@@ -2,7 +2,14 @@
 
 ## Environment variables (`.env`)
 
-- **Users:** `FLASK_USER_N=username:password:is_admin` (see `docs/dev/security.md`)
+- **Users** (see `docs/dev/security.md`):
+  - the first admin: `ADMIN_USERNAME`, `ADMIN_PASSWORD` and optional `ADMIN_EMAIL`;
+  - more users: `FLASK_USER_N=username:password:is_admin[:email]`.
+  - Renaming `ADMIN_USERNAME` later leaves existing drops, dropzones and API tokens under the old name, because they're tied to `uploaded_by`.
+- **Secrets:**
+  - `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET`; generate each with `openssl rand -hex 32`.
+  - Production refuses either one missing, shorter than 32 characters, left at the `.env.example` placeholder, or the two being equal.
+  - Changing `FLASK_SECRET_KEY` logs everyone out, and changing `TOKEN_HASH_SECRET` invalidates every API token.
 - **Storage:** `STORAGE_BACKEND` (`local`: files in `UPLOAD_FOLDER` with UUID names; `s3`: under `uploads/{uuid}` keys, `storage.py`), `UPLOAD_FOLDER`
 - **S3:** `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`
 - **Limits:** `MAX_CONTENT_LENGTH` (default 100 MB), `ALLOWED_EXTENSIONS`

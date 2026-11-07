@@ -22,7 +22,7 @@ import dotenv  # noqa: E402
 dotenv.load_dotenv(ROOT / '.env.example', override=False)
 dotenv.load_dotenv = lambda *args, **kwargs: False
 
-for key in [k for k in os.environ if k.startswith('FLASK_USER_')]:
+for key in [k for k in os.environ if k.startswith(('FLASK_USER_', 'ADMIN_'))]:
     del os.environ[key]
 os.environ.update({
     'FLASK_ENV': 'testing',
