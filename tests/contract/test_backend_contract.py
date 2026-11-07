@@ -77,6 +77,16 @@ def _file_doc(file_id='file-1', **overrides):
     return doc
 
 
+def test_ping_answers_on_a_fresh_backend(backend):
+    backend.ping()
+
+
+def test_ping_raises_once_the_backend_is_closed(backend):
+    backend.close()
+    with pytest.raises(Exception):
+        backend.ping()
+
+
 # ---------------------------------------------------------------------------
 # FileStore contract
 # ---------------------------------------------------------------------------

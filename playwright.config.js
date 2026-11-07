@@ -44,9 +44,9 @@ export default defineConfig({
         { name: 'webkit', use: { ...devices['Desktop Safari'] } },
     ],
     webServer: externalBaseURL ? undefined : {
-        // --init and the SIGTERM shutdown are both needed, or the container
-        // outlives the run: flask as PID 1 ignores SIGTERM, and a SIGKILLed
-        // `docker run` client can't forward anything.
+        // The SIGTERM shutdown is needed, or the container outlives the
+        // run: a SIGKILLed `docker run` client can't forward anything.
+        // --init reaps any child the App spawns.
         command: `docker run --rm --init --env-file tests/e2e/e2e.env -p 127.0.0.1:${port}:5000 ${image}`,
         url: `http://localhost:${port}/login`,
         gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },

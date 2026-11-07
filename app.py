@@ -564,6 +564,21 @@ def favicon():
         mimetype='image/vnd.microsoft.icon'
     )
 
+@app.route('/healthz')
+def healthz():
+    """
+    Liveness for the image's HEALTHCHECK and hosts' health checks (#386).
+
+    Unauthenticated and not rate-limited, so it says nothing but whether
+    the database answers.
+    """
+    try:
+        get_backend().ping()
+    except Exception:
+        app.logger.exception('Health check: the database did not answer')
+        return make_response('unavailable\n', 503, {'Content-Type': 'text/plain; charset=utf-8'})
+    return make_response('ok\n', 200, {'Content-Type': 'text/plain; charset=utf-8'})
+
 def check_and_handle_expiry(file_info):
     """Check if the given file has expired and handle cleanup."""
     if not file_info:

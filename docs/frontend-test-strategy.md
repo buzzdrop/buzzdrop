@@ -324,9 +324,9 @@ All gating CI lives in `ci.yml`. **`build-test.yml` is deleted** (it duplicated 
 | Job | Needs | Does |
 |---|---|---|
 | `js-fast` | — | `pnpm/action-setup` (`packageManager`) → `setup-node` (`.nvmrc`, `cache: pnpm`) → `pnpm install --frozen-lockfile` → `pnpm typecheck` → `pnpm test:unit` → `pnpm test:dom` → `pnpm build:css` + `git diff --exit-code static/css/app.css` |
-| `build` | — | plant decoy `.env`/DB/upload files → `docker build -t buzzdrop-test .` → fail if a decoy is in the image (`.dockerignore`, #163) → `docker save` → upload the image as an artifact |
+| `build` | — | plant decoy `.env`/DB/upload files → `docker build --target runtime` and `--target test` (#386) → fail if a decoy is in either image (`.dockerignore`, #163) → check `runtime` runs as uid 10001 and refuses to start without secrets → `docker save` → upload the images as an artifact |
 | `pytest` | `build` | `docker load` → pytest in the image → `db.json` migration smoke test → **DOM-fixture drift check** → **protocol-contract drift check** |
-| `e2e` | `build` | `docker load` → `pnpm/action-setup` + `setup-node` + `pnpm install --frozen-lockfile` → start the App image on the runner (`--init`, `e2e.env`, `127.0.0.1:5055`) → `corepack pnpm exec playwright test` inside `mcr.microsoft.com/playwright:v<version>-noble` with `--network host` and `E2E_BASE_URL` (browsers and OS packages come with the image: no apt, no browser download; `tests/js/ci.test.js` keeps the tag equal to the installed `@playwright/test`) → stop the App |
+| `e2e` | `build` | `docker load` → `pnpm/action-setup` + `setup-node` + `pnpm install --frozen-lockfile` → start the `runtime` image on the runner (`--init`, `e2e.env`, `127.0.0.1:5055`) → `corepack pnpm exec playwright test` inside `mcr.microsoft.com/playwright:v<version>-noble` with `--network host` and `E2E_BASE_URL` (browsers and OS packages come with the image: no apt, no browser download; `tests/js/ci.test.js` keeps the tag equal to the installed `@playwright/test`) → stop the App |
 
 - **Drift checks:** mount the workspace into the image, run the generators (`render_dom_fixtures.py`, `record_protocol_contract.py`), then `git diff --exit-code tests/js/fixtures/` on the runner.
 - **E2E failure artifacts:** `playwright-report/` and `test-results/` are uploaded `if: failure()` and kept for 7 days.

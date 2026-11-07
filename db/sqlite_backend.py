@@ -1531,6 +1531,9 @@ class SQLiteBackend(Backend):
                 )
         self.path = os.path.abspath(path)
         self.url = f'sqlite:///{self.path}'
+        # sqlite3 creates the file but not its directory (e.g. data/ on
+        # a host's fresh disk), like UPLOAD_FOLDER's makedirs in app.py.
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
         self._local = threading.local()
         self._connections: List[sqlite3.Connection] = []
         # RLock: _connection may be re-entered while held
@@ -1552,8 +1555,11 @@ class SQLiteBackend(Backend):
             # keeping a single knob avoids divergent wait behaviour.
             conn = sqlite3.connect(self.path, isolation_level=None)
             conn.row_factory = sqlite3.Row
-            conn.execute('PRAGMA journal_mode=WAL')
+            # busy_timeout first: switching to WAL takes a lock, and a
+            # second process opening a fresh file must wait for it, not
+            # fail with "database is locked" (#386).
             conn.execute('PRAGMA busy_timeout=10000')
+            conn.execute('PRAGMA journal_mode=WAL')
             # Overwrite deleted pages — reduces (but does not eliminate,
             # see docs/true-one-time.md §10) H residue in the db file.
             conn.execute('PRAGMA secure_delete=ON')
@@ -1602,6 +1608,9 @@ class SQLiteBackend(Backend):
             f'PRAGMA table_info("{table}")')}
         if column not in existing:
             conn.execute(f'ALTER TABLE "{table}" ADD COLUMN {column} {decl}')
+
+    def ping(self) -> None:
+        self._connection().execute('SELECT 1').fetchone()
 
     def checkpoint_wal(self) -> None:
         """

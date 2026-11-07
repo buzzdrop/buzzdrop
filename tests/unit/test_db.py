@@ -263,3 +263,38 @@ def test_incompatible_not_null_column_fails_fast(tmp_path):
 
     with pytest.raises(sqlite3.DatabaseError, match='mystery'):
         SQLiteBackend(str(path))
+
+
+def test_sqlite_backend_creates_a_missing_database_directory(tmp_path):
+    """A host's fresh disk has no data/ yet: the backend makes it (#386)."""
+    from db.sqlite_backend import SQLiteBackend
+
+    path = tmp_path / 'data' / 'nested' / 'buzzdrop.db'
+    backend = SQLiteBackend(str(path))
+    try:
+        backend.ping()
+        assert path.exists()
+    finally:
+        backend.close()
+
+
+def test_sqlite_connection_sets_busy_timeout_before_wal(tmp_path, monkeypatch):
+    """WAL needs a lock a second process may hold, so wait first (#386)."""
+    import sqlite3
+    from db.sqlite_backend import SQLiteBackend
+
+    pragmas = []
+    real_connect = sqlite3.connect
+
+    def tracing_connect(*args, **kwargs):
+        conn = real_connect(*args, **kwargs)
+        conn.set_trace_callback(
+            lambda sql: pragmas.append(sql) if sql.startswith('PRAGMA') else None)
+        return conn
+
+    monkeypatch.setattr(sqlite3, 'connect', tracing_connect)
+    backend = SQLiteBackend(str(tmp_path / 'trace.db'))
+    try:
+        assert pragmas.index('PRAGMA busy_timeout=10000') < pragmas.index('PRAGMA journal_mode=WAL')
+    finally:
+        backend.close()

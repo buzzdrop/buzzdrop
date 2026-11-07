@@ -31,7 +31,7 @@ One honest caveat: "one-time" means no *second* read — nothing takes back what
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime deps + pytest
 pnpm install && pnpm build:css     # compiled Tailwind CSS (committed; rebuild after changing styles or template classes, CI checks it)
 
 cp .env.example .env               # set FLASK_SECRET_KEY and at least one FLASK_USER_N

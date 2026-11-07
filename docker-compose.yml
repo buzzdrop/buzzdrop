@@ -5,14 +5,20 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./uploads:/app/uploads
-      # Directory mount (not a single file): WAL/-shm sidecars must persist
-      # alongside the main database file.
-      - ./data:/app/data
+      # Named volumes, not bind mounts: they take the image's ownership,
+      # so the non-root app user (uid 10001) can write to them. The data
+      # volume is a directory, so the WAL/-shm sidecars persist with the
+      # database file.
+      - buzzdrop-uploads:/app/uploads
+      - buzzdrop-data:/app/data
     environment:
-      # Overrides DATABASE_URL from .env inside the container so the DB
-      # lands on the mounted directory. Keep it in sync with the volume.
+      # Overrides a DATABASE_URL from .env, so the database lands on the
+      # data volume. Keep it in sync with the volume.
       - DATABASE_URL=sqlite:///data/buzzdrop.db
     env_file:
       - .env
     restart: unless-stopped
+
+volumes:
+  buzzdrop-data:
+  buzzdrop-uploads:

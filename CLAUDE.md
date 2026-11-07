@@ -23,7 +23,7 @@ Never commit issue work to `main`. Before the first change, branch off an up-to-
 ## Commands
 
 ```bash
-python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+python -m venv .venv && source .venv/bin/activate && pip install -r requirements-dev.txt
 python app.py                      # local dev; or docker-compose build && docker-compose up
 pytest -v                          # all Python tests; narrow with a path or ::test_name
 pnpm typecheck                     # JSDoc + tsc --checkJs over browser JS and JS tests (no build step; jsconfig.json; CI job js-fast)
