@@ -55,6 +55,7 @@ from utils import (
 from models import FileRepository
 import i18n
 from i18n import gettext as _, pgettext
+import proxy
 import website
 
 app = Flask(__name__)
@@ -76,6 +77,9 @@ config_class.validate()
 validate_users(is_production())
 
 app.secret_key = app.config['SECRET_KEY']
+# The real client IP and scheme behind a host's proxy (proxy.py).
+app.wsgi_app = proxy.wrap(
+    app.wsgi_app, app.config['TRUSTED_PROXY_HOPS'], app.config['CLIENT_IP_HEADER'])
 i18n.init_app(app)
 website.init_app(app)
 # English for API clients; translated where it is flashed.
@@ -564,7 +568,7 @@ def favicon():
         mimetype='image/vnd.microsoft.icon'
     )
 
-@app.route('/healthz')
+@app.route(proxy.HEALTH_PATH)
 def healthz():
     """
     Liveness for the image's HEALTHCHECK and hosts' health checks (#386).
@@ -1203,8 +1207,8 @@ def set_security_headers(response):
       /view/<id> one-click-confirm clickjacking).
     - Referrer-Policy keeps share links out of Referer headers.
     - HSTS is sent unconditionally: browsers ignore it over plain HTTP,
-      and the app has no ProxyFix, so request.is_secure is unreliable
-      behind TLS-terminating proxies (Passenger/nginx).
+      and request.is_secure is only reliable behind a TLS-terminating
+      proxy when TRUSTED_PROXY_HOPS or CLIENT_IP_HEADER is set (proxy.py).
     """
     script_hashes = []
     import_map = g.get('import_map')
