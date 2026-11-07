@@ -40,6 +40,8 @@ These routes call `_is_valid_csrf_token()` directly, with no `Authorization` exe
 
 The public unauthenticated POSTs (`/release`, `/report_decryption`) intentionally have no CSRF gate. The dropzone's public POSTs get the same treatment: `/dropzone/<id>/submit` (the responder needs no session; its credential is the request link's `sv` verifier) and `/dropzones/<id>/report` (its credential is the plaintext receipt, as on `/report_decryption`). Both are rate-limited per `dropzone_id` for the same reason `/release` is per `file_id` — a cross-site POST can do no more than the public flow already allows.
 
+`GET /healthz` is public on purpose as well: the image's `HEALTHCHECK` and hosts' health checks call it without a session. It has no rate limit and no CSRF gate (it is a GET that changes nothing). So that anyone may call it, it reveals only whether the database answers: `ok`, or 503 `unavailable`, with no version, config or error detail in the body. The failure is logged server-side.
+
 The remaining dropzone routes are `@api_auth_required` (Bearer token or session cookie): `GET /api/dropzones`, `GET /api/dropzones/<id>` and `GET /dropzones/<id>/submission`. All of them, and the mutating dropzone routes above, answer 404 unless the zone's `created_by` is the caller.
 
 ## API tokens (`tokens.py`)

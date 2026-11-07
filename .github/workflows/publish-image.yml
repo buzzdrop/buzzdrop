@@ -71,6 +71,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          target: runtime
           platforms: ${{ matrix.platform }}
           build-args: BUZZDROP_VERSION=${{ needs.version.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}

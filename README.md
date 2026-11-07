@@ -31,7 +31,7 @@ One honest caveat: "one-time" means no *second* read — nothing takes back what
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime deps + pytest
 pnpm install && pnpm build:css     # compiled Tailwind CSS (committed; rebuild after changing styles or template classes, CI checks it)
 
 cp .env.example .env               # set FLASK_SECRET_KEY and at least one FLASK_USER_N
@@ -53,7 +53,7 @@ python -c "import secrets; print(secrets.token_hex(32))"
 docker-compose up --build
 ```
 
-App on http://localhost:5000. Uploads and the SQLite database are volume-mounted to the host.
+For local development only: set `FLASK_ENV=development` in `.env`, since the image runs the production config. App on http://localhost:5000. Uploads and the SQLite database live in the named volumes `buzzdrop-uploads` and `buzzdrop-data`.
 
 ## Using it
 

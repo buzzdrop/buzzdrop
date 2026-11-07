@@ -37,16 +37,30 @@
 
 **Passenger WSGI:** `passenger_wsgi.py` is the WSGI entry point, with PATH_INFO encoding fixes for production deployment.
 
-**Docker:** a single-service compose with volume mounts for `uploads/` and `buzzdrop.db` persistence.
+**Docker:** the `Dockerfile` has two stages (#386). A plain `docker build .` builds `runtime`.
 
-The `Dockerfile` copies the whole context, so `.dockerignore` keeps these out of the image:
+- **`runtime`** is published, deployed and driven by E2E.
+  - It runs gunicorn from `gunicorn.conf.py`: 1 worker × 8 threads, because the rate limits and the sweep thread are per process (ADR-0003).
+  - It runs as the non-root `app` user (uid 10001) and defaults to `FLASK_ENV=production`, `PORT=5000` and `DATABASE_URL=sqlite:///data/buzzdrop.db`. Without `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET` it refuses to start.
+  - Its `HEALTHCHECK` polls `GET /healthz`, which answers `ok`, or 503 when the database doesn't answer.
+  - It copies an **allowlist**: the root modules except `passenger_wsgi.py`, `db/`, `templates/`, `static/`, `translations/`, `gunicorn.conf.py` and `LICENSE`. A new root module must be added to the Dockerfile's `COPY` line, or the image fails to start (CI's E2E catches it).
+- **`test`** is `runtime` plus `requirements-dev.txt`, `tests/`, `cli/` and what the tests read. It runs as root with `FLASK_ENV` empty. CI runs pytest, the DOM fixtures and the protocol contract in it.
+- **More workers:** `workers` in `gunicorn.conf.py` outranks a host's `WEB_CONCURRENCY`. `GUNICORN_CMD_ARGS=--workers N` overrides it, but multiplies every rate limit by up to N.
+- **Disk:** keep `data/` on a local disk, not NFS or another network filesystem. One-time release relies on SQLite's locking.
+
+`docker-compose.yml` is the developer's compose and is for local work only, not for running Buzzdrop in production. It is a single service with the named volumes `buzzdrop-data` and `buzzdrop-uploads`, which take the image's ownership. Because the image runs production, `.env` needs `FLASK_ENV=development` for local work (or both secrets, to try the production config). Moving from the earlier `./data`/`./uploads` bind mounts means copying them into the volumes once, with the app stopped, owned by the app user:
+
+```bash
+docker compose run --rm --user root -v "$PWD/data:/old-data" -v "$PWD/uploads:/old-uploads" buzzdrop \
+  sh -c 'cp -a /old-data/. /app/data/ && cp -a /old-uploads/. /app/uploads/ && chown -R app:app /app/data /app/uploads'
+```
+
+`.dockerignore` is a safety net under the allowlist. It keeps these out even inside a copied directory:
 - secrets: `.env*` except the placeholder `.env.example`, and keys;
 - local state: `*.db*`, `data/`, `uploads/`;
 - dev clutter.
 
-`tests/`, `docs/` and `cli/` stay in, because CI runs pytest inside the image.
-
-The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` list) and fails if one leaks into the image. Add a new pattern to both `.dockerignore` and `DECOYS`.
+The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` list) and fails if one leaks into either image. Add a new pattern to both `.dockerignore` and `DECOYS`.
 
 ### Published image and versions
 

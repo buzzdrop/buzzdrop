@@ -552,5 +552,9 @@ class Backend(ABC):
     closed: bool = False
 
     @abstractmethod
+    def ping(self) -> None:
+        """Run a trivial query; raise if the database can't answer (/healthz)."""
+
+    @abstractmethod
     def close(self) -> None:
         """Release any held connections/resources and mark the backend closed."""
