@@ -149,7 +149,7 @@ _Avoid_: BuzzDrop, Buzz Drop
 ### Self-hosting
 
 **Try it**:
-The way to start Buzzdrop with one click on a hosting platform, without setting up a server. It makes an ephemeral instance.
+The way to start Buzzdrop for free from a hosting platform's deploy button, without setting up a server. The button does as much as the host allows; the deployer may still set a few values in the host's dashboard. It makes an ephemeral instance.
 _Avoid_: trial, free trial, demo
 
 **Run it**:
@@ -157,7 +157,7 @@ The way to keep Buzzdrop long-term on a server of one's own, with its data kept 
 _Avoid_: production install, paid tier
 
 **Ephemeral instance**:
-A Buzzdrop started from a Try it button. It keeps no data across restarts, so its drops may vanish when the host restarts it.
+A Buzzdrop started from a Try it button. It keeps no data across restarts, so its drops may vanish whenever the host restarts it or puts it to sleep.
 _Avoid_: trial, trial instance, demo instance, test instance
 
 **Host trial**:
