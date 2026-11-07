@@ -58,7 +58,7 @@ CI publishes the image to `ghcr.io/buzzdrop/buzzdrop` (public) for amd64 and arm
 | tag `vX.Y.Z` | `X.Y.Z`, `X.Y`, `latest` | `X.Y.Z` |
 
 - A local `docker build` gets `BUZZDROP_VERSION=dev`.
-- The image also carries the OCI labels `org.opencontainers.image.version`, `.revision` and `.source`.
+- Each image carries the OCI labels `org.opencontainers.image.version`, `.revision` and `.source`, and the multi-arch index carries them as annotations.
 - Each published index has a GitHub build-provenance attestation. Check it with `gh attestation verify oci://ghcr.io/buzzdrop/buzzdrop:<tag> -R buzzdrop/buzzdrop`.
 - There is no moving `0` tag, and old `main`/`sha-*` images are kept.
 
@@ -66,8 +66,7 @@ CI publishes the image to `ghcr.io/buzzdrop/buzzdrop` (public) for amd64 and arm
 
 1. On an up-to-date `main` whose CI is green, tag it and push the tag: `git tag v0.4.2 && git push origin v0.4.2`. Only `vX.Y.Z` tags publish; a pre-release suffix doesn't match.
 2. CI runs again on the tag and publishes `0.4.2`, `0.4` and `latest`.
-3. Publish a GitHub Release for the tag. Its notes always have a **Breaking changes** section, even when it says "None".
-4. Self-hoster-facing text says **version**, not "release".
+3. Publish a GitHub Release for the tag. Its notes always have a **Breaking changes** section, even when it says "None". Outside the GitHub Release itself, text for self-hosters says **version** (see `CONTEXT.md`).
 
 The CLI is not versioned with the app: `release-cli.yml` keeps its own `cli-*` tags.
 

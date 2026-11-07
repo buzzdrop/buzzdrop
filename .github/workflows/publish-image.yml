@@ -11,9 +11,29 @@ env:
   IMAGE: ghcr.io/buzzdrop/buzzdrop
 
 jobs:
+  # The one place the version is worked out, so BUZZDROP_VERSION, the labels
+  # and the index annotation can't drift apart.
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      # 0.4.2 for a version tag, main+<sha> for a main build.
+      - name: Compute the version
+        id: version
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=main+${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
   # Each architecture builds on its own native runner and is pushed by
   # digest only; the merge job below tags the multi-arch index.
   build:
+    needs: version
     strategy:
       matrix:
         include:
@@ -29,22 +49,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-      # 0.4.2 for a version tag, main+<sha> for a main build.
-      - name: Compute the version
-        id: version
-        run: |
-          if [ "$GITHUB_REF_TYPE" = tag ]; then
-            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          else
-            echo "version=main+${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-          fi
       - name: Image labels
         id: meta
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE }}
           labels: |
-            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.version=${{ needs.version.outputs.version }}
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v4
       - name: Log in to GHCR
@@ -61,7 +72,7 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
-          build-args: BUZZDROP_VERSION=${{ steps.version.outputs.version }}
+          build-args: BUZZDROP_VERSION=${{ needs.version.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
@@ -79,7 +90,7 @@ jobs:
           retention-days: 1
 
   merge:
-    needs: build
+    needs: [ version, build ]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -96,12 +107,18 @@ jobs:
           pattern: digest-*
           merge-multiple: true
       # No moving major tag: under 0.x it would cross breaking changes.
-      - name: Image tags
+      # The annotations put the per-image labels on the index too, for
+      # registry pages that read only the index.
+      - name: Image tags and annotations
         id: meta
         uses: docker/metadata-action@v6
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
         with:
           images: ${{ env.IMAGE }}
           flavor: latest=false
+          annotations: |
+            org.opencontainers.image.version=${{ needs.version.outputs.version }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -122,9 +139,11 @@ jobs:
         run: |
           tags=()
           while read -r t; do tags+=(-t "$t"); done < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          annotations=()
+          while read -r a; do annotations+=(--annotation "$a"); done < <(jq -r '.annotations[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
           refs=()
           for d in *; do refs+=("$IMAGE@sha256:$d"); done
-          docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+          docker buildx imagetools create "${tags[@]}" "${annotations[@]}" "${refs[@]}"
           tag=$(jq -r '.tags[0]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
           docker buildx imagetools inspect "$tag"
           echo "digest=$(docker buildx imagetools inspect "$tag" --format '{{json .Manifest}}' | jq -r .digest)" >> "$GITHUB_OUTPUT"
