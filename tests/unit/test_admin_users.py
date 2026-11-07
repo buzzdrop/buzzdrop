@@ -76,6 +76,40 @@ def test_production_refuses_a_half_set_admin(users_env, username, password, miss
         validate_users(is_production=True)
 
 
+def test_an_admin_vars_clash_ignores_spaces_around_the_flask_user_n_name(users_env):
+    users_env.setenv('ADMIN_USERNAME', 'alice')
+    users_env.setenv('ADMIN_PASSWORD', 'chosen-password')
+    users_env.setenv('FLASK_USER_3', 'alice :alice-pass:false')
+
+    with pytest.raises(ValueError, match="ADMIN_USERNAME 'alice' is also the user in FLASK_USER_3"):
+        validate_users(is_production=False)
+
+
+@pytest.mark.parametrize('username, password, empty', [
+    ('', '', 'ADMIN_USERNAME'),
+    ('  ', ' ', 'ADMIN_USERNAME'),
+    (None, '', 'ADMIN_PASSWORD'),
+    ('', None, 'ADMIN_USERNAME'),
+])
+def test_production_refuses_admin_vars_that_are_set_but_empty(users_env, username, password, empty):
+    # A FLASK_USER_N admin exists, so only the empty vars can stop startup.
+    users_env.setenv('FLASK_USER_1', 'boss:boss-pass:true')
+    if username is not None:
+        users_env.setenv('ADMIN_USERNAME', username)
+    if password is not None:
+        users_env.setenv('ADMIN_PASSWORD', password)
+
+    with pytest.raises(ValueError, match=f'{empty} is set but empty'):
+        validate_users(is_production=True)
+
+
+def test_outside_production_empty_admin_vars_are_ignored(users_env):
+    users_env.setenv('ADMIN_USERNAME', '')
+    users_env.setenv('ADMIN_PASSWORD', '')
+
+    validate_users(is_production=False)
+
+
 def test_outside_production_a_half_set_admin_is_ignored(users_env):
     users_env.setenv('ADMIN_USERNAME', 'admin')
     users_env.setenv('ADMIN_PASSWORD', '')

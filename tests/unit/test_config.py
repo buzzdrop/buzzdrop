@@ -48,8 +48,8 @@ def test_validate_requires_token_hash_secret_in_production(monkeypatch):
 
 def test_validate_rejects_token_hash_secret_equal_to_secret_key(monkeypatch):
     monkeypatch.setenv('FLASK_ENV', 'production')
-    monkeypatch.setattr(Config, 'SECRET_KEY', 'shared-secret')
-    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'shared-secret')
+    monkeypatch.setattr(Config, 'SECRET_KEY', 'shared-secret-of-at-least-32-chars')
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'shared-secret-of-at-least-32-chars')
 
     with pytest.raises(ValueError, match='must differ from FLASK_SECRET_KEY'):
         Config.validate()
@@ -78,6 +78,15 @@ def test_validate_rejects_a_secret_shorter_than_32_in_production(monkeypatch, na
     monkeypatch.setattr(Config, attr, 'x' * 31)
 
     with pytest.raises(ValueError, match=f'{name} must be at least 32 characters.*openssl rand -hex 32'):
+        Config.validate()
+
+
+def test_validate_names_the_length_before_equal_short_secrets(monkeypatch):
+    monkeypatch.setenv('FLASK_ENV', 'production')
+    monkeypatch.setattr(Config, 'SECRET_KEY', 'shared-secret')
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'shared-secret')
+
+    with pytest.raises(ValueError, match='FLASK_SECRET_KEY must be at least 32 characters'):
         Config.validate()
 
 

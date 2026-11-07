@@ -27,7 +27,7 @@ There is no users table: users come from the environment. Passwords are hashed w
   - `ADMIN_USERNAME`/`ADMIN_PASSWORD` set only half or empty;
   - no admin at all (neither `ADMIN_*` nor a `FLASK_USER_N` admin).
 
-Outside production a half-set admin is ignored with a warning. A malformed `FLASK_USER_N` is always only a warning. There is no password policy beyond "not empty".
+Outside production a half-set or empty admin is ignored, the half-set one with a warning. A malformed `FLASK_USER_N` is always only a warning. There is no password policy beyond "not empty".
 
 Decorators:
 - `@login_required`: checks the session for a username

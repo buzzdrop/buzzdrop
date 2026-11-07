@@ -38,7 +38,7 @@ env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
 # Import new modules AFTER loading .env
-from config import SECRET_HINT, get_config
+from config import get_config, is_production
 from storage import get_storage_backend, print_backend_info, StorageError
 from auth import login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, login_user, logout_user, validate_users
 from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcnow
@@ -63,11 +63,9 @@ app = Flask(__name__)
 config_class = get_config()
 app.config.from_object(config_class)
 
-# Handle SECRET_KEY: require in production, generate temporary one for development
-if not app.config.get('SECRET_KEY'):
-    if os.getenv('FLASK_ENV') == 'production':
-        raise ValueError(
-            "FLASK_SECRET_KEY must be set in production environment. " + SECRET_HINT)
+# Handle SECRET_KEY: outside production, generate a temporary one. In
+# production config_class.validate() below refuses to start without it.
+if not app.config.get('SECRET_KEY') and not is_production():
     app.config['SECRET_KEY'] = secrets.token_hex(32)
     import logging
     logging.warning("Using temporary session key. Set FLASK_SECRET_KEY in .env for production!")
@@ -75,7 +73,7 @@ if not app.config.get('SECRET_KEY'):
 # Validate remaining configuration (S3 settings, etc.)
 # Note: Validation errors are intentionally fatal - the app should not start with invalid config
 config_class.validate()
-validate_users(os.getenv('FLASK_ENV', '').strip().lower() == 'production')
+validate_users(is_production())
 
 app.secret_key = app.config['SECRET_KEY']
 i18n.init_app(app)

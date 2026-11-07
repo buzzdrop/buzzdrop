@@ -38,6 +38,11 @@ MIN_SECRET_LENGTH = 32
 SECRET_HINT = "Generate one with: openssl rand -hex 32"
 
 
+def is_production() -> bool:
+    """Whether FLASK_ENV asks for production, the env the startup checks guard."""
+    return os.getenv('FLASK_ENV', '').strip().lower() == 'production'
+
+
 class Config:
     """Base configuration class."""
     
@@ -184,10 +189,10 @@ class Config:
         Raises:
             ValueError: If required configuration is missing or invalid
         """
-        is_production = os.getenv('FLASK_ENV', '').strip().lower() == 'production'
+        production = is_production()
 
         # Check secret key in production
-        if not cls.SECRET_KEY and is_production:
+        if not cls.SECRET_KEY and production:
             raise ValueError(
                 "FLASK_SECRET_KEY must be set in production environment. "
                 + SECRET_HINT)
@@ -195,15 +200,11 @@ class Config:
         # One secret must not protect both session cookies and token hashes:
         # require a dedicated TOKEN_HASH_SECRET in production. Outside
         # production a FLASK_SECRET_KEY fallback is tolerated (tokens.py).
-        if is_production:
+        if production:
             if not cls.TOKEN_HASH_SECRET:
                 raise ValueError(
                     "TOKEN_HASH_SECRET must be set in production — refusing to reuse "
                     "FLASK_SECRET_KEY for API token hashing. " + SECRET_HINT
-                )
-            if cls.TOKEN_HASH_SECRET == cls.SECRET_KEY:
-                raise ValueError(
-                    "TOKEN_HASH_SECRET must differ from FLASK_SECRET_KEY"
                 )
             # A guessable session key lets anyone forge a login (#379).
             for name, value in (('FLASK_SECRET_KEY', cls.SECRET_KEY),
@@ -215,6 +216,10 @@ class Config:
                 if _looks_like_placeholder(value):
                     raise ValueError(
                         f"{name} looks like the .env.example placeholder. " + SECRET_HINT)
+            if cls.TOKEN_HASH_SECRET == cls.SECRET_KEY:
+                raise ValueError(
+                    "TOKEN_HASH_SECRET must differ from FLASK_SECRET_KEY"
+                )
 
         # Validate S3 configuration if using S3 backend
         if cls.STORAGE_BACKEND == 's3':

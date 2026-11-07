@@ -5,6 +5,7 @@ Handles user management and authentication decorators.
 import os
 import secrets
 from functools import wraps, lru_cache
+from typing import NamedTuple, Optional
 from flask import g, session, flash, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -45,13 +46,25 @@ def _admin_vars():
     return tuple((os.getenv(name) or '').strip() or None for name in _ADMIN_VARS)
 
 
+class _UserEntry(NamedTuple):
+    """One parsed FLASK_USER_N variable."""
+    key: str
+    username: str
+    password: str
+    is_admin: bool
+    email: Optional[str]
+
+
+def _user_record(password: str, is_admin: bool, email: Optional[str]) -> dict:
+    return {'password': hash_password(password), 'is_admin': is_admin, 'email': email}
+
+
 def _flask_user_entries():
     """
     Parse every FLASK_USER_N variable.
 
     Returns:
-        List of (variable name, username, password, is_admin, email). A
-        malformed variable is skipped with a warning.
+        List of _UserEntry. A malformed variable is skipped with a warning.
     """
     entries = []
     for key, value in os.environ.items():
@@ -72,7 +85,7 @@ def _flask_user_entries():
                     password = ':'.join(parts[:-1])
                     is_admin_str = parts[-1]
 
-                entries.append((key, username, password, is_admin_str.lower() == 'true', email))
+                entries.append(_UserEntry(key, username, password, is_admin_str.lower() == 'true', email))
             except ValueError:
                 # Handle cases where the value might not have enough parts
                 print(f"Warning: Invalid user format in environment variable {key}")
@@ -97,22 +110,32 @@ def validate_users(is_production: bool) -> None:
     if email and not _looks_like_email(email):
         raise ValueError("ADMIN_EMAIL must be an email address")
     if username:
-        for key, name, *_ in entries:
-            if name == username:
+        for entry in entries:
+            # Stripped, so 'admin ' can't pass as a second 'admin'.
+            if entry.username.strip() == username:
                 raise ValueError(
-                    f"ADMIN_USERNAME '{username}' is also the user in {key}: "
+                    f"ADMIN_USERNAME '{username}' is also the user in {entry.key}: "
                     "pick a different name for one of them")
 
     if bool(username) != bool(password):
-        missing = 'ADMIN_PASSWORD' if username else 'ADMIN_USERNAME'
+        present, missing = (('ADMIN_USERNAME', 'ADMIN_PASSWORD') if username
+                            else ('ADMIN_PASSWORD', 'ADMIN_USERNAME'))
         if is_production:
             raise ValueError(
-                f"{missing} must be set and not empty when "
-                f"{'ADMIN_USERNAME' if username else 'ADMIN_PASSWORD'} is set")
+                f"{missing} must be set and not empty when {present} is set")
         print(f"Warning: {missing} is not set, so no admin is created from ADMIN_*")
 
+    if is_production:
+        # Set but blank on both sides, e.g. a deploy's skipped prompts.
+        for name in _ADMIN_VARS[:2]:
+            value = os.getenv(name)
+            if value is not None and not value.strip():
+                raise ValueError(
+                    f"{name} is set but empty: give it a value, or remove "
+                    "ADMIN_USERNAME and ADMIN_PASSWORD")
+
     if is_production and not (username and password) and not any(
-            is_admin for *_, is_admin, _email in entries):
+            entry.is_admin for entry in entries):
         raise ValueError(
             "No admin user: set ADMIN_USERNAME and ADMIN_PASSWORD "
             "(or a FLASK_USER_N with is_admin=true)")
@@ -147,21 +170,13 @@ def get_users() -> dict:
     """
     users = {}
 
-    for _key, username, password, admin, email in _flask_user_entries():
-        users[username] = {
-            'password': hash_password(password),
-            'is_admin': admin,
-            'email': email,
-        }
+    for entry in _flask_user_entries():
+        users[entry.username] = _user_record(entry.password, entry.is_admin, entry.email)
 
     # validate_users refuses a clash at startup; ADMIN_* wins otherwise.
     username, password, email = _admin_vars()
     if username and password:
-        users[username] = {
-            'password': hash_password(password),
-            'is_admin': True,
-            'email': email,
-        }
+        users[username] = _user_record(password, True, email)
 
     return users
 
