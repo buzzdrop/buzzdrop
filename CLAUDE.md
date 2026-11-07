@@ -43,7 +43,7 @@ Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their
 - **Database** (`files`, `api_tokens`, `file_keys`, adding a backend) → `db/CLAUDE.md`.
 - **User-facing text**, i.e. any template or flash text, JS-written text, a JSON error the UI shows, or a new language → `docs/dev/i18n.md`.
 - **Auth, CSRF, API tokens, SRI/import map/CSP**, whenever you add a route or a script → `docs/dev/security.md`.
-- **Env vars, Docker, `.dockerignore`, Passenger** → `docs/dev/configuration.md`.
+- **Env vars, Docker, `.dockerignore`, Passenger, the published image and cutting a version** → `docs/dev/configuration.md`.
 - **Browser JS** (`static/js/`: layers, import rules, text) → `static/js/CLAUDE.md`.
 - **Tests** (fixtures, JS test spec, protocol fake, E2E) → `tests/CLAUDE.md`.
 - **CLI** (`cli/buzz`) → `cli/CLAUDE.md`.

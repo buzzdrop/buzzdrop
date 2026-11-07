@@ -47,3 +47,28 @@ The `Dockerfile` copies the whole context, so `.dockerignore` keeps these out of
 `tests/`, `docs/` and `cli/` stay in, because CI runs pytest inside the image.
 
 The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` list) and fails if one leaks into the image. Add a new pattern to both `.dockerignore` and `DECOYS`.
+
+### Published image and versions
+
+CI publishes the image to `ghcr.io/buzzdrop/buzzdrop` (public) for amd64 and arm64, each built on a native runner. The `publish` job in `ci.yml` calls `publish-image.yml` only after every other check has passed for the commit, and never for a pull request. The tags are a public contract that deploy configs depend on; the reasoning is in ADR-0002.
+
+| Trigger | Tags | `BUZZDROP_VERSION` |
+|---|---|---|
+| push to `main` | `main`, `sha-<7>` | `main+<7>` |
+| tag `vX.Y.Z` | `X.Y.Z`, `X.Y`, `latest` | `X.Y.Z` |
+
+- A local `docker build` gets `BUZZDROP_VERSION=dev`.
+- The image also carries the OCI labels `org.opencontainers.image.version`, `.revision` and `.source`.
+- Each published index has a GitHub build-provenance attestation. Check it with `gh attestation verify oci://ghcr.io/buzzdrop/buzzdrop:<tag> -R buzzdrop/buzzdrop`.
+- There is no moving `0` tag, and old `main`/`sha-*` images are kept.
+
+**Cutting a version** (by hand). Versions are SemVer on `0.x`: a minor bump may break things, a patch never does.
+
+1. On an up-to-date `main` whose CI is green, tag it and push the tag: `git tag v0.4.2 && git push origin v0.4.2`. Only `vX.Y.Z` tags publish; a pre-release suffix doesn't match.
+2. CI runs again on the tag and publishes `0.4.2`, `0.4` and `latest`.
+3. Publish a GitHub Release for the tag. Its notes always have a **Breaking changes** section, even when it says "None".
+4. Self-hoster-facing text says **version**, not "release".
+
+The CLI is not versioned with the app: `release-cli.yml` keeps its own `cli-*` tags.
+
+**First publish (one-off):** GHCR creates the package as private. An org owner sets `buzzdrop/buzzdrop` to **public** under the organisation's Packages → Package settings, and checks that it's linked to this repository with Actions write access.
