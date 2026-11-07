@@ -1,3 +1,6 @@
+# Development only: the developer's local compose, not a way to run
+# Buzzdrop in production. It builds from the working tree and runs the
+# production image, so set FLASK_ENV=development in .env for local work.
 services:
   buzzdrop:
     build: .

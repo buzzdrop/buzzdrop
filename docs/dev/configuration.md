@@ -48,7 +48,7 @@
 - **More workers:** `workers` in `gunicorn.conf.py` outranks a host's `WEB_CONCURRENCY`. `GUNICORN_CMD_ARGS=--workers N` overrides it, but multiplies every rate limit by up to N.
 - **Disk:** keep `data/` on a local disk, not NFS or another network filesystem. One-time release relies on SQLite's locking.
 
-`docker-compose.yml` is a single service with the named volumes `buzzdrop-data` and `buzzdrop-uploads`, which take the image's ownership. Because the image runs production, `.env` needs both secrets, or `FLASK_ENV=development` for local work. Moving from the earlier `./data`/`./uploads` bind mounts means copying them into the volumes once, with the app stopped, owned by the app user:
+`docker-compose.yml` is the developer's compose and is for local work only, not for running Buzzdrop in production. It is a single service with the named volumes `buzzdrop-data` and `buzzdrop-uploads`, which take the image's ownership. Because the image runs production, `.env` needs `FLASK_ENV=development` for local work (or both secrets, to try the production config). Moving from the earlier `./data`/`./uploads` bind mounts means copying them into the volumes once, with the app stopped, owned by the app user:
 
 ```bash
 docker compose run --rm --user root -v "$PWD/data:/old-data" -v "$PWD/uploads:/old-uploads" buzzdrop \

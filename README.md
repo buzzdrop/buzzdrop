@@ -53,7 +53,7 @@ python -c "import secrets; print(secrets.token_hex(32))"
 docker-compose up --build
 ```
 
-App on http://localhost:5000. Uploads and the SQLite database are volume-mounted to the host.
+For local development only: set `FLASK_ENV=development` in `.env`, since the image runs the production config. App on http://localhost:5000. Uploads and the SQLite database live in the named volumes `buzzdrop-uploads` and `buzzdrop-data`.
 
 ## Using it
 
