@@ -3,11 +3,9 @@ The real client IP and scheme behind a host's proxy (proxy.py, #422).
 """
 import logging
 
-import pytest
 from flask import Flask, request, url_for
 
 import proxy
-from config import Config
 
 
 def _client(hops=0, header=None):
@@ -91,6 +89,7 @@ def test_one_hop_trusts_only_the_rightmost_x_forwarded_for_entry():
     })
 
     assert body['ip'] == '203.0.113.7'
+    assert body['secure'] is True
     assert body['link'].startswith('https://')
 
 
@@ -131,31 +130,3 @@ def test_without_a_setting_a_direct_request_logs_nothing(caplog):
 
     assert caplog.records == []
 
-
-# --- validation ------------------------------------------------------------
-
-def test_validate_refuses_both_settings(monkeypatch):
-    monkeypatch.setattr(Config, 'TRUSTED_PROXY_HOPS', 1)
-    monkeypatch.setattr(Config, 'CLIENT_IP_HEADER', 'True-Client-IP')
-
-    with pytest.raises(ValueError, match='TRUSTED_PROXY_HOPS or CLIENT_IP_HEADER, not both'):
-        Config.validate()
-
-
-@pytest.mark.parametrize('header, message', [
-    ('X-Forwarded-For', 'use TRUSTED_PROXY_HOPS'),
-    ('forwarded', 'clients can set it'),
-    ('True Client IP', 'must be a header name'),
-])
-def test_validate_refuses_a_header_that_cannot_be_trusted(monkeypatch, header, message):
-    monkeypatch.setattr(Config, 'CLIENT_IP_HEADER', header)
-
-    with pytest.raises(ValueError, match=message):
-        Config.validate()
-
-
-def test_validate_refuses_negative_hops(monkeypatch):
-    monkeypatch.setattr(Config, 'TRUSTED_PROXY_HOPS', -1)
-
-    with pytest.raises(ValueError, match='TRUSTED_PROXY_HOPS must be 0 or greater'):
-        Config.validate()

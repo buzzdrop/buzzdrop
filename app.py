@@ -568,7 +568,7 @@ def favicon():
         mimetype='image/vnd.microsoft.icon'
     )
 
-@app.route('/healthz')
+@app.route(proxy.HEALTH_PATH)
 def healthz():
     """
     Liveness for the image's HEALTHCHECK and hosts' health checks (#386).

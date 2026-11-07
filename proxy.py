@@ -21,17 +21,32 @@ Everything downstream (the limiter, stored IPs, logs) reads
 """
 import ipaddress
 import logging
+import threading
+from typing import Optional
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 logger = logging.getLogger(__name__)
 
-# The image's HEALTHCHECK and hosts' health checks (app.py's /healthz).
+# The image's HEALTHCHECK and hosts' health checks; app.py routes it here.
 HEALTH_PATH = '/healthz'
 
 
 def _environ_key(header: str) -> str:
     return 'HTTP_' + header.strip().upper().replace('-', '_')
+
+
+class _Once:
+    """True on the first call only, across threads (per worker process)."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._done = False
+
+    def __call__(self) -> bool:
+        with self._lock:
+            first, self._done = not self._done, True
+            return first
 
 
 def _is_ip(value: str) -> bool:
@@ -56,15 +71,13 @@ class ClientIPHeader:
         self.app = app
         self.header = header
         self.key = _environ_key(header)
-        self._warned = False
+        self._first_warning = _Once()
 
     def __call__(self, environ, start_response):
         value = environ.get(self.key, '').strip()
         if _is_ip(value):
-            environ['buzzdrop.proxy.orig_remote_addr'] = environ.get('REMOTE_ADDR')
             environ['REMOTE_ADDR'] = value
-        elif not self._warned and environ.get('PATH_INFO') != HEALTH_PATH:
-            self._warned = True
+        elif environ.get('PATH_INFO') != HEALTH_PATH and self._first_warning():
             logger.warning(
                 'CLIENT_IP_HEADER=%s: a request arrived without a usable %s, '
                 'so its client IP is the proxy address %s. Check the header '
@@ -83,11 +96,10 @@ class UntrustedProxyWarning:
 
     def __init__(self, app):
         self.app = app
-        self._warned = False
+        self._first_warning = _Once()
 
     def __call__(self, environ, start_response):
-        if not self._warned and environ.get('HTTP_X_FORWARDED_FOR'):
-            self._warned = True
+        if environ.get('HTTP_X_FORWARDED_FOR') and self._first_warning():
             logger.warning(
                 'A request carried X-Forwarded-For, but neither '
                 'TRUSTED_PROXY_HOPS nor CLIENT_IP_HEADER is set: every client '
@@ -97,7 +109,16 @@ class UntrustedProxyWarning:
         return self.app(environ, start_response)
 
 
-def wrap(wsgi_app, hops: int, header):
+def describe(hops: int, header: Optional[str]) -> str:
+    """Where the client IP comes from, for the startup printout."""
+    if header:
+        return header
+    if hops > 0:
+        return f'X-Forwarded-For, {hops} hop(s)'
+    return 'the connection (no proxy trusted)'
+
+
+def wrap(wsgi_app, hops: int, header: Optional[str]):
     """Return wsgi_app behind the proxy handling the settings ask for."""
     if header:
         # The IP from the header; the scheme from X-Forwarded-Proto, one hop.
