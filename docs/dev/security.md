@@ -13,7 +13,21 @@ Those attributes cover only entry files. So `base.html` also renders a `<script 
 
 ## Authentication (`auth.py`)
 
-There is no users table: users come from `.env` as `FLASK_USER_N=username:password:is_admin`. Passwords are hashed with PBKDF2-SHA256 via Werkzeug. `get_users()` reads every `FLASK_USER_*` variable and is `@lru_cache`d.
+There is no users table: users come from the environment. Passwords are hashed with PBKDF2-SHA256 via Werkzeug. `get_users()` reads them and is `@lru_cache`d.
+
+- **The first admin:** `ADMIN_USERNAME` + `ADMIN_PASSWORD` (+ optional `ADMIN_EMAIL`) make one admin user. A deploy button sets the name and prompts for the password.
+- **More users:** each `FLASK_USER_N=username:password:is_admin[:email]` adds one user.
+
+`validate_users()` runs at startup and refuses a setup it can't run with. It names the variable to fix.
+
+- **Everywhere:**
+  - an `ADMIN_USERNAME` that a `FLASK_USER_N` also uses;
+  - an `ADMIN_EMAIL` that isn't an address.
+- **In production also:**
+  - `ADMIN_USERNAME`/`ADMIN_PASSWORD` set only half or empty;
+  - no admin at all (neither `ADMIN_*` nor a `FLASK_USER_N` admin).
+
+Outside production a half-set or empty admin is ignored, the half-set one with a warning. A malformed `FLASK_USER_N` is always only a warning. There is no password policy beyond "not empty".
 
 Decorators:
 - `@login_required`: checks the session for a username

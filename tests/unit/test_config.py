@@ -48,17 +48,69 @@ def test_validate_requires_token_hash_secret_in_production(monkeypatch):
 
 def test_validate_rejects_token_hash_secret_equal_to_secret_key(monkeypatch):
     monkeypatch.setenv('FLASK_ENV', 'production')
-    monkeypatch.setattr(Config, 'SECRET_KEY', 'shared-secret')
-    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'shared-secret')
+    monkeypatch.setattr(Config, 'SECRET_KEY', 'shared-secret-of-at-least-32-chars')
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'shared-secret-of-at-least-32-chars')
 
     with pytest.raises(ValueError, match='must differ from FLASK_SECRET_KEY'):
         Config.validate()
 
 
+SESSION_SECRET = 'session-secret-of-at-least-32-chars'
+TOKEN_SECRET = 'token-hash-secret-of-at-least-32-chars'
+
+
 def test_validate_allows_distinct_token_hash_secret_in_production(monkeypatch):
     monkeypatch.setenv('FLASK_ENV', 'production')
-    monkeypatch.setattr(Config, 'SECRET_KEY', 'session-secret')
-    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'token-secret')
+    monkeypatch.setattr(Config, 'SECRET_KEY', SESSION_SECRET)
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', TOKEN_SECRET)
+
+    Config.validate()
+
+
+@pytest.mark.parametrize('name, attr', [
+    ('FLASK_SECRET_KEY', 'SECRET_KEY'),
+    ('TOKEN_HASH_SECRET', 'TOKEN_HASH_SECRET'),
+])
+def test_validate_rejects_a_secret_shorter_than_32_in_production(monkeypatch, name, attr):
+    monkeypatch.setenv('FLASK_ENV', 'production')
+    monkeypatch.setattr(Config, 'SECRET_KEY', SESSION_SECRET)
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', TOKEN_SECRET)
+    monkeypatch.setattr(Config, attr, 'x' * 31)
+
+    with pytest.raises(ValueError, match=f'{name} must be at least 32 characters.*openssl rand -hex 32'):
+        Config.validate()
+
+
+def test_validate_names_the_length_before_equal_short_secrets(monkeypatch):
+    monkeypatch.setenv('FLASK_ENV', 'production')
+    monkeypatch.setattr(Config, 'SECRET_KEY', 'shared-secret')
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'shared-secret')
+
+    with pytest.raises(ValueError, match='FLASK_SECRET_KEY must be at least 32 characters'):
+        Config.validate()
+
+
+def test_validate_accepts_secrets_of_exactly_32_in_production(monkeypatch):
+    monkeypatch.setenv('FLASK_ENV', 'production')
+    monkeypatch.setattr(Config, 'SECRET_KEY', 'a' * 32)
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'b' * 32)
+
+    Config.validate()
+
+
+def test_validate_rejects_the_env_example_secret_in_production(monkeypatch):
+    monkeypatch.setenv('FLASK_ENV', 'production')
+    monkeypatch.setattr(Config, 'SECRET_KEY', 'your-secret-key-here-change-this-in-production')
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', TOKEN_SECRET)
+
+    with pytest.raises(ValueError, match='FLASK_SECRET_KEY looks like the .env.example placeholder'):
+        Config.validate()
+
+
+def test_validate_allows_short_secrets_outside_production(monkeypatch):
+    monkeypatch.setenv('FLASK_ENV', 'development')
+    monkeypatch.setattr(Config, 'SECRET_KEY', 'short')
+    monkeypatch.setattr(Config, 'TOKEN_HASH_SECRET', 'short-too')
 
     Config.validate()
 
