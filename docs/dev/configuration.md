@@ -78,7 +78,7 @@ The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` li
 
 **Render (Try it):** `render.yaml` at the root is the Blueprint behind the Website's Try it button (`https://render.com/deploy?repo=https://github.com/buzzdrop/buzzdrop`; Render reads the file from the repo root). It sets up a free, single-instance web service from `ghcr.io/buzzdrop/buzzdrop:latest`:
 - Render generates `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET`;
-- `ADMIN_USERNAME=admin` is fixed, and the deployer is prompted for `ADMIN_PASSWORD`;
+- `ADMIN_USERNAME` defaults to `admin` (editable in Render's dashboard), and the deployer is prompted for `ADMIN_PASSWORD`;
 - `CLIENT_IP_HEADER=True-Client-IP` is fixed;
 - `/healthz` is the health check.
 
