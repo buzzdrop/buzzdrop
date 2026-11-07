@@ -122,7 +122,7 @@ Full protocol and threat-model documentation lives in [docs/](docs/) — especia
 
 1. Strong `FLASK_SECRET_KEY` and a separate `TOKEN_HASH_SECRET`, each from `openssl rand -hex 32`. Production refuses anything shorter than 32 characters.
 2. A real `ADMIN_PASSWORD`, and real passwords in any `FLASK_USER_*` entries.
-3. HTTPS via reverse proxy — HSTS assumes it; preserve real client IPs.
+3. HTTPS via reverse proxy — HSTS assumes it. Tell the app where the real client IP is: `TRUSTED_PROXY_HOPS` or `CLIENT_IP_HEADER` (`docs/dev/configuration.md`).
 4. Review the limiter env vars (`LOGIN_RATE_LIMIT`, `API_TOKEN_RATE_LIMIT`, `UPLOAD_RATE_LIMIT`, `PUBLIC_FILE_RATE_LIMIT`, `KEY_RELEASE_RATE_LIMIT`, `REPORT_DECRYPTION_RATE_LIMIT`, `RATE_LIMIT_ENABLED`, `RATE_LIMIT_STORAGE_URI`) and layer nginx/Cloudflare/WAF limits on top.
 5. If you run modified code, set `SOURCE_CODE_URL` to your own source — the AGPL-3.0 §13 footer link points users at it.
 6. Optional: `STORAGE_BACKEND=s3` with scoped AWS credentials.
