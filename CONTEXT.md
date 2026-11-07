@@ -163,3 +163,7 @@ _Avoid_: trial, trial instance, demo instance, test instance
 **Host trial**:
 A hosting platform's own time- or credit-limited plan, such as Railway's 30-day trial. Buzzdrop itself is open source and has no trial: "trial" only ever names a host's plan.
 _Avoid_: Buzzdrop trial, trial (for an instance)
+
+**Version**:
+A numbered Buzzdrop image a self-hoster can pin, such as `0.4.2`, cut by hand from a `vX.Y.Z` tag. Each one has a GitHub Release, but "Release" names only that GitHub page.
+_Avoid_: release (for what a self-hoster runs), build

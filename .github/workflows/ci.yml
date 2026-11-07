@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [ main ]
+    # A version tag (ADR-0002) runs the checks again, then publishes.
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
   pull_request:
     branches: [ main ]
 
@@ -187,3 +189,16 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  # Pushes the image to GHCR only after every check above has passed for
+  # this commit: main builds and version tags, never pull requests.
+  publish:
+    needs: [ js-fast, pytest, e2e ]
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: ./.github/workflows/publish-image.yml

@@ -22,6 +22,11 @@ COPY . .
 # Create uploads directory (if not mounted)
 RUN mkdir -p uploads
 
+# The version this image is: X.Y.Z for a published version, main+<sha>
+# for a main build (set by the publish workflow), dev for a local build.
+ARG BUZZDROP_VERSION=dev
+ENV BUZZDROP_VERSION=$BUZZDROP_VERSION
+
 # Expose Flask default port
 EXPOSE 5000
 
