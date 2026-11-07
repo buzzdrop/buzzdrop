@@ -195,3 +195,32 @@ def test_validate_refuses_the_replaced_explainer_url(monkeypatch, value):
     monkeypatch.setenv('EXPLAINER_URL', value)
     with pytest.raises(ValueError, match='WEBSITE_URL'):
         Config.validate()
+
+
+# --- client IP behind a proxy (proxy.py, #422) ----------------------------
+
+def test_validate_refuses_both_settings(monkeypatch):
+    monkeypatch.setattr(Config, 'TRUSTED_PROXY_HOPS', 1)
+    monkeypatch.setattr(Config, 'CLIENT_IP_HEADER', 'True-Client-IP')
+
+    with pytest.raises(ValueError, match='TRUSTED_PROXY_HOPS or CLIENT_IP_HEADER, not both'):
+        Config.validate()
+
+
+@pytest.mark.parametrize('header, message', [
+    ('X-Forwarded-For', 'use TRUSTED_PROXY_HOPS'),
+    ('forwarded', 'clients can set it'),
+    ('True Client IP', 'must be a header name'),
+])
+def test_validate_refuses_a_header_that_cannot_be_trusted(monkeypatch, header, message):
+    monkeypatch.setattr(Config, 'CLIENT_IP_HEADER', header)
+
+    with pytest.raises(ValueError, match=message):
+        Config.validate()
+
+
+def test_validate_refuses_negative_hops(monkeypatch):
+    monkeypatch.setattr(Config, 'TRUSTED_PROXY_HOPS', -1)
+
+    with pytest.raises(ValueError, match='TRUSTED_PROXY_HOPS must be 0 or greater'):
+        Config.validate()

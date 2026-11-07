@@ -3,9 +3,11 @@ Configuration module for Buzzdrop application.
 Centralizes all configuration settings from environment variables.
 """
 import os
+import re
 from typing import Optional, Set
 
 from i18n import parse_languages
+import proxy
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -106,6 +108,10 @@ class Config:
     RATE_LIMIT_ENABLED = _env_bool('RATE_LIMIT_ENABLED', True)
     RATE_LIMIT_HEADERS_ENABLED = _env_bool('RATE_LIMIT_HEADERS_ENABLED', True)
     RATE_LIMIT_STORAGE_URI = os.getenv('RATE_LIMIT_STORAGE_URI', 'memory://')
+    # The real client IP behind a host's proxy: set one, never both
+    # (proxy.py; the spoofing warning is in docs/dev/configuration.md).
+    TRUSTED_PROXY_HOPS = int(os.getenv('TRUSTED_PROXY_HOPS', '0'))
+    CLIENT_IP_HEADER = (os.getenv('CLIENT_IP_HEADER') or '').strip() or None
     LOGIN_RATE_LIMIT = os.getenv('LOGIN_RATE_LIMIT', '10 per minute')
     API_TOKEN_RATE_LIMIT = os.getenv('API_TOKEN_RATE_LIMIT', '10 per hour')
     # Two-phase upload: /upload/begin and /upload share this bucket —
@@ -279,6 +285,24 @@ class Config:
         if cls.EXPIRY_SWEEP_INTERVAL_SECONDS < 0:
             raise ValueError("EXPIRY_SWEEP_INTERVAL_SECONDS must be 0 or greater")
 
+        if cls.TRUSTED_PROXY_HOPS < 0:
+            raise ValueError("TRUSTED_PROXY_HOPS must be 0 or greater")
+        if cls.CLIENT_IP_HEADER:
+            if cls.TRUSTED_PROXY_HOPS > 0:
+                raise ValueError(
+                    "Set TRUSTED_PROXY_HOPS or CLIENT_IP_HEADER, not both")
+            if not re.fullmatch(r'[A-Za-z0-9-]+', cls.CLIENT_IP_HEADER):
+                raise ValueError(
+                    "CLIENT_IP_HEADER must be a header name, e.g. True-Client-IP")
+            # X-Forwarded-For lists every hop, so it needs a hop count;
+            # Forwarded is passed through as the client sent it.
+            if cls.CLIENT_IP_HEADER.lower() == 'x-forwarded-for':
+                raise ValueError(
+                    "CLIENT_IP_HEADER can't be X-Forwarded-For: use TRUSTED_PROXY_HOPS")
+            if cls.CLIENT_IP_HEADER.lower() == 'forwarded':
+                raise ValueError(
+                    "CLIENT_IP_HEADER can't be Forwarded: clients can set it")
+
         # Replaced by WEBSITE_URL (#371): a full page URL can't follow the
         # visitor's language, so refuse it rather than ignore it silently.
         if os.getenv('EXPLAINER_URL') is not None:
@@ -332,6 +356,7 @@ class Config:
             'upload_folder': cls.UPLOAD_FOLDER if cls.STORAGE_BACKEND == 'local' else 'N/A',
             'database_url': cls._sanitize_database_url(cls.get_database_url()),
             'max_file_size_mb': cls.MAX_CONTENT_LENGTH / (1024 * 1024),
+            'client_ip_from': proxy.describe(cls.TRUSTED_PROXY_HOPS, cls.CLIENT_IP_HEADER),
             'allowed_extensions': ', '.join(sorted(cls.ALLOWED_EXTENSIONS)),
             'rate_limit_enabled': cls.RATE_LIMIT_ENABLED,
             'login_rate_limit': cls.LOGIN_RATE_LIMIT,
