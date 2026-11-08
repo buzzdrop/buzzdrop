@@ -80,7 +80,7 @@ The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` li
 **Render (Try it):** `render.yaml` at the root is the Blueprint behind the Website's Try it button (`https://render.com/deploy?repo=https://github.com/buzzdrop/buzzdrop`; Render reads the file from the repo root). It sets up a free, single-instance web service in Frankfurt (Render's default would be Oregon) from `ghcr.io/buzzdrop/buzzdrop:latest`:
 - Render generates `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET`;
 - `ADMIN_USERNAME` defaults to `admin` (editable in Render's dashboard), and the deployer is prompted for `ADMIN_PASSWORD`;
-- `CLIENT_IP_HEADER=True-Client-IP` is fixed;
+- `CLIENT_IP_HEADER=True-Client-IP` and `EPHEMERAL_INSTANCE=true` are fixed;
 - `/healthz` is the health check.
 
 It's an ephemeral instance: Render Free has no disk and spins down after 15 idle minutes, so its drops may vanish. Image services don't redeploy on their own, so the deployer redeploys to get a newer version. `tests/js/render-blueprint.test.js` keeps its values in step with the app: a renamed route or variable fails there, not on Render.
