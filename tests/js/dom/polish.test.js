@@ -17,6 +17,8 @@ const keepingNonBreakingSpaces = { normalizer: getDefaultNormalizer({ collapseWh
 
 /** A drop list row, by its drop's title. @param {string} name */
 const row = (name) => within(screen.getByRole('article', { name }));
+/** The composer's half of the index page; the Collect half has its own Expiry and Memo. */
+const sendPanel = () => within(screen.getByRole('tabpanel', { name: 'Wyślij' }));
 
 describe('in Polish', () => {
     it('serves the login page', () => {
@@ -117,7 +119,7 @@ describe('in Polish', () => {
         expect(screen.getByRole('tab', { name: 'Plik' })).toBeVisible();
         expect(screen.getByRole('tab', { name: 'Notatka' })).toBeVisible();
         expect(screen.getByText('Do 100\u00a0MB', keepingNonBreakingSpaces)).toBeVisible();
-        expect(screen.getByLabelText('Dopisek (opcjonalnie)'))
+        expect(sendPanel().getByLabelText('Dopisek (opcjonalnie)'))
             .toHaveAccessibleDescription('Widzisz go tylko ty. Nie jest szyfrowany.');
         expect(screen.getByRole('button', { name: 'Wyślij plik' })).toBeVisible();
     });
@@ -126,7 +128,7 @@ describe('in Polish', () => {
         openUploadPage({ account: 'no-shares', language: 'pl' });
 
         // The DOM tests run in New York (vitest.config.js).
-        expect(screen.getByLabelText('Termin ważności (opcjonalnie)'))
+        expect(sendPanel().getByLabelText('Termin ważności (opcjonalnie)'))
             .toHaveAccessibleDescription('W\u00a0twojej strefie czasowej (czas wschodnioamerykański).');
     });
 
@@ -164,6 +166,14 @@ describe('in Polish', () => {
         expect(screen.getByText('Przesyłka jest za duża, żeby ją wysłać.')).toHaveRole('alert');
     });
 
+    it('says in Polish that an expired session must log in again to send', async () => {
+        const upload = openUploadPage({ account: 'no-shares', language: 'pl' });
+
+        await upload.sendNote('kod do bramy', undefined, { server: 'signed-out' });
+
+        expect(upload.sendError()).toBe('Sesja wygasła. Zaloguj się ponownie, aby wysłać przesyłkę.');
+    });
+
     it('serves the drop list', async () => {
         const upload = openUploadPage({ account: 'with-shares', language: 'pl', sharesPerPage: 10 });
 
@@ -183,6 +193,7 @@ describe('in Polish', () => {
 
     it('asks in Polish before deleting a dropzone', async () => {
         const upload = openUploadPage({ account: 'with-shares', language: 'pl' });
+        await upload.chooseMode('collect');
 
         expect(await upload.deleteDropzone('Tax documents', { confirm: false }))
             .toEqual({ question: 'Usunąć tę skrytkę?', deleted: false });
@@ -405,8 +416,9 @@ describe('in Polish', () => {
     it.each([
         ['forbidden', 'Token dla innego użytkownika może wygenerować tylko administrator.'],
         ['unexplained', 'Nie udało się wygenerować tokenu. Spróbuj ponownie.'],
+        ['signedOut', 'Sesja wygasła. Zaloguj się ponownie, aby wygenerować token.'],
     ])('says in Polish why a token was refused (%s)', async (server, message) => {
-        const users = openUsersPage({ language: 'pl', server: /** @type {'forbidden' | 'unexplained'} */ (server) });
+        const users = openUsersPage({ language: 'pl', server: /** @type {import('../support/pages/users.js').UsersOptions['server']} */ (server) });
 
         await users.generateToken('testuser');
 

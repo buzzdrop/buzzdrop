@@ -80,6 +80,10 @@
             </div>
         </nav>
 
+        {%- if config.EPHEMERAL_INSTANCE %}
+        <p role="note" class="border-b border-honey-400/25 bg-honey-400/10 px-4 py-2 text-center text-xs text-honey-100">{{ _('This instance keeps no data across restarts.') }}</p>
+        {%- endif %}
+
         <main class="container-shell flex-1 py-10 sm:py-14">
             {# Anything not explicitly flashed as a success is treated as a problem. #}
             {% with messages = get_flashed_messages(with_categories=true) %}

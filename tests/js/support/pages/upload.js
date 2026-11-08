@@ -45,10 +45,12 @@ const COMPOSER_WORDS = {
     en: {
         password: 'Password', fileField: 'Drop a file here, or browse', noteTab: 'Note', fileTab: 'File',
         noteField: 'Your note', generate: 'Generate', send: /^Send (file|note)$/,
+        modes: { send: 'Send', collect: 'Collect' },
     },
     pl: {
         password: 'Hasło', fileField: 'Upuść tu plik albo wybierz go', noteTab: 'Notatka', fileTab: 'Plik',
         noteField: 'Treść notatki', generate: 'Wygeneruj', send: /^Wyślij (plik|notatkę)$/,
+        modes: { send: 'Wyślij', collect: 'Odbierz' },
     },
 };
 
@@ -89,8 +91,9 @@ export const PASSWORDS = {
 /**
  * How the server meets the next upload, as the protocol fake records app.py
  * answering: busy (rate limit on /upload/begin), failing (a 500 with an HTML
- * body from /upload), too-large (413) and rate-limited (429 on /upload).
- * @typedef {'ok' | 'busy' | 'failing' | 'too-large' | 'rate-limited'} UploadServer
+ * body from /upload), too-large (413), rate-limited (429 on /upload) and
+ * signed-out (the session has expired).
+ * @typedef {'ok' | 'busy' | 'failing' | 'too-large' | 'rate-limited' | 'signed-out'} UploadServer
  */
 
 /**
@@ -200,6 +203,8 @@ export function openUploadPage({
 
     const words = COMPOSER_WORDS[language];
     const listWords = LIST_WORDS[language];
+    // The Collect half has its own Expiry and Memo fields.
+    const sendPanel = () => within(screen.getByRole('tabpanel', { name: words.modes.send }));
     const passwordField = () => screen.getByLabelText(words.password);
     const fileField = () => screen.getByLabelText(words.fileField);
     /** @param {ShareName} name */
@@ -222,6 +227,7 @@ export function openUploadPage({
         }
         if (situation === 'too-large') server.failNext('/upload', 413);
         if (situation === 'rate-limited') server.failNext('/upload', 429);
+        if (situation === 'signed-out') server.state.user = null;
     };
 
     const driver = {
@@ -232,6 +238,14 @@ export function openUploadPage({
         /** What the page sent to the server, in order. */
         requestsSent: () => [...server.log],
 
+        /**
+         * Pick Send or Collect in the page's top switch.
+         * @param {'send' | 'collect'} mode
+         */
+        chooseMode: (mode) => user.click(screen.getByRole('tab', { name: words.modes[mode] })),
+        /** The half the top switch has selected. */
+        selectedMode: () => /** @type {const} */ (['send', 'collect']).find((mode) =>
+            screen.getByRole('tab', { name: words.modes[mode] }).getAttribute('aria-selected') === 'true'),
         switchToNote: () => user.click(screen.getByRole('tab', { name: words.noteTab })),
         switchToFile: () => user.click(screen.getByRole('tab', { name: words.fileTab })),
         /** @param {string} text */
@@ -283,7 +297,7 @@ export function openUploadPage({
          */
         async setSendOptions({ expiry, memo, notify }) {
             if (expiry !== undefined) await user.type(screen.getByLabelText(/^Expiry date/), expiry);
-            if (memo !== undefined) await user.type(screen.getByLabelText(/^Memo/), typeable(memo));
+            if (memo !== undefined) await user.type(sendPanel().getByLabelText(/^Memo/), typeable(memo));
             if (notify) await user.click(screen.getByRole('checkbox', { name: /^Notify me when this is opened/ }));
         },
         /**
@@ -372,19 +386,21 @@ export function openUploadPage({
         },
         /**
          * Press Delete on a dropzone and answer the dialog: its Delete or its
-         * Cancel. Confirmed, it waits until the row is gone.
+         * Cancel. Confirmed on a server that accepts it, it waits until the
+         * row is gone.
          * @param {string} memo
-         * @param {{ confirm: boolean }} answer
+         * @param {{ confirm: boolean, server?: UploadServer }} answer
          * @returns {Promise<{ question: string, deleted: boolean }>}
          */
-        async deleteDropzone(memo, { confirm }) {
+        async deleteDropzone(memo, { confirm, server: situation = 'ok' }) {
+            arrange(situation);
             const row = zoneRow(memo);
             if (!row) throw new Error(`no dropzone ${memo} on the page`);
             const before = zoneDeletes();
             const { question } = await answerConfirmation(page,
                 () => user.click(within(row).getByRole('button', { name: listWords.delete })),
                 { confirm, action: listWords.delete, language });
-            if (confirm) await waitUntil(() => expect(zoneRow(memo)).toBeUndefined());
+            if (confirm && situation === 'ok') await waitUntil(() => expect(zoneRow(memo)).toBeUndefined());
             return { question, deleted: zoneDeletes() > before };
         },
         /** @param {string} memo */

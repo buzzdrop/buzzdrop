@@ -21,6 +21,7 @@ import { bytesToHex } from '../../lib/hex.js';
 import { buildOneClickLink, takeFragmentPassword } from '../../lib/one-click-link.js';
 import { required, requiredData, requiredWindow } from '../../lib/required.js';
 import { readStrings } from '../../lib/strings.js';
+import { initPageMode } from './page-mode.js';
 
 /**
  * @typedef {import('../../features/share-protocol/index.js').Payload} Payload
@@ -90,6 +91,9 @@ export function initIndex(root, deps) {
     // password leaked by fragment inheritance across a redirect (e.g. a dead
     // one-click link). Taking it scrubs it from the address bar and history.
     takeFragmentPassword(window);
+
+    // --- Send / Collect ---
+    initPageMode(root);
 
     /**
      * Parse allowed file extensions from a hidden JSON element injected by the server
@@ -450,6 +454,8 @@ function initDropzones(root, deps, strings, ask) {
                     // renderZones resurrects the row.
                     zones.splice(zones.indexOf(z), 1);
                     renderZones(zones);
+                } else if ((await resp.json().catch(() => ({}))).code === 'login_required') {
+                    refuse(errorEl, 'login_required');
                 }
             });
             li.append(del);

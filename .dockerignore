@@ -1,8 +1,10 @@
-# The Dockerfile copies the whole build context, so anything not listed
-# here ends up in the image layers, where anyone who pulls the image can
-# read it (#163). The image keeps tests/, docs/ and cli/: CI runs pytest
-# inside it. The CI build job plants a decoy for each secret/state pattern
-# (its DECOYS list) and fails if one leaks: add new patterns to both.
+# A safety net under the Dockerfile's allowlist (#386, #397): the runtime
+# stage copies only named files and directories, and the test stage adds
+# tests/ and cli/. This list keeps secrets and local state out even when
+# they sit inside a copied directory; anything left in an image's layers
+# can be read by whoever pulls it (#163). The CI build job plants a decoy
+# for each secret/state pattern (its DECOYS list) and fails if one leaks
+# into either image: add new patterns to both.
 
 # Secrets and local state
 # .env.example holds only placeholders, and the tests load it.

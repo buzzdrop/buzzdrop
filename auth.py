@@ -5,6 +5,7 @@ Handles user management and authentication decorators.
 import os
 import secrets
 from functools import wraps, lru_cache
+from typing import NamedTuple, Optional
 from flask import g, session, flash, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -37,33 +38,35 @@ def hash_password(password: str) -> str:
     return generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
 
 
-@lru_cache(maxsize=None)
-def get_users() -> dict:
+_ADMIN_VARS = ('ADMIN_USERNAME', 'ADMIN_PASSWORD', 'ADMIN_EMAIL')
+
+
+def _admin_vars():
+    """The ADMIN_* values, each stripped, or None when unset or empty."""
+    return tuple((os.getenv(name) or '').strip() or None for name in _ADMIN_VARS)
+
+
+class _UserEntry(NamedTuple):
+    """One parsed FLASK_USER_N variable."""
+    key: str
+    username: str
+    password: str
+    is_admin: bool
+    email: Optional[str]
+
+
+def _user_record(password: str, is_admin: bool, email: Optional[str]) -> dict:
+    return {'password': hash_password(password), 'is_admin': is_admin, 'email': email}
+
+
+def _flask_user_entries():
     """
-    Get all users from environment variables.
-    Results are cached to avoid repeated hashing.
-    
-    Environment variables should be in format:
-        FLASK_USER_N=username:password:is_admin[:email]
-    
-    Example:
-        FLASK_USER_1=admin:secretpass:true
-        FLASK_USER_2=user:password:false
-    
-    An email configured here is trusted by the administrator who set it up,
-    so no separate verification flag is needed.
-    
+    Parse every FLASK_USER_N variable.
+
     Returns:
-        Dictionary mapping usernames to user data:
-        {
-            'username': {
-                'password': 'hashed_password',
-                'is_admin': bool
-            }
-        }
+        List of _UserEntry. A malformed variable is skipped with a warning.
     """
-    users = {}
-    
+    entries = []
     for key, value in os.environ.items():
         if key.startswith('FLASK_USER_'):
             try:
@@ -82,15 +85,99 @@ def get_users() -> dict:
                     password = ':'.join(parts[:-1])
                     is_admin_str = parts[-1]
 
-                users[username] = {
-                    'password': hash_password(password),
-                    'is_admin': is_admin_str.lower() == 'true',
-                    'email': email,
-                }
+                entries.append(_UserEntry(key, username, password, is_admin_str.lower() == 'true', email))
             except ValueError:
                 # Handle cases where the value might not have enough parts
                 print(f"Warning: Invalid user format in environment variable {key}")
+    return entries
+
+
+def validate_users(is_production: bool) -> None:
+    """
+    Refuse a user setup the app can't run with (#379). Called at startup.
+
+    Everywhere: an ADMIN_USERNAME that a FLASK_USER_N also uses, and an
+    ADMIN_EMAIL that isn't an address. In production also: ADMIN_USERNAME
+    and ADMIN_PASSWORD set only half or empty, and no admin at all.
+    Outside production a half-set admin is ignored with a warning.
+
+    Raises:
+        ValueError: naming the variable to fix.
+    """
+    username, password, email = _admin_vars()
+    entries = _flask_user_entries()
+
+    if email and not _looks_like_email(email):
+        raise ValueError("ADMIN_EMAIL must be an email address")
+    if username:
+        for entry in entries:
+            # Stripped, so 'admin ' can't pass as a second 'admin'.
+            if entry.username.strip() == username:
+                raise ValueError(
+                    f"ADMIN_USERNAME '{username}' is also the user in {entry.key}: "
+                    "pick a different name for one of them")
+
+    if bool(username) != bool(password):
+        present, missing = (('ADMIN_USERNAME', 'ADMIN_PASSWORD') if username
+                            else ('ADMIN_PASSWORD', 'ADMIN_USERNAME'))
+        if is_production:
+            raise ValueError(
+                f"{missing} must be set and not empty when {present} is set")
+        print(f"Warning: {missing} is not set, so no admin is created from ADMIN_*")
+
+    if is_production:
+        # Set but blank on both sides, e.g. a deploy's skipped prompts.
+        for name in _ADMIN_VARS[:2]:
+            value = os.getenv(name)
+            if value is not None and not value.strip():
+                raise ValueError(
+                    f"{name} is set but empty: give it a value, or remove "
+                    "ADMIN_USERNAME and ADMIN_PASSWORD")
+
+    if is_production and not (username and password) and not any(
+            entry.is_admin for entry in entries):
+        raise ValueError(
+            "No admin user: set ADMIN_USERNAME and ADMIN_PASSWORD "
+            "(or a FLASK_USER_N with is_admin=true)")
+
+
+@lru_cache(maxsize=None)
+def get_users() -> dict:
+    """
+    Get all users from environment variables.
+    Results are cached to avoid repeated hashing.
     
+    The first admin comes from ADMIN_USERNAME, ADMIN_PASSWORD and an
+    optional ADMIN_EMAIL; more users from variables in the format:
+        FLASK_USER_N=username:password:is_admin[:email]
+    
+    Example:
+        ADMIN_USERNAME=admin
+        ADMIN_PASSWORD=secretpass
+        FLASK_USER_1=user:password:false
+    
+    An email configured here is trusted by the administrator who set it up,
+    so no separate verification flag is needed.
+    
+    Returns:
+        Dictionary mapping usernames to user data:
+        {
+            'username': {
+                'password': 'hashed_password',
+                'is_admin': bool
+            }
+        }
+    """
+    users = {}
+
+    for entry in _flask_user_entries():
+        users[entry.username] = _user_record(entry.password, entry.is_admin, entry.email)
+
+    # validate_users refuses a clash at startup; ADMIN_* wins otherwise.
+    username, password, email = _admin_vars()
+    if username and password:
+        users[username] = _user_record(password, True, email)
+
     return users
 
 
@@ -174,6 +261,26 @@ def _get_active_session_user():
     return username, user
 
 
+def _redirect_to_login():
+    flash(gettext('Please log in to access this page'))
+    return redirect(url_for('login'))
+
+
+def _refuse_login():
+    return {'error': 'Login required', 'code': 'login_required'}, 401
+
+
+def _session_required(f, refuse):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        username, _ = _get_active_session_user()
+        if not username:
+            return refuse()
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 def login_required(f):
     """
     Decorator to require login for a route.
@@ -185,15 +292,19 @@ def login_required(f):
         def protected_route():
             pass
     """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        username, _ = _get_active_session_user()
-        if not username:
-            flash(gettext('Please log in to access this page'))
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
+    return _session_required(f, _redirect_to_login)
 
-    return decorated_function
+
+def json_login_required(f):
+    """
+    ``@login_required`` for routes the browser calls with ``fetch``.
+
+    ``fetch`` follows a redirect, so the script would get the login page with
+    a 200 and the flash would be spent on it. A missing session is a 401 JSON
+    refusal instead, with no flash. Routes a form posts to keep
+    ``@login_required``, even under ``/api/``.
+    """
+    return _session_required(f, _refuse_login)
 
 
 def bearer_token():
@@ -215,7 +326,8 @@ def api_auth_required(f):
     Checks for an ``Authorization: Bearer <token>`` header first. If the header
     is present but the token is invalid, returns 401 JSON immediately (no
     session fallback). If no Authorization header is present, falls back to
-    checking the session cookie like ``@login_required``.
+    checking the session cookie like ``@json_login_required``: these routes
+    are called with ``fetch`` or by API clients, never by a form.
 
     On success, sets ``flask.g.username`` so route handlers should read the
     authenticated user from ``g.username`` instead of ``session['username']``.
@@ -242,8 +354,7 @@ def api_auth_required(f):
         # No Bearer header: require session login
         username, _ = _get_active_session_user()
         if not username:
-            flash(gettext('Please log in to access this page'))
-            return redirect(url_for('login'))
+            return _refuse_login()
         g.username = username
         return f(*args, **kwargs)
 

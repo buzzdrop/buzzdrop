@@ -19,6 +19,10 @@ from flask import url_for
 
 
 def login_user(client, username='testuser', password='password'):
+    # /login ignores a POST while a session is active (#404), so switching
+    # accounts mid-test starts by clearing the old session.
+    with client.session_transaction() as session:
+        session.clear()
     response = client.post(
         url_for('login'),
         data={'username': username, 'password': password},
@@ -78,8 +82,9 @@ def _key_release_upload(client, filename='key-release.txt', content=b'encrypted 
 # ---------------------------------------------------------------------------
 
 def test_upload_begin_requires_auth(client):
-    response = client.post(url_for('upload_begin'), follow_redirects=True)
-    assert url_for('login') in response.request.path
+    response = client.post(url_for('upload_begin'))
+    assert response.status_code == 401
+    assert response.get_json()['code'] == 'login_required'
 
 
 def test_upload_begin_requires_csrf_on_session(client):
@@ -470,17 +475,16 @@ def test_release_then_ticketed_download(client, files_store, app):
     ticket = download_ticket(release.get_json()['h'])
     download = client.get(
         url_for('download_file', file_id=file_id),
-        headers={'X-Requested-With': 'XMLHttpRequest',
-                 'X-Download-Ticket': ticket})
+        headers={'X-Download-Ticket': ticket})
     assert download.status_code == 200
     assert download.data == b'real blob'
 
-    # The claim consumed the ticket: the same request again is done.
+    # The claim consumed the ticket: the same request again is the same
+    # uniform 403 as any ticketless call (#240).
     again = client.get(
         url_for('download_file', file_id=file_id),
-        headers={'X-Requested-With': 'XMLHttpRequest',
-                 'X-Download-Ticket': ticket})
-    assert again.status_code == 410
+        headers={'X-Download-Ticket': ticket})
+    assert again.status_code == 403
 
 
 def test_ticket_refused_after_download_window(client, files_store,
@@ -502,8 +506,7 @@ def test_ticket_refused_after_download_window(client, files_store,
     from conftest import download_ticket
     download = client.get(
         url_for('download_file', file_id=file_id),
-        headers={'X-Requested-With': 'XMLHttpRequest',
-                 'X-Download-Ticket': download_ticket(release.get_json()['h'])})
+        headers={'X-Download-Ticket': download_ticket(release.get_json()['h'])})
     assert download.status_code == 410
     assert download.get_json() == {'error': 'File has expired', 'code': 'expired'}
     assert files_store.get_by_id(file_id)['status'] == 'expired'
@@ -610,8 +613,7 @@ def test_key_release_end_to_end(client, files_store, key_release_settings):
     from conftest import download_ticket
     download = client.get(
         url_for('download_file', file_id=file_id),
-        headers={'X-Requested-With': 'XMLHttpRequest',
-                 'X-Download-Ticket': download_ticket(release.get_json()['h'])})
+        headers={'X-Download-Ticket': download_ticket(release.get_json()['h'])})
     assert download.status_code == 200
     served = download.data
 

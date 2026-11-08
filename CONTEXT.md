@@ -146,6 +146,24 @@ _Avoid_: unavailable, not found
 The product's name, always spelled with one capital.
 _Avoid_: BuzzDrop, Buzz Drop
 
+### Self-hosting
+
+**Try it**:
+The way to start Buzzdrop with one click on a hosting platform, without setting up a server. It makes an ephemeral instance.
+_Avoid_: trial, free trial, demo
+
+**Run it**:
+The way to keep Buzzdrop long-term on a server of one's own, with its data kept across restarts.
+_Avoid_: production install, paid tier
+
+**Ephemeral instance**:
+A Buzzdrop started from a Try it button. It keeps no data across restarts, so its drops may vanish when the host restarts it.
+_Avoid_: trial, trial instance, demo instance, test instance
+
+**Host trial**:
+A hosting platform's own time- or credit-limited plan, such as Railway's 30-day trial. Buzzdrop itself is open source and has no trial: "trial" only ever names a host's plan.
+_Avoid_: Buzzdrop trial, trial (for an instance)
+
 **Version**:
-A numbered, published Buzzdrop that self-hosters run and upgrade to, e.g. Buzzdrop 0.4.2.
-_Avoid_: release, build
+A numbered Buzzdrop image a self-hoster can pin, such as `0.4.2`, cut by hand from a `vX.Y.Z` tag. Each one has a GitHub Release, but "Release" names only that GitHub page.
+_Avoid_: release (for what a self-hoster runs), build

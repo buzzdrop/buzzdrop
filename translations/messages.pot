@@ -50,18 +50,6 @@ msgstr ""
 msgid "Open notifications can only be sent to your configured account email."
 msgstr ""
 
-#: app.py templates/_view_strings.html
-msgid "This drop has already been opened."
-msgstr ""
-
-#: app.py
-msgid "Drop not found"
-msgstr ""
-
-#: app.py
-msgid "This drop has expired."
-msgstr ""
-
 #. Translators: the drop-opened email's "Decryption status" value.
 #: app.py
 msgctxt "decryption status"
@@ -170,6 +158,10 @@ msgid "The server hit an error. Please try again in a moment."
 msgstr ""
 
 #: app.py
+msgid "The drop may have been lost when this instance restarted."
+msgstr ""
+
+#: app.py
 msgid "Dead link"
 msgstr ""
 
@@ -215,6 +207,10 @@ msgstr ""
 
 #: app.py
 msgid "No selected file"
+msgstr ""
+
+#: app.py
+msgid "Drop not found"
 msgstr ""
 
 #: app.py
@@ -373,6 +369,10 @@ msgstr[1] ""
 msgid "Nothing has been submitted to this dropzone yet."
 msgstr ""
 
+#: templates/_collect_strings.html
+msgid "Your session has expired. Log in again to collect the submission."
+msgstr ""
+
 #: templates/_collect_strings.html templates/_dropzones_strings.html
 #: templates/_respond_strings.html templates/_view_strings.html
 msgid "Could not reach the server — check the connection and try again."
@@ -462,6 +462,10 @@ msgid "Your session has expired. Reload the page and try again."
 msgstr ""
 
 #: templates/_composer_strings.html
+msgid "Your session has expired. Log in again to send the drop."
+msgstr ""
+
+#: templates/_composer_strings.html
 msgid "The drop may have been sent, but the server's reply could not be read."
 msgstr ""
 
@@ -500,6 +504,7 @@ msgid "Copied."
 msgstr ""
 
 #: templates/_dropzones_strings.html templates/collect.html
+#: templates/index.html
 msgid "Collect"
 msgstr ""
 
@@ -569,6 +574,10 @@ msgstr ""
 
 #: templates/_dropzones_strings.html
 msgid "Could not create the dropzone. Please try again."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Your session has expired. Log in again to manage your dropzones."
 msgstr ""
 
 #: templates/_dropzones_strings.html
@@ -751,6 +760,10 @@ msgid "That user no longer exists."
 msgstr ""
 
 #: templates/_users_strings.html
+msgid "Your session has expired. Log in again to generate a token."
+msgstr ""
+
+#: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."
 msgstr ""
 
@@ -765,6 +778,10 @@ msgstr ""
 
 #: templates/_view_strings.html
 msgid "This drop uses an unsupported format. Ask the sender to send it again."
+msgstr ""
+
+#: templates/_view_strings.html
+msgid "This drop has already been opened."
 msgstr ""
 
 #: templates/_view_strings.html
@@ -811,6 +828,10 @@ msgstr ""
 
 #: templates/base.html templates/login.html
 msgid "Login"
+msgstr ""
+
+#: templates/base.html
+msgid "This instance keeps no data across restarts."
 msgstr ""
 
 #: templates/base.html
@@ -947,6 +968,22 @@ msgstr ""
 
 #: templates/index.html
 msgid "Make it <span class=\"honey-text\">buzz</span>, then vanish."
+msgstr ""
+
+#: templates/index.html
+msgid "What do you want to do?"
+msgstr ""
+
+#: templates/index.html
+msgid "Send"
+msgstr ""
+
+#: templates/index.html
+msgid "Share a file or a note"
+msgstr ""
+
+#: templates/index.html
+msgid "Ask someone for one"
 msgstr ""
 
 #: templates/index.html
@@ -1115,7 +1152,14 @@ msgid "Next"
 msgstr ""
 
 #: templates/index.html
-msgid "Your dropzones"
+msgid ""
+"<strong>Ask for a file or a note</strong> with a one-time request link. "
+"Whoever has the link encrypts one submission in their browser; you "
+"collect it with the dropzone password, and then it is gone."
+msgstr ""
+
+#: templates/index.html
+msgid "New dropzone"
 msgstr ""
 
 #: templates/index.html
@@ -1134,6 +1178,10 @@ msgstr ""
 
 #: templates/index.html
 msgid "Email me when a submission lands"
+msgstr ""
+
+#: templates/index.html
+msgid "Your dropzones"
 msgstr ""
 
 #: templates/index.html

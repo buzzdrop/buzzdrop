@@ -3,9 +3,11 @@ Configuration module for Buzzdrop application.
 Centralizes all configuration settings from environment variables.
 """
 import os
+import re
 from typing import Optional, Set
 
 from i18n import parse_languages
+import proxy
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -31,6 +33,16 @@ def _looks_like_placeholder(value: Optional[str]) -> bool:
         or v.startswith('<') and v.endswith('>')  # <access-key>
         or 'example' in v                # example-bucket, key@example.com
     )
+
+
+# Production refuses shorter secrets; `openssl rand -hex 32` gives 64.
+MIN_SECRET_LENGTH = 32
+SECRET_HINT = "Generate one with: openssl rand -hex 32"
+
+
+def is_production() -> bool:
+    """Whether FLASK_ENV asks for production, the env the startup checks guard."""
+    return os.getenv('FLASK_ENV', '').strip().lower() == 'production'
 
 
 class Config:
@@ -96,6 +108,10 @@ class Config:
     RATE_LIMIT_ENABLED = _env_bool('RATE_LIMIT_ENABLED', True)
     RATE_LIMIT_HEADERS_ENABLED = _env_bool('RATE_LIMIT_HEADERS_ENABLED', True)
     RATE_LIMIT_STORAGE_URI = os.getenv('RATE_LIMIT_STORAGE_URI', 'memory://')
+    # The real client IP behind a host's proxy: set one, never both
+    # (proxy.py; the spoofing warning is in docs/dev/configuration.md).
+    TRUSTED_PROXY_HOPS = int(os.getenv('TRUSTED_PROXY_HOPS', '0'))
+    CLIENT_IP_HEADER = (os.getenv('CLIENT_IP_HEADER') or '').strip() or None
     LOGIN_RATE_LIMIT = os.getenv('LOGIN_RATE_LIMIT', '10 per minute')
     API_TOKEN_RATE_LIMIT = os.getenv('API_TOKEN_RATE_LIMIT', '10 per hour')
     # Two-phase upload: /upload/begin and /upload share this bucket —
@@ -171,6 +187,9 @@ class Config:
     # meant: it hides every link to the Website.
     WEBSITE_URL = os.getenv('WEBSITE_URL', 'https://buzzdrop.io').strip()
 
+    # Set only by the Try it button configs. It changes text, never limits.
+    EPHEMERAL_INSTANCE = _env_bool('EPHEMERAL_INSTANCE', False)
+
     @classmethod
     def validate(cls):
         """
@@ -179,21 +198,33 @@ class Config:
         Raises:
             ValueError: If required configuration is missing or invalid
         """
-        is_production = os.getenv('FLASK_ENV', '').strip().lower() == 'production'
+        production = is_production()
 
         # Check secret key in production
-        if not cls.SECRET_KEY and is_production:
-            raise ValueError("FLASK_SECRET_KEY must be set in production environment")
+        if not cls.SECRET_KEY and production:
+            raise ValueError(
+                "FLASK_SECRET_KEY must be set in production environment. "
+                + SECRET_HINT)
 
         # One secret must not protect both session cookies and token hashes:
         # require a dedicated TOKEN_HASH_SECRET in production. Outside
         # production a FLASK_SECRET_KEY fallback is tolerated (tokens.py).
-        if is_production:
+        if production:
             if not cls.TOKEN_HASH_SECRET:
                 raise ValueError(
                     "TOKEN_HASH_SECRET must be set in production — refusing to reuse "
-                    "FLASK_SECRET_KEY for API token hashing"
+                    "FLASK_SECRET_KEY for API token hashing. " + SECRET_HINT
                 )
+            # A guessable session key lets anyone forge a login (#379).
+            for name, value in (('FLASK_SECRET_KEY', cls.SECRET_KEY),
+                                ('TOKEN_HASH_SECRET', cls.TOKEN_HASH_SECRET)):
+                if len(value) < MIN_SECRET_LENGTH:
+                    raise ValueError(
+                        f"{name} must be at least {MIN_SECRET_LENGTH} characters "
+                        "in production. " + SECRET_HINT)
+                if _looks_like_placeholder(value):
+                    raise ValueError(
+                        f"{name} looks like the .env.example placeholder. " + SECRET_HINT)
             if cls.TOKEN_HASH_SECRET == cls.SECRET_KEY:
                 raise ValueError(
                     "TOKEN_HASH_SECRET must differ from FLASK_SECRET_KEY"
@@ -257,6 +288,24 @@ class Config:
         if cls.EXPIRY_SWEEP_INTERVAL_SECONDS < 0:
             raise ValueError("EXPIRY_SWEEP_INTERVAL_SECONDS must be 0 or greater")
 
+        if cls.TRUSTED_PROXY_HOPS < 0:
+            raise ValueError("TRUSTED_PROXY_HOPS must be 0 or greater")
+        if cls.CLIENT_IP_HEADER:
+            if cls.TRUSTED_PROXY_HOPS > 0:
+                raise ValueError(
+                    "Set TRUSTED_PROXY_HOPS or CLIENT_IP_HEADER, not both")
+            if not re.fullmatch(r'[A-Za-z0-9-]+', cls.CLIENT_IP_HEADER):
+                raise ValueError(
+                    "CLIENT_IP_HEADER must be a header name, e.g. True-Client-IP")
+            # X-Forwarded-For lists every hop, so it needs a hop count;
+            # Forwarded is passed through as the client sent it.
+            if cls.CLIENT_IP_HEADER.lower() == 'x-forwarded-for':
+                raise ValueError(
+                    "CLIENT_IP_HEADER can't be X-Forwarded-For: use TRUSTED_PROXY_HOPS")
+            if cls.CLIENT_IP_HEADER.lower() == 'forwarded':
+                raise ValueError(
+                    "CLIENT_IP_HEADER can't be Forwarded: clients can set it")
+
         # Replaced by WEBSITE_URL (#371): a full page URL can't follow the
         # visitor's language, so refuse it rather than ignore it silently.
         if os.getenv('EXPLAINER_URL') is not None:
@@ -310,6 +359,7 @@ class Config:
             'upload_folder': cls.UPLOAD_FOLDER if cls.STORAGE_BACKEND == 'local' else 'N/A',
             'database_url': cls._sanitize_database_url(cls.get_database_url()),
             'max_file_size_mb': cls.MAX_CONTENT_LENGTH / (1024 * 1024),
+            'client_ip_from': proxy.describe(cls.TRUSTED_PROXY_HOPS, cls.CLIENT_IP_HEADER),
             'allowed_extensions': ', '.join(sorted(cls.ALLOWED_EXTENSIONS)),
             'rate_limit_enabled': cls.RATE_LIMIT_ENABLED,
             'login_rate_limit': cls.LOGIN_RATE_LIMIT,

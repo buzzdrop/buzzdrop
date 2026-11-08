@@ -131,20 +131,46 @@
 
             
 
-
 <div class="mx-auto max-w-5xl space-y-8">
-    <header class="animate-fade-up space-y-4">
-        <span class="eyebrow">
-            <span class="h-1.5 w-1.5 rounded-full bg-honey-400" aria-hidden="true"></span>
-            Secure handoff
-        </span>
-        <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            Make it <span class="honey-text">buzz</span>, then vanish.
-        </h1>
-        <h2 class="max-w-2xl text-sm leading-relaxed text-slate-400">
-            <strong>Encrypt a file or a note in your browser</strong>, send one link, and let the drop delete itself the moment it is downloaded. The contents are ciphertext to the server; details like the filename and your memo are not.
-        </h2>
+    <header class="animate-fade-up space-y-6">
+        <div class="space-y-4">
+            <span class="eyebrow">
+                <span class="h-1.5 w-1.5 rounded-full bg-honey-400" aria-hidden="true"></span>
+                Secure handoff
+            </span>
+            <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                Make it <span class="honey-text">buzz</span>, then vanish.
+            </h1>
+        </div>
+
+        
+        <div id="page-mode-rail" class="mode-rail" role="tablist" aria-label="What do you want to do?">
+            <button id="send-mode-tab" type="button" role="tab" aria-selected="true" aria-controls="send-mode-panel" aria-labelledby="send-mode-label" aria-describedby="send-mode-hint" data-mode="send" class="mode-tab mode-tab-active">
+                <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M10 17a1 1 0 0 1-1-1V6.414L5.707 9.707a1 1 0 0 1-1.414-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L11 6.414V16a1 1 0 0 1-1 1Z" clip-rule="evenodd"/>
+                </svg>
+                <span class="min-w-0 text-left">
+                    <span id="send-mode-label" class="block">Send</span>
+                    <span id="send-mode-hint" class="mode-tab-hint">Share a file or a note</span>
+                </span>
+            </button>
+            <button id="collect-mode-tab" type="button" role="tab" aria-selected="false" aria-controls="collect-mode-panel" aria-labelledby="collect-mode-label" aria-describedby="collect-mode-hint" tabindex="-1" data-mode="collect" class="mode-tab">
+                <svg class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 0 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L9 13.586V4a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
+                </svg>
+                <span class="min-w-0 text-left">
+                    <span id="collect-mode-label" class="block">Collect</span>
+                    <span id="collect-mode-hint" class="mode-tab-hint">Ask someone for one</span>
+                </span>
+            </button>
+        </div>
     </header>
+
+
+<div id="send-mode-panel" role="tabpanel" aria-labelledby="send-mode-label" class="space-y-8">
+    <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
+        <strong>Encrypt a file or a note in your browser</strong>, send one link, and let the drop delete itself the moment it is downloaded. The contents are ciphertext to the server; details like the filename and your memo are not.
+    </p>
 
     <div class="surface-card animate-fade-up delay-1 p-6 sm:p-8">
         <span id="share-mode-label" class="field-label">What are you sending?</span>
@@ -305,9 +331,65 @@
             </div>
         </div>
     </div>
+
+    
 </div>
 
 
+
+<div id="collect-mode-panel" role="tabpanel" aria-labelledby="collect-mode-label" class="space-y-8" hidden>
+    <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
+        <strong>Ask for a file or a note</strong> with a one-time request link. Whoever has the link encrypts one submission in their browser; you collect it with the dropzone password, and then it is gone.
+    </p>
+
+    <section class="surface-card p-6 sm:p-8" aria-labelledby="dz-create-heading">
+        <div class="max-w-xl space-y-2">
+            <h2 id="dz-create-heading" class="text-xl font-semibold tracking-tight text-white">New dropzone</h2>
+            <p class="section-lead">One-time boxes others can drop a secret into. One link, one submission, gone.</p>
+        </div>
+
+        <div class="mt-6 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div class="grid gap-3 sm:grid-cols-3">
+                <div>
+                    <label for="dz-password" class="field-label">Dropzone password</label>
+                    <input id="dz-password" type="password" class="field-input" autocomplete="new-password" aria-describedby="dz-error">
+                </div>
+                <div>
+                    <label for="dz-expiry" class="field-label">Expiry <span class="text-slate-500">(optional)</span></label>
+                    <input id="dz-expiry" type="datetime-local" class="field-input">
+                </div>
+                <div>
+                    <label for="dz-memo" class="field-label">Memo <span class="text-slate-500">(optional)</span></label>
+                    <input id="dz-memo" type="text" class="field-input" maxlength="200">
+                </div>
+            </div>
+            <button id="dz-create-btn" type="button" class="btn-primary shrink-0">Create dropzone</button>
+        </div>
+        <label class="mt-3 flex items-center gap-2 text-sm cursor-not-allowed text-slate-500">
+            <input id="dz-notify" type="checkbox" class="field-check disabled:cursor-not-allowed disabled:opacity-50" disabled aria-describedby="dz-notify-unavailable">
+            Email me when a submission lands
+        </label>
+        
+        <p id="dz-notify-unavailable" class="text-sm text-slate-500">Notifications need an email on your account — ask your admin.</p>
+        
+        <p id="dz-error" class="file-error mt-2" role="alert"></p>
+
+        <div id="dz-link-out" class="mt-4" hidden>
+            <p id="dz-link-status" class="text-sm text-emerald-300"></p>
+            <div class="mt-2 flex gap-2">
+                <input id="dz-link" type="text" readonly class="field-input flex-1 font-mono text-[0.8rem]">
+                <button id="dz-copy-btn" type="button" class="btn-secondary px-4 py-2">Copy request link</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="surface-card p-6 sm:p-8" aria-labelledby="dz-list-heading">
+        <h2 id="dz-list-heading" class="text-xl font-semibold tracking-tight text-white">Your dropzones</h2>
+        <ul id="dz-list" class="mt-6 divide-y divide-white/6"></ul>
+        <p id="dz-empty" class="mt-4 text-sm text-slate-500" hidden>No dropzones yet.</p>
+    </section>
+</div>
+</div>
 
 
 <script id="allowed-extensions-json" type="application/json">["doc", "docx", "gif", "jpeg", "jpg", "mp4", "pdf", "png", "txt", "xls", "xlsx"]</script>
@@ -322,7 +404,7 @@
     </div>
 </dialog>
 
-<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "composer": {"chooseFile": "Choose a file to send.", "expiryZone": "In your time zone (%(zone)s).", "refusals": {"account_email_invalid": "Your configured account email is invalid.", "account_email_missing": "Configure an account email before enabling open notifications.", "csrf_failed": "Your session has expired. Reload the page and try again.", "file_too_large": "The drop is too large to send.", "handshake_refused": "The server would not accept the drop. Please try again.", "invalid_expiry": "Choose a valid expiry time.", "notification_email_mismatch": "Open notifications can only be sent to your configured account email.", "notifications_unconfigured": "Open notifications are not configured on this server.", "rate_limited": "Too many requests. Please try again later.", "reply_unreadable": "The drop may have been sent, but the server\u0027s reply could not be read.", "send_failed": "Could not send the drop. Please try again.", "type_not_allowed": "That file type is not allowed."}, "sendFile": "Send file", "sendNote": "Send note", "unreachable": "Network error while sending the drop. Please try again.", "writeNote": "Write the note you want to send."}, "dropzones": {"attemptsRemaining": {"one": "Incorrect password. %(count)s attempt remaining.", "other": "Incorrect password. %(count)s attempts remaining."}, "awaiting": "Awaiting submission", "collect": "Collect", "collected": "Collected", "collecting": "Collecting\u2026", "confirmDelete": "Delete this dropzone?", "copied": "Copied.", "copyLink": "Copy request link", "create": "Create dropzone", "created": "Dropzone created \u2014 copy the request link now; it is never shown again. The link carries the secret itself, so the server cannot recreate it.", "creating": "Creating\u2026", "deleteZone": "Delete", "enterPassword": "Enter the dropzone password", "expired": "Expired", "fileKind": "file", "linkLost": "Link lost? This dropzone is dead weight \u2014 delete it and create a new one.", "locked": "Locked", "metaCollected": "Collected", "metaCreated": "Created", "metaExpiry": "Expiry", "metaFrom": "From", "metaSubmitted": "Submitted", "noExpiry": "No expiry", "noPassword": "Enter the dropzone password first.", "notYet": "Not yet", "noteKind": "note", "ready": "Submission ready", "refusals": {"collected": "This submission was already collected.", "create_failed": "Could not create the dropzone. Please try again.", "download_failed": "Could not download the submission.", "expired": "This dropzone has expired.", "incorrect": "Incorrect password.", "invalid_dropzone": "Could not create the dropzone. Please try again.", "invalid_expiry": "Choose a valid expiry time.", "no_submission": "Nothing has been submitted to this dropzone yet.", "release_failed": "Incorrect password."}, "throttled": "Too many tries in a short time \u2014 wait a minute and try again.", "unreachable": "Could not reach the server \u2014 check the connection and try again."}, "password-gate": {"hide": "Hide", "levels": {"fair": "Fair", "strong": "Strong", "weak": "Weak"}, "messages": {"common": "That password is on every cracker list ever published.", "fair": "Acceptable (~%(bits)s bits) \u2014 a generated 6-word passphrase is stronger.", "strong": "Strong (~%(bits)s bits).", "weak": "Too weak (~%(bits)s bits). Use Generate or a longer passphrase."}, "missing": "Enter a password, or press Generate.", "rejected": "Password rejected: %(reason)s", "show": "Show", "showPassword": "Show password"}, "shared-files": {"copyLinkFor": "Copy link for %(name)s", "noMatches": "No matching drops", "notYet": "Not yet", "noteTitle": "Note \u00b7 %(time)s", "page": "Page %(page)s of %(total)s", "statuses": {"active": "Active", "decrypted": "Decrypted", "downloaded": "Opened", "expired": "Expired", "locked-out": "Locked"}, "summary": {"one": "Showing %(first)s\u2013%(last)s of %(count)s drop", "other": "Showing %(first)s\u2013%(last)s of %(count)s drops"}}}</script>
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "composer": {"chooseFile": "Choose a file to send.", "expiryZone": "In your time zone (%(zone)s).", "refusals": {"account_email_invalid": "Your configured account email is invalid.", "account_email_missing": "Configure an account email before enabling open notifications.", "csrf_failed": "Your session has expired. Reload the page and try again.", "file_too_large": "The drop is too large to send.", "handshake_refused": "The server would not accept the drop. Please try again.", "invalid_expiry": "Choose a valid expiry time.", "login_required": "Your session has expired. Log in again to send the drop.", "notification_email_mismatch": "Open notifications can only be sent to your configured account email.", "notifications_unconfigured": "Open notifications are not configured on this server.", "rate_limited": "Too many requests. Please try again later.", "reply_unreadable": "The drop may have been sent, but the server\u0027s reply could not be read.", "send_failed": "Could not send the drop. Please try again.", "type_not_allowed": "That file type is not allowed."}, "sendFile": "Send file", "sendNote": "Send note", "unreachable": "Network error while sending the drop. Please try again.", "writeNote": "Write the note you want to send."}, "dropzones": {"attemptsRemaining": {"one": "Incorrect password. %(count)s attempt remaining.", "other": "Incorrect password. %(count)s attempts remaining."}, "awaiting": "Awaiting submission", "collect": "Collect", "collected": "Collected", "collecting": "Collecting\u2026", "confirmDelete": "Delete this dropzone?", "copied": "Copied.", "copyLink": "Copy request link", "create": "Create dropzone", "created": "Dropzone created \u2014 copy the request link now; it is never shown again. The link carries the secret itself, so the server cannot recreate it.", "creating": "Creating\u2026", "deleteZone": "Delete", "enterPassword": "Enter the dropzone password", "expired": "Expired", "fileKind": "file", "linkLost": "Link lost? This dropzone is dead weight \u2014 delete it and create a new one.", "locked": "Locked", "metaCollected": "Collected", "metaCreated": "Created", "metaExpiry": "Expiry", "metaFrom": "From", "metaSubmitted": "Submitted", "noExpiry": "No expiry", "noPassword": "Enter the dropzone password first.", "notYet": "Not yet", "noteKind": "note", "ready": "Submission ready", "refusals": {"collected": "This submission was already collected.", "create_failed": "Could not create the dropzone. Please try again.", "download_failed": "Could not download the submission.", "expired": "This dropzone has expired.", "incorrect": "Incorrect password.", "invalid_dropzone": "Could not create the dropzone. Please try again.", "invalid_expiry": "Choose a valid expiry time.", "login_required": "Your session has expired. Log in again to manage your dropzones.", "no_submission": "Nothing has been submitted to this dropzone yet.", "release_failed": "Incorrect password."}, "throttled": "Too many tries in a short time \u2014 wait a minute and try again.", "unreachable": "Could not reach the server \u2014 check the connection and try again."}, "password-gate": {"hide": "Hide", "levels": {"fair": "Fair", "strong": "Strong", "weak": "Weak"}, "messages": {"common": "That password is on every cracker list ever published.", "fair": "Acceptable (~%(bits)s bits) \u2014 a generated 6-word passphrase is stronger.", "strong": "Strong (~%(bits)s bits).", "weak": "Too weak (~%(bits)s bits). Use Generate or a longer passphrase."}, "missing": "Enter a password, or press Generate.", "rejected": "Password rejected: %(reason)s", "show": "Show", "showPassword": "Show password"}, "shared-files": {"copyLinkFor": "Copy link for %(name)s", "noMatches": "No matching drops", "notYet": "Not yet", "noteTitle": "Note \u00b7 %(time)s", "page": "Page %(page)s of %(total)s", "statuses": {"active": "Active", "decrypted": "Decrypted", "downloaded": "Opened", "expired": "Expired", "locked-out": "Locked"}, "summary": {"one": "Showing %(first)s\u2013%(last)s of %(count)s drop", "other": "Showing %(first)s\u2013%(last)s of %(count)s drops"}}}</script>
 
         </main>
 

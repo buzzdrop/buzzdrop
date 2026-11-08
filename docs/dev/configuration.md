@@ -2,7 +2,14 @@
 
 ## Environment variables (`.env`)
 
-- **Users:** `FLASK_USER_N=username:password:is_admin` (see `docs/dev/security.md`)
+- **Users** (see `docs/dev/security.md`):
+  - the first admin: `ADMIN_USERNAME`, `ADMIN_PASSWORD` and optional `ADMIN_EMAIL`;
+  - more users: `FLASK_USER_N=username:password:is_admin[:email]`.
+  - Renaming `ADMIN_USERNAME` later leaves existing drops, dropzones and API tokens under the old name, because they're tied to `uploaded_by`.
+- **Secrets:**
+  - `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET`; generate each with `openssl rand -hex 32`.
+  - Production refuses either one missing, shorter than 32 characters, left at the `.env.example` placeholder, or the two being equal.
+  - Changing `FLASK_SECRET_KEY` logs everyone out, and changing `TOKEN_HASH_SECRET` invalidates every API token.
 - **Storage:** `STORAGE_BACKEND` (`local`: files in `UPLOAD_FOLDER` with UUID names; `s3`: under `uploads/{uuid}` keys, `storage.py`), `UPLOAD_FOLDER`
 - **S3:** `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`
 - **Limits:** `MAX_CONTENT_LENGTH` (default 100 MB), `ALLOWED_EXTENSIONS`
@@ -28,7 +35,15 @@
   - `DROPZONE_COLLECT_TTL_SECONDS`: default 600. How long after a successful release the submission stays collectable; afterwards the zone expires and the sweep deletes the blob.
 - **Source code:** `SOURCE_CODE_URL` (default: the upstream GitHub repo; empty falls back to it). It is used for every repository link on the site, including the AGPL-3.0 §13 footer link. A deployment running modified code must point it at its own source.
 - **Website:** `WEBSITE_URL` (default `https://buzzdrop.io`), the Website's base URL. Every link to it goes through `website_url(page)` (`website.py`), which adds the page's language prefix and that language's slug, e.g. `https://buzzdrop.io/pl/jak-to-dziala/` on a Polish page; a language the Website lacks gets English. `website.ROUTES` mirrors the Website's route table (`src/i18n/routes.ts` in `buzzdrop/website`): keep them in step. Today's links are all "How it works": the footer, the recipient's pages, the login page and the dead-end page an anonymous visitor sees. Unlike `SOURCE_CODE_URL`, an empty value hides every link to the Website and does not fall back to the default. The old `EXPLAINER_URL` is refused at startup.
+- **Ephemeral instance:** `EPHEMERAL_INSTANCE` (default off), set only by the Try it button configs (`render.yaml`). On, every page shows a strip saying the instance keeps no data across restarts, and the "drop is gone" page adds that a restart may have lost the drop (#398). It changes text, never limits.
 - **Decryption reports:** `REPORT_DECRYPTION_RATE_LIMIT` (default `10 per minute`, per `file_id`).
+- **Client IP behind a proxy** (`proxy.py`). The rate limits, stored IPs (`downloaded_by_ip`, `submitted_by_ip`) and logs all read `request.remote_addr`, and this decides it. Set one of the two, never both; setting both stops the app at startup. A deploy config sets a fixed value, and the self-hoster is never prompted.
+  - `TRUSTED_PROXY_HOPS=N` (default `0`): Werkzeug `ProxyFix` trusts the last N `X-Forwarded-For` entries and `X-Forwarded-Proto` with N hops. `X-Forwarded-Host`/`Port` are never trusted.
+  - `CLIENT_IP_HEADER=<name>`: the client IP is read from that one header, which the host overwrites. `X-Forwarded-For` is ignored, and the scheme comes from `X-Forwarded-Proto` with one hop. A request without a valid IP in the header keeps the connection's address and logs one warning (once per worker process). `X-Forwarded-For` and `Forwarded` are refused as names.
+  - Neither set: the connection's address only, which a client can't spoof. The first request carrying `X-Forwarded-For` logs one warning (once per worker process), because every client behind that proxy shares one rate limit.
+  - **Spoofing:** too many hops lets a client spoof its IP and dodge the limits; too few makes everyone share one bucket. `Forwarded` is never read, because hosts pass it through as the client sent it.
+  - **Per deploy:** Render uses `CLIENT_IP_HEADER=True-Client-IP` (measured, #377); compose behind Caddy uses `TRUSTED_PROXY_HOPS=1`. The startup `[Configuration]` block prints `client_ip_from`.
+  - It also fixes drop links: behind a TLS proxy, `url_for(_external=True)` and `request.is_secure` follow `X-Forwarded-Proto` in both modes.
 - **Notifications** (uploader emails, sent once the recipient's decryption report arrives): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `SMTP_USE_TLS`, `SMTP_USE_SSL`, `SMTP_TIMEOUT_SECONDS` (examples in `.env.example`). They are off unless both `SMTP_HOST` and `SMTP_FROM_EMAIL` are set.
   - `DEFAULT_TIMEZONE` (default `Europe/Warsaw`) is the zone of their times (root `CLAUDE.md`, *Timestamps are UTC*).
   - A subject never carries the filename: subjects show up in previews and provider logs.
@@ -37,13 +52,59 @@
 
 **Passenger WSGI:** `passenger_wsgi.py` is the WSGI entry point, with PATH_INFO encoding fixes for production deployment.
 
-**Docker:** a single-service compose with volume mounts for `uploads/` and `buzzdrop.db` persistence.
+**Docker:** the `Dockerfile` has two stages (#386). A plain `docker build .` builds `runtime`.
 
-The `Dockerfile` copies the whole context, so `.dockerignore` keeps these out of the image:
+- **`runtime`** is published, deployed and driven by E2E.
+  - It runs gunicorn from `gunicorn.conf.py`: 1 worker × 8 threads, because the rate limits and the sweep thread are per process (ADR-0003).
+  - It runs as the non-root `app` user (uid 10001) and defaults to `FLASK_ENV=production`, `PORT=5000` and `DATABASE_URL=sqlite:///data/buzzdrop.db`. Without `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET` it refuses to start.
+  - Its `HEALTHCHECK` polls `GET /healthz`, which answers `ok`, or 503 when the database doesn't answer.
+  - It copies an **allowlist**: the root modules except `passenger_wsgi.py`, `db/`, `templates/`, `static/`, `translations/`, `gunicorn.conf.py` and `LICENSE`. A new root module must be added to the Dockerfile's `COPY` line, or the image fails to start (CI's E2E catches it).
+- **`test`** is `runtime` plus `requirements-dev.txt`, `tests/`, `cli/` and what the tests read. It runs as root with `FLASK_ENV` empty. CI runs pytest, the DOM fixtures and the protocol contract in it.
+- **More workers:** `workers` in `gunicorn.conf.py` outranks a host's `WEB_CONCURRENCY`. `GUNICORN_CMD_ARGS=--workers N` overrides it, but multiplies every rate limit by up to N.
+- **Disk:** keep `data/` on a local disk, not NFS or another network filesystem. One-time release relies on SQLite's locking.
+
+`docker-compose.yml` is the developer's compose and is for local work only, not for running Buzzdrop in production. It is a single service with the named volumes `buzzdrop-data` and `buzzdrop-uploads`, which take the image's ownership. Because the image runs production, `.env` needs `FLASK_ENV=development` for local work (or both secrets, to try the production config). Moving from the earlier `./data`/`./uploads` bind mounts means copying them into the volumes once, with the app stopped, owned by the app user:
+
+```bash
+docker compose run --rm --user root -v "$PWD/data:/old-data" -v "$PWD/uploads:/old-uploads" buzzdrop \
+  sh -c 'cp -a /old-data/. /app/data/ && cp -a /old-uploads/. /app/uploads/ && chown -R app:app /app/data /app/uploads'
+```
+
+`.dockerignore` is a safety net under the allowlist. It keeps these out even inside a copied directory:
 - secrets: `.env*` except the placeholder `.env.example`, and keys;
 - local state: `*.db*`, `data/`, `uploads/`;
 - dev clutter.
 
-`tests/`, `docs/` and `cli/` stay in, because CI runs pytest inside the image.
+The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` list) and fails if one leaks into either image. Add a new pattern to both `.dockerignore` and `DECOYS`.
 
-The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` list) and fails if one leaks into the image. Add a new pattern to both `.dockerignore` and `DECOYS`.
+**Render (Try it):** `render.yaml` at the root is the Blueprint behind the Website's Try it button (`https://render.com/deploy?repo=https://github.com/buzzdrop/buzzdrop`; Render reads the file from the repo root). It sets up a free, single-instance web service in Frankfurt (Render's default would be Oregon) from `ghcr.io/buzzdrop/buzzdrop:latest`:
+- Render generates `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET`;
+- `ADMIN_USERNAME` defaults to `admin` (editable in Render's dashboard), and the deployer is prompted for `ADMIN_PASSWORD`;
+- `CLIENT_IP_HEADER=True-Client-IP` and `EPHEMERAL_INSTANCE=true` are fixed;
+- `/healthz` is the health check.
+
+It's an ephemeral instance: Render Free has no disk and spins down after 15 idle minutes, so its drops may vanish. Image services don't redeploy on their own, so the deployer redeploys to get a newer version. `tests/js/render-blueprint.test.js` keeps its values in step with the app: a renamed route or variable fails there, not on Render.
+
+### Published image and versions
+
+CI publishes the image to `ghcr.io/buzzdrop/buzzdrop` (public) for amd64 and arm64, each built on a native runner. The `publish` job in `ci.yml` calls `publish-image.yml` only after every other check has passed for the commit, and never for a pull request. The tags are a public contract that deploy configs depend on; the reasoning is in ADR-0002.
+
+| Trigger | Tags | `BUZZDROP_VERSION` |
+|---|---|---|
+| push to `main` | `main`, `sha-<7>` | `main+<7>` |
+| tag `vX.Y.Z` | `X.Y.Z`, `X.Y`, `latest` | `X.Y.Z` |
+
+- A local `docker build` gets `BUZZDROP_VERSION=dev`.
+- Each image carries the OCI labels `org.opencontainers.image.version`, `.revision` and `.source`, and the multi-arch index carries them as annotations.
+- Each published index has a GitHub build-provenance attestation. Check it with `gh attestation verify oci://ghcr.io/buzzdrop/buzzdrop:<tag> -R buzzdrop/buzzdrop`.
+- There is no moving `0` tag, and old `main`/`sha-*` images are kept.
+
+**Cutting a version** (by hand). Versions are SemVer on `0.x`: a minor bump may break things, a patch never does.
+
+1. On an up-to-date `main` whose CI is green, tag it and push the tag: `git tag v0.4.2 && git push origin v0.4.2`. Only `vX.Y.Z` tags publish; a pre-release suffix doesn't match.
+2. CI runs again on the tag and publishes `0.4.2`, `0.4` and `latest`.
+3. Publish a GitHub Release for the tag. Its notes always have a **Breaking changes** section, even when it says "None". Outside the GitHub Release itself, text for self-hosters says **version** (see `CONTEXT.md`).
+
+The CLI is not versioned with the app: `release-cli.yml` keeps its own `cli-*` tags.
+
+**First publish (one-off):** GHCR creates the package as private. An org owner sets `buzzdrop/buzzdrop` to **public** under the organisation's Packages → Package settings, and checks that it's linked to this repository with Actions write access.

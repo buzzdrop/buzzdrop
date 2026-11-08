@@ -29,19 +29,19 @@ The server renders the BKV3 envelope salt into the view page config, so nothing 
 
 ## Routes
 
-- `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`. Sends `Cache-Control: no-store`, since the response carries H
+- `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`. Sends `Cache-Control: no-store`, since the response carries H. With neither a Bearer token nor a session, it and the other `@api_auth_required` routes answer 401 `login_required`
 - `/upload` (POST): Completes the key-release upload.
   - Requires the `file_id`, `key_verifier` and `receipt_hash` form fields.
   - Refuses to finish another account's share (403).
   - Refuses an `expiry` that isn't an ISO time with a zone (400, `timestamps.parse_expiry`). The check runs before the bind, so the share can retry. The browser sends `Date.toISOString()`.
   - Binds V to the pending share atomically, stores the encrypted blob and returns the share link. On a storage or DB failure the pending share is burned.
 - `/view/<file_id>` (GET): Shows the download confirmation page.
-  - A drop that was already opened, released (even if never downloaded), expired, never bound or never existed gets one uniform 404 "This drop is gone" page (`_drop_gone`, `templates/error.html`). The same applies on `/view/<file_id>/confirm`, so the page doesn't reveal which case it is. `/download/<id>` still flashes the specific reason.
+  - A drop that was already opened, released (even if never downloaded), expired, never bound or never existed gets one uniform 404 "This drop is gone" page (`_drop_gone`, `templates/error.html`). The same applies on `/view/<file_id>/confirm`, so the page doesn't reveal which case it is. `/download/<id>` without a ticket answers a uniform 403 whatever the drop's state (#240).
   - Unknown URLs and server errors render the same template (`handle_not_found`/`handle_server_error`; JSON for API clients).
 - `/view/<file_id>/confirm` (POST): Shows the decryption interface, with the envelope salt in the page config
 - `/download/<file_id>` (GET): Serves the ciphertext once, and only to the release winner.
   - Requires `X-Download-Ticket`. `claim_download_with_ticket` verifies the digest (constant-time), stamps `downloaded_at` and consumes the ticket in one `BEGIN IMMEDIATE` transaction. Then the blob streams (with `Content-Length`) and is deleted.
-  - Answers: 403 for a live unreleased share (a bare `Forbidden`, no `code`); 410 `code: 'claimed'` for a released share without the winner's ticket; 410 `code: 'expired'` once `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` have passed since the release or the drop's expiry; 410 `code: 'opened'` once downloaded; 404 `code: 'not_found'` when missing. An XHR gets JSON (`DOWNLOAD_REFUSALS`); a plain request gets a flash + redirect. The page reads an `expired` 410 as gone, like `/release`'s, and any other 410 as already opened.
+  - Answers: a uniform 403 `{"error": "Forbidden"}` for any request without `X-Download-Ticket`, before the drop's state is touched — a live, dead or imaginary drop looks the same to a bare visitor (#240). With a header present, `claim_download_with_ticket` still checks the ticket before any state is told apart: a missing drop, an unreleased share and a wrong or spent ticket all get the same 403, and no unauthenticated request ever triggers the expiry cleanup. Only a matching ticket reaches the rest — plain JSON: 410 `code: 'expired'` once the file or the `KEY_RELEASE_DOWNLOAD_TTL_SECONDS` window has passed (the page reads it as gone, like `/release`'s); 410 "already downloaded" for a losing concurrent claim.
   - The ticket is consumed before the body streams, so a broken-off transfer cannot be resumed. This is deliberate: there is no re-download surface.
 - `/release/<file_id>` (POST): Server-gated key release. JSON `{v}` → `{h}` on a constant-time match inside one atomic `attempt_key_release` transaction.
   - Answers: 403 on a wrong verifier; 410 after release or expiry (an expiry's carries `code: 'expired'`); 429 on the attempt that locks the share (no `code`, unlike the rate limit's 429 with `code: 'rate_limited'`); a uniform 404 when the file or share is missing, pending or burned. So with burn-on-lockout, calls after the lockout get 404.

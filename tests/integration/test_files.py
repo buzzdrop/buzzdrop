@@ -40,9 +40,9 @@ def upload_file_for_user(client, app, files_store, filename, content, username_f
     return (file_info['id'], receipt.hex()) if file_info else (None, None)
 
 def test_upload_file_requires_login(client):
-    response = client.post(url_for('upload_file'), data={'file': (io.BytesIO(b"test content"), "test.txt")}, follow_redirects=True)
-    assert url_for('login') in response.request.path
-    assert b'Please log in to access this page' in response.data
+    response = client.post(url_for('upload_file'), data={'file': (io.BytesIO(b"test content"), "test.txt")})
+    assert response.status_code == 401
+    assert response.get_json()['code'] == 'login_required'
 
 def test_upload_file_success(client, app, files_store, key_release_upload):
     login_user(client, 'testuser', 'password')
@@ -181,9 +181,12 @@ def test_download_file_success(client, app, files_store, key_release_upload, cla
 
 def test_download_file_not_found(client):
     login_user(client, 'testuser', 'password')
-    response = client.get(url_for('download_file', file_id='nonexistentid'), follow_redirects=True)
-    assert b'Drop not found' in response.data
-    assert url_for('index') in response.request.path
+    # Without a ticket the answer is one uniform 403 — nothing about
+    # whether the drop ever existed (#240), no redirect, no flash.
+    response = client.get(url_for('download_file', file_id='nonexistentid'))
+    assert response.status_code == 403
+    assert response.get_json() == {'error': 'Forbidden'}
+    assert 'Location' not in response.headers
 
 def test_download_file_already_downloaded(client, app, files_store, key_release_upload, claim_ticket):
     login_user(client, 'testuser', 'password')
@@ -193,114 +196,68 @@ def test_download_file_already_downloaded(client, app, files_store, key_release_
     file_id, _h, _rcpt, _resp = key_release_upload(
         data={'file': (io.BytesIO(file_content), file_name)})
     from conftest import ticket_headers
+    ticket = claim_ticket(file_id)
     client.get(url_for('download_file', file_id=file_id),
-               headers=ticket_headers(claim_ticket(file_id)))
+               headers=ticket_headers(ticket))
 
-    response = client.get(url_for('download_file', file_id=file_id), follow_redirects=True)
-    assert b'This drop has already been opened.' in response.data
-    assert url_for('index') in response.request.path
+    # A bare visit is the same uniform 403 as a never-existing drop.
+    bare = client.get(url_for('download_file', file_id=file_id))
+    assert bare.status_code == 403
+    # The spent ticket gets the same uniform 403 — once its digest is
+    # consumed, its holder is indistinguishable from anyone else (#240).
+    again = client.get(url_for('download_file', file_id=file_id),
+                       headers=ticket_headers(ticket))
+    assert again.status_code == 403
+    assert again.get_json() == {'error': 'Forbidden'}
 
-POLISH = {'Accept-Language': 'pl'}
-
-
-@pytest.mark.parametrize('overrides, english, polish', [
-    (None, 'Drop not found', 'Nie znaleziono przesyłki'),
-    ({'downloaded_at': '2025-01-06T20:35:00.000000+00:00'},
-     'This drop has already been opened.', 'Tę przesyłkę już otwarto.'),
-    ({'expiry_at': '2025-01-06T20:35:00.000000+00:00'},
-     'This drop has expired.', 'Ta przesyłka wygasła.'),
+@pytest.mark.parametrize('status, http, body', [
+    ('forbidden', 403, {'error': 'Forbidden'}),
+    ('already_downloaded', 410, {'error': 'This file has already been downloaded'}),
+    ('expired', 410, {'error': 'File has expired', 'code': 'expired'}),
 ])
-def test_download_flash_is_translated(client, file_record, overrides, english, polish):
-    """A browser landing on /download is sent home with a flash in its
-    language (#308); the JSON error API clients see stays English."""
-    login_user(client, 'testuser', 'password')
-    file_id = 'nonexistentid' if overrides is None else file_record(**overrides)
-
-    english_page = client.get(url_for('download_file', file_id=file_id), follow_redirects=True)
-    polish_page = client.get(url_for('download_file', file_id=file_id),
-                             headers=POLISH, follow_redirects=True)
-
-    assert english_page.request.path == url_for('index')
-    assert english in english_page.get_data(as_text=True)
-    assert polish in polish_page.get_data(as_text=True)
-
-
-XHR = {'X-Requested-With': 'XMLHttpRequest'}
-
-
-@pytest.mark.parametrize('overrides, status, body', [
-    (None, 404, {'error': 'File not found', 'code': 'not_found'}),
-    ({'downloaded_at': '2025-01-06T20:35:00.000000+00:00'}, 410,
-     {'error': 'This file has already been downloaded', 'code': 'opened'}),
-    ({'expiry_at': '2025-01-06T20:35:00.000000+00:00'}, 410,
-     {'error': 'File has expired', 'code': 'expired'}),
-])
-def test_download_refusal_json_carries_a_code(client, file_record, overrides, status, body):
-    """The page's XHR gets the English `error` and a stable `code` (#338)."""
-    login_user(client, 'testuser', 'password')
-    file_id = 'nonexistentid' if overrides is None else file_record(**overrides)
-
-    response = client.get(url_for('download_file', file_id=file_id), headers={**XHR, **POLISH})
-
-    assert response.status_code == status
-    assert response.get_json() == body
-
-
-def test_download_refusal_json_for_a_drop_released_to_someone_else(
-        client, key_release_upload, claim_ticket):
-    login_user(client, 'testuser', 'password')
-    file_id, _h, _rcpt, _resp = key_release_upload()
-    claim_ticket(file_id)
-
-    response = client.get(url_for('download_file', file_id=file_id), headers=XHR)
-
-    assert response.status_code == 410
-    assert response.get_json() == {'error': 'This drop has already been claimed', 'code': 'claimed'}
-
-
-def test_download_flash_for_a_drop_released_to_someone_else(client, key_release_upload, claim_ticket):
-    login_user(client, 'testuser', 'password')
-    file_id, _h, _rcpt, _resp = key_release_upload()
-    claim_ticket(file_id)
-
-    polish_page = client.get(url_for('download_file', file_id=file_id),
-                             headers=POLISH, follow_redirects=True)
-
-    assert polish_page.request.path == url_for('index')
-    assert 'Tę przesyłkę już otwarto.' in polish_page.get_data(as_text=True)
-
-
-@pytest.mark.parametrize('status, polish', [
-    ('missing', 'Nie znaleziono przesyłki'),
-    ('already_downloaded', 'Tę przesyłkę już otwarto.'),
-])
-def test_download_flash_when_the_claim_loses_a_race(client, file_record, monkeypatch, status, polish):
-    """The claim's own refusals, for a drop that passed the checks before it."""
+def test_download_maps_the_claim_status_to_plain_json(
+        client, file_record, monkeypatch, status, http, body):
+    """Every refusal the claim reports is plain JSON — the page script is
+    the only ticket holder (#240)."""
     import app as app_module
     monkeypatch.setattr(app_module.file_repo, 'claim_download_with_ticket',
                         lambda *args: {'status': status})
     login_user(client, 'testuser', 'password')
 
-    polish_page = client.get(url_for('download_file', file_id=file_record()),
-                             headers=POLISH, follow_redirects=True)
+    response = client.get(url_for('download_file', file_id=file_record()),
+                          headers={'X-Download-Ticket': 'ab' * 32})
 
-    assert polish_page.request.path == url_for('index')
-    assert polish in polish_page.get_data(as_text=True)
+    assert response.status_code == http
+    assert response.get_json() == body
 
 
-def test_download_flash_when_the_download_window_has_passed(
+def test_download_with_another_ticket_is_the_same_403(
+        client, key_release_upload, claim_ticket):
+    """A released share plus a wrong ticket answers the same uniform 403
+    as no ticket at all (#240)."""
+    login_user(client, 'testuser', 'password')
+    file_id, _h, _rcpt, _resp = key_release_upload()
+    claim_ticket(file_id)
+
+    response = client.get(url_for('download_file', file_id=file_id),
+                          headers={'X-Download-Ticket': 'ab' * 32})
+
+    assert response.status_code == 403
+    assert response.get_json() == {'error': 'Forbidden'}
+
+
+def test_download_when_the_download_window_has_passed(
         client, key_release_upload, claim_ticket, key_release_settings):
     login_user(client, 'testuser', 'password')
     file_id, _h, _rcpt, _resp = key_release_upload()
     ticket = claim_ticket(file_id)
     key_release_settings['KEY_RELEASE_DOWNLOAD_TTL_SECONDS'] = 0
 
-    polish_page = client.get(url_for('download_file', file_id=file_id),
-                             headers={**POLISH, 'X-Download-Ticket': ticket},
-                             follow_redirects=True)
+    response = client.get(url_for('download_file', file_id=file_id),
+                          headers={'X-Download-Ticket': ticket})
 
-    assert polish_page.request.path == url_for('index')
-    assert 'Ta przesyłka wygasła.' in polish_page.get_data(as_text=True)
+    assert response.status_code == 410
+    assert response.get_json() == {'error': 'File has expired', 'code': 'expired'}
 
 
 def test_view_file_success(client, app, files_store, key_release_upload):

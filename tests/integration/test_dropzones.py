@@ -51,6 +51,10 @@ def _collect_ticket(ws_hex=_WS):
 
 
 def login_user(client, username='testuser', password='password'):
+    # /login ignores a POST while a session is active (#404), so switching
+    # accounts mid-test starts by clearing the old session.
+    with client.session_transaction() as session:
+        session.clear()
     response = client.post(
         url_for('login'),
         data={'username': username, 'password': password},
@@ -214,8 +218,8 @@ def test_create_dropzone(client, files_store):
 def test_create_dropzone_requires_auth(client):
     response = client.post(
         url_for('create_dropzone'), json=_create_payload())
-    assert response.status_code == 302
-    assert url_for('login') in response.headers['Location']
+    assert response.status_code == 401
+    assert response.get_json()['code'] == 'login_required'
 
 
 def test_create_dropzone_requires_csrf_on_session(client):
@@ -340,7 +344,8 @@ def test_list_dropzones_shows_only_the_requesters(client):
 
 def test_list_dropzones_requires_auth(client):
     response = client.get(url_for('list_dropzones_route'))
-    assert response.status_code == 302
+    assert response.status_code == 401
+    assert response.get_json()['code'] == 'login_required'
 
 
 # ---------------------------------------------------------------------------

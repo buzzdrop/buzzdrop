@@ -56,18 +56,6 @@ msgstr ""
 "Powiadomienia o otwarciu można wysyłać tylko na adres e-mail ustawiony na"
 " koncie."
 
-#: app.py templates/_view_strings.html
-msgid "This drop has already been opened."
-msgstr "Tę przesyłkę już otwarto."
-
-#: app.py
-msgid "Drop not found"
-msgstr "Nie znaleziono przesyłki"
-
-#: app.py
-msgid "This drop has expired."
-msgstr "Ta przesyłka wygasła."
-
 #. Translators: the drop-opened email's "Decryption status" value.
 #: app.py
 msgctxt "decryption status"
@@ -178,6 +166,10 @@ msgid "The server hit an error. Please try again in a moment."
 msgstr "Wystąpił błąd serwera. Spróbuj ponownie za chwilę."
 
 #: app.py
+msgid "The drop may have been lost when this instance restarted."
+msgstr "Przesyłka mogła zniknąć przy restarcie tej instancji."
+
+#: app.py
 msgid "Dead link"
 msgstr "Nieaktywny link"
 
@@ -224,6 +216,10 @@ msgstr "W formularzu nie ma pliku"
 #: app.py
 msgid "No selected file"
 msgstr "Nie wybrano pliku"
+
+#: app.py
+msgid "Drop not found"
+msgstr "Nie znaleziono przesyłki"
 
 #: app.py
 msgid "Drop deleted"
@@ -387,6 +383,10 @@ msgstr[2] "Zostało %(count)s prób – sprawdź hasło, zanim przejdziesz dalej
 msgid "Nothing has been submitted to this dropzone yet."
 msgstr "Do tej skrytki nic jeszcze nie złożono."
 
+#: templates/_collect_strings.html
+msgid "Your session has expired. Log in again to collect the submission."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby odebrać zgłoszenie."
+
 #: templates/_collect_strings.html templates/_dropzones_strings.html
 #: templates/_respond_strings.html templates/_view_strings.html
 msgid "Could not reach the server — check the connection and try again."
@@ -480,6 +480,10 @@ msgid "Your session has expired. Reload the page and try again."
 msgstr "Sesja wygasła. Odśwież stronę i spróbuj ponownie."
 
 #: templates/_composer_strings.html
+msgid "Your session has expired. Log in again to send the drop."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby wysłać przesyłkę."
+
+#: templates/_composer_strings.html
 msgid "The drop may have been sent, but the server's reply could not be read."
 msgstr ""
 "Przesyłka mogła zostać wysłana, ale nie udało się odczytać odpowiedzi "
@@ -522,6 +526,7 @@ msgid "Copied."
 msgstr "Skopiowano."
 
 #: templates/_dropzones_strings.html templates/collect.html
+#: templates/index.html
 msgid "Collect"
 msgstr "Odbierz"
 
@@ -592,6 +597,10 @@ msgstr "Usunąć tę skrytkę?"
 #: templates/_dropzones_strings.html
 msgid "Could not create the dropzone. Please try again."
 msgstr "Nie udało się utworzyć skrytki. Spróbuj ponownie."
+
+#: templates/_dropzones_strings.html
+msgid "Your session has expired. Log in again to manage your dropzones."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby zarządzać skrytkami."
 
 #: templates/_dropzones_strings.html
 msgid "This dropzone has expired."
@@ -787,6 +796,10 @@ msgid "That user no longer exists."
 msgstr "Ten użytkownik już nie istnieje."
 
 #: templates/_users_strings.html
+msgid "Your session has expired. Log in again to generate a token."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby wygenerować token."
+
+#: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."
 msgstr "Nie udało się wygenerować tokenu. Spróbuj ponownie."
 
@@ -802,6 +815,10 @@ msgstr "Za dużo nieprawidłowych haseł – przesyłka zablokowana na stałe."
 #: templates/_view_strings.html
 msgid "This drop uses an unsupported format. Ask the sender to send it again."
 msgstr "Ta przesyłka ma nieobsługiwany format. Poproś nadawcę o ponowne wysłanie."
+
+#: templates/_view_strings.html
+msgid "This drop has already been opened."
+msgstr "Tę przesyłkę już otwarto."
 
 #: templates/_view_strings.html
 msgid "This drop is gone. Ask the sender for a new one."
@@ -853,6 +870,10 @@ msgstr "Wyloguj"
 #: templates/base.html templates/login.html
 msgid "Login"
 msgstr "Zaloguj"
+
+#: templates/base.html
+msgid "This instance keeps no data across restarts."
+msgstr "Ta instancja nie zachowuje danych po restarcie."
 
 #: templates/base.html
 msgid "Each drop opens once, then it's gone."
@@ -994,6 +1015,22 @@ msgstr "Bezpieczne przekazanie"
 #: templates/index.html
 msgid "Make it <span class=\"honey-text\">buzz</span>, then vanish."
 msgstr "Niech <span class=\"honey-text\">zabzyczy</span>, a potem zniknie."
+
+#: templates/index.html
+msgid "What do you want to do?"
+msgstr "Co chcesz zrobić?"
+
+#: templates/index.html
+msgid "Send"
+msgstr "Wyślij"
+
+#: templates/index.html
+msgid "Share a file or a note"
+msgstr "Wyślij plik lub notatkę"
+
+#: templates/index.html
+msgid "Ask someone for one"
+msgstr "Poproś kogoś o plik lub notatkę"
 
 #: templates/index.html
 msgid ""
@@ -1172,8 +1209,18 @@ msgid "Next"
 msgstr "Następna"
 
 #: templates/index.html
-msgid "Your dropzones"
-msgstr "Twoje skrytki"
+msgid ""
+"<strong>Ask for a file or a note</strong> with a one-time request link. "
+"Whoever has the link encrypts one submission in their browser; you "
+"collect it with the dropzone password, and then it is gone."
+msgstr ""
+"<strong>Poproś o plik lub notatkę</strong> jednorazowym linkiem do "
+"skrytki. Kto ma link, szyfruje jedno zgłoszenie w swojej przeglądarce; ty"
+" odbierasz je hasłem do skrytki i wtedy znika."
+
+#: templates/index.html
+msgid "New dropzone"
+msgstr "Nowa skrytka"
 
 #: templates/index.html
 msgid ""
@@ -1194,6 +1241,10 @@ msgstr "Dopisek"
 #: templates/index.html
 msgid "Email me when a submission lands"
 msgstr "Powiadom mnie e-mailem o nowym zgłoszeniu"
+
+#: templates/index.html
+msgid "Your dropzones"
+msgstr "Twoje skrytki"
 
 #: templates/index.html
 msgid "No dropzones yet."

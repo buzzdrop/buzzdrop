@@ -1,0 +1,48 @@
+# Render Blueprint for a "Try it" instance of Buzzdrop (#423): the Website's
+# Try it page links https://render.com/deploy?repo=https://github.com/buzzdrop/buzzdrop
+# Docs: https://render.com/docs/blueprint-spec
+#
+# An ephemeral instance: Render Free has no persistent disk and spins down
+# after 15 minutes without traffic, so the SQLite database and uploads on
+# the container's disk may vanish at any time. The Website says so, and
+# EPHEMERAL_INSTANCE below makes the app say so too.
+services:
+  - type: web
+    name: buzzdrop
+    runtime: image
+    image:
+      # The newest version (ADR-0002). Render doesn't redeploy an image
+      # service on its own; the deployer redeploys to pick up a new one.
+      url: ghcr.io/buzzdrop/buzzdrop:latest
+    plan: free
+    # Most visitors are in Europe; Render can't move a service later, so
+    # this only affects new deploys (#430).
+    region: frankfurt
+    # One instance: every request must see the same SQLite file and the
+    # in-memory rate limits (ADR-0003).
+    numInstances: 1
+    healthCheckPath: /healthz
+    envVars:
+      # Generated once at creation. Changing FLASK_SECRET_KEY later logs
+      # everyone out; changing TOKEN_HASH_SECRET invalidates API tokens.
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: TOKEN_HASH_SECRET
+        generateValue: true
+      # The first admin. The name is editable in Render's dashboard;
+      # renaming it later leaves that user's drops under the old name.
+      - key: ADMIN_USERNAME
+        value: admin
+      # Prompted at creation. Left blank, the app refuses to start and
+      # says ADMIN_PASSWORD must be set.
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Render sits behind Cloudflare and overwrites True-Client-IP with
+      # the visitor's address (measured in #377). Leave it alone unless
+      # another proxy is put in front.
+      - key: CLIENT_IP_HEADER
+        value: True-Client-IP
+      # Shows every visitor that this instance keeps no data across
+      # restarts (#398).
+      - key: EPHEMERAL_INSTANCE
+        value: "true"

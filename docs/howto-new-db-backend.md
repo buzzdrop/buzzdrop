@@ -108,6 +108,11 @@ Analogous: `insert`, `get_by_id`, `get_by_token_hash`, `get_by`/`list_by`/`all`,
 - **Thread-safety**: a connection per thread (thread-local pattern from
   `sqlite_backend.py`) or a pool — Flask and the race tests hit it
   concurrently.
+- **`ping()`** on `Backend` — runs a trivial query (`SELECT 1`) and
+  raises when the database can't answer; `/healthz` turns that into a
+  503. It must raise on a closed backend too
+  (`test_ping_answers_on_a_fresh_backend`,
+  `test_ping_raises_once_the_backend_is_closed`).
 - **`close()`** on `Backend` — releases connections; calling into a
   closed backend must raise rather than silently reopen.
 
@@ -171,6 +176,8 @@ class PostgresBackend(Backend):
         if not hasattr(self._local, 'conn'):
             self._local.conn = psycopg.connect(self._dsn)
         return self._local.conn
+    def ping(self):
+        self._conn().execute('SELECT 1')
     def close(self): ...
 ```
 
@@ -225,7 +232,7 @@ entry `('my_engine', 'BUZZDROP_TEST_X_DSN')`.
 
 ### 4.5. PR checklist
 
-- [ ] `db/<engine>_backend.py`: `FileStore` + `TokenStore` + `Backend` + `_migrate()`
+- [ ] `db/<engine>_backend.py`: `FileStore` + `TokenStore` + `Backend` (with `ping()` and `close()`) + `_migrate()`
 - [ ] scheme registration in `create_backend()` + lazy driver import
 - [ ] entry in `_EXTRA_DSNS` in the contract suite
 - [ ] `pytest tests/contract -v` green on your DSN (especially the race test)

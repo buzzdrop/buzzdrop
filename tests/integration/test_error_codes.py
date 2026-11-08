@@ -253,7 +253,40 @@ def test_flash_in_polish(client, key_release_upload, broken_storage):
     assert flashed(client) == ['Nie udało się wysłać przesyłki. Spróbuj ponownie.']
 
 
+# --- /api/user/files/status (the drop list's poll) --------------------------
+
+def test_drop_statuses_without_a_session(client):
+    response = client.get(url_for('user_file_statuses', id=['file-1']),
+                          headers={'X-Requested-With': 'XMLHttpRequest'})
+    assert_refused(response, 401, 'login_required', 'Login required')
+    assert flashed(client) == []
+
+
+# --- @api_auth_required, with no Bearer token and no session ----------------
+
+@pytest.mark.parametrize('method, endpoint, args', [
+    ('post', 'upload_begin', {}),
+    ('post', 'upload_file', {}),
+    ('post', 'create_dropzone', {}),
+    ('get', 'list_dropzones_route', {}),
+    ('get', 'get_dropzone_route', {'dropzone_id': 'zone-1'}),
+    ('post', 'release_dropzone', {'dropzone_id': 'zone-1'}),
+    ('get', 'collect_dropzone_submission', {'dropzone_id': 'zone-1'}),
+    ('post', 'delete_dropzone', {'dropzone_id': 'zone-1'}),
+])
+def test_dual_auth_route_without_a_session(client, method, endpoint, args):
+    response = getattr(client, method)(url_for(endpoint, **args))
+    assert_refused(response, 401, 'login_required', 'Login required')
+    assert flashed(client) == []
+
+
 # --- /api/token (the users page) -------------------------------------------
+
+def test_token_without_a_session(client):
+    response = client.post(url_for('create_api_token'), json={'username': 'testuser'})
+    assert_refused(response, 401, 'login_required', 'Login required')
+    assert flashed(client) == []
+
 
 def test_token_without_csrf(client):
     login(client)

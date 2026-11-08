@@ -38,9 +38,9 @@ env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
 # Import new modules AFTER loading .env
-from config import get_config
+from config import get_config, is_production
 from storage import get_storage_backend, print_backend_info, StorageError
-from auth import login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, login_user, logout_user
+from auth import login_required, json_login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, login_user, logout_user, validate_users
 from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcnow
 from utils import (
     format_file_timestamps,
@@ -55,6 +55,7 @@ from utils import (
 from models import FileRepository
 import i18n
 from i18n import gettext as _, pgettext
+import proxy
 import website
 
 app = Flask(__name__)
@@ -63,10 +64,9 @@ app = Flask(__name__)
 config_class = get_config()
 app.config.from_object(config_class)
 
-# Handle SECRET_KEY: require in production, generate temporary one for development
-if not app.config.get('SECRET_KEY'):
-    if os.getenv('FLASK_ENV') == 'production':
-        raise ValueError("FLASK_SECRET_KEY must be set in production environment")
+# Handle SECRET_KEY: outside production, generate a temporary one. In
+# production config_class.validate() below refuses to start without it.
+if not app.config.get('SECRET_KEY') and not is_production():
     app.config['SECRET_KEY'] = secrets.token_hex(32)
     import logging
     logging.warning("Using temporary session key. Set FLASK_SECRET_KEY in .env for production!")
@@ -74,8 +74,12 @@ if not app.config.get('SECRET_KEY'):
 # Validate remaining configuration (S3 settings, etc.)
 # Note: Validation errors are intentionally fatal - the app should not start with invalid config
 config_class.validate()
+validate_users(is_production())
 
 app.secret_key = app.config['SECRET_KEY']
+# The real client IP and scheme behind a host's proxy (proxy.py).
+app.wsgi_app = proxy.wrap(
+    app.wsgi_app, app.config['TRUSTED_PROXY_HOPS'], app.config['CLIENT_IP_HEADER'])
 i18n.init_app(app)
 website.init_app(app)
 # English for API clients; translated where it is flashed.
@@ -109,30 +113,6 @@ UPLOAD_REFUSAL_FLASHES = {
     'account_email_invalid': i18n.gettext_noop('Your configured account email is invalid.'),
     'notification_email_mismatch': i18n.gettext_noop(
         'Open notifications can only be sent to your configured account email.'),
-}
-
-
-# What /download answers for each refusal, keyed by the claim's status
-# (#338): the English JSON `error`, its stable `code` and its status for
-# the page's XHR, or the flash a browser is redirected with. The pre-checks reuse the same
-# entries, so one situation reads the same wherever it is caught.
-class DownloadRefusal(NamedTuple):
-    error: str
-    code: str
-    status: int
-    flash: str
-
-
-_DROP_ALREADY_OPENED = i18n.gettext_noop('This drop has already been opened.')
-DOWNLOAD_REFUSALS = {
-    'missing': DownloadRefusal(
-        'File not found', 'not_found', 404, i18n.gettext_noop('Drop not found')),
-    'already_downloaded': DownloadRefusal(
-        'This file has already been downloaded', 'opened', 410, _DROP_ALREADY_OPENED),
-    'bad_ticket': DownloadRefusal(
-        'This drop has already been claimed', 'claimed', 410, _DROP_ALREADY_OPENED),
-    'expired': DownloadRefusal(
-        'File has expired', 'expired', 410, i18n.gettext_noop('This drop has expired.')),
 }
 
 
@@ -588,6 +568,21 @@ def favicon():
         mimetype='image/vnd.microsoft.icon'
     )
 
+@app.route(proxy.HEALTH_PATH)
+def healthz():
+    """
+    Liveness for the image's HEALTHCHECK and hosts' health checks (#386).
+
+    Unauthenticated and not rate-limited, so it says nothing but whether
+    the database answers.
+    """
+    try:
+        get_backend().ping()
+    except Exception:
+        app.logger.exception('Health check: the database did not answer')
+        return make_response('unavailable\n', 503, {'Content-Type': 'text/plain; charset=utf-8'})
+    return make_response('ok\n', 200, {'Content-Type': 'text/plain; charset=utf-8'})
+
 def check_and_handle_expiry(file_info):
     """Check if the given file has expired and handle cleanup."""
     if not file_info:
@@ -788,10 +783,10 @@ def handle_rate_limit(error):
     return message, 429
 
 
-def _error_page(status, eyebrow, heading, message):
+def _error_page(status, eyebrow, heading, message, detail=None):
     """A dead-end page in the card style, rendered from templates/error.html."""
     return render_template('error.html', eyebrow=eyebrow, heading=heading,
-                           message=message), status
+                           message=message, detail=detail), status
 
 
 @app.errorhandler(NotFound)
@@ -843,12 +838,16 @@ def _drop_gone():
     """
     The /view page for a drop link that leads nowhere. It is the same whether
     the drop was already opened, expired or never existed, so the page
-    reveals nothing about which, just as /release answers a uniform 404.
-    (/download still flashes the reason; only /view is uniform.)
+    reveals nothing about which — just as /release answers a uniform 404
+    and /download without a ticket answers a uniform 403 (#240).
     """
+    # The same for every dead link, so it doesn't say why this one is gone.
+    detail = None
+    if app.config['EPHEMERAL_INSTANCE']:
+        detail = _('The drop may have been lost when this instance restarted.')
     # Like the text, which never says why (translations/pl/GLOSSARY.md, Gone).
     return _error_page(404, _('Dead link'), _('This drop is gone'),
-                       _('Ask the sender for a new one.'))
+                       _('Ask the sender for a new one.'), detail=detail)
 
 
 @app.route('/')
@@ -903,17 +902,24 @@ def index():
             max_content_length=current_app.config.get('MAX_CONTENT_LENGTH'),
             configured_notification_email=current_user.get('email'),
             status_labels=status_labels(_),
+            # Send or Collect (#410): ?mode=collect opens the dropzones half.
+            page_mode='collect' if request.args.get('mode') == 'collect' else 'send',
         ))
         response.headers['Cache-Control'] = 'no-store'
         return response
     
     # There is no anonymous landing page (#359): the front door is the login
     # page. Flashes live in the session, so they render there after the hop.
+    # A query (e.g. ?mode=collect, #410) rides along as next, so signing in
+    # lands on the page the link named.
+    query = request.query_string.decode('latin-1')
+    if query:
+        return redirect(url_for('login', next=f'{request.script_root}{request.path}?{query}'))
     return redirect(url_for('login'))
 
 
 @app.route('/api/user/files/status', methods=['GET'])
-@login_required
+@json_login_required
 def user_file_statuses():
     requested_ids = list(dict.fromkeys(request.args.getlist('id')))
     if len(requested_ids) > 50:
@@ -946,13 +952,22 @@ def user_file_statuses():
     error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
 )
 def login():
+    # Where to go once signed in: the local path / sent along, else home.
+    # The form posts back to this URL, so next survives the POST.
+    after_login = _local_path(request.args.get('next')) or url_for('index')
+
+    # An active session skips the form — the mirror of / sending anonymous
+    # visitors here (#404).
+    if get_current_user():
+        return redirect(after_login)
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
         if login_user(username, password):
             flash(_('Logged in successfully'), 'success')
-            return redirect(url_for('index'))
+            return redirect(after_login)
         else:
             flash(_('Invalid username or password'))
 
@@ -1022,7 +1037,7 @@ def manage_users():
     methods=['POST'],
     error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
 )
-@login_required
+@json_login_required
 def create_api_token():
     """
     Generate an API token.
@@ -1196,8 +1211,8 @@ def set_security_headers(response):
       /view/<id> one-click-confirm clickjacking).
     - Referrer-Policy keeps share links out of Referer headers.
     - HSTS is sent unconditionally: browsers ignore it over plain HTTP,
-      and the app has no ProxyFix, so request.is_secure is unreliable
-      behind TLS-terminating proxies (Passenger/nginx).
+      and request.is_secure is only reliable behind a TLS-terminating
+      proxy when TRUSTED_PROXY_HOPS or CLIENT_IP_HEADER is set (proxy.py).
     """
     script_hashes = []
     import_map = g.get('import_map')
@@ -1472,49 +1487,43 @@ def download_file(file_id):
     is no longer the one-time claim, so fetching it early protects
     nothing. The ticket is consumed with the claim, before the body
     streams, and the blob is deleted after it: a transfer that breaks off
-    is not resumable — deliberately, no retry surface. Without a
-    valid ticket an unreleased share answers a bare 403 to everyone; a
-    released share answers 'claimed', since only the release winner holds
-    the ticket.
+    is not resumable — deliberately, no retry surface. Only the release
+    winner holds a ticket, so everyone else gets one uniform 403 —
+    whether the drop is live, dead or imaginary reveals nothing (#240).
     """
-    xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-
-    def _refuse(key):
-        refusal = DOWNLOAD_REFUSALS[key]
-        if xhr:
-            return {'error': refusal.error, 'code': refusal.code}, refusal.status
-        flash(_(refusal.flash))
-        return redirect(url_for('index'))
-
-    file_info = file_repo.get_by_id(file_id)
-    if not file_info:
-        return _refuse('missing')
-    if 'downloaded_at' in file_info and file_info['downloaded_at'] is not None:
-        return _refuse('already_downloaded')
-    if check_and_handle_expiry(file_info):
-        return _refuse('expired')
-
     ticket = request.headers.get('X-Download-Ticket')
     if isinstance(ticket, str):
         ticket = ticket.strip().lower()
+    if not ticket:
+        return {'error': 'Forbidden'}, 403
 
     # Verify the ticket and claim the blob in one transaction — exactly
     # one concurrent requester wins, and the ticket is consumed with the
-    # claim.
+    # claim. Only the page script ever holds a ticket, so every outcome
+    # below is plain JSON.
     result = file_repo.claim_download_with_ticket(
         file_id, ticket, get_client_ip(),
         current_app.config['KEY_RELEASE_DOWNLOAD_TTL_SECONDS'])
     status = result['status']
 
-    if status == 'not_released':
+    # A missing drop, an unreleased share and a wrong or spent ticket are
+    # one 'forbidden' — the same answer the no-ticket gate above gives.
+    if status == 'forbidden':
         return {'error': 'Forbidden'}, 403
-    if status == 'expired' and result.get('path'):
-        try:
-            storage.delete(result['path'])
-        except Exception:
-            pass
-    if status in DOWNLOAD_REFUSALS:
-        return _refuse(status)
+    if status == 'already_downloaded':
+        return {'error': 'This file has already been downloaded'}, 410
+    if status == 'expired':
+        if result.get('path'):
+            try:
+                storage.delete(result['path'])
+            except Exception:
+                pass
+        # `code` lets the page tell an expired drop from an opened one —
+        # the same convention /release uses (#338); the uniform 403 above
+        # deliberately carries none (#240).
+        return {'error': 'File has expired', 'code': 'expired'}, 410
+
+    file_info = file_repo.get_by_id(file_id)
 
     # Stream file from storage
     def generate():

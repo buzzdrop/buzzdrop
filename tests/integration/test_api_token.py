@@ -47,7 +47,13 @@ def clear_user_cache(monkeypatch):
 
 def test_create_token_unauthenticated(client):
     resp = client.post('/api/token', json={'username': 'testuser'})
-    assert resp.status_code in (302, 401)
+    assert resp.status_code == 401
+
+
+def test_revoke_form_without_a_session_goes_to_login(client):
+    resp = client.post('/api/tokens/1/revoke')
+    assert resp.status_code == 302
+    assert resp.headers['Location'] == '/login'
 
 
 def test_create_token_requires_csrf(user_client):
@@ -313,7 +319,7 @@ def test_upload_with_session_still_works(user_client, db_instance, key_share):
     assert 'file_id' in resp.get_json()
 
 
-def test_upload_with_removed_session_user_redirects_to_login(user_client, monkeypatch, clear_user_cache):
+def test_upload_with_removed_session_user_is_refused(user_client, monkeypatch, clear_user_cache):
     monkeypatch.delenv('FLASK_USER_1', raising=False)
     from auth import get_users
     get_users.cache_clear()
@@ -322,12 +328,10 @@ def test_upload_with_removed_session_user_redirects_to_login(user_client, monkey
         '/upload',
         data={'file': (_make_fake_upload(), 'test.pdf')},
         content_type='multipart/form-data',
-        follow_redirects=True,
     )
 
-    assert resp.status_code == 200
-    assert '/login' in resp.request.path
-    assert b'Please log in to access this page' in resp.data
+    assert resp.status_code == 401
+    assert resp.get_json()['code'] == 'login_required'
     with user_client.session_transaction() as sess:
         assert 'username' not in sess
         assert 'is_admin' not in sess

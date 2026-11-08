@@ -23,7 +23,7 @@ Never commit issue work to `main`. Before the first change, branch off an up-to-
 ## Commands
 
 ```bash
-python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+python -m venv .venv && source .venv/bin/activate && pip install -r requirements-dev.txt
 python app.py                      # local dev; or docker-compose build && docker-compose up
 pytest -v                          # all Python tests; narrow with a path or ::test_name
 pnpm typecheck                     # JSDoc + tsc --checkJs over browser JS and JS tests (no build step; jsconfig.json; CI job js-fast)
@@ -38,12 +38,12 @@ CI fails while the DOM fixtures, the protocol contract, the catalogs or the comp
 
 Each pointer names when to read it. Folder-level `CLAUDE.md` files load on their own when you work in that folder.
 
-- **`app.py`** holds the routes, security headers and the expiry sweep. It is helped by `auth.py` (users, login decorators), `tokens.py` (API tokens), `storage.py` (local/S3 blobs, `STORAGE_BACKEND`), `i18n.py` (language selection; translate through it, not `flask_babel`), `website.py` (links to the Website in the page's language), `timestamps.py`, `config.py`, `models.py` (`FileRepository`, the facade over `db/`'s `FileStore`) and `utils.py` (display timestamps, upload checks, client IP, orphan cleanup). `migrate_db.py` is a one-off TinyDB → SQLite migration.
+- **`app.py`** holds the routes, security headers and the expiry sweep. It is helped by `auth.py` (users, login decorators), `tokens.py` (API tokens), `storage.py` (local/S3 blobs, `STORAGE_BACKEND`), `i18n.py` (language selection; translate through it, not `flask_babel`), `website.py` (links to the Website in the page's language), `timestamps.py`, `config.py`, `models.py` (`FileRepository`, the facade over `db/`'s `FileStore`) and `utils.py` (display timestamps, upload checks, client IP, orphan cleanup), `proxy.py` (the client IP and scheme behind a host's proxy). `migrate_db.py` is a one-off TinyDB → SQLite migration.
 - **Share protocol**, i.e. the crypto, `/upload*`, `/view`, `/release`, `/download`, `/report_decryption`, expiry and the file lifecycle → `docs/dev/share-protocol.md`. The design rationale is in `docs/true-one-time.md` §6.
 - **Database** (`files`, `api_tokens`, `file_keys`, adding a backend) → `db/CLAUDE.md`.
 - **User-facing text**, i.e. any template or flash text, JS-written text, a JSON error the UI shows, or a new language → `docs/dev/i18n.md`.
 - **Auth, CSRF, API tokens, SRI/import map/CSP**, whenever you add a route or a script → `docs/dev/security.md`.
-- **Env vars, Docker, `.dockerignore`, Passenger** → `docs/dev/configuration.md`.
+- **Env vars, Docker, `.dockerignore`, Passenger, the published image and cutting a version** → `docs/dev/configuration.md`.
 - **Browser JS** (`static/js/`: layers, import rules, text) → `static/js/CLAUDE.md`.
 - **Tests** (fixtures, JS test spec, protocol fake, E2E) → `tests/CLAUDE.md`.
 - **CLI** (`cli/buzz`) → `cli/CLAUDE.md`.

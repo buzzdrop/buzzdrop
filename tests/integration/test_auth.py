@@ -117,6 +117,31 @@ def test_login_invalid_password(client):
         assert 'username' not in sess
     assert b'Invalid username or password' in response.data
 
+def test_login_redirects_a_logged_in_user_to_index(client):
+    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+
+    response = client.get(url_for('login'))
+
+    assert response.status_code == 302
+    assert urlparse(response.headers['Location']).path == url_for('index')
+
+
+def test_login_post_while_logged_in_goes_to_index_without_rechecking(client):
+    # POST counts against the login rate limit but never re-verifies: the
+    # active session wins and bad credentials still land on the index.
+    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+
+    response = client.post(url_for('login'), data={
+        'username': 'wronguser',
+        'password': 'wrongpassword',
+    })
+
+    assert response.status_code == 302
+    assert urlparse(response.headers['Location']).path == url_for('index')
+    with client.session_transaction() as sess:
+        assert sess['username'] == 'testuser'
+
+
 def _post_logout(client, csrf_token='test-csrf-token'):
     """POST /logout with a session-matching CSRF token (re-seeded because
     login rotates session['csrf_token'])."""
