@@ -454,6 +454,8 @@ function initDropzones(root, deps, strings, ask) {
                     // renderZones resurrects the row.
                     zones.splice(zones.indexOf(z), 1);
                     renderZones(zones);
+                } else if ((await resp.json().catch(() => ({}))).code === 'login_required') {
+                    refuse(errorEl, 'login_required');
                 }
             });
             li.append(del);

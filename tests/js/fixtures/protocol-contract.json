@@ -7362,6 +7362,299 @@
           }
         }
       ]
+    },
+    {
+      "name": "no-session-refused",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "begin",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload/begin"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "file_id": "<uuid>",
+              "h": "<hex64>"
+            }
+          }
+        },
+        {
+          "name": "create",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "dropzone_id": "<uuid>"
+            }
+          }
+        },
+        {
+          "name": "begin-no-session",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload/begin"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            }
+          },
+          "response": {
+            "status": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "login_required",
+              "error": "Login required"
+            }
+          }
+        },
+        {
+          "name": "upload-no-session",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "file_id": {
+                "$ref": "begin.file_id"
+              },
+              "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+            },
+            "files": {
+              "file": {
+                "filename": "report.pdf",
+                "content": "BKV3 dummy ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "login_required",
+              "error": "Login required"
+            }
+          }
+        },
+        {
+          "name": "create-no-session",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "salt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ws": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sv": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          },
+          "response": {
+            "status": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "login_required",
+              "error": "Login required"
+            }
+          }
+        },
+        {
+          "name": "list-no-session",
+          "as": null,
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "login_required",
+              "error": "Login required"
+            }
+          }
+        },
+        {
+          "name": "get-no-session",
+          "as": null,
+          "request": {
+            "method": "GET",
+            "path": [
+              "/api/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              }
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "login_required",
+              "error": "Login required"
+            }
+          }
+        },
+        {
+          "name": "release-no-session",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/release"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "json": {
+              "v": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          "response": {
+            "status": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "login_required",
+              "error": "Login required"
+            }
+          }
+        },
+        {
+          "name": "fetch-no-session",
+          "as": null,
+          "request": {
+            "method": "GET",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/submission"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          },
+          "response": {
+            "status": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "login_required",
+              "error": "Login required"
+            }
+          }
+        },
+        {
+          "name": "delete-no-session",
+          "as": null,
+          "request": {
+            "method": "POST",
+            "path": [
+              "/dropzones/",
+              {
+                "$ref": "create.dropzone_id"
+              },
+              "/delete"
+            ],
+            "headers": {
+              "X-CSRF-Token": "fixture-csrf-token"
+            }
+          },
+          "response": {
+            "status": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "login_required",
+              "error": "Login required"
+            }
+          }
+        }
+      ]
     }
   ]
 }

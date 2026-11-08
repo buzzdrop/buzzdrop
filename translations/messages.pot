@@ -369,6 +369,10 @@ msgstr[1] ""
 msgid "Nothing has been submitted to this dropzone yet."
 msgstr ""
 
+#: templates/_collect_strings.html
+msgid "Your session has expired. Log in again to collect the submission."
+msgstr ""
+
 #: templates/_collect_strings.html templates/_dropzones_strings.html
 #: templates/_respond_strings.html templates/_view_strings.html
 msgid "Could not reach the server — check the connection and try again."
@@ -455,6 +459,10 @@ msgstr ""
 
 #: templates/_composer_strings.html templates/_users_strings.html
 msgid "Your session has expired. Reload the page and try again."
+msgstr ""
+
+#: templates/_composer_strings.html
+msgid "Your session has expired. Log in again to send the drop."
 msgstr ""
 
 #: templates/_composer_strings.html
@@ -566,6 +574,10 @@ msgstr ""
 
 #: templates/_dropzones_strings.html
 msgid "Could not create the dropzone. Please try again."
+msgstr ""
+
+#: templates/_dropzones_strings.html
+msgid "Your session has expired. Log in again to manage your dropzones."
 msgstr ""
 
 #: templates/_dropzones_strings.html

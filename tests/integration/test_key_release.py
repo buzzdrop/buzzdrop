@@ -82,8 +82,9 @@ def _key_release_upload(client, filename='key-release.txt', content=b'encrypted 
 # ---------------------------------------------------------------------------
 
 def test_upload_begin_requires_auth(client):
-    response = client.post(url_for('upload_begin'), follow_redirects=True)
-    assert url_for('login') in response.request.path
+    response = client.post(url_for('upload_begin'))
+    assert response.status_code == 401
+    assert response.get_json()['code'] == 'login_required'
 
 
 def test_upload_begin_requires_csrf_on_session(client):

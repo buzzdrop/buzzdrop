@@ -166,6 +166,14 @@ describe('in Polish', () => {
         expect(screen.getByText('Przesyłka jest za duża, żeby ją wysłać.')).toHaveRole('alert');
     });
 
+    it('says in Polish that an expired session must log in again to send', async () => {
+        const upload = openUploadPage({ account: 'no-shares', language: 'pl' });
+
+        await upload.sendNote('kod do bramy', undefined, { server: 'signed-out' });
+
+        expect(upload.sendError()).toBe('Sesja wygasła. Zaloguj się ponownie, aby wysłać przesyłkę.');
+    });
+
     it('serves the drop list', async () => {
         const upload = openUploadPage({ account: 'with-shares', language: 'pl', sharesPerPage: 10 });
 

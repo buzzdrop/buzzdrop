@@ -40,9 +40,9 @@ def upload_file_for_user(client, app, files_store, filename, content, username_f
     return (file_info['id'], receipt.hex()) if file_info else (None, None)
 
 def test_upload_file_requires_login(client):
-    response = client.post(url_for('upload_file'), data={'file': (io.BytesIO(b"test content"), "test.txt")}, follow_redirects=True)
-    assert url_for('login') in response.request.path
-    assert b'Please log in to access this page' in response.data
+    response = client.post(url_for('upload_file'), data={'file': (io.BytesIO(b"test content"), "test.txt")})
+    assert response.status_code == 401
+    assert response.get_json()['code'] == 'login_required'
 
 def test_upload_file_success(client, app, files_store, key_release_upload):
     login_user(client, 'testuser', 'password')

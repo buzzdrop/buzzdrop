@@ -66,8 +66,8 @@ describe('users page', () => {
         expect(card().getByRole('textbox', { name: 'New API token' })).toHaveValue('');
     });
 
-    it('a 200 that is not a token shows the generic message, not an empty token', async () => {
-        const users = openUsersPage({ server: 'notOurAnswer' });
+    it('a proxy\'s page in place of a token shows the generic message, not an empty token', async () => {
+        const users = openUsersPage({ server: 'proxyPage' });
 
         await users.generateToken('testuser');
 

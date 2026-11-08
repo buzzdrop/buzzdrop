@@ -29,7 +29,7 @@ The server renders the BKV3 envelope salt into the view page config, so nothing 
 
 ## Routes
 
-- `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`. Sends `Cache-Control: no-store`, since the response carries H
+- `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`. Sends `Cache-Control: no-store`, since the response carries H. With neither a Bearer token nor a session, it and the other `@api_auth_required` routes answer 401 `login_required`
 - `/upload` (POST): Completes the key-release upload.
   - Requires the `file_id`, `key_verifier` and `receipt_hash` form fields.
   - Refuses to finish another account's share (403).

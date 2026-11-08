@@ -23,13 +23,13 @@ export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
 
 /**
  * @typedef {object} UsersOptions
- * @property {'ok' | 'forbidden' | 'unexplained' | 'signedOut' | 'notOurAnswer' | 'unreachable'} [server] -
+ * @property {'ok' | 'forbidden' | 'unexplained' | 'signedOut' | 'proxyPage' | 'unreachable'} [server] -
  *   forbidden: the server refuses the token, as it does a session that is no
  *   longer an admin's; unexplained: it refuses with a code the page doesn't
  *   know; signedOut: the session has expired, so json_login_required refuses
- *   it; notOurAnswer: a 200 with a page instead of a token, as a proxy in
- *   front of the app might answer; unreachable: the request fails before any
- *   answer, as fetch does offline
+ *   it; proxyPage: a proxy in front of the app answers with its own page
+ *   instead of a token; unreachable: the request fails before any answer, as
+ *   fetch does offline
  * @property {'en' | 'pl'} [language] - the language the browser asked for
  */
 
@@ -62,10 +62,10 @@ export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
         });
         await new Promise((resolve) => { held.push(() => resolve(undefined)); });
         if (server === 'unreachable') throw new window.TypeError('Failed to fetch');
-        if (server === 'notOurAnswer') {
-            return new window.Response('<!DOCTYPE html><title>Login</title>', { status: 200, headers: { 'Content-Type': 'text/html' } });
+        if (server === 'proxyPage') {
+            return new window.Response('<!DOCTYPE html><title>Proxy sign-in</title>', { status: 200, headers: { 'Content-Type': 'text/html' } });
         }
-        /** @type {Record<Exclude<typeof server, 'unreachable' | 'notOurAnswer'>, [number, object]>} */
+        /** @type {Record<Exclude<typeof server, 'unreachable' | 'proxyPage'>, [number, object]>} */
         const answers = {
             ok: [201, { token: TOKEN, expires_at: EXPIRES_AT }],
             forbidden: [403, { error: 'Admin access required to generate tokens for other users', code: 'admin_required' }],
