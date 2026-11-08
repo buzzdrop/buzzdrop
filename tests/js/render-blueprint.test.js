@@ -47,6 +47,10 @@ test('the env vars it sets are ones the app reads', () => {
     }
 });
 
+test('the instance tells its visitors it is ephemeral (#398)', () => {
+    assert.deepEqual(envVar('EPHEMERAL_INSTANCE'), ['value', '"true"']);
+});
+
 test('the client IP comes from the header Render overwrites (#377)', () => {
     assert.deepEqual(envVar('CLIENT_IP_HEADER'), ['value', 'True-Client-IP']);
     assert.doesNotMatch(blueprint, /TRUSTED_PROXY_HOPS/);

@@ -12,6 +12,7 @@ from collections import Counter
 from html.parser import HTMLParser
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from babel.messages.pofile import read_po
@@ -251,6 +252,11 @@ def _gone_page_as_admin_with_a_flash(client):
     return _gone_page(client)
 
 
+def _gone_page_on_an_ephemeral_instance(client):
+    with patch.dict(client.application.config, EPHEMERAL_INSTANCE=True):
+        return _gone_page(client)
+
+
 def _unknown_url(client):
     return client.get('/does-not-exist')
 
@@ -362,6 +368,7 @@ CONVERTED_PAGES = {
     'login with a flash': _login_with_a_flash,
     'drop is gone': _gone_page,
     'drop is gone, admin header and flash': _gone_page_as_admin_with_a_flash,
+    'drop is gone, ephemeral instance': _gone_page_on_an_ephemeral_instance,
     'unknown URL': _unknown_url,
     'success, file': _success_page('file'),
     'success, note': _success_page('text'),

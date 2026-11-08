@@ -783,10 +783,10 @@ def handle_rate_limit(error):
     return message, 429
 
 
-def _error_page(status, eyebrow, heading, message):
+def _error_page(status, eyebrow, heading, message, note=None):
     """A dead-end page in the card style, rendered from templates/error.html."""
     return render_template('error.html', eyebrow=eyebrow, heading=heading,
-                           message=message), status
+                           message=message, note=note), status
 
 
 @app.errorhandler(NotFound)
@@ -842,8 +842,11 @@ def _drop_gone():
     and /download without a ticket answers a uniform 403 (#240).
     """
     # Like the text, which never says why (translations/pl/GLOSSARY.md, Gone).
+    note = None
+    if app.config['EPHEMERAL_INSTANCE']:
+        note = _('The drop may have been lost when this instance restarted.')
     return _error_page(404, _('Dead link'), _('This drop is gone'),
-                       _('Ask the sender for a new one.'))
+                       _('Ask the sender for a new one.'), note=note)
 
 
 @app.route('/')
