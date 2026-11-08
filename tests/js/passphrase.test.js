@@ -11,6 +11,27 @@ import {
 
 const WORD_SET = new Set(EFF_WORDLIST);
 
+/**
+ * @param {string} phrase
+ * @returns {string[]}
+ */
+function passphraseWords(phrase) {
+    const fragments = phrase.split('-');
+    const words = [];
+    for (let i = 0; i < fragments.length; i++) {
+        // Four EFF words contain a hyphen themselves, so a pair that joins
+        // into a real word is one word.
+        const joined = `${fragments[i]}-${fragments[i + 1]}`;
+        if (WORD_SET.has(joined)) {
+            words.push(joined);
+            i++;
+        } else {
+            words.push(fragments[i]);
+        }
+    }
+    return words;
+}
+
 test('wordlist is the full EFF large wordlist', () => {
     assert.equal(EFF_WORDLIST.length, 7776);
     assert.equal(WORD_SET.size, 7776);
@@ -18,7 +39,7 @@ test('wordlist is the full EFF large wordlist', () => {
 
 test('generated passphrase has 6 EFF words by default', () => {
     const phrase = generatePassphrase();
-    const parts = phrase.split('-');
+    const parts = passphraseWords(phrase);
     assert.equal(parts.length, 6);
     for (const part of parts) {
         assert.ok(WORD_SET.has(part), `${part} not in wordlist`);
@@ -31,6 +52,22 @@ test('generated passphrases are strong and not blocked', () => {
         assert.equal(result.strength, 'strong');
         assert.equal(result.blocked, false);
         assert.ok(result.bits >= STRONG_ENTROPY_BITS);
+    }
+});
+
+test('a drawn hyphenated word counts as one word', (t) => {
+    const drawn = ['drop-down', 'abacus', 'felt-tip', 't-shirt', 'abdomen', 'yo-yo'];
+    const indices = drawn.map((word) => EFF_WORDLIST.indexOf(word));
+    t.mock.method(globalThis.crypto, 'getRandomValues', (/** @type {Uint32Array} */ buffer) => {
+        buffer[0] = /** @type {number} */ (indices.shift());
+        return buffer;
+    });
+
+    const parts = passphraseWords(generatePassphrase());
+
+    assert.deepEqual(parts, drawn);
+    for (const part of parts) {
+        assert.ok(WORD_SET.has(part), `${part} not in wordlist`);
     }
 });
 
