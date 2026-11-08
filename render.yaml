@@ -14,6 +14,9 @@ services:
       # service on its own; the deployer redeploys to pick up a new one.
       url: ghcr.io/buzzdrop/buzzdrop:latest
     plan: free
+    # Most visitors are in Europe; Render can't move a service later, so
+    # this only affects new deploys (#430).
+    region: frankfurt
     # One instance: every request must see the same SQLite file and the
     # in-memory rate limits (ADR-0003).
     numInstances: 1
