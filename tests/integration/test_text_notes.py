@@ -51,8 +51,8 @@ def test_upload_text_note_requires_login(client):
         'type': 'text'
     }
     response = client.post(url_for('upload_file'), data=data, follow_redirects=False)
-    assert response.status_code == 302  # Redirect to login
-    assert b'/login' in response.data or response.location.endswith('/login')
+    assert response.status_code == 401
+    assert response.get_json()['code'] == 'login_required'
 
 def test_upload_text_note_success(client, app, files_store):
     """Test successful text note upload."""

@@ -166,6 +166,14 @@ describe('in Polish', () => {
         expect(screen.getByText('Przesyłka jest za duża, żeby ją wysłać.')).toHaveRole('alert');
     });
 
+    it('says in Polish that an expired session must log in again to send', async () => {
+        const upload = openUploadPage({ account: 'no-shares', language: 'pl' });
+
+        await upload.sendNote('kod do bramy', undefined, { server: 'signed-out' });
+
+        expect(upload.sendError()).toBe('Sesja wygasła. Zaloguj się ponownie, aby wysłać przesyłkę.');
+    });
+
     it('serves the drop list', async () => {
         const upload = openUploadPage({ account: 'with-shares', language: 'pl', sharesPerPage: 10 });
 
@@ -408,8 +416,9 @@ describe('in Polish', () => {
     it.each([
         ['forbidden', 'Token dla innego użytkownika może wygenerować tylko administrator.'],
         ['unexplained', 'Nie udało się wygenerować tokenu. Spróbuj ponownie.'],
+        ['signedOut', 'Sesja wygasła. Zaloguj się ponownie, aby wygenerować token.'],
     ])('says in Polish why a token was refused (%s)', async (server, message) => {
-        const users = openUsersPage({ language: 'pl', server: /** @type {'forbidden' | 'unexplained'} */ (server) });
+        const users = openUsersPage({ language: 'pl', server: /** @type {import('../support/pages/users.js').UsersOptions['server']} */ (server) });
 
         await users.generateToken('testuser');
 

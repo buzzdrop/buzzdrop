@@ -383,6 +383,10 @@ msgstr[2] "Zostało %(count)s prób – sprawdź hasło, zanim przejdziesz dalej
 msgid "Nothing has been submitted to this dropzone yet."
 msgstr "Do tej skrytki nic jeszcze nie złożono."
 
+#: templates/_collect_strings.html
+msgid "Your session has expired. Log in again to collect the submission."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby odebrać zgłoszenie."
+
 #: templates/_collect_strings.html templates/_dropzones_strings.html
 #: templates/_respond_strings.html templates/_view_strings.html
 msgid "Could not reach the server — check the connection and try again."
@@ -474,6 +478,10 @@ msgstr "Przesyłka jest za duża, żeby ją wysłać."
 #: templates/_composer_strings.html templates/_users_strings.html
 msgid "Your session has expired. Reload the page and try again."
 msgstr "Sesja wygasła. Odśwież stronę i spróbuj ponownie."
+
+#: templates/_composer_strings.html
+msgid "Your session has expired. Log in again to send the drop."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby wysłać przesyłkę."
 
 #: templates/_composer_strings.html
 msgid "The drop may have been sent, but the server's reply could not be read."
@@ -589,6 +597,10 @@ msgstr "Usunąć tę skrytkę?"
 #: templates/_dropzones_strings.html
 msgid "Could not create the dropzone. Please try again."
 msgstr "Nie udało się utworzyć skrytki. Spróbuj ponownie."
+
+#: templates/_dropzones_strings.html
+msgid "Your session has expired. Log in again to manage your dropzones."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby zarządzać skrytkami."
 
 #: templates/_dropzones_strings.html
 msgid "This dropzone has expired."
@@ -782,6 +794,10 @@ msgstr "Token dla innego użytkownika może wygenerować tylko administrator."
 #: templates/_users_strings.html
 msgid "That user no longer exists."
 msgstr "Ten użytkownik już nie istnieje."
+
+#: templates/_users_strings.html
+msgid "Your session has expired. Log in again to generate a token."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby wygenerować token."
 
 #: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."

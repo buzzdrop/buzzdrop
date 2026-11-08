@@ -355,6 +355,14 @@ describe('index page', () => {
             expect(screen.getByText('The drop is too large to send.')).toHaveRole('alert');
         });
 
+        it('an expired session says to log in again', async () => {
+            const upload = openUploadPage({ account: 'no-shares' });
+
+            await upload.sendNote('the gate code', SIX_WORDS, { server: 'signed-out' });
+
+            expect(upload.sendError()).toBe('Your session has expired. Log in again to send the drop.');
+        });
+
         it('sending again clears the last failure', async () => {
             const upload = openUploadPage({ account: 'no-shares' });
             await upload.sendNote('the gate code', SIX_WORDS, { server: 'too-large' });
@@ -507,6 +515,16 @@ describe('index page', () => {
             expect(await upload.deleteDropzone('Tax documents', { confirm: true }))
                 .toEqual({ question: 'Delete this dropzone?', deleted: true });
             expect(upload.dropzoneShown('Tax documents')).toBe(false);
+        });
+
+        it('an expired session keeps the dropzone on the list and says to log in again', async () => {
+            const upload = openUploadPage();
+            await upload.chooseMode('collect');
+
+            await upload.deleteDropzone('Tax documents', { confirm: true, server: 'signed-out' });
+
+            expect(await screen.findByText('Your session has expired. Log in again to manage your dropzones.')).toBeVisible();
+            expect(upload.dropzoneShown('Tax documents')).toBe(true);
         });
     });
 

@@ -261,6 +261,26 @@ def _get_active_session_user():
     return username, user
 
 
+def _redirect_to_login():
+    flash(gettext('Please log in to access this page'))
+    return redirect(url_for('login'))
+
+
+def _refuse_login():
+    return {'error': 'Login required', 'code': 'login_required'}, 401
+
+
+def _session_required(f, refuse):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        username, _ = _get_active_session_user()
+        if not username:
+            return refuse()
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 def login_required(f):
     """
     Decorator to require login for a route.
@@ -272,15 +292,19 @@ def login_required(f):
         def protected_route():
             pass
     """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        username, _ = _get_active_session_user()
-        if not username:
-            flash(gettext('Please log in to access this page'))
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
+    return _session_required(f, _redirect_to_login)
 
-    return decorated_function
+
+def json_login_required(f):
+    """
+    ``@login_required`` for routes the browser calls with ``fetch``.
+
+    ``fetch`` follows a redirect, so the script would get the login page with
+    a 200 and the flash would be spent on it. A missing session is a 401 JSON
+    refusal instead, with no flash. Routes a form posts to keep
+    ``@login_required``, even under ``/api/``.
+    """
+    return _session_required(f, _refuse_login)
 
 
 def bearer_token():
@@ -302,7 +326,8 @@ def api_auth_required(f):
     Checks for an ``Authorization: Bearer <token>`` header first. If the header
     is present but the token is invalid, returns 401 JSON immediately (no
     session fallback). If no Authorization header is present, falls back to
-    checking the session cookie like ``@login_required``.
+    checking the session cookie like ``@json_login_required``: these routes
+    are called with ``fetch`` or by API clients, never by a form.
 
     On success, sets ``flask.g.username`` so route handlers should read the
     authenticated user from ``g.username`` instead of ``session['username']``.
@@ -329,8 +354,7 @@ def api_auth_required(f):
         # No Bearer header: require session login
         username, _ = _get_active_session_user()
         if not username:
-            flash(gettext('Please log in to access this page'))
-            return redirect(url_for('login'))
+            return _refuse_login()
         g.username = username
         return f(*args, **kwargs)
 

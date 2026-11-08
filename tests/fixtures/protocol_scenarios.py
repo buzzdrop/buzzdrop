@@ -576,4 +576,18 @@ SCENARIOS = [
         'steps': [dz_create(), dz_submit(), dz_report(),
                   {**dz_report('report-limited'), 'injected': True}],
     },
+
+    # --- No session: JSON refusal, not a redirect fetch would follow ------
+    {
+        'name': 'no-session-refused',
+        'steps': [begin(), dz_create(),
+                  {**begin('begin-no-session'), 'as': None},
+                  {**upload_file('upload-no-session'), 'as': None},
+                  {**dz_create('create-no-session'), 'as': None},
+                  {**dz_list('list-no-session'), 'as': None},
+                  {**dz_get('get-no-session'), 'as': None},
+                  {**dz_release('release-no-session'), 'as': None},
+                  {**dz_submission('fetch-no-session'), 'as': None},
+                  {**dz_delete('delete-no-session'), 'as': None}],
+    },
 ]

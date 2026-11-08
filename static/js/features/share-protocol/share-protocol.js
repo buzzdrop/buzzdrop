@@ -117,7 +117,7 @@ const SERVER_SHARE_BYTES = 32;
 const EXPLAINED_CODES = /** @type {const} */ ([
     'file_too_large', 'type_not_allowed', 'rate_limited', 'csrf_failed', 'invalid_expiry',
     'notifications_unconfigured', 'account_email_missing', 'account_email_invalid',
-    'notification_email_mismatch',
+    'notification_email_mismatch', 'login_required',
 ]);
 
 /** @typedef {typeof EXPLAINED_CODES[number]} ExplainedCode */

@@ -13,9 +13,6 @@
 // - /upload without X-Requested-With or a multipart body throws; app.py would
 //   answer with an HTML redirect the page's XHR code can't parse.
 // - A request to a route the fake doesn't serve throws.
-// - A route that needs a logged-in user (everything owner-scoped, /upload/begin
-//   and /upload) with state.user null throws; app.py would answer through its
-//   login check, which the page never meets.
 // And two checks are left out: /upload takes any file extension (the page
 // refuses a disallowed one before sending anything, which the DOM tests
 // cover), and accountEmails are trusted as given (app.py also rejects a
@@ -195,7 +192,18 @@ export const EMITS = [
     ['/dropzones/<id>/report', 429, 'injected'],
     ['/dropzones/<id>/delete', 200, 'state'], ['/dropzones/<id>/delete', 403, 'state'],
     ['/dropzones/<id>/delete', 404, 'state'],
+    ['/upload/begin', 401, 'state'], ['/upload', 401, 'state'],
+    ['/api/dropzones', 401, 'state'], ['/api/dropzones/<id>', 401, 'state'],
+    ['/dropzones/<id>/release', 401, 'state'], ['/dropzones/<id>/submission', 401, 'state'],
+    ['/dropzones/<id>/delete', 401, 'state'],
 ];
+
+// The routes behind @api_auth_required: with state.user null they refuse.
+/** @type {ReadonlySet<Route>} */
+const LOGIN_ROUTES = new Set(/** @type {Route[]} */ ([
+    '/upload/begin', '/upload', '/api/dropzones', '/api/dropzones/<id>',
+    '/dropzones/<id>/release', '/dropzones/<id>/submission', '/dropzones/<id>/delete',
+]));
 
 // Each pattern's first capture group is the dropzone/drop id in the path
 // (empty for the collection routes). Recorded prefixes like '/release/'
@@ -1278,6 +1286,8 @@ export function makeProtocolFake(opts = {}) {
         let response;
         if (failure !== undefined) {
             response = injected(route, failure);
+        } else if (LOGIN_ROUTES.has(route) && !state.user) {
+            response = json(401, { error: 'Login required', code: 'login_required' });
         } else if (route === '/upload/begin') {
             response = uploadBegin(headers);
         } else if (route === '/upload') {
