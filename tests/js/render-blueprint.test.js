@@ -27,6 +27,10 @@ test('the button runs the newest published version on the free plan, as one inst
     assert.match(blueprint, /numInstances: 1\n/);
 });
 
+test('the service runs in Frankfurt, not Render\'s default Oregon (#430)', () => {
+    assert.match(blueprint, /region: frankfurt\n/);
+});
+
 test('both secrets are generated and only the admin password is prompted for', () => {
     assert.deepEqual(envVar('FLASK_SECRET_KEY'), ['generateValue', 'true']);
     assert.deepEqual(envVar('TOKEN_HASH_SECRET'), ['generateValue', 'true']);
