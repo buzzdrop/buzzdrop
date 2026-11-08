@@ -57,9 +57,9 @@ test('generated passphrases are strong and not blocked', () => {
 
 test('a drawn hyphenated word counts as one word', (t) => {
     const drawn = ['drop-down', 'abacus', 'felt-tip', 't-shirt', 'abdomen', 'yo-yo'];
-    const draws = drawn.map((word) => EFF_WORDLIST.indexOf(word));
+    const indices = drawn.map((word) => EFF_WORDLIST.indexOf(word));
     t.mock.method(globalThis.crypto, 'getRandomValues', (/** @type {Uint32Array} */ buffer) => {
-        buffer[0] = /** @type {number} */ (draws.shift());
+        buffer[0] = /** @type {number} */ (indices.shift());
         return buffer;
     });
 
