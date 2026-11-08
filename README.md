@@ -16,7 +16,7 @@ One-time, self-destructing file and text sharing with client-side encryption. Fi
 
 One honest caveat: "one-time" means no *second* read — nothing takes back what the recipient already saw, and nothing stops a malicious server operator.
 
-**Try it:** [start your own instance on Render's free plan with one click](https://buzzdrop.io/try-it/). No server to set up; it keeps no data across restarts.
+**Try it:** [start your own instance on Render's free plan with one click](https://buzzdrop.io/en/try-it/). No server to set up; it keeps no data across restarts.
 
 ## Features
 
