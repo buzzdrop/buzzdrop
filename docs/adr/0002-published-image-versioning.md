@@ -17,7 +17,7 @@ Self-hosters run a published image, `ghcr.io/buzzdrop/buzzdrop` (public, GHCR on
 
 ## Who pins what
 
-- **"Try it" buttons** use `latest`. A trial is throwaway and may lose its data on a restart anyway, and pinning would mean a config PR on every version.
+- **"Try it" buttons** use `latest`. An ephemeral instance is throwaway and may lose its data on a restart anyway, and pinning would mean a config PR on every version.
 - **The "Run it" compose file** pins an exact version, `ghcr.io/buzzdrop/buzzdrop:${BUZZDROP_VERSION:-<x.y.z>}`. A long-term instance holds real drops, and its owner should read the notes before crossing a breaking minor. Cutting a version bumps the default.
 
 ## Consequences
