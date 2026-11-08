@@ -1774,12 +1774,13 @@ def _dropzone_request(method: str, server: str, token: str, path: str,
 def _dropzone_error(resp, prefix: str = "Error") -> None:
     """Print the server's error/code body for a failed call and exit."""
     msg = f"Server returned {resp.status_code}"
-    error = _error_field(resp, 'error', '')
-    if error is not _NOT_JSON:
-        msg += f": {error}"
-        code = _error_field(resp, 'code')
-        if code:
-            msg += f" ({code})"
+    try:
+        body = resp.json()
+        msg += f": {body.get('error', '')}"
+        if body.get('code'):
+            msg += f" ({body['code']})"
+    except Exception:
+        pass
     print(f"{prefix}: {msg}", file=sys.stderr)
     sys.exit(1)
 
