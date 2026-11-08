@@ -1156,12 +1156,15 @@ def _csrf_token_from_page(page: str) -> str | None:
     return parser.token
 
 
-def _response_code(resp) -> str | None:
-    """Return the stable ``code`` of a JSON error response, if it has one."""
+_NOT_JSON = object()
+
+
+def _error_field(resp, field: str, default=None):
+    """Return a field of a JSON error body, or _NOT_JSON if it has no such body."""
     try:
-        return resp.json().get('code')
-    except (ValueError, AttributeError):
-        return None
+        return resp.json().get(field, default)
+    except Exception:
+        return _NOT_JSON
 
 
 def setup_token(server_override: str = None,
@@ -1247,19 +1250,18 @@ def setup_token(server_override: str = None,
         sys.exit(1)
 
     if resp.status_code == 403:
-        code = _response_code(resp)
+        code = _error_field(resp, 'code')
         if code == 'admin_required':
             print("Error: your account does not have permission to generate tokens.", file=sys.stderr)
             sys.exit(1)
         if code == 'csrf_failed':
-            print("Error: the server refused the token request (CSRF validation failed). Please try again.", file=sys.stderr)
+            print("Error: the server refused the token request (CSRF validation failed).", file=sys.stderr)
             sys.exit(1)
     if not resp.ok:
         msg = f"Server returned {resp.status_code}"
-        try:
-            msg += f": {resp.json().get('error', '')}"
-        except Exception:
-            pass
+        error = _error_field(resp, 'error', '')
+        if error is not _NOT_JSON:
+            msg += f": {error}"
         print(f"Error: {msg}", file=sys.stderr)
         sys.exit(1)
 
@@ -1772,13 +1774,12 @@ def _dropzone_request(method: str, server: str, token: str, path: str,
 def _dropzone_error(resp, prefix: str = "Error") -> None:
     """Print the server's error/code body for a failed call and exit."""
     msg = f"Server returned {resp.status_code}"
-    try:
-        body = resp.json()
-        msg += f": {body.get('error', '')}"
-        if body.get('code'):
-            msg += f" ({body['code']})"
-    except Exception:
-        pass
+    error = _error_field(resp, 'error', '')
+    if error is not _NOT_JSON:
+        msg += f": {error}"
+        code = _error_field(resp, 'code')
+        if code:
+            msg += f" ({code})"
     print(f"{prefix}: {msg}", file=sys.stderr)
     sys.exit(1)
 

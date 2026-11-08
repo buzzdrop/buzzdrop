@@ -7,37 +7,24 @@ onto the Flask test client, so each login, redirect, page and token answer
 comes from the app itself.
 """
 import getpass
-import importlib.machinery
-import importlib.util
 import json
-import os
 import stat
 from urllib.parse import urlsplit
 
 import pytest
 
+from conftest import import_buzz
+
 SERVER = 'https://localhost'
 
 
-def _import_buzz():
-    """Import cli/buzz as a module (file has no .py extension)."""
-    buzz_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', '..', 'cli', 'buzz'))
-    loader = importlib.machinery.SourceFileLoader('buzz', buzz_path)
-    spec = importlib.util.spec_from_loader('buzz', loader)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-buzz = _import_buzz()
+buzz = import_buzz()
 
 
 class _Response:
     """The part of ``requests.Response`` the CLI reads."""
 
     def __init__(self, flask_response):
-        self._flask_response = flask_response
         self.status_code = flask_response.status_code
         self.ok = flask_response.status_code < 400
         self.text = flask_response.get_data(as_text=True)
@@ -58,34 +45,32 @@ class FlaskRequests:
 
     def __init__(self, app, alter_request=None, alter_response=None):
         self._app = app
-        self._alter_request = alter_request
-        self._alter_response = alter_response
+        self.alter_request = alter_request
+        self.alter_response = alter_response
 
     def Session(self):
-        return _Session(self._app.test_client(), self._alter_request,
-                        self._alter_response)
+        return _Session(self._app.test_client(), self)
 
 
 class _Session:
-    def __init__(self, client, alter_request, alter_response):
+    def __init__(self, client, transport):
         self._client = client
-        self._alter_request = alter_request
-        self._alter_response = alter_response
+        self._transport = transport
 
     def post(self, url, data=None, json=None, headers=None,
              allow_redirects=True, timeout=None):
         parts = urlsplit(url)
         request = {'data': data, 'json': json, 'headers': dict(headers or {})}
-        if self._alter_request:
-            self._alter_request(parts.path, request)
+        if self._transport.alter_request:
+            self._transport.alter_request(parts.path, request)
         response = _Response(self._client.post(
             parts.path,
             base_url=f'{parts.scheme}://{parts.netloc}',
             follow_redirects=allow_redirects,
             **request,
         ))
-        if self._alter_response:
-            self._alter_response(parts.path, response)
+        if self._transport.alter_response:
+            self._transport.alter_response(parts.path, response)
         return response
 
 
