@@ -408,8 +408,9 @@ describe('in Polish', () => {
     it.each([
         ['forbidden', 'Token dla innego użytkownika może wygenerować tylko administrator.'],
         ['unexplained', 'Nie udało się wygenerować tokenu. Spróbuj ponownie.'],
+        ['signedOut', 'Sesja wygasła. Zaloguj się ponownie, aby wygenerować token.'],
     ])('says in Polish why a token was refused (%s)', async (server, message) => {
-        const users = openUsersPage({ language: 'pl', server: /** @type {'forbidden' | 'unexplained'} */ (server) });
+        const users = openUsersPage({ language: 'pl', server: /** @type {import('../support/pages/users.js').UsersOptions['server']} */ (server) });
 
         await users.generateToken('testuser');
 

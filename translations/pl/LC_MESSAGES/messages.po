@@ -784,6 +784,10 @@ msgid "That user no longer exists."
 msgstr "Ten użytkownik już nie istnieje."
 
 #: templates/_users_strings.html
+msgid "Your session has expired. Log in again to generate a token."
+msgstr "Sesja wygasła. Zaloguj się ponownie, aby wygenerować token."
+
+#: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."
 msgstr "Nie udało się wygenerować tokenu. Spróbuj ponownie."
 

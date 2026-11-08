@@ -47,7 +47,13 @@ def clear_user_cache(monkeypatch):
 
 def test_create_token_unauthenticated(client):
     resp = client.post('/api/token', json={'username': 'testuser'})
-    assert resp.status_code in (302, 401)
+    assert resp.status_code == 401
+
+
+def test_revoke_form_without_a_session_goes_to_login(client):
+    resp = client.post('/api/tokens/1/revoke')
+    assert resp.status_code == 302
+    assert resp.headers['Location'] == '/login'
 
 
 def test_create_token_requires_csrf(user_client):

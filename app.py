@@ -40,7 +40,7 @@ load_dotenv(dotenv_path=env_path)
 # Import new modules AFTER loading .env
 from config import get_config, is_production
 from storage import get_storage_backend, print_backend_info, StorageError
-from auth import login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, login_user, logout_user, validate_users
+from auth import login_required, json_login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, login_user, logout_user, validate_users
 from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcnow
 from utils import (
     format_file_timestamps,
@@ -919,7 +919,7 @@ def index():
 
 
 @app.route('/api/user/files/status', methods=['GET'])
-@login_required
+@json_login_required
 def user_file_statuses():
     requested_ids = list(dict.fromkeys(request.args.getlist('id')))
     if len(requested_ids) > 50:
@@ -1037,7 +1037,7 @@ def manage_users():
     methods=['POST'],
     error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
 )
-@login_required
+@json_login_required
 def create_api_token():
     """
     Generate an API token.

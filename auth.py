@@ -283,6 +283,25 @@ def login_required(f):
     return decorated_function
 
 
+def json_login_required(f):
+    """
+    ``@login_required`` for routes the browser calls with ``fetch``.
+
+    ``fetch`` follows a redirect, so the script would get the login page with
+    a 200 and the flash would be spent on it. A missing session is a 401 JSON
+    refusal instead, with no flash. Routes a form posts to keep
+    ``@login_required``, even under ``/api/``.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        username, _ = _get_active_session_user()
+        if not username:
+            return {'error': 'Login required', 'code': 'login_required'}, 401
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 def bearer_token():
     """
     The token of an ``Authorization: Bearer <token>`` header, or None when

@@ -30,7 +30,8 @@ There is no users table: users come from the environment. Passwords are hashed w
 Outside production a half-set or empty admin is ignored, the half-set one with a warning. A malformed `FLASK_USER_N` is always only a warning. There is no password policy beyond "not empty".
 
 Decorators:
-- `@login_required`: checks the session for a username
+- `@login_required`: checks the session for a username and redirects to `/login` without one
+- `@json_login_required`: the same check for routes the browser calls with `fetch` (`POST /api/token`, `/api/user/files/status`). Without a session it answers 401 JSON with `code: 'login_required'`, with no redirect and no flash. A route a form posts to keeps `@login_required`, even under `/api/`.
 - `@admin_required`: checks both login and the admin flag
 - `@api_auth_required`: accepts an `Authorization: Bearer <token>` header **or** the session cookie. An invalid Bearer gets 401 JSON, with no fallback to the session. On success it sets `flask.g.username`, so routes must read `g.username`, not `session['username']`.
 

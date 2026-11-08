@@ -27,7 +27,7 @@ import { readStrings } from '../../lib/strings.js';
 
 // The refusals of POST /api/token the page can explain, each by its `code`
 // under the 'refusals' strings; any other refusal is the 'failed' string.
-const EXPLAINED_CODES = /** @type {const} */ (['admin_required', 'unknown_user', 'csrf_failed', 'rate_limited']);
+const EXPLAINED_CODES = /** @type {const} */ (['admin_required', 'unknown_user', 'csrf_failed', 'rate_limited', 'login_required']);
 
 /** @typedef {typeof EXPLAINED_CODES[number]} ExplainedCode */
 
@@ -102,8 +102,7 @@ export function initUsers(root, deps) {
         const body = resp ? await resp.json().catch(() => ({})) : {};
         result.hidden = false;
         button.disabled = false;
-        // A 2xx without a token is the login page: an expired session's
-        // request is redirected there, and fetch follows the redirect.
+        // A proxy in front of the app can answer 2xx with its own page.
         if (resp?.ok && body.token && body.expires_at) {
             input.value = body.token;
             expires.textContent = strings.text('expires', { time: inViewerZone(body.expires_at, body.expires_at) });

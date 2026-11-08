@@ -57,8 +57,17 @@ describe('users page', () => {
         expect(card().queryByText(/Failed to fetch/)).toBeNull();
     });
 
-    it('a signed-out session shows the generic message, not an empty token', async () => {
+    it('an expired session says to log in again, not to try again', async () => {
         const users = openUsersPage({ server: 'signedOut' });
+
+        await users.generateToken('testuser');
+
+        expect(card().getByRole('alert')).toHaveTextContent('Your session has expired. Log in again to generate a token.');
+        expect(card().getByRole('textbox', { name: 'New API token' })).toHaveValue('');
+    });
+
+    it('a 200 that is not a token shows the generic message, not an empty token', async () => {
+        const users = openUsersPage({ server: 'notOurAnswer' });
 
         await users.generateToken('testuser');
 
