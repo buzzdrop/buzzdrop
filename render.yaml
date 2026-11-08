@@ -4,7 +4,8 @@
 #
 # An ephemeral instance: Render Free has no persistent disk and spins down
 # after 15 minutes without traffic, so the SQLite database and uploads on
-# the container's disk may vanish at any time. The Website says so.
+# the container's disk may vanish at any time. The Website says so, and
+# EPHEMERAL_INSTANCE below makes the app say so too.
 services:
   - type: web
     name: buzzdrop
@@ -41,3 +42,7 @@ services:
       # another proxy is put in front.
       - key: CLIENT_IP_HEADER
         value: True-Client-IP
+      # Shows every visitor that this instance keeps no data across
+      # restarts (#398).
+      - key: EPHEMERAL_INSTANCE
+        value: "true"

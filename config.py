@@ -187,6 +187,9 @@ class Config:
     # meant: it hides every link to the Website.
     WEBSITE_URL = os.getenv('WEBSITE_URL', 'https://buzzdrop.io').strip()
 
+    # Set only by the Try it button configs. It changes text, never limits.
+    EPHEMERAL_INSTANCE = _env_bool('EPHEMERAL_INSTANCE', False)
+
     @classmethod
     def validate(cls):
         """

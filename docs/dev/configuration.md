@@ -35,6 +35,7 @@
   - `DROPZONE_COLLECT_TTL_SECONDS`: default 600. How long after a successful release the submission stays collectable; afterwards the zone expires and the sweep deletes the blob.
 - **Source code:** `SOURCE_CODE_URL` (default: the upstream GitHub repo; empty falls back to it). It is used for every repository link on the site, including the AGPL-3.0 §13 footer link. A deployment running modified code must point it at its own source.
 - **Website:** `WEBSITE_URL` (default `https://buzzdrop.io`), the Website's base URL. Every link to it goes through `website_url(page)` (`website.py`), which adds the page's language prefix and that language's slug, e.g. `https://buzzdrop.io/pl/jak-to-dziala/` on a Polish page; a language the Website lacks gets English. `website.ROUTES` mirrors the Website's route table (`src/i18n/routes.ts` in `buzzdrop/website`): keep them in step. Today's links are all "How it works": the footer, the recipient's pages, the login page and the dead-end page an anonymous visitor sees. Unlike `SOURCE_CODE_URL`, an empty value hides every link to the Website and does not fall back to the default. The old `EXPLAINER_URL` is refused at startup.
+- **Ephemeral instance:** `EPHEMERAL_INSTANCE` (default off), set only by the Try it button configs (`render.yaml`). On, every page shows a strip saying the instance keeps no data across restarts, and the "drop is gone" page adds that a restart may have lost the drop (#398). It changes text, never limits.
 - **Decryption reports:** `REPORT_DECRYPTION_RATE_LIMIT` (default `10 per minute`, per `file_id`).
 - **Client IP behind a proxy** (`proxy.py`). The rate limits, stored IPs (`downloaded_by_ip`, `submitted_by_ip`) and logs all read `request.remote_addr`, and this decides it. Set one of the two, never both; setting both stops the app at startup. A deploy config sets a fixed value, and the self-hoster is never prompted.
   - `TRUSTED_PROXY_HOPS=N` (default `0`): Werkzeug `ProxyFix` trusts the last N `X-Forwarded-For` entries and `X-Forwarded-Proto` with N hops. `X-Forwarded-Host`/`Port` are never trusted.
@@ -79,7 +80,7 @@ The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` li
 **Render (Try it):** `render.yaml` at the root is the Blueprint behind the Website's Try it button (`https://render.com/deploy?repo=https://github.com/buzzdrop/buzzdrop`; Render reads the file from the repo root). It sets up a free, single-instance web service in Frankfurt (Render's default would be Oregon) from `ghcr.io/buzzdrop/buzzdrop:latest`:
 - Render generates `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET`;
 - `ADMIN_USERNAME` defaults to `admin` (editable in Render's dashboard), and the deployer is prompted for `ADMIN_PASSWORD`;
-- `CLIENT_IP_HEADER=True-Client-IP` is fixed;
+- `CLIENT_IP_HEADER=True-Client-IP` and `EPHEMERAL_INSTANCE=true` are fixed;
 - `/healthz` is the health check.
 
 It's an ephemeral instance: Render Free has no disk and spins down after 15 idle minutes, so its drops may vanish. Image services don't redeploy on their own, so the deployer redeploys to get a newer version. `tests/js/render-blueprint.test.js` keeps its values in step with the app: a renamed route or variable fails there, not on Render.

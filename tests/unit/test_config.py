@@ -188,6 +188,18 @@ def test_empty_source_code_url_falls_back_to_the_upstream_repository(value):
     assert result.stdout.strip() == 'https://github.com/buzzdrop/buzzdrop'
 
 
+@pytest.mark.parametrize('env_value, expected', [(None, 'False'), ('false', 'False'), ('true', 'True')])
+def test_ephemeral_instance_is_off_unless_set(env_value, expected):
+    env = {k: v for k, v in os.environ.items() if k != 'EPHEMERAL_INSTANCE'}
+    if env_value is not None:
+        env['EPHEMERAL_INSTANCE'] = env_value
+    result = subprocess.run(
+        [sys.executable, '-c', 'from config import Config; print(Config.EPHEMERAL_INSTANCE)'],
+        env=env, capture_output=True, text=True, check=True,
+        cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    assert result.stdout.strip() == expected
+
+
 @pytest.mark.parametrize('value', ['https://buzzdrop.io/how-it-works/', ''])
 def test_validate_refuses_the_replaced_explainer_url(monkeypatch, value):
     # EXPLAINER_URL gave way to WEBSITE_URL (#371); a deployment still

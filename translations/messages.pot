@@ -158,6 +158,10 @@ msgid "The server hit an error. Please try again in a moment."
 msgstr ""
 
 #: app.py
+msgid "The drop may have been lost when this instance restarted."
+msgstr ""
+
+#: app.py
 msgid "Dead link"
 msgstr ""
 
@@ -808,6 +812,10 @@ msgstr ""
 
 #: templates/base.html templates/login.html
 msgid "Login"
+msgstr ""
+
+#: templates/base.html
+msgid "This instance keeps no data across restarts."
 msgstr ""
 
 #: templates/base.html

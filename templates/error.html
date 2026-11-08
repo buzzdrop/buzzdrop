@@ -20,6 +20,9 @@
         <h1 class="mt-5 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{{ heading }}</h1>
 
         <p class="mx-auto mt-3 max-w-sm text-sm text-slate-400">{{ message }}</p>
+        {%- if detail %}
+        <p class="mx-auto mt-2 max-w-sm text-sm text-slate-400">{{ detail }}</p>
+        {%- endif %}
 
         {# A logged-in visitor goes home; an anonymous one has no home page here, so the way on is the explainer (hidden when it is unset). #}
         {% set how_it_works_url = website_url('how_it_works') %}

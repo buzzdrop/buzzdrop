@@ -166,6 +166,10 @@ msgid "The server hit an error. Please try again in a moment."
 msgstr "Wystąpił błąd serwera. Spróbuj ponownie za chwilę."
 
 #: app.py
+msgid "The drop may have been lost when this instance restarted."
+msgstr "Przesyłka mogła zniknąć przy restarcie tej instancji."
+
+#: app.py
 msgid "Dead link"
 msgstr "Nieaktywny link"
 
@@ -850,6 +854,10 @@ msgstr "Wyloguj"
 #: templates/base.html templates/login.html
 msgid "Login"
 msgstr "Zaloguj"
+
+#: templates/base.html
+msgid "This instance keeps no data across restarts."
+msgstr "Ta instancja nie zachowuje danych po restarcie."
 
 #: templates/base.html
 msgid "Each drop opens once, then it's gone."
