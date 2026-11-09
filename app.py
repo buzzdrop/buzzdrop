@@ -38,7 +38,7 @@ env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
 # Import new modules AFTER loading .env
-from config import get_config, is_production
+from config import get_config, is_production, check_runtime_config
 from storage import get_storage_backend, print_backend_info, StorageError
 from auth import login_required, json_login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, get_auth_backend, start_session, logout_user
 from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcnow
@@ -63,6 +63,10 @@ app = Flask(__name__)
 # Load configuration
 config_class = get_config()
 app.config.from_object(config_class)
+
+# A key from_object never copied (or a subclass never defined) would die
+# as a 500 on the first request that reads it — fail now (#220).
+check_runtime_config(app.config)
 
 # Handle SECRET_KEY: outside production, generate a temporary one. In
 # production config_class.validate() below refuses to start without it.
