@@ -67,6 +67,12 @@ LISTED_DROPZONE = {
     'memo': 'Tax documents',
 }
 
+# The zone behind the respond and collect fixtures, and one its owner's wrong
+# passwords locked (DROPZONE_MAX_ATTEMPTS is 3). The JS page drivers substitute
+# the id and salt of the zone they put on the protocol fake.
+OPEN_DROPZONE = {**LISTED_DROPZONE, 'id': '00000000-0000-4000-8000-0000000000d2', 'memo': None}
+LOCKED_DROPZONE = {**OPEN_DROPZONE, 'id': '00000000-0000-4000-8000-0000000000d3', 'attempts': 3}
+
 
 # One row per status the index list renders, each uploaded on its own day
 # (newest first here, as the list sorts them), plus a file shared with
@@ -141,6 +147,14 @@ def _client(username=None):
     return client
 
 
+def _owner_client():
+    """testuser, past the page that shows the login flash: the collect page
+    is reached from the drop list, not straight from the login form."""
+    client = _client('testuser')
+    client.get('/')
+    return client
+
+
 def _clean(html):
     html = SCRIPT_SRC_TAG.sub('', html)
     html = IMPORT_MAP_TAG.sub('', html)
@@ -170,6 +184,20 @@ def render_all():
         get_backend().files.create_dropzone(dict(LISTED_DROPZONE))
     fixtures.append(_render('index--files', _client('testuser'), 'GET', '/'))
     fixtures.append(_render('index--files.pl', _client('testuser'), 'GET', '/', language='pl'))
+
+    _reset([])
+    with flask_app.app_context():
+        store = get_backend().files
+        store.create_dropzone(dict(OPEN_DROPZONE))
+        store.create_dropzone(dict(LOCKED_DROPZONE))
+    for language in (None, 'pl'):
+        suffix = f'.{language}' if language else ''
+        fixtures.append(_render(f'respond--open{suffix}', _client(), 'GET',
+                                f"/dropzone/{OPEN_DROPZONE['id']}", language=language))
+        fixtures.append(_render(f'collect--open{suffix}', _owner_client(), 'GET',
+                                f"/dropzones/{OPEN_DROPZONE['id']}/collect", language=language))
+    fixtures.append(_render('collect--locked', _owner_client(), 'GET',
+                            f"/dropzones/{LOCKED_DROPZONE['id']}/collect"))
 
     fixtures.append(_render('login--default', _client(), 'GET', '/login'))
     fixtures.append(_render('login--default.pl', _client(), 'GET', '/login', language='pl'))

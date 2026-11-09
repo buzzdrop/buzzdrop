@@ -1,8 +1,10 @@
 import { getDefaultNormalizer, within } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
+import { openCollectPage } from '../support/pages/collect.js';
 import { openConfirmPage } from '../support/pages/confirm.js';
 import { openLanguageMenuPage } from '../support/pages/language-menu.js';
 import { openLoginPage } from '../support/pages/login.js';
+import { openRespondPage } from '../support/pages/respond.js';
 import { openGonePage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
 import { openUploadPage } from '../support/pages/upload.js';
@@ -423,5 +425,57 @@ describe('in Polish', () => {
         await users.generateToken('testuser');
 
         expect(within(screen.getByRole('region', { name: 'testuser' })).getByRole('alert')).toHaveTextContent(message);
+    });
+
+    it('serves the respond page and says a submission landed', async () => {
+        const page = await openRespondPage({ language: 'pl' });
+
+        expect(page.language()).toBe('pl');
+        expect(screen.getByRole('heading', { name: 'Złóż bezpiecznie' })).toBeVisible();
+
+        await page.submitNote('faktura w załączniku');
+
+        expect(screen.getByRole('status'))
+            .toHaveTextContent('Złożono – zamawiający może teraz odebrać zgłoszenie. Możesz zamknąć tę stronę.');
+    });
+
+    it('says in Polish why the respond page refused a submission', async () => {
+        const page = await openRespondPage({ language: 'pl', server: 'used' });
+
+        await page.submitNote('faktura w załączniku');
+
+        expect(screen.getByText('Tego linku do skrytki już użyto. Poproś zamawiającego o nowy.')).toBeVisible();
+    });
+
+    it('serves the collect page', async () => {
+        const page = await openCollectPage({ language: 'pl' });
+
+        expect(page.language()).toBe('pl');
+        expect(screen.getByRole('heading', { name: 'Odbierz zgłoszenie' })).toBeVisible();
+        expect(screen.getByLabelText('Hasło do skrytki')).toHaveAccessibleDescription(expect.stringContaining('Masz 3 próby'));
+        expect(screen.getByRole('button', { name: 'Odbierz' })).toBeEnabled();
+    });
+
+    it.each([
+        ['a many', 6, 'Nieprawidłowe hasło. Zostało 5 prób.'],
+        ['a few', 3, 'Nieprawidłowe hasło. Zostały 2 próby.'],
+        ['a one', 2, 'Nieprawidłowe hasło. Została 1 próba.'],
+    ])('counts the collect attempts left in Polish, %s form', async (_, maxAttempts, message) => {
+        const page = await openCollectPage({ language: 'pl', maxAttempts });
+
+        await page.collectWith('zła pszczoła');
+
+        expect(screen.getByRole('status')).toHaveTextContent(message);
+    });
+
+    it.each([
+        ['a locked zone', 'locked-out', 'Za dużo nieprawidłowych haseł – skrytka zablokowana na stałe.'],
+        ['an expired session', 'logged-out', 'Sesja wygasła. Zaloguj się ponownie, aby odebrać zgłoszenie.'],
+    ])('says in Polish why %s cannot be collected', async (_, server, message) => {
+        const page = await openCollectPage({ language: 'pl', server: /** @type {'locked-out' | 'logged-out'} */ (server) });
+
+        await page.collectWith(DEFAULT_PASSWORD);
+
+        expect(screen.getByRole('status')).toHaveTextContent(message);
     });
 });

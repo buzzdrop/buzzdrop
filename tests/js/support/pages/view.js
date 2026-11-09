@@ -3,11 +3,11 @@
 // which answers every request the page sends, so each server situation is
 // produced by the fake's own state. The DOM layer runs it with the stub
 // crypto, the JS-integration layer with the real crypto.js.
-import { expect, vi } from 'vitest';
+import { expect } from 'vitest';
 import { bytesToHex } from '../../../../static/js/lib/hex.js';
 import { initView } from '../../../../static/js/pages/view/view-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
-import { DEFAULT_PASSWORD, addressOf, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
+import { DEFAULT_PASSWORD, addressOf, cryptoFor, inLanguage, openPage, recordProgress, recordSavedFiles, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { DEFAULT_PASSWORD, screen } from './page.js';
 
@@ -85,12 +85,7 @@ const WRONG_VERIFIER = 'f'.repeat(64);
  */
 
 /**
- * @typedef {object} SavedFile
- * @property {string} name
- * @property {Bytes} bytes
- */
-
-/**
+ * @typedef {import('./page.js').SavedFile} SavedFile
  * @typedef {object} ShareView
  * @property {Page['language']} language
  * @property {Page['url']} url
@@ -171,21 +166,7 @@ export async function openShare({
         return backend.fetch(input, init);
     };
 
-    // A file reaches the visitor as a Blob URL on a link the page clicks.
-    /** @type {Map<string, Blob>} */
-    const blobs = new Map();
-    const createObjectURL = URL.createObjectURL.bind(URL);
-    vi.spyOn(URL, 'createObjectURL').mockImplementation((object) => {
-        const url = createObjectURL(object);
-        if (object instanceof Blob) blobs.set(url, object);
-        return url;
-    });
-    /** @type {Array<{ name: string, blob: Blob | undefined }>} */
-    const saved = [];
-    vi.spyOn(window.HTMLAnchorElement.prototype, 'click').mockImplementation(/** @this {HTMLAnchorElement} */ function () {
-        saved.push({ name: this.download, blob: blobs.get(this.href) });
-    });
-
+    const savedFile = recordSavedFiles(page);
     const progressShown = recordProgress(page);
 
     const ready = initView(window.document, { fetch, crypto: cryptoService });
@@ -234,12 +215,7 @@ export async function openShare({
             finishDownload();
             await ready;
         },
-        async savedFile() {
-            if (saved.length !== 1) throw new Error(`the page saved ${saved.length} files, not one`);
-            const [{ name, blob }] = saved;
-            if (!blob) throw new Error('the page saved a link that is not one of its Blobs');
-            return { name, bytes: new Uint8Array(await blob.arrayBuffer()) };
-        },
+        savedFile,
         reportsSent: () => backend.log.slice(logStart)
             .filter((request) => new URL(request.url).pathname.startsWith('/report_decryption/'))
             .map((request) => JSON.parse(String(request.body))),

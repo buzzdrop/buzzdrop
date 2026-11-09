@@ -295,6 +295,40 @@ export function replaceInFixture(html, search, replacement) {
 }
 
 /**
+ * @typedef {object} SavedFile
+ * @property {string} name
+ * @property {Uint8Array<ArrayBuffer>} bytes
+ */
+
+/**
+ * Catch the files a page saves: a file reaches the visitor as a Blob URL on a
+ * link the page clicks. Returns a reader for the one file saved.
+ * @param {Page} page
+ * @returns {() => Promise<SavedFile>}
+ */
+export function recordSavedFiles({ window }) {
+    /** @type {Map<string, Blob>} */
+    const blobs = new Map();
+    const createObjectURL = URL.createObjectURL.bind(URL);
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((object) => {
+        const url = createObjectURL(object);
+        if (object instanceof Blob) blobs.set(url, object);
+        return url;
+    });
+    /** @type {Array<{ name: string, blob: Blob | undefined }>} */
+    const saved = [];
+    vi.spyOn(window.HTMLAnchorElement.prototype, 'click').mockImplementation(/** @this {HTMLAnchorElement} */ function () {
+        saved.push({ name: this.download, blob: blobs.get(this.href) });
+    });
+    return async () => {
+        if (saved.length !== 1) throw new Error(`the page saved ${saved.length} files, not one`);
+        const [{ name, blob }] = saved;
+        if (!blob) throw new Error('the page saved a link that is not one of its Blobs');
+        return { name, bytes: new Uint8Array(await blob.arrayBuffer()) };
+    };
+}
+
+/**
  * Every value a progress bar shows while it is on screen, in order: its
  * aria-valuetext when it names a step, its percentage otherwise. A value
  * repeated back to back is recorded once. A step whose text doesn't end in

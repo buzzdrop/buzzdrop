@@ -50,6 +50,73 @@ function unpack(bytes) {
     };
 }
 
+const BKD1 = new TextEncoder().encode('BKD1');
+
+/**
+ * What the dropzone pages and their drivers use of lib/dropzone-crypto.js.
+ * @typedef {Pick<import('../../../static/js/lib/dropzone-crypto.js').DropzoneCrypto,
+ *   'createDropzoneSecrets' | 'sealSubmission' | 'openDropzone'>} StubDropzoneCrypto
+ */
+
+/**
+ * @typedef {object} StubDropzoneCryptoOptions
+ * @property {boolean} [sealingFails] - encrypting throws, as where crypto.subtle is missing
+ * @property {boolean} [unsupportedFormat] - the zone's salt doesn't parse
+ * @property {boolean} [corrupted] - decryption fails, as for a damaged submission
+ */
+
+/**
+ * The dropzone counterpart of makeStubCrypto: no PBKDF2 and no AES, but wire
+ * shapes the protocol fake accepts (a BKD1 blob, a 120-hex wrapped key), a
+ * verifier that is a hash of the password, and an sv that is a hash of s, so
+ * a wrong password or a wrong link is wrong to the fake too.
+ * @param {StubDropzoneCryptoOptions} [options]
+ * @returns {StubDropzoneCrypto}
+ */
+export function makeStubDropzoneCrypto({ sealingFails = false, unsupportedFormat = false, corrupted = false } = {}) {
+    return {
+        async createDropzoneSecrets(password) {
+            const s = crypto.getRandomValues(new Uint8Array(32));
+            return {
+                s,
+                salt: bytesToHex(crypto.getRandomValues(new Uint8Array(16))),
+                ws: 'ab'.repeat(60),
+                v: bytesToHex(await sha256(password)),
+                sv: bytesToHex(await sha256(s)),
+            };
+        },
+        async sealSubmission(data, name, s) {
+            if (sealingFails) throw new Error('crypto.subtle is unavailable');
+            const packed = pack(data, name);
+            const blob = new Uint8Array(BKD1.length + packed.length);
+            blob.set(BKD1);
+            blob.set(packed, BKD1.length);
+            return {
+                blob,
+                wk: 'cd'.repeat(60),
+                receiptHash: bytesToHex(await sha256(RECEIPT)),
+                sv: bytesToHex(await sha256(s)),
+            };
+        },
+        openDropzone() {
+            if (unsupportedFormat) throw new Error('Unsupported dropzone format');
+            return {
+                async unlock(password) {
+                    return {
+                        verifier: await sha256(password),
+                        async finish(_ws, _wk, blob) {
+                            if (corrupted) throw new Error('');
+                            // Past 'BKD1' and the stub's own 'STUB' magic.
+                            const { data, name } = unpack(blob.slice(BKD1.length + MAGIC.length));
+                            return { data, receipt: RECEIPT, name };
+                        },
+                    };
+                },
+            };
+        },
+    };
+}
+
 /**
  * @typedef {object} StubCryptoOptions
  * @property {boolean} [unsupportedFormat] - every share fails to parse, as one in a format the page doesn't know
