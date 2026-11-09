@@ -96,14 +96,9 @@ msgstr "Typ: %(type)s"
 msgid "Note"
 msgstr "Notatka"
 
-#: app.py templates/_composer.html
+#: app.py templates/_composer.html utils.py
 msgid "File"
 msgstr "Plik"
-
-#: app.py
-#, python-format
-msgid "Original name: %(name)s"
-msgstr "Nazwa pliku: %(name)s"
 
 #. Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35
 #. CET".
@@ -244,6 +239,13 @@ msgstr "Wygasła"
 #: templates/_shared_files_strings.html utils.py
 #, python-format
 msgid "Note · %(time)s"
+msgstr "Notatka · %(time)s"
+
+#. the title of a file sent without a memo; %(time)s is when it was sent, e.g.
+#. "21:35".
+#: templates/_shared_files_strings.html utils.py
+#, fuzzy, python-format
+msgid "File · %(time)s"
 msgstr "Notatka · %(time)s"
 
 #: auth/decorators.py
@@ -1033,11 +1035,11 @@ msgid "Ask someone for one"
 msgstr "Poproś kogoś o plik lub notatkę"
 
 #: templates/index.html
+#, fuzzy
 msgid ""
 "<strong>Encrypt a file or a note in your browser</strong>, send one link,"
 " and let the drop delete itself the moment it is downloaded. The contents"
-" are ciphertext to the server; details like the filename and your memo "
-"are not."
+" and the filename are ciphertext to the server; your memo is not."
 msgstr ""
 "<strong>Zaszyfruj plik albo notatkę w przeglądarce</strong>, wyślij jeden"
 " link, a przesyłka usunie się sama, gdy tylko zostanie pobrana. Dla "
