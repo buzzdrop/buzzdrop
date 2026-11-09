@@ -4,20 +4,39 @@ when:
 
 steps:
   # Deploy only what GitHub Actions has already checked on this commit:
-  # poll its check runs until all conclude (max ~45 min).
+  # poll the *required* check runs until all conclude green (max ~45 min).
+  # The required set comes from the repo's rulesets, so a run that isn't a
+  # gate — a Dependabot update job or a third-party app check — can't
+  # block or kill the deploy, and a renamed required job keeps it right.
   - name: wait-for-checks
     image: alpine:3.20
     commands:
       - apk add --no-cache curl jq
       - |
+        req=$(for id in $(curl -fs "https://api.github.com/repos/$CI_REPO/rulesets" \
+              | jq -r '.[] | select(.enforcement == "active") | .id'); do
+            curl -fs "https://api.github.com/repos/$CI_REPO/rulesets/$id" \
+              | jq -r '.rules[] | select(.type == "required_status_checks") | .parameters.required_status_checks[]?.context'
+          done | sort -u | jq -R . | jq -sc 'map(select(length > 0))')
+        echo "required checks: $req"
+        if [ "$req" = '[]' ]; then
+          echo "no required checks found; refusing to guess" >&2; exit 1
+        fi
         for i in $(seq 45); do
           j=$(curl -fs -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/$CI_REPO/commits/$CI_COMMIT_SHA/check-runs?per_page=100") || exit 1
-          bad=$(printf %s "$j" | jq -r '[.check_runs[] | select(.status == "completed" and (.conclusion | IN("success", "skipped", "neutral") | not))] | .[0].name // empty')
-          if [ -n "$bad" ]; then echo "check run failed: $bad" >&2; exit 1; fi
-          pending=$(printf %s "$j" | jq '[.check_runs[] | select(.status != "completed")] | length')
-          total=$(printf %s "$j" | jq .total_count)
-          if [ "$pending" = 0 ] && [ "$total" != 0 ]; then echo "all $total check runs green"; exit 0; fi
+          # The latest run per required name; a rerun replaces its attempt.
+          latest=$(printf %s "$j" | jq --argjson req "$req" '[.check_runs
+            | sort_by(.started_at) | reverse | unique_by(.name)[]
+            | select(.name as $n | $req | index($n))]')
+          bad=$(printf %s "$latest" | jq -r '[.[] | select(.status == "completed" and (.conclusion | IN("success", "skipped", "neutral") | not))] | .[0].name // empty')
+          if [ -n "$bad" ]; then echo "required check failed: $bad" >&2; exit 1; fi
+          pending=$(printf %s "$latest" | jq '[.[] | select(.status != "completed")] | length')
+          total=$(printf %s "$latest" | jq length)
+          needed=$(printf %s "$req" | jq length)
+          if [ "$pending" = 0 ] && [ "$total" = "$needed" ]; then
+            echo "all $total required checks green"; exit 0
+          fi
           sleep 60
         done
         echo "timed out waiting for green checks" >&2
