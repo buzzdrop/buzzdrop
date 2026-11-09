@@ -40,7 +40,7 @@ load_dotenv(dotenv_path=env_path)
 # Import new modules AFTER loading .env
 from config import get_config, is_production
 from storage import get_storage_backend, print_backend_info, StorageError
-from auth import login_required, json_login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, login_user, logout_user, validate_users
+from auth import login_required, json_login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, get_auth_backend, start_session, logout_user
 from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcnow
 from utils import (
     format_file_timestamps,
@@ -74,7 +74,7 @@ if not app.config.get('SECRET_KEY') and not is_production():
 # Validate remaining configuration (S3 settings, etc.)
 # Note: Validation errors are intentionally fatal - the app should not start with invalid config
 config_class.validate()
-validate_users(is_production())
+get_auth_backend().validate(is_production())
 
 app.secret_key = app.config['SECRET_KEY']
 # The real client IP and scheme behind a host's proxy (proxy.py).
@@ -952,26 +952,39 @@ def user_file_statuses():
     error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
 )
 def login():
-    # Where to go once signed in: the local path / sent along, else home.
-    # The form posts back to this URL, so next survives the POST.
-    after_login = _local_path(request.args.get('next')) or url_for('index')
-
     # An active session skips the form — the mirror of / sending anonymous
-    # visitors here (#404).
+    # visitors here (#404). The backend owns the rest of the interaction —
+    # the env form or a backend's own sign-in page (auth/CLAUDE.md).
     if get_current_user():
-        return redirect(after_login)
+        return redirect(_local_path(request.args.get('next')) or url_for('index'))
+    return get_auth_backend().login(request)
 
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+@app.route('/auth/session', methods=['POST'])
+@limiter.limit(
+    lambda: current_app.config['LOGIN_RATE_LIMIT'],
+    methods=['POST'],
+    error_message=RATE_LIMIT_EXCEEDED_MESSAGE,
+)
+def auth_session():
+    """
+    The credential→profile exchange a backend may expose (e.g. an IdP
+    token bridge). The request carries whatever the backend's
+    sign-in produced; exchange() verifies it and the route starts an
+    ordinary session. There is no CSRF gate — there is no session to
+    ride yet — so instead the X-Requested-With header is required,
+    which a cross-site form cannot send.
+    """
+    backend = get_auth_backend()
+    if not backend.supports_exchange:
+        return {'error': 'Not found', 'code': 'not_found'}, 404
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return {'error': 'Invalid request', 'code': 'invalid_request'}, 400
 
-        if login_user(username, password):
-            flash(_('Logged in successfully'), 'success')
-            return redirect(after_login)
-        else:
-            flash(_('Invalid username or password'))
-
-    return render_template('login.html')
+    profile = backend.exchange(request)
+    if not profile:
+        return {'error': 'Sign-in failed', 'code': 'auth_failed'}, 401
+    start_session(profile)
+    return {'ok': True, 'redirect': url_for('index')}
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -982,7 +995,9 @@ def logout():
         return redirect(url_for('index'))
     logout_user()
     flash(_('Logged out successfully'), 'success')
-    return redirect(url_for('index'))
+    # The backend names whatever the login page needs after logout
+    # (e.g. a sign-out hint for a hosted IdP).
+    return redirect(url_for('login', **get_auth_backend().after_logout()))
 
 
 def _local_path(target):
@@ -1182,12 +1197,24 @@ CSP_DIRECTIVES = [
 ]
 
 
-def _content_security_policy(script_hashes=()):
-    """The baseline CSP, with script-src extended by inline-block hashes."""
-    sources = ''.join(f" 'sha256-{digest}'" for digest in script_hashes)
-    return "; ".join(
-        directive + sources if directive.startswith('script-src ') else directive
-        for directive in CSP_DIRECTIVES)
+def _content_security_policy(script_hashes=(), extra=None):
+    """
+    The baseline CSP, with script-src extended by inline-block hashes and
+    any per-response ``extra`` sources — a dict of directive name to a
+    source list, set as g.csp_extra (e.g. a sign-in backend whose page
+    loads a hosted script). A directive absent
+    from the baseline is appended.
+    """
+    extra = dict(extra or {})
+    lines = []
+    for directive in CSP_DIRECTIVES:
+        name = directive.split(' ', 1)[0]
+        sources = list(extra.pop(name, ()))
+        if name == 'script-src':
+            sources.extend(f"'sha256-{digest}'" for digest in script_hashes)
+        lines.append(directive + ''.join(f' {s}' for s in sources))
+    lines.extend(f"{name} {' '.join(sources)}" for name, sources in extra.items())
+    return "; ".join(lines)
 
 PERMISSIONS_POLICY = ", ".join([
     "accelerometer=()",
@@ -1219,7 +1246,8 @@ def set_security_headers(response):
     if import_map is not None:
         script_hashes.append(base64.b64encode(
             hashlib.sha256(import_map.encode('utf-8')).digest()).decode())
-    response.headers['Content-Security-Policy'] = _content_security_policy(script_hashes)
+    response.headers['Content-Security-Policy'] = _content_security_policy(
+        script_hashes, extra=g.get('csp_extra'))
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Referrer-Policy'] = 'no-referrer'

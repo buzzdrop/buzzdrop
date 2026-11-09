@@ -19,8 +19,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # An explicit allowlist: anything not named here (tests, docs, the CLI,
 # dev configs, untracked files) stays out of the published image.
-COPY app.py auth.py config.py i18n.py migrate_db.py models.py storage.py \
+COPY app.py config.py i18n.py migrate_db.py models.py storage.py \
      proxy.py timestamps.py tokens.py utils.py website.py gunicorn.conf.py ./
+COPY auth/ auth/
 COPY db/ db/
 COPY templates/ templates/
 COPY static/ static/

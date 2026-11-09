@@ -28,7 +28,7 @@ Buzzdrop is a one-time self-destructing file-sharing app where files are encrypt
 - `db/` — swappable storage backends: `base.py` defines `FileStore`/`TokenStore`/`Backend`, `sqlite_backend.py` implements them over raw `sqlite3`, `create_backend(DATABASE_URL)` selects by URL scheme
 - `models.py` — `FileRepository`: domain facade delegating to the injected `FileStore`
 - `storage.py` — `StorageBackend` ABC with `LocalStorage` and `S3Storage` implementations
-- `auth.py` — user loading from env vars, `@login_required`/`@admin_required` decorators
+- `auth/` — sign-in backends behind `AUTH_BACKEND` (`env_backend.py` reads env vars), `decorators.py` has `@login_required`/`@admin_required`, `session.py` the session
 - `config.py` — `Config`/`DevelopmentConfig`/`TestingConfig`/`ProductionConfig`; selected via `FLASK_ENV`
 - `i18n.py` — language resolution and Flask-Babel setup (see `docs/dev/i18n.md`)
 - `tokens.py` — `generate_api_token`, `validate_api_token`, `revoke_api_token`; token hashes stored via `TokenStore` (`api_tokens` table)
@@ -48,7 +48,7 @@ All `<script>` tags must include `integrity="{{ sri_hash('js/filename.js') }}" c
 
 ## Key Conventions
 
-**Users are environment variables, not a database.** Format: `FLASK_USER_N=username:password:is_admin`. `get_users()` in `auth.py` is decorated with `@lru_cache` — it hashes passwords on first call. In tests, **clearing and re-adding `FLASK_USER_*` env vars requires calling `get_users.cache_clear()`** or the cached result will be stale.
+**Users are environment variables, not a database.** Format: `FLASK_USER_N=username:password:is_admin`. the env backend's `_env_users()` in `auth/env_backend.py` is decorated with `@lru_cache` — it hashes passwords on first call. In tests, **clearing and re-adding `FLASK_USER_*` env vars requires calling `get_users.cache_clear()`** or the cached result will be stale.
 
 **`FileRepository` resolves its store lazily.** When initialized without a `files_store` argument (the default), the `store` property calls `from app import get_files_store` at access time, which respects the current Flask app context. Tests that supply a store directly bypass this.
 

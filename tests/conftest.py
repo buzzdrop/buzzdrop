@@ -16,6 +16,9 @@ time.tzset()
 
 # Set required environment variables before loading app
 os.environ['FLASK_SECRET_KEY'] = 'test-secret-key-for-testing-only'
+# Tests run the env auth backend by default; a backend-specific test
+# flips app.config['AUTH_BACKEND'].
+os.environ['AUTH_BACKEND'] = 'env'
 os.environ['FLASK_USER_1'] = 'testuser:password:false'
 os.environ['FLASK_USER_2'] = 'adminuser:adminpass:true'
 # No background expiry sweeps during tests — the sweep functions are

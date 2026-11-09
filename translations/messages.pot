@@ -174,14 +174,6 @@ msgid "Ask the sender for a new one."
 msgstr ""
 
 #: app.py
-msgid "Logged in successfully"
-msgstr ""
-
-#: app.py
-msgid "Invalid username or password"
-msgstr ""
-
-#: app.py
 msgid "Invalid request"
 msgstr ""
 
@@ -193,7 +185,7 @@ msgstr ""
 msgid "API token not found"
 msgstr ""
 
-#: app.py auth.py
+#: app.py auth.py auth/decorators.py
 msgid "Admin access required"
 msgstr ""
 
@@ -217,7 +209,7 @@ msgstr ""
 msgid "Drop deleted"
 msgstr ""
 
-#: auth.py
+#: auth.py auth/decorators.py
 msgid "Please log in to access this page"
 msgstr ""
 
@@ -248,6 +240,14 @@ msgstr ""
 #: templates/_shared_files_strings.html utils.py
 #, python-format
 msgid "Note · %(time)s"
+msgstr ""
+
+#: auth/env_backend.py
+msgid "Logged in successfully"
+msgstr ""
+
+#: auth/env_backend.py
+msgid "Invalid username or password"
 msgstr ""
 
 #. a Copy button's label, flashed after a copy. Keep it short.
@@ -1351,7 +1351,7 @@ msgstr[1] ""
 #, python-format
 msgid ""
 "New token for <span class=\"font-semibold text-"
-"white\">%(username)s</span> — shown once. Store it now."
+"white\">%(shown_name)s</span> — shown once. Store it now."
 msgstr ""
 
 #: templates/users.html

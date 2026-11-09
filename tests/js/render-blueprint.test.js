@@ -40,7 +40,8 @@ test('both secrets are generated and only the admin password is prompted for', (
 
 test('the env vars it sets are ones the app reads', () => {
     const keys = [...blueprint.matchAll(/- key: (\w+)/g)].map((m) => m[1]);
-    const sources = ['config.py', 'auth.py', 'app.py'].map(read).join('\n');
+    const sources = ['config.py', 'auth/base.py', 'auth/env_backend.py',
+        'auth/session.py', 'app.py'].map(read).join('\n');
 
     for (const key of keys) {
         assert.match(sources, new RegExp(`'${key}'`), `${key} is not read by the app`);

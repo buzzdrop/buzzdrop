@@ -56,9 +56,9 @@ HEADER_COMMENT = """\
 
 
 def _extracted_dirs(dirpath):
-    """Walk only the root (for its modules) and templates/."""
+    """Walk only the root (for its modules), templates/ and auth/ (#the auth package)."""
     relative = Path(dirpath).resolve().relative_to(ROOT)
-    return relative == Path('.') or relative.parts[0] == 'templates'
+    return relative == Path('.') or relative.parts[0] in {'templates', 'auth'}
 
 
 def extract():

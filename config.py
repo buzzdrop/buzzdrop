@@ -75,6 +75,11 @@ class Config:
         os.getenv('ALLOWED_EXTENSIONS', 'txt,pdf,png,jpg,jpeg,gif,doc,docx,xls,xlsx').split(',')
     )
     
+    # Auth backend: 'env' reads ADMIN_* and FLASK_USER_* (the
+    # self-hosted default, no users table — auth/env_backend.py). A name
+    # must be registered in auth._BACKENDS.
+    AUTH_BACKEND = os.getenv('AUTH_BACKEND', 'env').strip().lower()
+
     # Storage backend
     STORAGE_BACKEND = os.getenv('STORAGE_BACKEND', 'local')  # 'local' or 's3'
     
