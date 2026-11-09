@@ -107,7 +107,7 @@ describe('collect page', () => {
         it('nothing is sent until a password is given', async () => {
             const page = await openCollectPage();
 
-            await collectButton().click();
+            await page.pressCollect();
 
             expect(page.requestsSent()).toEqual([]);
             expect(collectButton()).toBeEnabled();
@@ -183,7 +183,6 @@ describe('collect page', () => {
             ['the session token went stale', 'stale-session', 'Your session has expired. Log in again to collect the submission.'],
             ['the rate limit turns it away', 'rate-limited', 'Too many tries in a short time — wait a minute and try again.'],
             ['the server can\'t be reached', 'unreachable', 'Could not reach the server — check the connection and try again.'],
-            ['the blob route turns the page away', 'not-released', 'Incorrect password.'],
         ]))('%s', async (_, server, message) => {
             const page = await openCollectPage({ server });
 

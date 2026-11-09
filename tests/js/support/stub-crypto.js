@@ -63,6 +63,7 @@ const BKD1 = new TextEncoder().encode('BKD1');
  * @property {boolean} [sealingFails] - encrypting throws, as where crypto.subtle is missing
  * @property {boolean} [unsupportedFormat] - the zone's salt doesn't parse
  * @property {boolean} [corrupted] - decryption fails, as for a damaged submission
+ * @property {boolean} [malformedSecrets] - a new zone's wrapped secret is too short for the server
  */
 
 /**
@@ -73,14 +74,14 @@ const BKD1 = new TextEncoder().encode('BKD1');
  * @param {StubDropzoneCryptoOptions} [options]
  * @returns {StubDropzoneCrypto}
  */
-export function makeStubDropzoneCrypto({ sealingFails = false, unsupportedFormat = false, corrupted = false } = {}) {
+export function makeStubDropzoneCrypto({ sealingFails = false, unsupportedFormat = false, corrupted = false, malformedSecrets = false } = {}) {
     return {
         async createDropzoneSecrets(password) {
             const s = crypto.getRandomValues(new Uint8Array(32));
             return {
                 s,
                 salt: bytesToHex(crypto.getRandomValues(new Uint8Array(16))),
-                ws: 'ab'.repeat(60),
+                ws: malformedSecrets ? 'ab' : 'ab'.repeat(60),
                 v: bytesToHex(await sha256(password)),
                 sv: bytesToHex(await sha256(s)),
             };

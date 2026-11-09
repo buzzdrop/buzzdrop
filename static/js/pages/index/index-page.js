@@ -346,7 +346,7 @@ function initDropzones(root, deps, strings, passwordGateStrings, ask) {
     // The password opens every future submission (ADR-0001), so it passes
     // the same gate as a drop's.
     const passwordGate = initPasswordGate(root, {
-        strings: passwordGateStrings, lang, inputId: 'dz-password', idPrefix: 'dz-',
+        strings: passwordGateStrings, lang, idPrefix: 'dz-',
     });
     if (!createBtn || !passwordGate) return;
     const { zones, endpoints } = JSON.parse(island.text);

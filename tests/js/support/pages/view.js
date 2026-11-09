@@ -7,7 +7,7 @@ import { expect } from 'vitest';
 import { bytesToHex } from '../../../../static/js/lib/hex.js';
 import { initView } from '../../../../static/js/pages/view/view-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
-import { DEFAULT_PASSWORD, addressOf, cryptoFor, inLanguage, openPage, recordProgress, recordSavedFiles, replaceInFixture, typeable, waitUntil } from './page.js';
+import { ATTEMPTS_WARNING, DEFAULT_PASSWORD, addressOf, cryptoFor, inLanguage, openPage, recordProgress, recordSavedFiles, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { DEFAULT_PASSWORD, screen } from './page.js';
 
@@ -24,9 +24,6 @@ const FIXTURES = {
     message: { fixture: 'view--text', fileId: '00000000-0000-4000-8000-0000000000f2' },
 };
 
-/** Picks among próba/próby/prób as the page's plural forms do. */
-const POLISH_PLURAL = new Intl.PluralRules('pl');
-
 /**
  * What the page calls the controls a test uses, in each language, and how it
  * counts the attempts before the first one.
@@ -36,16 +33,13 @@ const WORDS = {
         password: 'Password',
         decrypt: /^Decrypt and /,
         copyText: 'Copy text',
-        /** @param {number} count */
-        attempts: (count) => (count === 1 ? 'You have one attempt' : `You have ${count} attempts`),
+        attempts: ATTEMPTS_WARNING.en,
     },
     pl: {
         password: 'Hasło',
         decrypt: /^Odszyfruj i\u00a0/,
         copyText: 'Skopiuj tekst',
-        /** @param {number} count */
-        attempts: (count) => (count === 1 ? 'Masz jedną próbę'
-            : `Masz ${count} ${POLISH_PLURAL.select(count) === 'few' ? 'próby' : 'prób'}`),
+        attempts: ATTEMPTS_WARNING.pl,
     },
 };
 

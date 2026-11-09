@@ -358,13 +358,6 @@ msgid_plural "Incorrect password. %(count)s attempts remaining."
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/_collect_strings.html
-#, python-format
-msgid "One attempt left — check the password before you continue."
-msgid_plural "%(count)s attempts left — check the password before you continue."
-msgstr[0] ""
-msgstr[1] ""
-
 #: templates/_collect_strings.html templates/_dropzones_strings.html
 msgid "Nothing has been submitted to this dropzone yet."
 msgstr ""
@@ -684,6 +677,10 @@ msgstr ""
 msgid ""
 "Encryption failed — this browser may not support it. Try a modern browser"
 " or a secure (https) connection."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "That file could not be read. Choose it again and try again."
 msgstr ""
 
 #: templates/_respond_strings.html

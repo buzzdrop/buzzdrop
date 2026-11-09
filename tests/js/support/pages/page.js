@@ -18,6 +18,20 @@ export const ORIGIN = 'http://localhost';
 /** The share password when a test doesn't name one. */
 export const DEFAULT_PASSWORD = 'correct horse';
 
+/** Picks among próba/próby/prób as the page's plural forms do. */
+const POLISH_PLURAL = new Intl.PluralRules('pl');
+
+/**
+ * How the view and collect pages count the attempts before the first one, in
+ * each language: the start of the warning the server renders.
+ * @type {Record<'en' | 'pl', (count: number) => string>}
+ */
+export const ATTEMPTS_WARNING = {
+    en: (count) => (count === 1 ? 'You have one attempt' : `You have ${count} attempts`),
+    pl: (count) => (count === 1 ? 'Masz jedną próbę'
+        : `Masz ${count} ${POLISH_PLURAL.select(count) === 'few' ? 'próby' : 'prób'}`),
+};
+
 /**
  * How long a driver waits for a step that runs the real lib/crypto.js, whose
  * 600k-iteration PBKDF2 runs on every seal and every password attempt.

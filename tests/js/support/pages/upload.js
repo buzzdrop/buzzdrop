@@ -10,6 +10,7 @@ import { expect, vi } from 'vitest';
 import { initIndex } from '../../../../static/js/pages/index/index-page.js';
 import * as dropzoneCrypto from '../../../../static/js/lib/dropzone-crypto.js';
 import { makeProtocolFake } from '../protocol-fake.js';
+import { makeStubDropzoneCrypto } from '../stub-crypto.js';
 import { DEFAULT_PASSWORD, answerConfirmation, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { screen } from './page.js';
@@ -98,13 +99,36 @@ export const PASSWORDS = {
  * How the server meets the next upload, as the protocol fake records app.py
  * answering: busy (rate limit on /upload/begin), failing (a 500 with an HTML
  * body from /upload), too-large (413), rate-limited (429 on /upload),
- * signed-out (the session has expired), and for a new dropzone
- * zones-rate-limited (429 on /api/dropzones), zones-failing (a 500 with an
- * HTML body from it), zones-bad-expiry (its 400 for an unreadable expiry)
- * and zones-unreachable (the connection drops).
- * @typedef {'ok' | 'busy' | 'failing' | 'too-large' | 'rate-limited' | 'signed-out'
- *   | 'zones-rate-limited' | 'zones-failing' | 'zones-bad-expiry' | 'zones-unreachable'} UploadServer
+ * signed-out (the session has expired).
+ * @typedef {'ok' | 'busy' | 'failing' | 'too-large' | 'rate-limited' | 'signed-out'} UploadServer
  */
+
+/**
+ * How the server meets the next dropzone create or delete: rate-limited (429
+ * on /api/dropzones), failing (a 500 with an HTML body from it), unreachable
+ * (the connection drops), signed-out (the session has expired).
+ * @typedef {'ok' | 'rate-limited' | 'failing' | 'unreachable' | 'signed-out'} DropzoneServer
+ */
+
+/** What a server error looks like from behind the proxy. */
+const SERVER_ERROR_PAGE = { status: 500, body: '<!doctype html><title>500 Internal Server Error</title>' };
+
+/** @type {Partial<Record<UploadServer, (server: Fake) => void>>} */
+const UPLOAD_SITUATIONS = {
+    busy: (server) => server.failNext('/upload/begin', 429),
+    failing: (server) => server.failNext('/upload', SERVER_ERROR_PAGE),
+    'too-large': (server) => server.failNext('/upload', 413),
+    'rate-limited': (server) => server.failNext('/upload', 429),
+    'signed-out': (server) => { server.state.user = null; },
+};
+
+/** @type {Partial<Record<DropzoneServer, (server: Fake) => void>>} */
+const DROPZONE_SITUATIONS = {
+    'rate-limited': (server) => server.failNext('/api/dropzones', 429),
+    failing: (server) => server.failNext('/api/dropzones', SERVER_ERROR_PAGE),
+    unreachable: (server) => server.failNext('/api/dropzones', 'network'),
+    'signed-out': (server) => { server.state.user = null; },
+};
 
 /**
  * @typedef {object} UploadOptions
@@ -119,6 +143,10 @@ export const PASSWORDS = {
  * @property {Fake} [backend] - the server uploads go to, when a test needs one it made
  * @property {'en' | 'pl'} [language] - the language the browser asked for; Polish is
  *   rendered for the no-shares and with-shares accounts
+ * @property {'current' | 'stale'} [session] - stale: the page's CSRF token is no
+ *   longer the session's
+ * @property {'ok' | 'malformed'} [dropzoneSecrets] - malformed: what the browser
+ *   derives for a new dropzone is something the server won't store
  */
 
 /**
@@ -132,8 +160,9 @@ export const PASSWORDS = {
  * @param {typeof globalThis.fetch} fetch
  * @param {import('../../../../static/js/pages/index/index-page.js').IndexDeps['crypto']} crypto
  * @param {typeof XMLHttpRequest} xhr
+ * @param {import('../../../../static/js/pages/index/index-page.js').IndexDeps['dropzoneCrypto']} sealer
  */
-function indexDeps(fetch, crypto, xhr) {
+function indexDeps(fetch, crypto, xhr, sealer) {
     const now = Date.parse(NOW);
     /** @type {string[]} */
     const navigations = [];
@@ -147,12 +176,12 @@ function indexDeps(fetch, crypto, xhr) {
             XMLHttpRequest: xhr,
             navigate: (/** @type {string} */ url) => { navigations.push(url); },
             crypto,
-            // The real module, recording the password it is handed: a gate
-            // test has to see what would have been sealed.
+            // Recording the password it is handed: a gate test has to see
+            // what would have been sealed.
             dropzoneCrypto: {
                 createDropzoneSecrets(/** @type {string} */ password) {
                     dropzonePasswords.push(password);
-                    return dropzoneCrypto.createDropzoneSecrets(password);
+                    return sealer.createDropzoneSecrets(password);
                 },
             },
             now: () => now,
@@ -173,9 +202,13 @@ export function openUploadPage({
     crypto = 'stub',
     backend,
     language = 'en',
+    session = 'current',
+    dropzoneSecrets = 'ok',
 } = {}) {
     const { fixture, user: owner } = ACCOUNTS[account];
-    const server = backend ?? makeProtocolFake({ owner });
+    const server = backend ?? makeProtocolFake({
+        owner, ...(session === 'stale' ? { csrfToken: 'a-newer-session-token' } : {}),
+    });
     // The fake holds what the fixture rendered, so the zone can be deleted.
     if (!backend && account === 'with-shares') server.seedDropzone(DROPZONE);
     const page = openPage(inLanguage(fixture, language), {
@@ -212,8 +245,10 @@ export function openUploadPage({
         if (response.ok && url.endsWith('/upload/begin')) issued.push(await response.clone().json());
         return response;
     };
+    const sealer = crypto === 'stub'
+        ? makeStubDropzoneCrypto({ malformedSecrets: dropzoneSecrets === 'malformed' }) : dropzoneCrypto;
     const { deps, navigations, dropzonePasswords } = indexDeps(
-        fetch, cryptoService, server.XMLHttpRequest);
+        fetch, cryptoService, server.XMLHttpRequest, sealer);
     initIndex(window.document, deps);
 
     // Every value the upload bar shows while it is on screen.
@@ -237,25 +272,6 @@ export function openUploadPage({
         .filter((r) => r.method === 'POST' && /^\/dropzones\/[^/]+\/delete$/.test(new URL(r.url).pathname)).length;
     /** @param {string} name */
     const toFile = (name, bytes = new Uint8Array([120])) => new window.File([bytes], name);
-
-    /** @param {UploadServer} situation */
-    const arrange = (situation) => {
-        if (situation === 'busy') server.failNext('/upload/begin', 429);
-        if (situation === 'failing') {
-            server.failNext('/upload', { status: 500, body: '<!doctype html><title>500 Internal Server Error</title>' });
-        }
-        if (situation === 'too-large') server.failNext('/upload', 413);
-        if (situation === 'rate-limited') server.failNext('/upload', 429);
-        if (situation === 'signed-out') server.state.user = null;
-        if (situation === 'zones-rate-limited') server.failNext('/api/dropzones', 429);
-        if (situation === 'zones-unreachable') server.failNext('/api/dropzones', 'network');
-        if (situation === 'zones-bad-expiry') {
-            server.failNext('/api/dropzones', { status: 400, body: JSON.stringify({ error: 'Expiry must be an ISO 8601 time with a time zone', code: 'invalid_expiry' }) });
-        }
-        if (situation === 'zones-failing') {
-            server.failNext('/api/dropzones', { status: 500, body: '<!doctype html><title>500 Internal Server Error</title>' });
-        }
-    };
 
     const driver = {
         url: page.url,
@@ -335,7 +351,7 @@ export function openUploadPage({
          * @param {{ server?: UploadServer }} [options]
          */
         async send({ server: situation = 'ok' } = {}) {
-            arrange(situation);
+            UPLOAD_SITUATIONS[situation]?.(server);
             const outcomes = navigations.length;
             await user.click(screen.getByRole('button', { name: words.send }));
             await waitUntil(() => expect(navigations.length > outcomes
@@ -416,11 +432,11 @@ export function openUploadPage({
          * Cancel. Confirmed on a server that accepts it, it waits until the
          * row is gone.
          * @param {string} memo
-         * @param {{ confirm: boolean, server?: UploadServer }} answer
+         * @param {{ confirm: boolean, server?: DropzoneServer }} answer
          * @returns {Promise<{ question: string, deleted: boolean }>}
          */
         async deleteDropzone(memo, { confirm, server: situation = 'ok' }) {
-            arrange(situation);
+            DROPZONE_SITUATIONS[situation]?.(server);
             const row = zoneRow(memo);
             if (!row) throw new Error(`no dropzone ${memo} on the page`);
             const before = zoneDeletes();
@@ -431,25 +447,24 @@ export function openUploadPage({
             return { question, deleted: zoneDeletes() > before };
         },
         /**
-         * The Collect half's password field. The composer's Generate, Show
-         * password and strength meter are out of view there, so the same
-         * driver calls reach this form's.
+         * Type into the Collect half's password field. The composer's
+         * Generate, Show password and strength meter are out of view there,
+         * so the same driver calls reach this form's.
+         * @param {string | { strength: keyof typeof PASSWORDS }} password
          */
-        dropzonePasswordField: () => /** @type {HTMLInputElement} */ (screen.getByLabelText(dropzoneWords.password)),
-        /** @param {string | { strength: keyof typeof PASSWORDS }} password */
         async enterDropzonePassword(password) {
             const text = typeof password === 'string' ? password : PASSWORDS[password.strength];
-            const field = driver.dropzonePasswordField();
+            const field = screen.getByLabelText(dropzoneWords.password);
             await user.clear(field);
             if (text) await user.type(field, typeable(text));
         },
         /**
          * Press Create dropzone and wait for the outcome: the request link
          * is shown, or the form says why not.
-         * @param {{ server?: UploadServer }} [options]
+         * @param {{ server?: DropzoneServer }} [options]
          */
         async createDropzone({ server: situation = 'ok' } = {}) {
-            arrange(situation);
+            DROPZONE_SITUATIONS[situation]?.(server);
             await user.click(screen.getByRole('button', { name: dropzoneWords.create }));
             await waitUntil(() => expect(screen.queryByText(dropzoneWords.created) !== null
                 || screen.queryAllByRole('alert').some((region) => region.textContent?.trim())).toBe(true));

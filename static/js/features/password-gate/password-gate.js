@@ -41,10 +41,9 @@ const LEVEL = {
  * @property {(password: string) => void} [onChange] - after every change to
  *   the password, typed or generated, for the page's own controls that act
  *   on it (the index page's Copy)
- * @property {string} [inputId] - the password field's id; the composer's
- *   ('shared-password') when left out
- * @property {string} [idPrefix] - what the ids of the gate's other elements
- *   start with, for a second gate on the page (templates/_password_gate.html)
+ * @property {string} [idPrefix] - what the ids of a second gate on the page
+ *   start with, its field being `<prefix>password`; left out, the gate is the
+ *   composer's, whose field is 'shared-password' (templates/_password_gate.html)
  */
 
 /**
@@ -54,7 +53,7 @@ const LEVEL = {
  * @returns {PasswordGate | null}
  */
 export function initPasswordGate(root, options) {
-    const input = /** @type {HTMLInputElement | null} */ (root.getElementById(options.inputId ?? 'shared-password'));
+    const input = /** @type {HTMLInputElement | null} */ (root.getElementById(options.idPrefix ? `${options.idPrefix}password` : 'shared-password'));
     return input && wire(root, input, options);
 }
 

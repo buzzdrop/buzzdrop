@@ -82,7 +82,7 @@
                     <input id="shared-password" type="password" class="field-input min-w-0 font-mono text-[0.8rem]" placeholder="{{ _('Enter a strong password') }}" aria-describedby="password-error" required autocomplete="new-password" spellcheck="false" autocapitalize="off">
                     <div class="flex shrink-0 gap-2">
                         {{ generate_button() }}
-                        {{ toggle_button('shared-password') }}
+                        {{ toggle_button() }}
                         <button id="copy-password-btn" type="button" class="btn-secondary flex-1 whitespace-nowrap px-4 py-3 text-xs lg:flex-none" aria-label="{{ _('Copy password') }}" disabled>
                             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path d="M7 3.5A1.5 1.5 0 0 1 8.5 2h3.879a1.5 1.5 0 0 1 1.06.44l3.122 3.12A1.5 1.5 0 0 1 17 6.622V12.5a1.5 1.5 0 0 1-1.5 1.5h-1v-3.379a3 3 0 0 0-.879-2.121L10.5 5.379A3 3 0 0 0 8.379 4.5H7v-1Z"/>
@@ -296,13 +296,13 @@
                     <input id="dz-password" type="password" class="field-input min-w-0 font-mono text-[0.8rem]" placeholder="{{ _('Enter a strong password') }}" aria-describedby="dz-password-error" autocomplete="new-password" spellcheck="false" autocapitalize="off">
                     <div class="flex shrink-0 gap-2">
                         {{ generate_button('dz-') }}
-                        {{ toggle_button('dz-password', 'dz-') }}
+                        {{ toggle_button('dz-') }}
                     </div>
                 </div>
                 {{ strength_meter('dz-') }}
                 <p id="dz-password-error" class="file-error" role="alert"></p>
             </div>
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+            <div class="grid gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[1fr_1fr_auto]">
                 <div>
                     <label for="dz-expiry" class="field-label">{{ _('Expiry') }} <span class="text-slate-500">({{ _('optional') }})</span></label>
                     <input id="dz-expiry" type="datetime-local" class="field-input">

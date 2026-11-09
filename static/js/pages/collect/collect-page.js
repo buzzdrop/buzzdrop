@@ -147,10 +147,6 @@ export function initCollect(root, deps) {
             err instanceof Error ? err : null);
         const code = e && (e.serverCode || e.code);
         if (e && typeof e.attemptsRemaining === 'number') {
-            // Keep the static warning honest — it still says the full
-            // count until it is rewritten here.
-            attemptsWarning.textContent = strings.plural('attemptsLeft', e.attemptsRemaining,
-                { count: formatNumber(e.attemptsRemaining, lang) });
             return {
                 message: strings.plural('attemptsRemaining', e.attemptsRemaining,
                     { count: formatNumber(e.attemptsRemaining, lang) }),

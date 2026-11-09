@@ -6,7 +6,8 @@ import { expect } from 'vitest';
 import { initCollect } from '../../../../static/js/pages/collect/collect-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
 import { makeStubDropzoneCrypto } from '../stub-crypto.js';
-import { DEFAULT_PASSWORD, inLanguage, openPage, recordProgress, recordSavedFiles, replaceInFixture, typeable, waitUntil } from './page.js';
+import { FIXTURE_ZONES, putZoneOnFake } from './dropzone-zone.js';
+import { ATTEMPTS_WARNING, inLanguage, openPage, recordProgress, recordSavedFiles, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { DEFAULT_PASSWORD, screen } from './page.js';
 
@@ -15,33 +16,16 @@ export { DEFAULT_PASSWORD, screen } from './page.js';
  * @typedef {Fake['log'][number]} LoggedRequest
  */
 
-/** The zones render_dom_fixtures.py rendered the page for, and their salt. */
-const FIXTURE_ZONE = { open: '00000000-0000-4000-8000-0000000000d2', locked: '00000000-0000-4000-8000-0000000000d3' };
+/** The salt of the zones the fixtures were rendered for. */
 const FIXTURE_SALT = '11'.repeat(16);
 
 /** What a submission holds when a test doesn't say. */
 export const DEFAULT_NOTE = 'the invoice is attached';
 
-/** Picks among próba/próby/prób as the page's plural forms do. */
-const POLISH_PLURAL = new Intl.PluralRules('pl');
-
 /** What the page calls its controls, in each language, and how it counts attempts. */
 const WORDS = {
-    en: {
-        password: 'Dropzone password',
-        collect: 'Collect',
-        copyText: 'Copy text',
-        /** @param {number} count */
-        attempts: (count) => (count === 1 ? 'You have one attempt' : `You have ${count} attempts`),
-    },
-    pl: {
-        password: 'Hasło do skrytki',
-        collect: 'Odbierz',
-        copyText: 'Skopiuj tekst',
-        /** @param {number} count */
-        attempts: (count) => (count === 1 ? 'Masz jedną próbę'
-            : `Masz ${count} ${POLISH_PLURAL.select(count) === 'few' ? 'próby' : 'prób'}`),
-    },
+    en: { password: 'Dropzone password', collect: 'Collect', copyText: 'Copy text', attempts: ATTEMPTS_WARNING.en },
+    pl: { password: 'Hasło do skrytki', collect: 'Odbierz', copyText: 'Skopiuj tekst', attempts: ATTEMPTS_WARNING.pl },
 };
 
 /**
@@ -54,15 +38,15 @@ const WORDS = {
  * @property {'open' | 'locked'} [zone] - locked: the page as the server renders it once locked
  * @property {'ok' | 'unsupported-format' | 'corrupted'} [sealed]
  * @property {'ok' | 'nothing-submitted' | 'already-released' | 'already-collected' | 'expired' | 'deleted'
- *   | 'collect-window-closed' | 'key-unavailable' | 'locked-out' | 'not-released' | 'rate-limited'
+ *   | 'collect-window-closed' | 'key-unavailable' | 'locked-out' | 'rate-limited'
  *   | 'logged-out' | 'stale-session' | 'error' | 'unreachable'} [server] -
  *   already-released: another session won the release; already-collected: the
  *   blob was taken after this release; collect-window-closed: the release
- *   sat uncollected too long; key-unavailable: the zone's wrapped key can't
- *   be fetched after the release; locked-out: earlier wrong passwords used up
- *   every attempt since this page rendered; not-released: the blob route
- *   turns the page away bare; stale-session: the page's CSRF token is no
- *   longer the session's
+ *   sat uncollected too long; key-unavailable: the zone is deleted in another
+ *   tab just after this page wins the release, so its wrapped key can't be
+ *   fetched; locked-out: earlier wrong passwords used up every attempt since
+ *   this page rendered; stale-session: the page's CSRF token is no longer the
+ *   session's
  * @property {import('./page.js').ClipboardKind} [clipboard]
  */
 
@@ -105,7 +89,7 @@ export async function openCollectPage({
         // As the server renders it for this zone.
         edit: (html) => {
             const rendered = replaceInFixture(
-                replaceInFixture(html, FIXTURE_ZONE[zone], zoneId), FIXTURE_SALT, salt);
+                replaceInFixture(html, FIXTURE_ZONES[zone], zoneId), FIXTURE_SALT, salt);
             return zone === 'locked' ? rendered
                 : replaceInFixture(rendered, words.attempts(3), words.attempts(maxAttempts));
         },
@@ -114,7 +98,15 @@ export async function openCollectPage({
     const progressShown = recordProgress(page);
     const savedFile = recordSavedFiles(page);
 
-    initCollect(window.document, { fetch: backend.fetch, crypto });
+    /** @type {typeof globalThis.fetch} */
+    const deletingZoneAfterRelease = async (input, init) => {
+        const response = await backend.fetch(input, init);
+        if (response.ok && String(input).endsWith('/release')) backend.state.dropzones.delete(zoneId);
+        return response;
+    };
+    initCollect(window.document, {
+        fetch: server === 'key-unavailable' ? deletingZoneAfterRelease : backend.fetch, crypto,
+    });
 
     const status = () => screen.getByRole('status');
     const passwordField = () => screen.getByLabelText(words.password);
@@ -147,6 +139,8 @@ export async function openCollectPage({
         clipboardText: page.clipboardText,
         collectWith: (/** @type {string} */ password) => attempt(password, false),
         collectWithEnter: (/** @type {string} */ password) => attempt(password, true),
+        /** Press Collect as it stands, without typing a password. */
+        pressCollect: () => user.click(screen.getByRole('button', { name: words.collect })),
         copyNote: () => user.click(screen.getByRole('button', { name: words.copyText })),
         savedFile,
         progressShown,
@@ -170,16 +164,7 @@ export async function openCollectPage({
  *   server: NonNullable<CollectOptions['server']>, maxAttempts: number, csrfToken: string }} situation
  */
 async function arrange(backend, crypto, { submission, content, name, server, maxAttempts, csrfToken }) {
-    const session = { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken };
-    const { s, salt, ws, v, sv } = await crypto.createDropzoneSecrets(DEFAULT_PASSWORD);
-    const created = await backend.handle({
-        method: 'POST',
-        url: '/api/dropzones',
-        headers: session,
-        body: JSON.stringify({ salt, ws, v, sv }),
-    });
-    const zoneId = /** @type {string} */ (JSON.parse(String(created.body)).dropzone_id);
-    const zone = /** @type {import('../protocol-fake.js').DropzoneRow} */ (backend.state.dropzones.get(zoneId));
+    const { zoneId, zone, secrets: { s, salt, v }, session } = await putZoneOnFake(backend, crypto, csrfToken);
 
     if (server !== 'nothing-submitted' && server !== 'expired') {
         const sealed = await crypto.sealSubmission(
@@ -197,35 +182,33 @@ async function arrange(backend, crypto, { submission, content, name, server, max
         await backend.handle({ method: 'POST', url: `/dropzone/${zoneId}/submit`, body: form });
     }
 
-    const release = '/dropzones/<id>/release';
-    if (server === 'already-released') {
-        await backend.handle({
-            method: 'POST',
-            url: `/dropzones/${zoneId}/release`,
-            headers: session,
-            body: JSON.stringify({ v }),
-        });
-    } else if (server === 'already-collected') {
-        zone.collectedAt = new Date(0).toISOString();
-    } else if (server === 'expired') {
-        zone.expiryAt = new Date(0);
-    } else if (server === 'deleted') {
-        backend.state.dropzones.delete(zoneId);
-        backend.state.submissions.delete(zoneId);
-    } else if (server === 'key-unavailable') {
-        backend.failNext('/api/dropzones/<id>', { status: 404, body: { error: 'Not found' } });
-    } else if (server === 'locked-out') {
-        zone.attempts = maxAttempts;
-    } else if (server === 'not-released') {
-        backend.failNext('/dropzones/<id>/submission', { status: 403, body: { error: 'Forbidden' } });
-    } else if (server === 'rate-limited') {
-        backend.failNext(release, 429);
-    } else if (server === 'logged-out') {
-        backend.state.user = null;
-    } else if (server === 'error') {
-        backend.failNext(release, { status: 500, body: { error: 'Internal server error', code: 'server_error' } });
-    } else if (server === 'unreachable') {
-        backend.failNext(release, 'network');
-    }
+    await SITUATIONS[server]?.({ backend, zoneId, zone, session, v, maxAttempts });
     return { zoneId, salt };
 }
+
+const RELEASE_ROUTE = '/dropzones/<id>/release';
+
+/**
+ * @typedef {{ backend: Fake, zoneId: string, zone: import('../protocol-fake.js').DropzoneRow,
+ *   session: Record<string, string>, v: string, maxAttempts: number }} Arranged
+ * @type {Partial<Record<NonNullable<CollectOptions['server']>, (arranged: Arranged) => void | Promise<unknown>>>}
+ */
+const SITUATIONS = {
+    'already-released': ({ backend, zoneId, session, v }) => backend.handle({
+        method: 'POST',
+        url: `/dropzones/${zoneId}/release`,
+        headers: session,
+        body: JSON.stringify({ v }),
+    }),
+    'already-collected': ({ zone }) => { zone.collectedAt = new Date(0).toISOString(); },
+    expired: ({ zone }) => { zone.expiryAt = new Date(0); },
+    deleted: ({ backend, zoneId }) => {
+        backend.state.dropzones.delete(zoneId);
+        backend.state.submissions.delete(zoneId);
+    },
+    'locked-out': ({ zone, maxAttempts }) => { zone.attempts = maxAttempts; },
+    'rate-limited': ({ backend }) => backend.failNext(RELEASE_ROUTE, 429),
+    'logged-out': ({ backend }) => { backend.state.user = null; },
+    error: ({ backend }) => backend.failNext(RELEASE_ROUTE, { status: 500, body: { error: 'Internal server error', code: 'server_error' } }),
+    unreachable: ({ backend }) => backend.failNext(RELEASE_ROUTE, 'network'),
+};

@@ -94,13 +94,22 @@ export function initRespond(root, deps) {
         // a second submission, whose 'consumed' refusal hides the success.
         submitBtn.disabled = true;
         statusEl.textContent = strings.text('encrypting');
+        /** @type {Bytes} */
+        let plaintext;
+        try {
+            plaintext = payload.kind === 'text'
+                ? new TextEncoder().encode(payload.text)
+                : new Uint8Array(await payload.file.arrayBuffer());
+        } catch {
+            // e.g. the file was moved or deleted after it was chosen.
+            fail(strings.text('readFailed'));
+            return;
+        }
         /** @type {{ blob: Bytes, wk: string, receiptHash: string, sv: string }} */
         let sealed;
         try {
-            sealed = payload.kind === 'text'
-                ? await deps.crypto.sealSubmission(new TextEncoder().encode(payload.text), '', s)
-                : await deps.crypto.sealSubmission(
-                    new Uint8Array(await payload.file.arrayBuffer()), payload.file.name, s);
+            sealed = await deps.crypto.sealSubmission(
+                plaintext, payload.kind === 'text' ? '' : payload.file.name, s);
         } catch {
             // e.g. crypto.subtle missing on an insecure origin — surface it.
             fail(strings.text('encryptFailed'));

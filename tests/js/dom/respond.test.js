@@ -66,7 +66,7 @@ describe('respond page', () => {
             expect(form.get('type')).toBe('text');
         });
 
-        it('shows the upload as a percentage, and hides the bar when it is done', async () => {
+        it('shows the submission as a percentage, and hides the bar when it is done', async () => {
             const page = await openRespondPage();
 
             await page.submitNote('hello');
@@ -187,6 +187,16 @@ describe('respond page', () => {
             expect(screen.getByRole('status')).toHaveTextContent('Submitted');
             expect(page.submission()?.type).toBe('text');
             expect(refusalsShown()).toEqual([]);
+        });
+
+        it('a file that can\'t be read is called that, and nothing is sent', async () => {
+            const page = await openRespondPage();
+
+            await page.submitUnreadableFile('invoice.pdf');
+
+            expect(refusalsShown()).toEqual(['That file could not be read. Choose it again and try again.']);
+            expect(page.requestsSent()).toEqual([]);
+            expect(submitButton()).toBeEnabled();
         });
 
         it('a browser that can\'t encrypt is told so, and nothing is sent', async () => {

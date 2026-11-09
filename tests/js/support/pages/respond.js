@@ -6,7 +6,8 @@ import { bytesToHex } from '../../../../static/js/lib/hex.js';
 import { initRespond } from '../../../../static/js/pages/respond/respond-page.js';
 import { makeProtocolFake } from '../protocol-fake.js';
 import { makeStubDropzoneCrypto } from '../stub-crypto.js';
-import { DEFAULT_PASSWORD, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
+import { FIXTURE_ZONES, putZoneOnFake } from './dropzone-zone.js';
+import { inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { screen } from './page.js';
 
@@ -15,9 +16,6 @@ export { screen } from './page.js';
  * @typedef {Fake['log'][number]} LoggedRequest
  * @typedef {import('./page.js').Page} Page
  */
-
-/** The zone render_dom_fixtures.py rendered the page for. */
-const FIXTURE_ZONE_ID = '00000000-0000-4000-8000-0000000000d2';
 
 /** The size cap the fixture's config carries (MAX_CONTENT_LENGTH). */
 const FIXTURE_MAX_BYTES = '"maxBytes": 104857600';
@@ -70,7 +68,7 @@ export async function openRespondPage({
     const page = openPage(inLanguage('respond--open', language), {
         path: `/dropzone/${zoneId}${fragment}`,
         edit: (html) => {
-            const rendered = replaceInFixture(html, FIXTURE_ZONE_ID, zoneId);
+            const rendered = replaceInFixture(html, FIXTURE_ZONES.open, zoneId);
             return maxBytes === undefined ? rendered
                 : replaceInFixture(rendered, FIXTURE_MAX_BYTES, `"maxBytes": ${maxBytes}`);
         },
@@ -137,6 +135,17 @@ export async function openRespondPage({
             await waitUntil(() => expect(reading).toBe(0));
             await settled();
         },
+        /**
+         * Choose a file that can no longer be read by the time it is sent
+         * (moved or deleted since), and press the button.
+         * @param {string} name
+         */
+        async submitUnreadableFile(name) {
+            const file = toFile(name);
+            file.arrayBuffer = async () => { throw new Error('The file could not be read'); };
+            await user.upload(screen.getByLabelText(words.file), file);
+            await submit();
+        },
         /** @returns {LoggedRequest[]} what the page sent, in order */
         requestsSent: () => backend.log.slice(logStart),
         progressShown,
@@ -156,36 +165,26 @@ export async function openRespondPage({
  * @param {NonNullable<RespondOptions['server']>} server
  */
 async function arrange(backend, crypto, server) {
-    const { s, salt, ws, v, sv } = await crypto.createDropzoneSecrets(DEFAULT_PASSWORD);
-    const created = await backend.handle({
-        method: 'POST',
-        url: '/api/dropzones',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': 'fixture-csrf-token' },
-        body: JSON.stringify({ salt, ws, v, sv }),
-    });
-    const zoneId = /** @type {string} */ (JSON.parse(String(created.body)).dropzone_id);
-    const zone = backend.state.dropzones.get(zoneId);
-    const route = '/dropzone/<id>/submit';
-    if (server === 'used') {
-        if (zone) zone.linkConsumedAt = new Date(0).toISOString();
-    } else if (server === 'expired') {
-        if (zone) zone.expiryAt = new Date(0);
-    } else if (server === 'gone') {
-        backend.state.dropzones.delete(zoneId);
-    } else if (server === 'too-large') {
-        backend.failNext(route, 413);
-    } else if (server === 'rate-limited') {
-        backend.failNext(route, 429);
-    } else if (server === 'proxy-throttled') {
-        backend.failNext(route, { status: 429, body: 'Too Many Requests' });
-    } else if (server === 'error') {
-        backend.failNext(route, { status: 500, body: { error: 'Submission failed', code: 'submit_failed' } });
-    } else if (server === 'unknown-refusal') {
-        backend.failNext(route, { status: 500, body: { error: 'Internal server error', code: 'server_error' } });
-    } else if (server === 'not-json') {
-        backend.failNext(route, { status: 502, body: 'Bad Gateway' });
-    } else if (server === 'unreachable') {
-        backend.failNext(route, 'network');
-    }
-    return { zoneId, secret: bytesToHex(s) };
+    const { zoneId, zone, secrets } = await putZoneOnFake(backend, crypto);
+    SITUATIONS[server]?.({ backend, zoneId, zone });
+    return { zoneId, secret: bytesToHex(secrets.s) };
 }
+
+const SUBMIT_ROUTE = '/dropzone/<id>/submit';
+
+/**
+ * @typedef {{ backend: Fake, zoneId: string, zone: import('../protocol-fake.js').DropzoneRow }} Arranged
+ * @type {Partial<Record<NonNullable<RespondOptions['server']>, (arranged: Arranged) => void>>}
+ */
+const SITUATIONS = {
+    used: ({ zone }) => { zone.linkConsumedAt = new Date(0).toISOString(); },
+    expired: ({ zone }) => { zone.expiryAt = new Date(0); },
+    gone: ({ backend, zoneId }) => { backend.state.dropzones.delete(zoneId); },
+    'too-large': ({ backend }) => backend.failNext(SUBMIT_ROUTE, 413),
+    'rate-limited': ({ backend }) => backend.failNext(SUBMIT_ROUTE, 429),
+    'proxy-throttled': ({ backend }) => backend.failNext(SUBMIT_ROUTE, { status: 429, body: 'Too Many Requests' }),
+    error: ({ backend }) => backend.failNext(SUBMIT_ROUTE, { status: 500, body: { error: 'Submission failed', code: 'submit_failed' } }),
+    'unknown-refusal': ({ backend }) => backend.failNext(SUBMIT_ROUTE, { status: 500, body: { error: 'Internal server error', code: 'server_error' } }),
+    'not-json': ({ backend }) => backend.failNext(SUBMIT_ROUTE, { status: 502, body: 'Bad Gateway' }),
+    unreachable: ({ backend }) => backend.failNext(SUBMIT_ROUTE, 'network'),
+};
