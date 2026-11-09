@@ -9,5 +9,5 @@ tzdata==2026.6 # zoneinfo data for DEFAULT_TIMEZONE on hosts without a system co
 Flask-Babel==4.0.0
 Babel==2.18.0 # pinned: the committed catalogs carry its "Generated-By" header, so a different version reads as stale
 # Clerk session tokens are RS256 JWTs (AUTH_BACKEND=clerk, docs/dev/security.md)
-PyJWT[crypto]==2.10.1
+PyJWT[crypto]==2.15.0
 cryptography==50.0.2
