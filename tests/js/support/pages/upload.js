@@ -54,6 +54,12 @@ const COMPOSER_WORDS = {
     },
 };
 
+/** The dropzone form's controls, as each language names them. */
+const DROPZONE_WORDS = {
+    en: { password: 'Dropzone password', create: 'Create dropzone', created: /^Dropzone created/ },
+    pl: { password: 'Hasło do skrytki', create: 'Utwórz skrytkę', created: /^Skrytka utworzona/ },
+};
+
 /** The drop list's controls, as each language names them. */
 const LIST_WORDS = {
     en: {
@@ -91,9 +97,13 @@ export const PASSWORDS = {
 /**
  * How the server meets the next upload, as the protocol fake records app.py
  * answering: busy (rate limit on /upload/begin), failing (a 500 with an HTML
- * body from /upload), too-large (413), rate-limited (429 on /upload) and
- * signed-out (the session has expired).
- * @typedef {'ok' | 'busy' | 'failing' | 'too-large' | 'rate-limited' | 'signed-out'} UploadServer
+ * body from /upload), too-large (413), rate-limited (429 on /upload),
+ * signed-out (the session has expired), and for a new dropzone
+ * zones-rate-limited (429 on /api/dropzones), zones-failing (a 500 with an
+ * HTML body from it), zones-bad-expiry (its 400 for an unreadable expiry)
+ * and zones-unreachable (the connection drops).
+ * @typedef {'ok' | 'busy' | 'failing' | 'too-large' | 'rate-limited' | 'signed-out'
+ *   | 'zones-rate-limited' | 'zones-failing' | 'zones-bad-expiry' | 'zones-unreachable'} UploadServer
  */
 
 /**
@@ -127,16 +137,24 @@ function indexDeps(fetch, crypto, xhr) {
     const now = Date.parse(NOW);
     /** @type {string[]} */
     const navigations = [];
+    /** @type {string[]} */
+    const dropzonePasswords = [];
     return {
         navigations,
+        dropzonePasswords,
         deps: {
             fetch,
             XMLHttpRequest: xhr,
             navigate: (/** @type {string} */ url) => { navigations.push(url); },
             crypto,
-            // No scenario creates a dropzone, so the real module costs
-            // nothing — it only runs if a test presses Create dropzone.
-            dropzoneCrypto,
+            // The real module, recording the password it is handed: a gate
+            // test has to see what would have been sealed.
+            dropzoneCrypto: {
+                createDropzoneSecrets(/** @type {string} */ password) {
+                    dropzonePasswords.push(password);
+                    return dropzoneCrypto.createDropzoneSecrets(password);
+                },
+            },
             now: () => now,
         },
     };
@@ -194,7 +212,7 @@ export function openUploadPage({
         if (response.ok && url.endsWith('/upload/begin')) issued.push(await response.clone().json());
         return response;
     };
-    const { deps, navigations } = indexDeps(
+    const { deps, navigations, dropzonePasswords } = indexDeps(
         fetch, cryptoService, server.XMLHttpRequest);
     initIndex(window.document, deps);
 
@@ -203,6 +221,7 @@ export function openUploadPage({
 
     const words = COMPOSER_WORDS[language];
     const listWords = LIST_WORDS[language];
+    const dropzoneWords = DROPZONE_WORDS[language];
     // The Collect half has its own Expiry and Memo fields.
     const sendPanel = () => within(screen.getByRole('tabpanel', { name: words.modes.send }));
     const passwordField = () => screen.getByLabelText(words.password);
@@ -228,6 +247,14 @@ export function openUploadPage({
         if (situation === 'too-large') server.failNext('/upload', 413);
         if (situation === 'rate-limited') server.failNext('/upload', 429);
         if (situation === 'signed-out') server.state.user = null;
+        if (situation === 'zones-rate-limited') server.failNext('/api/dropzones', 429);
+        if (situation === 'zones-unreachable') server.failNext('/api/dropzones', 'network');
+        if (situation === 'zones-bad-expiry') {
+            server.failNext('/api/dropzones', { status: 400, body: JSON.stringify({ error: 'Expiry must be an ISO 8601 time with a time zone', code: 'invalid_expiry' }) });
+        }
+        if (situation === 'zones-failing') {
+            server.failNext('/api/dropzones', { status: 500, body: '<!doctype html><title>500 Internal Server Error</title>' });
+        }
     };
 
     const driver = {
@@ -403,6 +430,37 @@ export function openUploadPage({
             if (confirm && situation === 'ok') await waitUntil(() => expect(zoneRow(memo)).toBeUndefined());
             return { question, deleted: zoneDeletes() > before };
         },
+        /**
+         * The Collect half's password field. The composer's Generate, Show
+         * password and strength meter are out of view there, so the same
+         * driver calls reach this form's.
+         */
+        dropzonePasswordField: () => /** @type {HTMLInputElement} */ (screen.getByLabelText(dropzoneWords.password)),
+        /** @param {string | { strength: keyof typeof PASSWORDS }} password */
+        async enterDropzonePassword(password) {
+            const text = typeof password === 'string' ? password : PASSWORDS[password.strength];
+            const field = driver.dropzonePasswordField();
+            await user.clear(field);
+            if (text) await user.type(field, typeable(text));
+        },
+        /**
+         * Press Create dropzone and wait for the outcome: the request link
+         * is shown, or the form says why not.
+         * @param {{ server?: UploadServer }} [options]
+         */
+        async createDropzone({ server: situation = 'ok' } = {}) {
+            arrange(situation);
+            await user.click(screen.getByRole('button', { name: dropzoneWords.create }));
+            await waitUntil(() => expect(screen.queryByText(dropzoneWords.created) !== null
+                || screen.queryAllByRole('alert').some((region) => region.textContent?.trim())).toBe(true));
+        },
+        /** Whether the page says the dropzone was created. */
+        dropzoneCreated: () => screen.queryByText(dropzoneWords.created) !== null,
+        /** The passwords handed to the dropzone crypto, in order. */
+        dropzonePasswordsUsed: () => [...dropzonePasswords],
+        /** How many creates reached the server. */
+        dropzoneCreates: () => server.log
+            .filter((r) => r.method === 'POST' && new URL(r.url).pathname === '/api/dropzones').length,
         /** @param {string} memo */
         dropzoneShown: (memo) => zoneRow(memo) !== undefined,
         /** The shares each status refresh asked about, by name. */

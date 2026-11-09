@@ -539,10 +539,6 @@ msgid "Enter the dropzone password"
 msgstr "Wpisz hasło do skrytki"
 
 #: templates/_dropzones_strings.html
-msgid "Enter the dropzone password first."
-msgstr "Najpierw wpisz hasło do skrytki."
-
-#: templates/_dropzones_strings.html
 msgid "Awaiting submission"
 msgstr "Oczekuje na zgłoszenie"
 
@@ -616,6 +612,18 @@ msgstr "Nie udało się pobrać zgłoszenia."
 #, python-format
 msgid "Language: %(language)s"
 msgstr "Język: %(language)s"
+
+#: templates/_password_gate.html
+msgid "Generate a 6-word passphrase (about 77 bits of entropy)"
+msgstr "Wygeneruj hasło z 6 słów (ok. 77 bitów entropii)"
+
+#: templates/_password_gate.html
+msgid "Generate"
+msgstr "Wygeneruj"
+
+#: templates/_password_gate.html
+msgid "Password strength"
+msgstr "Siła hasła"
 
 #. %(reason)s is one of the strength messages, e.g. "Too weak (~30 bits). …".
 #: templates/_password_gate_strings.html
@@ -1057,21 +1065,9 @@ msgstr "Hasło"
 msgid "Enter a strong password"
 msgstr "Wpisz silne hasło"
 
-#: templates/index.html
-msgid "Generate a 6-word passphrase (about 77 bits of entropy)"
-msgstr "Wygeneruj hasło z 6 słów (ok. 77 bitów entropii)"
-
-#: templates/index.html
-msgid "Generate"
-msgstr "Wygeneruj"
-
 #: templates/index.html templates/success.html
 msgid "Copy password"
 msgstr "Skopiuj hasło"
-
-#: templates/index.html
-msgid "Password strength"
-msgstr "Siła hasła"
 
 #: templates/index.html
 msgid "Send it through a different channel than the link."
