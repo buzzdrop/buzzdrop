@@ -185,7 +185,7 @@ msgstr ""
 msgid "API token not found"
 msgstr ""
 
-#: app.py auth.py auth/decorators.py
+#: app.py auth/decorators.py
 msgid "Admin access required"
 msgstr ""
 
@@ -207,10 +207,6 @@ msgstr ""
 
 #: app.py
 msgid "Drop deleted"
-msgstr ""
-
-#: auth.py auth/decorators.py
-msgid "Please log in to access this page"
 msgstr ""
 
 #: utils.py
@@ -240,6 +236,10 @@ msgstr ""
 #: templates/_shared_files_strings.html utils.py
 #, python-format
 msgid "Note · %(time)s"
+msgstr ""
+
+#: auth/decorators.py
+msgid "Please log in to access this page"
 msgstr ""
 
 #: auth/env_backend.py

@@ -193,7 +193,7 @@ msgstr "Wylogowano"
 msgid "API token not found"
 msgstr "Nie znaleziono tokenu API"
 
-#: app.py auth.py auth/decorators.py
+#: app.py auth/decorators.py
 msgid "Admin access required"
 msgstr "Wymagany dostęp administratora"
 
@@ -216,10 +216,6 @@ msgstr "Nie znaleziono przesyłki"
 #: app.py
 msgid "Drop deleted"
 msgstr "Przesyłkę usunięto"
-
-#: auth.py auth/decorators.py
-msgid "Please log in to access this page"
-msgstr "Zaloguj się, aby zobaczyć tę stronę"
 
 #: utils.py
 msgid "Active"
@@ -249,6 +245,10 @@ msgstr "Wygasła"
 #, python-format
 msgid "Note · %(time)s"
 msgstr "Notatka · %(time)s"
+
+#: auth/decorators.py
+msgid "Please log in to access this page"
+msgstr "Zaloguj się, aby zobaczyć tę stronę"
 
 #: auth/env_backend.py
 msgid "Logged in successfully"
