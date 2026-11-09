@@ -244,9 +244,9 @@ msgstr "Notatka · %(time)s"
 #. the title of a file sent without a memo; %(time)s is when it was sent, e.g.
 #. "21:35".
 #: templates/_shared_files_strings.html utils.py
-#, fuzzy, python-format
+#, python-format
 msgid "File · %(time)s"
-msgstr "Notatka · %(time)s"
+msgstr "Plik · %(time)s"
 
 #: auth/decorators.py
 msgid "Please log in to access this page"
@@ -1035,7 +1035,6 @@ msgid "Ask someone for one"
 msgstr "Poproś kogoś o plik lub notatkę"
 
 #: templates/index.html
-#, fuzzy
 msgid ""
 "<strong>Encrypt a file or a note in your browser</strong>, send one link,"
 " and let the drop delete itself the moment it is downloaded. The contents"
@@ -1043,8 +1042,7 @@ msgid ""
 msgstr ""
 "<strong>Zaszyfruj plik albo notatkę w przeglądarce</strong>, wyślij jeden"
 " link, a przesyłka usunie się sama, gdy tylko zostanie pobrana. Dla "
-"serwera treść to szyfrogram; szczegóły takie jak nazwa pliku czy twój "
-"dopisek – już nie."
+"serwera treść i nazwa pliku to szyfrogram; twój dopisek – już nie."
 
 #: templates/index.html
 msgid "What are you sending?"
