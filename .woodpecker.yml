@@ -28,11 +28,11 @@ steps:
     image: alpine:3.20
     environment:
       DEPLOY_SSH_KEY:
-        from_secret: buzzdrop_app_deploy_ssh_key
+        from_secret: buzzdrop_website_deploy_ssh_key
       DEPLOY_HOST:
-        from_secret: buzzdrop_app_deploy_host
+        from_secret: buzzdrop_website_deploy_host
       DEPLOY_USER:
-        from_secret: buzzdrop_app_deploy_user
+        from_secret: buzzdrop_website_deploy_user
     commands:
       - apk add --no-cache openssh-client
       - mkdir -p ~/.ssh && chmod 700 ~/.ssh
