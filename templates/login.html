@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% from '_page_strings.html' import page_strings %}
+{% from '_login_strings.html' import strings as login_strings with context %}
 
 {% block content_width %}max-w-md{% endblock %}
 
@@ -21,6 +23,10 @@
             </p>
         </div>
 
+        {% if auth_backend == 'clerk' %}
+        <div id="clerk-sign-in" class="mt-8" data-signed-out="{{ 'true' if signed_out else 'false' }}"></div>
+        <div id="clerk-error" class="alert-banner alert-banner-error mt-4" role="alert" hidden></div>
+        {% else %}
         <form method="POST" class="mt-8 space-y-5">
             <div>
                 <label for="username" class="field-label">{{ _('Username') }}</label>
@@ -36,11 +42,14 @@
                 <span class="relative z-10">{{ _('Login') }}</span>
             </button>
         </form>
+        {% endif %}
     </div>
 
+    {% if auth_backend != 'clerk' %}
     <p class="mt-6 text-center text-xs text-slate-600">
         {% trans %}Accounts are provisioned at deploy time through environment variables.{% endtrans %}
     </p>
+    {% endif %}
     {% set how_it_works_url = website_url('how_it_works') %}
     {% if how_it_works_url %}
     <p class="mt-3 text-center text-sm">
@@ -48,5 +57,10 @@
     </p>
     {% endif %}
 </div>
+{{ page_strings({'login': login_strings}) }}
+{% if auth_backend == 'clerk' %}
+<script src="{{ clerk_frontend_api }}/npm/@clerk/clerk-js@{{ clerk_js_version }}/dist/clerk.browser.js"
+        data-clerk-publishable-key="{{ clerk_publishable_key }}" crossorigin="anonymous" async></script>
+{% endif %}
 <script type="module" src="{{ url_for('static', filename='js/pages/login/entry.js') }}" integrity="{{ sri_hash('js/pages/login/entry.js') }}" crossorigin="anonymous"></script>
 {% endblock %}

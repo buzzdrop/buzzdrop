@@ -21,7 +21,11 @@
         <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
         </svg>
+        {% if config.AUTH_BACKEND == 'clerk' %}
+        <span>{% trans %}Users are managed in the Clerk dashboard. Roles come from <code class="rounded-sm border border-white/10 bg-hive-850 px-1.5 py-0.5 text-xs">CLERK_ADMIN_USERS</code>.{% endtrans %}</span>
+        {% else %}
         <span>{% trans %}Users are managed through environment variables. To add or modify users, update the <code class="rounded-sm border border-white/10 bg-hive-850 px-1.5 py-0.5 text-xs">.env</code> file and redeploy.{% endtrans %}</span>
+        {% endif %}
     </div>
 
     <section class="surface-card animate-fade-up delay-2 p-6 sm:p-8">
@@ -31,10 +35,15 @@
             <article class="dashboard-item">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="hex-step text-xs" translate="no">{{ username[0]|upper }}</span>
+                        {% set shown_name = user.display_name or username %}
+                        <span class="hex-step text-xs" translate="no">{{ shown_name[0]|upper }}</span>
                         <div>
-                            <p class="text-sm font-semibold text-white">{{ username }}</p>
+                            <p class="text-sm font-semibold text-white">{{ shown_name }}</p>
+                            {% if config.AUTH_BACKEND == 'clerk' %}
+                            <p class="mt-0.5 text-xs text-slate-500" translate="no">{{ username }}</p>
+                            {% else %}
                             <p class="mt-0.5 text-xs text-slate-500">{{ _('Configured at deploy time through environment variables.') }}</p>
+                            {% endif %}
                         </div>
                     </div>
                     {% if user.is_admin %}
@@ -53,10 +62,11 @@
         <div class="mt-5 space-y-4">
             {% for username, user in users.items() %}
             {% set user_tokens = tokens_by_user.get(username, []) %}
+            {% set shown_name = user.display_name or username %}
             <section class="token-card overflow-hidden rounded-2xl border border-white/6 bg-white/2" aria-labelledby="token-card-{{ loop.index }}">
                 <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
-                        <h3 id="token-card-{{ loop.index }}" class="text-sm font-semibold text-white">{{ username }}</h3>
+                        <h3 id="token-card-{{ loop.index }}" class="text-sm font-semibold text-white">{{ shown_name }}</h3>
                         <p class="text-xs text-slate-500">{{ _('Admin') if user.is_admin else _('User') }}</p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -65,7 +75,7 @@
                     </div>
                 </div>
                 <div class="token-result border-b border-white/6 px-4 py-4" hidden>
-                    <p class="text-xs text-slate-400">{% trans %}New token for <span class="font-semibold text-white">{{ username }}</span> — shown once. Store it now.{% endtrans %}</p>
+                    <p class="text-xs text-slate-400">{% trans %}New token for <span class="font-semibold text-white">{{ shown_name }}</span> — shown once. Store it now.{% endtrans %}</p>
                     <div class="copy-field mt-3">
                         <input type="text" readonly aria-label="{{ _('New API token') }}" class="generated-token-input field-input flex-1 border-transparent bg-transparent font-mono shadow-none">
                         <button type="button" aria-label="{{ _('Copy token') }}" class="btn-secondary copy-token-btn shrink-0 px-4 py-2.5">

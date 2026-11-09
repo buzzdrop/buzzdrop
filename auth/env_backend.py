@@ -1,16 +1,24 @@
 """
-Authentication module for Buzzdrop.
-Handles user management and authentication decorators.
+The env auth backend (AUTH_BACKEND=env) — the self-hosted default.
+
+There is no users table: the first admin comes from ``ADMIN_USERNAME``,
+``ADMIN_PASSWORD`` and an optional ``ADMIN_EMAIL``; more users come from
+`.env` as ``FLASK_USER_N=username:password:is_admin[:email]``, passwords
+hashed with PBKDF2-SHA256 via Werkzeug. Sign-in is the classic form POST
+on /login.
 """
 import os
-import secrets
-from functools import wraps, lru_cache
+from functools import lru_cache
 from typing import NamedTuple, Optional
-from flask import g, session, flash, redirect, url_for, request
+from urllib.parse import urlsplit
+
+from flask import flash, redirect, render_template, request, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# Not `as _`: the decorators below unpack into `_`.
-from i18n import gettext
+from i18n import gettext as _
+
+from auth.base import AuthBackend
+from auth.session import start_session
 
 
 def _is_bool_token(value: str) -> bool:
@@ -28,10 +36,10 @@ def _looks_like_email(value: str) -> bool:
 def hash_password(password: str) -> str:
     """
     Hash a password using PBKDF2-SHA256 with salt.
-    
+
     Args:
         password: Plain text password
-    
+
     Returns:
         Hashed password string
     """
@@ -142,23 +150,23 @@ def validate_users(is_production: bool) -> None:
 
 
 @lru_cache(maxsize=None)
-def get_users() -> dict:
+def _env_users() -> dict:
     """
     Get all users from environment variables.
     Results are cached to avoid repeated hashing.
-    
+
     The first admin comes from ADMIN_USERNAME, ADMIN_PASSWORD and an
     optional ADMIN_EMAIL; more users from variables in the format:
         FLASK_USER_N=username:password:is_admin[:email]
-    
+
     Example:
         ADMIN_USERNAME=admin
         ADMIN_PASSWORD=secretpass
         FLASK_USER_1=user:password:false
-    
+
     An email configured here is trusted by the administrator who set it up,
     so no separate verification flag is needed.
-    
+
     Returns:
         Dictionary mapping usernames to user data:
         {
@@ -181,242 +189,88 @@ def get_users() -> dict:
     return users
 
 
+def clear_users_cache():
+    _env_users.cache_clear()
+
+
 def verify_password(username: str, password: str) -> bool:
     """
     Verify username and password combination.
-    
+
     Args:
         username: Username to verify
         password: Plain text password to check
-    
+
     Returns:
         True if credentials are valid, False otherwise
     """
-    users = get_users()
-    user = users.get(username)
-    
-    if not user:
-        return False
-    
-    return check_password_hash(user['password'], password)
+    user = _env_users().get(username)
+    return bool(user) and check_password_hash(user['password'], password)
 
 
 def is_admin(username: str) -> bool:
     """
     Check if user has admin privileges.
-    
+
     Args:
         username: Username to check
-    
+
     Returns:
         True if user is admin, False otherwise
     """
-    users = get_users()
-    user = users.get(username)
-    
-    if not user:
-        return False
-    
-    return user.get('is_admin', False)
+    user = _env_users().get(username)
+    return bool(user) and user.get('is_admin', False)
 
 
-def get_current_user() -> dict:
-    """
-    Get current logged-in user information.
-    
-    Returns:
-        Dictionary with user info if logged in, None otherwise:
-        {
-            'username': str,
-            'is_admin': bool
-        }
-    """
-    username, user = _get_active_session_user()
-
-    if not username:
+def _local_path(target):
+    """``target`` when it is a path on this site, else None (no open redirect)."""
+    if (not target or not target.startswith('/') or target.startswith('//')
+            or '\\' in target or any(ord(char) < 0x20 or ord(char) == 0x7f for char in target)):
         return None
-
-    return {
-        'username': username,
-        'is_admin': user.get('is_admin', False),
-        'email': user.get('email'),
-    }
+    parts = urlsplit(target)
+    if parts.scheme or parts.netloc:
+        return None
+    return target
 
 
-def _get_active_session_user():
-    """Return the current session user if still configured, otherwise clear session."""
-    username = session.get('username')
+class EnvBackend(AuthBackend):
+    name = 'env'
 
-    if not username:
-        return None, None
+    def list_users(self) -> dict:
+        return _env_users()
 
-    users = get_users()
-    user = users.get(username)
+    def validate(self, is_production: bool) -> None:
+        validate_users(is_production)
 
-    if not user:
-        logout_user()
-        return None, None
+    def login(self, request):
+        # Where to go once signed in: the local path / sent along, else
+        # home. The form posts back to this URL, so next survives the POST.
+        after_login = _local_path(request.args.get('next')) or url_for('index')
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            user = _env_users().get(username) if verify_password(username, password) else None
+            if user:
+                start_session({
+                    'username': username,
+                    'is_admin': user.get('is_admin', False),
+                    'email': user.get('email'),
+                    'display_name': username,
+                })
+                flash(_('Logged in successfully'), 'success')
+                return redirect(after_login)
+            flash(_('Invalid username or password'))
+        return render_template('login.html', auth_backend=self.name)
 
-    session['is_admin'] = user.get('is_admin', False)
-    return username, user
+    def session_user(self, username: str, snapshot: dict):
+        user = _env_users().get(username)
+        if not user:
+            return None
+        return {
+            'is_admin': user.get('is_admin', False),
+            'email': user.get('email'),
+            'display_name': username,
+        }
 
-
-def _redirect_to_login():
-    flash(gettext('Please log in to access this page'))
-    return redirect(url_for('login'))
-
-
-def _refuse_login():
-    return {'error': 'Login required', 'code': 'login_required'}, 401
-
-
-def _session_required(f, refuse):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        username, _ = _get_active_session_user()
-        if not username:
-            return refuse()
-        return f(*args, **kwargs)
-
-    return decorated_function
-
-
-def login_required(f):
-    """
-    Decorator to require login for a route.
-
-    Usage::
-
-        @app.route('/protected')
-        @login_required
-        def protected_route():
-            pass
-    """
-    return _session_required(f, _redirect_to_login)
-
-
-def json_login_required(f):
-    """
-    ``@login_required`` for routes the browser calls with ``fetch``.
-
-    ``fetch`` follows a redirect, so the script would get the login page with
-    a 200 and the flash would be spent on it. A missing session is a 401 JSON
-    refusal instead, with no flash. Routes a form posts to keep
-    ``@login_required``, even under ``/api/``.
-    """
-    return _session_required(f, _refuse_login)
-
-
-def bearer_token():
-    """
-    The token of an ``Authorization: Bearer <token>`` header, or None when
-    the request has no Bearer header. An empty token is ``''``, not None,
-    so ``api_auth_required`` still rejects it.
-    """
-    auth_header = request.headers.get('Authorization', '')
-    if auth_header.startswith('Bearer '):
-        return auth_header[len('Bearer '):]
-    return None
-
-
-def api_auth_required(f):
-    """
-    Decorator for routes that accept both API token auth and session auth.
-
-    Checks for an ``Authorization: Bearer <token>`` header first. If the header
-    is present but the token is invalid, returns 401 JSON immediately (no
-    session fallback). If no Authorization header is present, falls back to
-    checking the session cookie like ``@json_login_required``: these routes
-    are called with ``fetch`` or by API clients, never by a form.
-
-    On success, sets ``flask.g.username`` so route handlers should read the
-    authenticated user from ``g.username`` instead of ``session['username']``.
-
-    Usage::
-
-        @app.route('/upload', methods=['POST'])
-        @api_auth_required
-        def upload_file():
-            username = g.username
-            ...
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        raw_token = bearer_token()
-        if raw_token is not None:
-            from tokens import validate_api_token
-            username = validate_api_token(raw_token)
-            if not username:
-                return {'error': 'Invalid or expired token'}, 401
-            g.username = username
-            return f(*args, **kwargs)
-
-        # No Bearer header: require session login
-        username, _ = _get_active_session_user()
-        if not username:
-            return _refuse_login()
-        g.username = username
-        return f(*args, **kwargs)
-
-    return decorated_function
-
-
-
-def admin_required(f):
-    """
-    Decorator to require admin privileges for a route.
-    
-    Usage:
-        @app.route('/admin')
-        @admin_required
-        def admin_route():
-            # Only accessible to admin users
-            pass
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        username, user = _get_active_session_user()
-        if not username:
-            flash(gettext('Please log in to access this page'))
-            return redirect(url_for('login'))
-
-        if not user['is_admin']:
-            flash(gettext('Admin access required'))
-            return redirect(url_for('index'))
-        
-        return f(*args, **kwargs)
-    
-    return decorated_function
-
-
-def login_user(username: str, password: str) -> bool:
-    """
-    Attempt to log in a user.
-    
-    Args:
-        username: Username
-        password: Plain text password
-    
-    Returns:
-        True if login successful, False otherwise
-    """
-    if not verify_password(username, password):
-        return False
-    
-    users = get_users()
-    user = users.get(username)
-    
-    # Set session data — permanent so PERMANENT_SESSION_LIFETIME applies
-    session.permanent = True
-    session['username'] = username
-    session['is_admin'] = user.get('is_admin', False)
-    session['csrf_token'] = secrets.token_urlsafe(32)
-    
-    return True
-
-
-def logout_user():
-    """Log out the current user by clearing session."""
-    session.pop('username', None)
-    session.pop('is_admin', None)
-    session.pop('csrf_token', None)
+    def clear_caches(self):
+        clear_users_cache()
