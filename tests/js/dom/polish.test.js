@@ -444,7 +444,7 @@ describe('in Polish', () => {
 
         await page.submitNote('faktura w załączniku');
 
-        expect(screen.getByText('Tego linku do skrytki już użyto. Poproś zamawiającego o nowy.')).toBeVisible();
+        expect(screen.getByText('Tego linku do skrytki już użyto. Poproś zamawiającego o\u00a0nowy.', keepingNonBreakingSpaces)).toBeVisible();
     });
 
     it('serves the collect page', async () => {
@@ -452,6 +452,7 @@ describe('in Polish', () => {
 
         expect(page.language()).toBe('pl');
         expect(screen.getByRole('heading', { name: 'Odbierz zgłoszenie' })).toBeVisible();
+        expect(screen.getByText(/odszyfrować i\u00a0zapisać/, keepingNonBreakingSpaces)).toBeVisible();
         expect(screen.getByLabelText('Hasło do skrytki')).toHaveAccessibleDescription(expect.stringContaining('Masz 3 próby'));
         expect(screen.getByRole('button', { name: 'Odbierz' })).toBeEnabled();
     });

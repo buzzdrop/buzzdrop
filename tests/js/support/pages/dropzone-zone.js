@@ -1,7 +1,7 @@
 // What the respond and collect drivers share: the zones the fixtures were
 // rendered for, and a zone put on the protocol fake through its own route, as
 // the requester's browser would.
-import { DEFAULT_PASSWORD } from './page.js';
+import { DEFAULT_PASSWORD, FIXTURE_CSRF_TOKEN } from './page.js';
 
 /**
  * @typedef {ReturnType<typeof import('../protocol-fake.js').makeProtocolFake>} Fake
@@ -20,7 +20,7 @@ export const FIXTURE_ZONES = {
  * @param {StubDropzoneCrypto} crypto
  * @param {string} [csrfToken] - the session's token, when it isn't the fixtures'
  */
-export async function putZoneOnFake(backend, crypto, csrfToken = 'fixture-csrf-token') {
+export async function putZoneOnFake(backend, crypto, csrfToken = FIXTURE_CSRF_TOKEN) {
     const secrets = await crypto.createDropzoneSecrets(DEFAULT_PASSWORD);
     const { salt, ws, v, sv } = secrets;
     const session = { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken };

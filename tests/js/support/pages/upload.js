@@ -11,7 +11,7 @@ import { initIndex } from '../../../../static/js/pages/index/index-page.js';
 import * as dropzoneCrypto from '../../../../static/js/lib/dropzone-crypto.js';
 import { makeProtocolFake } from '../protocol-fake.js';
 import { makeStubDropzoneCrypto } from '../stub-crypto.js';
-import { DEFAULT_PASSWORD, answerConfirmation, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
+import { DEFAULT_PASSWORD, NEWER_CSRF_TOKEN, answerConfirmation, cryptoFor, inLanguage, openPage, recordProgress, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { screen } from './page.js';
 
@@ -104,8 +104,8 @@ export const PASSWORDS = {
  */
 
 /**
- * How the server meets the next dropzone create or delete: rate-limited (429
- * on /api/dropzones), failing (a 500 with an HTML body from it), unreachable
+ * How the server meets the next dropzone create: rate-limited (429 on
+ * /api/dropzones), failing (a 500 with an HTML body from it), unreachable
  * (the connection drops), signed-out (the session has expired).
  * @typedef {'ok' | 'rate-limited' | 'failing' | 'unreachable' | 'signed-out'} DropzoneServer
  */
@@ -113,13 +113,16 @@ export const PASSWORDS = {
 /** What a server error looks like from behind the proxy. */
 const SERVER_ERROR_PAGE = { status: 500, body: '<!doctype html><title>500 Internal Server Error</title>' };
 
+/** @param {Fake} server */
+const signOut = (server) => { server.state.user = null; };
+
 /** @type {Partial<Record<UploadServer, (server: Fake) => void>>} */
 const UPLOAD_SITUATIONS = {
     busy: (server) => server.failNext('/upload/begin', 429),
     failing: (server) => server.failNext('/upload', SERVER_ERROR_PAGE),
     'too-large': (server) => server.failNext('/upload', 413),
     'rate-limited': (server) => server.failNext('/upload', 429),
-    'signed-out': (server) => { server.state.user = null; },
+    'signed-out': signOut,
 };
 
 /** @type {Partial<Record<DropzoneServer, (server: Fake) => void>>} */
@@ -127,7 +130,7 @@ const DROPZONE_SITUATIONS = {
     'rate-limited': (server) => server.failNext('/api/dropzones', 429),
     failing: (server) => server.failNext('/api/dropzones', SERVER_ERROR_PAGE),
     unreachable: (server) => server.failNext('/api/dropzones', 'network'),
-    'signed-out': (server) => { server.state.user = null; },
+    'signed-out': signOut,
 };
 
 /**
@@ -160,9 +163,9 @@ const DROPZONE_SITUATIONS = {
  * @param {typeof globalThis.fetch} fetch
  * @param {import('../../../../static/js/pages/index/index-page.js').IndexDeps['crypto']} crypto
  * @param {typeof XMLHttpRequest} xhr
- * @param {import('../../../../static/js/pages/index/index-page.js').IndexDeps['dropzoneCrypto']} sealer
+ * @param {import('../../../../static/js/pages/index/index-page.js').IndexDeps['dropzoneCrypto']} zoneCrypto
  */
-function indexDeps(fetch, crypto, xhr, sealer) {
+function indexDeps(fetch, crypto, xhr, zoneCrypto) {
     const now = Date.parse(NOW);
     /** @type {string[]} */
     const navigations = [];
@@ -181,7 +184,7 @@ function indexDeps(fetch, crypto, xhr, sealer) {
             dropzoneCrypto: {
                 createDropzoneSecrets(/** @type {string} */ password) {
                     dropzonePasswords.push(password);
-                    return sealer.createDropzoneSecrets(password);
+                    return zoneCrypto.createDropzoneSecrets(password);
                 },
             },
             now: () => now,
@@ -207,7 +210,7 @@ export function openUploadPage({
 } = {}) {
     const { fixture, user: owner } = ACCOUNTS[account];
     const server = backend ?? makeProtocolFake({
-        owner, ...(session === 'stale' ? { csrfToken: 'a-newer-session-token' } : {}),
+        owner, ...(session === 'stale' ? { csrfToken: NEWER_CSRF_TOKEN } : {}),
     });
     // The fake holds what the fixture rendered, so the zone can be deleted.
     if (!backend && account === 'with-shares') server.seedDropzone(DROPZONE);
@@ -245,10 +248,10 @@ export function openUploadPage({
         if (response.ok && url.endsWith('/upload/begin')) issued.push(await response.clone().json());
         return response;
     };
-    const sealer = crypto === 'stub'
+    const zoneCrypto = crypto === 'stub'
         ? makeStubDropzoneCrypto({ malformedSecrets: dropzoneSecrets === 'malformed' }) : dropzoneCrypto;
     const { deps, navigations, dropzonePasswords } = indexDeps(
-        fetch, cryptoService, server.XMLHttpRequest, sealer);
+        fetch, cryptoService, server.XMLHttpRequest, zoneCrypto);
     initIndex(window.document, deps);
 
     // Every value the upload bar shows while it is on screen.
@@ -432,7 +435,7 @@ export function openUploadPage({
          * Cancel. Confirmed on a server that accepts it, it waits until the
          * row is gone.
          * @param {string} memo
-         * @param {{ confirm: boolean, server?: DropzoneServer }} answer
+         * @param {{ confirm: boolean, server?: 'ok' | 'signed-out' }} answer
          * @returns {Promise<{ question: string, deleted: boolean }>}
          */
         async deleteDropzone(memo, { confirm, server: situation = 'ok' }) {
@@ -467,7 +470,7 @@ export function openUploadPage({
             DROPZONE_SITUATIONS[situation]?.(server);
             await user.click(screen.getByRole('button', { name: dropzoneWords.create }));
             await waitUntil(() => expect(screen.queryByText(dropzoneWords.created) !== null
-                || screen.queryAllByRole('alert').some((region) => region.textContent?.trim())).toBe(true));
+                || screen.queryAllByRole('alert').some((region) => region.textContent?.trim())).toBe(true), timeout);
         },
         /** Whether the page says the dropzone was created. */
         dropzoneCreated: () => screen.queryByText(dropzoneWords.created) !== null,

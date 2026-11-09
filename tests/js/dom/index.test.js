@@ -530,11 +530,14 @@ describe('index page', () => {
     });
 
     describe('new dropzone', () => {
-        it('refuses a weak password inline and sends nothing', async () => {
+        it.each([
+            ['common', PASSWORDS.weak],
+            ['short', 'k7q'],
+        ])('refuses a %s password inline and sends nothing', async (_, password) => {
             const upload = openUploadPage();
             await upload.chooseMode('collect');
 
-            await upload.enterDropzonePassword({ strength: 'weak' });
+            await upload.enterDropzonePassword(password);
             await upload.createDropzone();
 
             expect(await screen.findByText(/^Password rejected: /)).toBeVisible();

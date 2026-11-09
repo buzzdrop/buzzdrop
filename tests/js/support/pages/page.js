@@ -21,6 +21,12 @@ export const DEFAULT_PASSWORD = 'correct horse';
 /** Picks among próba/próby/prób as the page's plural forms do. */
 const POLISH_PLURAL = new Intl.PluralRules('pl');
 
+/** The session's CSRF token, as the fixtures render it. */
+export const FIXTURE_CSRF_TOKEN = 'fixture-csrf-token';
+
+/** What the session's token has become once a page's is stale. */
+export const NEWER_CSRF_TOKEN = 'a-newer-session-token';
+
 /**
  * How the view and collect pages count the attempts before the first one, in
  * each language: the start of the warning the server renders.

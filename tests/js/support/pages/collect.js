@@ -7,7 +7,7 @@ import { initCollect } from '../../../../static/js/pages/collect/collect-page.js
 import { makeProtocolFake } from '../protocol-fake.js';
 import { makeStubDropzoneCrypto } from '../stub-crypto.js';
 import { FIXTURE_ZONES, putZoneOnFake } from './dropzone-zone.js';
-import { ATTEMPTS_WARNING, inLanguage, openPage, recordProgress, recordSavedFiles, replaceInFixture, typeable, waitUntil } from './page.js';
+import { ATTEMPTS_WARNING, FIXTURE_CSRF_TOKEN, NEWER_CSRF_TOKEN, inLanguage, openPage, recordProgress, recordSavedFiles, replaceInFixture, typeable, waitUntil } from './page.js';
 
 export { DEFAULT_PASSWORD, screen } from './page.js';
 
@@ -69,7 +69,7 @@ export async function openCollectPage({
         unsupportedFormat: sealed === 'unsupported-format', corrupted: sealed === 'corrupted',
     });
     // A stale page holds the fixture's token while the session moved on.
-    const csrfToken = server === 'stale-session' ? 'a-newer-session-token' : 'fixture-csrf-token';
+    const csrfToken = server === 'stale-session' ? NEWER_CSRF_TOKEN : FIXTURE_CSRF_TOKEN;
     const backend = makeProtocolFake({
         csrfToken,
         dropzoneMaxAttempts: maxAttempts,

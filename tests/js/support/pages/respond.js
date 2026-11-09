@@ -23,7 +23,7 @@ const FIXTURE_MAX_BYTES = '"maxBytes": 104857600';
 /** What the page calls the controls a test uses, in each language. */
 const WORDS = {
     en: { submit: 'Encrypt and submit', noteTab: 'Note', fileTab: 'File', note: 'Your note', file: 'Drop a file here, or browse' },
-    pl: { submit: /^Zaszyfruj i.złóż$/, noteTab: 'Notatka', fileTab: 'Plik', note: 'Treść notatki', file: 'Upuść tu plik albo wybierz go' },
+    pl: { submit: 'Zaszyfruj i\u00a0złóż', noteTab: 'Notatka', fileTab: 'Plik', note: 'Treść notatki', file: 'Upuść tu plik albo wybierz go' },
 };
 
 /**
