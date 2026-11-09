@@ -104,7 +104,9 @@ def upload_file(name='upload', share='begin', verifier=V, **form):
         'name': name, 'method': 'POST', 'path': ['/upload'], 'headers': SESSION_XHR,
         'form': {'file_id': ref(f'{share}.file_id'), 'key_verifier': verifier,
                  'receipt_hash': RECEIPT_HASH, **form},
-        'files': {'file': {'filename': 'report.pdf', 'content': FILE_CONTENT}},
+        # The multipart filename is the neutral "drop.<ext>" the browser
+        # and CLI send: the real name stays inside the ciphertext (#246).
+        'files': {'file': {'filename': 'drop.pdf', 'content': FILE_CONTENT}},
     }
 
 
@@ -378,7 +380,7 @@ SCENARIOS = [
         # fake takes any extension; the server's refusal is injected.
         'name': 'upload-type-not-allowed',
         'steps': [begin(), {**upload_file(), 'injected': True,
-                            'files': {'file': {'filename': 'tool.exe', 'content': FILE_CONTENT}}}],
+                            'files': {'file': {'filename': 'drop.exe', 'content': FILE_CONTENT}}}],
     },
     {
         'name': 'rate-limit-upload-begin',

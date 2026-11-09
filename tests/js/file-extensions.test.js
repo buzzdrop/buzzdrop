@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { isAllowedFile } from '../../static/js/lib/file-extensions.js';
+import { fileExtension, isAllowedFile } from '../../static/js/lib/file-extensions.js';
+
+test('fileExtension reads the declared extension, lowercased', () => {
+    assert.equal(fileExtension('report.pdf'), 'pdf');
+    assert.equal(fileExtension('PHOTO.JPG'), 'jpg');
+    assert.equal(fileExtension('backup.tar.gz'), 'gz');
+    // Whatever follows the last dot, and a dotless name is its own.
+    assert.equal(fileExtension('Makefile'), 'makefile');
+    assert.equal(fileExtension('report.'), '');
+});
 
 const allowed = ['pdf', 'gz', 'jpg', 'bashrc', 'readme'];
 

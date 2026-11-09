@@ -605,7 +605,9 @@ export function makeProtocolFake(opts = {}) {
                 throw new Error('protocol fake: /upload without a file or a note');
             }
             blob = new Uint8Array(await file.arrayBuffer());
-            name = file instanceof File ? file.name : 'blob';
+            // app.py stores the neutral label, whatever the multipart
+            // filename claims — the real name is inside the blob (#246).
+            name = 'File';
         }
 
         key.v = keyVerifier;

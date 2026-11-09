@@ -184,7 +184,7 @@ describe('in Polish', () => {
         expect(row('report.pdf').getByText('Aktywna')).toBeVisible();
         expect(row('photo.png').getByText('Odszyfrowana')).toBeVisible();
         expect(row('old.txt').getByText('Wygasła')).toBeVisible();
-        expect(row('locked.zip').getByText('Zablokowana')).toBeVisible();
+        expect(row('Plik · 06:00').getByText('Zablokowana')).toBeVisible();
         expect(row('Notatka · 15:35').getByText('Bez terminu')).toBeVisible();
         expect(row('report.pdf').getByText('Jeszcze nie')).toBeVisible();
         expect(screen.getByRole('combobox', { name: 'Sortuj według' })).toHaveDisplayValue('Najnowsze wysłane');

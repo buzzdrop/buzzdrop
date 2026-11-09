@@ -10,6 +10,7 @@
 // with it — only after the password held — then reports the receipt.
 
 import { downloadTicket } from '../../lib/crypto.js';
+import { fileExtension } from '../../lib/file-extensions.js';
 import { bytesToHex, hexToBytes } from '../../lib/hex.js';
 
 // The server share H that /upload/begin mints (docs/true-one-time.md §6).
@@ -194,7 +195,11 @@ export async function createShare(payload, password, options, deps) {
         payload.bytes, password, h, payload.kind === 'file' ? payload.name : '');
     const form = new FormData();
     if (payload.kind === 'file') {
-        form.append('file', new File([blob], payload.name));
+        // The name never leaves this page: it is sealed inside the blob,
+        // so the multipart filename is a neutral "drop.<ext>" — the
+        // extension alone, which the server's ALLOWED_EXTENSIONS gate
+        // still checks (#246).
+        form.append('file', new File([blob], `drop.${fileExtension(payload.name)}`));
     } else {
         form.append('note_text', toBase64(blob));
         form.append('type', 'text');

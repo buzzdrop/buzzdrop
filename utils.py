@@ -105,6 +105,11 @@ STATUS_LABELS = {
 }
 NOTE_TITLE = gettext_noop('Note \u00b7 %(time)s')
 UNTIMED_NOTE_TITLE = gettext_noop('Note')
+# A file is stored under the neutral 'File' label: the server never
+# learns its real name (#246), so the list titles it the same way as a
+# note — by its memo, or failing that its time.
+FILE_TITLE = gettext_noop('File \u00b7 %(time)s')
+UNTIMED_FILE_TITLE = gettext_noop('File')
 
 
 def _untranslated(text: str) -> str:
@@ -117,23 +122,25 @@ def status_labels(translate: Callable[[str], str] = _untranslated) -> dict:
 
 
 def _display_name(file_dict: dict, tz_name: str, translate: Callable[[str], str]) -> str:
-    """The drop's title in the list: every note is stored as 'Secret Note',
-    so a note goes by its memo, or failing that its time."""
-    if file_dict.get('type') != 'text':
-        return file_dict.get('original_name') or ''
-    note = (file_dict.get('private_note') or '').strip()
-    if note:
-        return note
+    """The drop's title in the list: the sender's memo when there is one,
+    else a neutral "File · HH:MM"/"Note · HH:MM" — the stored name is a
+    placeholder ('File', 'Secret Note'), never the real name."""
+    memo = (file_dict.get('private_note') or '').strip()
+    if memo:
+        return memo
+    is_note = file_dict.get('type') == 'text'
     try:
-        return translate(NOTE_TITLE) % {'time': f"{_in_zone(file_dict['created_at'], tz_name):%H:%M}"}
+        title = NOTE_TITLE if is_note else FILE_TITLE
+        return translate(title) % {'time': f"{_in_zone(file_dict['created_at'], tz_name):%H:%M}"}
     except Exception:
-        return translate(UNTIMED_NOTE_TITLE)
+        return translate(UNTIMED_NOTE_TITLE if is_note else UNTIMED_FILE_TITLE)
 
 
 def _display_time_iso(file_dict: dict, tz_name: str) -> Optional[str]:
-    """The time in a "Note · HH:MM" title, for the page script to put
-    in the viewer's zone; None when the title has no time."""
-    if file_dict.get('type') != 'text' or (file_dict.get('private_note') or '').strip():
+    """The time in a "File · HH:MM"/"Note · HH:MM" title, for the page
+    script to put in the viewer's zone; None when the title is a memo or
+    has no time."""
+    if (file_dict.get('private_note') or '').strip():
         return None
     if not file_dict.get('created_at'):
         return None
@@ -158,12 +165,12 @@ def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE,
           each with an offset-aware ISO twin (<field>_iso, None when unset)
         - status_key (a key of STATUS_LABELS; only 'active' is a live link)
           and status_display, its label through ``translate``
-        - display_name: the file name, or for a text note its memo,
-          else "Note · HH:MM"
+        - display_name: the drop's memo, else "File · HH:MM" or
+          "Note · HH:MM"
         - display_time_iso: that HH:MM as an ISO value, else None
     """
-    # A text note has no file name; read the note's creation time before
-    # the timestamps are formatted for display.
+    # The title's time is read before the timestamps are formatted for
+    # display.
     file_dict['display_name'] = _display_name(file_dict, tz_name, translate)
     file_dict['display_time_iso'] = _display_time_iso(file_dict, tz_name)
 

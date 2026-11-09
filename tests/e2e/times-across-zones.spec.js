@@ -38,7 +38,8 @@ test('a drop uploaded now reads "now", and expires when the uploader said', asyn
     // depends on the day the submitted expiry falls on.
     const expiryField = tokyoWallClock(Date.now() + 3 * 60 * 60 * 1000);
     await page.getByLabel(/^Expiry date/).fill(expiryField);
-    const link = await shareFile(page, file, sharePassword());
+    // The list no longer names files (#246): the memo is the row's title.
+    const link = await shareFile(page, file, sharePassword(), { memo: file.name });
 
     const row = await listedRow(page, file.name);
     // Not "13 hours ago": the upload time is an instant, shown in Tokyo time.

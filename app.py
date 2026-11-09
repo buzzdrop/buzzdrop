@@ -24,7 +24,6 @@ from flask import (
     has_app_context,
 )
 from werkzeug.exceptions import InternalServerError, NotFound, RequestEntityTooLarge
-from werkzeug.utils import secure_filename
 from flask_limiter import Limiter
 from typing import NamedTuple, Optional
 from db import create_backend
@@ -275,7 +274,7 @@ def _open_notification_text(file_info: dict):
 
     is_note = file_info.get('type') == 'text'
     # Email subjects are not private (notification previews, provider
-    # logs) — the filename stays out of the subject line, period.
+    # logs) — and the server has no filename to leak anywhere now (#246).
     subject = _('Buzzdrop note opened') if is_note else _('Buzzdrop file opened')
     opened_at = parse_timestamp(file_info.get('downloaded_at')) or utcnow()
     lines = [
@@ -283,9 +282,8 @@ def _open_notification_text(file_info: dict):
         '',
         _('Type: %(type)s', type=_('Note') if is_note else _('File')),
     ]
-    # A note has no name of its own.
-    if not is_note:
-        lines.append(_('Original name: %(name)s', name=file_info.get('original_name') or ''))
+    # The drop's name is not in here on purpose: it stays inside the
+    # ciphertext, so the server — and this email — never has it (#246).
     lines += [
         # An email has no browser to localize it: DEFAULT_TIMEZONE, named.
         # Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35 CET".
@@ -1440,9 +1438,10 @@ def upload_file():
         flash(_('No selected file'))
         return redirect(url_for('index'))
     
+    # The multipart filename is ignored beyond its extension: the client
+    # sends a neutral "drop.<ext>" and the real name rides inside the
+    # ciphertext, so nothing here may store it (#246).
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-
         # The file_id was minted by /upload/begin
         unique_id = file_id
 
@@ -1469,7 +1468,9 @@ def upload_file():
         try:
             file_path = storage.save(unique_id, file)
             file_repo.create({
-                'original_name': filename,
+                # A neutral label, like a note's "Secret Note": the list
+                # titles the drop by its memo or its sent time instead.
+                'original_name': 'File',
                 'path': file_path,
                 'uploaded_by': g.username,
                 'expiry_at': expiry_iso,
