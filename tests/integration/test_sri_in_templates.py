@@ -53,7 +53,7 @@ def test_view_page_has_sri_for_its_entry(client, db_instance, files_store, csrf_
             'csrf_token': 'test-csrf-token',
     }, content_type='multipart/form-data')
 
-    file_info = files_store.get_by(original_name='test.txt')
+    file_info = files_store.get_by_id(file_id)
     assert file_info is not None
     file_id = file_info['id']
 
@@ -96,7 +96,7 @@ def test_success_page_has_sri_for_its_entry(client, db_instance, files_store, ke
     # Get file_id from database
 
 
-    file_info = files_store.get_by(original_name='success_test.txt')
+    file_info = files_store.get_by_id(file_id)
     assert file_info is not None
     file_id = file_info['id']
 

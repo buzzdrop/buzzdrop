@@ -32,6 +32,7 @@ The server renders the BKV3 envelope salt into the view page config, so nothing 
 - `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`. Sends `Cache-Control: no-store`, since the response carries H. With neither a Bearer token nor a session, it and the other `@api_auth_required` routes answer 401 `login_required`
 - `/upload` (POST): Completes the key-release upload.
   - Requires the `file_id`, `key_verifier` and `receipt_hash` form fields.
+  - For a file, the multipart `file` part's filename is a neutral `drop.<ext>` (#246): only the extension is read, for the `ALLOWED_EXTENSIONS` check — the real name is inside the ciphertext, and the row stores the label `File`. A client that still sends a real name gets the same treatment: extension checked, name discarded.
   - Refuses to finish another account's share (403).
   - Refuses an `expiry` that isn't an ISO time with a zone (400, `timestamps.parse_expiry`). The check runs before the bind, so the share can retry. The browser sends `Date.toISOString()`.
   - Binds V to the pending share atomically, stores the encrypted blob and returns the share link. On a storage or DB failure the pending share is burned.

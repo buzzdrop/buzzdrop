@@ -74,14 +74,16 @@ export function initSharedFilesList(root, deps) {
     };
     showRelativeTimes(list);
 
-    // A note without a memo is titled by its time: put that in the
-    // viewer's zone too, wherever the title appears, the search included.
-    // Times are not searched (#266): the Sort menu orders by them.
+    // A drop without a memo is titled by its kind and time — "File · HH:MM"
+    // or "Note · HH:MM": put that in the viewer's zone too, wherever the
+    // title appears, the search included. Times are not searched (#266):
+    // the Sort menu orders by them.
     rows.forEach((row) => {
-        const heading = /** @type {HTMLElement | null} */ (row.querySelector('[data-note-time]'));
-        const clock = heading && clockTime(Date.parse(heading.dataset.noteTime || ''), format);
+        const heading = /** @type {HTMLElement | null} */ (row.querySelector('[data-timed-title]'));
+        const clock = heading && clockTime(Date.parse(heading.dataset.timedTitle || ''), format);
         if (heading && clock) {
-            const name = strings.text('noteTitle', { time: clock });
+            const key = heading.dataset.titleKind === 'note' ? 'noteTitle' : 'fileTitle';
+            const name = strings.text(key, { time: clock });
             heading.textContent = name;
             heading.title = name;
             required(row, '.copy-url', 'button').setAttribute('aria-label', strings.text('copyLinkFor', { name }));

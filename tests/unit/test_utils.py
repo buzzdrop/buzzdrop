@@ -195,11 +195,30 @@ def test_iso_twin_is_to_the_second_with_an_offset():
     assert iso_twin('not a time') is None
 
 
-def test_display_name_of_a_file_is_its_name():
-    f = {'type': 'file', 'original_name': 'report.pdf', 'private_note': 'Q3',
+def test_display_name_of_a_file_is_its_memo():
+    """The stored label 'File' is neutral: the list titles a file by the
+    sender's memo, never by the real name the server no longer has (#246)."""
+    f = {'type': 'file', 'original_name': 'File', 'private_note': 'Q3',
          'created_at': '2026-10-06T19:35:29.000000+00:00'}
     enhance_file_display(f)
-    assert f['display_name'] == 'report.pdf'
+    assert f['display_name'] == 'Q3'
+    assert f['display_time_iso'] is None
+
+
+def test_display_name_of_a_file_without_a_memo_carries_its_time():
+    f = {'type': 'file', 'original_name': 'File', 'private_note': '',
+         'created_at': '2026-10-06T19:35:29.000000+00:00'}
+    enhance_file_display(f)
+    # UTC until the browser puts the time in the viewer's zone.
+    assert f['display_name'] == 'File \u00b7 19:35'
+    assert f['display_time_iso'] == '2026-10-06T19:35:29+00:00'
+
+
+def test_display_name_of_a_file_without_a_memo_or_a_time_is_its_label():
+    f = {'type': 'file', 'original_name': 'File', 'private_note': '',
+         'created_at': None}
+    enhance_file_display(f)
+    assert f['display_name'] == 'File'
     assert f['display_time_iso'] is None
 
 

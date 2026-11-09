@@ -107,11 +107,14 @@ export async function logIn(page, text = EN) {
  * @param {Page} page
  * @param {FilePayload} file
  * @param {string} password
+ * @param {{ memo?: string }} [options] - `memo` titles the row in the
+ *   uploader's list; the filename no longer does (#246)
  * @returns {Promise<string>}
  */
-export async function shareFile(page, file, password) {
+export async function shareFile(page, file, password, { memo } = {}) {
     await page.getByLabel('Drop a file here, or browse').setInputFiles(file);
     await page.getByLabel('Password', { exact: true }).fill(password);
+    if (memo !== undefined) await page.getByRole('tabpanel').getByLabel(/^Memo/).fill(memo);
     await page.getByRole('button', { name: 'Send file' }).click();
     return shareLink(page);
 }
