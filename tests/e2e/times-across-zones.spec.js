@@ -55,7 +55,17 @@ test('a drop uploaded now reads "now", and expires when the uploader said', asyn
 test('an expiry a minute ago in the uploader\'s zone has passed on the server', async ({ page, recipient, sharePassword }) => {
     await logIn(page);
     await page.getByLabel(/^Expiry date/).fill(tokyoWallClock(Date.now() - 60 * 1000));
-    const link = await shareFile(page, uniqueFile(), sharePassword());
+
+    // The drop is dead the moment it lands, so its success page sends the
+    // uploader back to the index (#233): the link can't be read off that
+    // page, so the id is taken from the success navigation instead. The
+    // password rides the URL fragment, which never reaches the server.
+    const successNavigation = page.waitForRequest((request) => request.url().includes('/success/'));
+    await page.getByLabel('Drop a file here, or browse').setInputFiles(uniqueFile());
+    await page.getByLabel('Password', { exact: true }).fill(sharePassword());
+    await page.getByRole('button', { name: 'Send file' }).click();
+    const fileId = new URL((await successNavigation).url()).pathname.split('/').at(-1);
+    const link = `/view/${fileId}`;
 
     // Read as New York wall-clock time, it would be hours in the future.
     const view = await recipient.goto(link);
