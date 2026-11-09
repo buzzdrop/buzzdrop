@@ -114,7 +114,7 @@ export async function logIn(page, text = EN) {
 export async function shareFile(page, file, password, { memo } = {}) {
     await page.getByLabel('Drop a file here, or browse').setInputFiles(file);
     await page.getByLabel('Password', { exact: true }).fill(password);
-    if (memo !== undefined) await page.getByLabel(/^Memo/).fill(memo);
+    if (memo !== undefined) await page.getByRole('tabpanel').getByLabel(/^Memo/).fill(memo);
     await page.getByRole('button', { name: 'Send file' }).click();
     return shareLink(page);
 }
