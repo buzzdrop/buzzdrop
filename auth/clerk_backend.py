@@ -84,7 +84,10 @@ def _backend_get(path: str):
         return None
     req = urllib.request.Request(
         f'{_BACKEND_API_BASE}{path}',
-        headers={'Authorization': f'Bearer {secret_key}'})
+        # api.clerk.com sits behind Cloudflare bot filtering, which 403s
+        # urllib's default UA.
+        headers={'Authorization': f'Bearer {secret_key}',
+                 'User-Agent': 'buzzdrop/1.0'})
     try:
         with urllib.request.urlopen(req, timeout=_BACKEND_API_TIMEOUT) as resp:
             return json.loads(resp.read())
@@ -203,8 +206,10 @@ class ClerkBackend(AuthBackend):
         # this response via g.csp_extra.
         fapi = frontend_api()
         g.csp_extra = {
-            'script-src': [fapi],
-            'connect-src': [fapi, 'https://clerk-telemetry.com'],
+            # cdn.protect.clerk.com serves Clerk's bot-protection bootstrap.
+            'script-src': [fapi, 'https://cdn.protect.clerk.com'],
+            'connect-src': [fapi, 'https://clerk-telemetry.com',
+                            'https://cdn.protect.clerk.com'],
             'img-src': [fapi, 'https://img.clerk.com'],
             'frame-src': [fapi, 'https://challenges.cloudflare.com'],
             'worker-src': ['blob:'],
