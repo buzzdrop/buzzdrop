@@ -1,9 +1,10 @@
 // Journey 8 (docs/frontend-test-strategy.md §7): on a phone-width viewport
-// the sticky header stays one row, logged out and logged in, and the page
-// doesn't scroll sideways (#232). Desktop Chrome's window can't go this
+// the sticky header stays one row, logged out, logged in and logged in as an
+// admin, whose header is the widest (#299), and the page doesn't scroll
+// sideways (#232). Desktop Chrome's window can't go this
 // narrow, so this is the only place it gets checked.
 import { test, expect } from './fixtures.js';
-import { USER, logIn } from './support.js';
+import { USER, logIn, logInAsAdmin } from './support.js';
 
 /** @typedef {import('@playwright/test').Page} Page */
 /** @typedef {import('@playwright/test').Locator} Locator */
@@ -44,6 +45,22 @@ for (const width of [375, 320]) {
         await expectOneRow(page, [
             language,
             header.getByText(USER.username, { exact: true }),
+            header.getByRole('button', { name: 'Logout' }),
+        ]);
+    });
+}
+
+// An admin's header carries Manage Users too. Below 22rem the username
+// badge gives way to it (templates/base.html), so it isn't checked here.
+for (const width of [375, 320]) {
+    test(`the admin's header stays one row at ${width}px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 740 });
+        const header = page.getByRole('navigation');
+
+        await logInAsAdmin(page);
+        await expectOneRow(page, [
+            header.getByRole('link', { name: 'Manage Users' }),
+            header.getByRole('button', { name: 'Language: English' }),
             header.getByRole('button', { name: 'Logout' }),
         ]);
     });

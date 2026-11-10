@@ -15,6 +15,23 @@ import { bytesToHex } from '../../static/js/lib/hex.js';
 // Matches FLASK_USER_1 in tests/e2e/e2e.env.
 export const USER = { username: 'e2e', password: 'e2e-login-password' };
 
+// Matches FLASK_USER_2 in tests/e2e/e2e.env: the one admin (#299).
+export const ADMIN = { username: 'e2e-admin', password: 'e2e-admin-login-password' };
+
+/** @typedef {{ username: string, password: string }} Account */
+
+/**
+ * The regular user a browser's API-token journey gives its token to:
+ * FLASK_USER_3 to _5 in tests/e2e/e2e.env, one per browser project, as the
+ * three browsers run that journey at once against one database (#299).
+ * Nobody logs in as them.
+ * @param {string} project - the Playwright project name
+ * @returns {string}
+ */
+export function tokenHolder(project) {
+    return `e2e-token-${project}`;
+}
+
 /**
  * The UI text the shared steps find elements by. Journeys run in English
  * (§4), so every step defaults to EN; the Polish journey (#294) passes PL.
@@ -87,21 +104,32 @@ export function uniqueFile() {
 }
 
 /**
+ * Logs in as the regular user, or as `account`.
  * @param {Page} page
  * @param {UiText} [text]
+ * @param {Account} [account]
  */
-export async function logIn(page, text = EN) {
+export async function logIn(page, text = EN, account = USER) {
     await page.goto('/login');
     // The username field's autofocus can land late (WebKit): typing before it
     // does sends the password into the username field (#451).
     await expect(page.getByLabel(text.username)).toBeFocused();
-    await page.getByLabel(text.username).fill(USER.username);
-    await page.getByLabel(text.password).fill(USER.password);
+    await page.getByLabel(text.username).fill(account.username);
+    await page.getByLabel(text.password).fill(account.password);
     await page.getByRole('button', { name: text.login }).click();
     // Module scripts run before DOMContentLoaded: from then on the composer's
     // listeners are wired, and a click is not lost on a half-booted page.
     await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('button', { name: text.sendFile })).toBeVisible();
+}
+
+/**
+ * Logs in as the admin, whose header also offers Manage Users.
+ * @param {Page} page
+ * @param {UiText} [text]
+ */
+export async function logInAsAdmin(page, text = EN) {
+    await logIn(page, text, ADMIN);
 }
 
 /**
