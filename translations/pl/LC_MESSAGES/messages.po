@@ -145,6 +145,10 @@ msgid "Drop too large"
 msgstr "Przesyłka jest za duża"
 
 #: app.py
+msgid "Slow down"
+msgstr "Zwolnij"
+
+#: app.py
 msgid "Page not found"
 msgstr "Nie znaleziono strony"
 
@@ -159,6 +163,14 @@ msgstr "Coś poszło nie tak"
 #: app.py
 msgid "The server hit an error. Please try again in a moment."
 msgstr "Wystąpił błąd serwera. Spróbuj ponownie za chwilę."
+
+#: app.py
+msgid "This request didn't go through"
+msgstr "Nie udało się obsłużyć tego żądania"
+
+#: app.py
+msgid "Go back and try again."
+msgstr "Wróć i spróbuj ponownie."
 
 #: app.py
 msgid "The drop may have been lost when this instance restarted."

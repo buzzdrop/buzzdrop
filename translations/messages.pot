@@ -137,6 +137,10 @@ msgid "Drop too large"
 msgstr ""
 
 #: app.py
+msgid "Slow down"
+msgstr ""
+
+#: app.py
 msgid "Page not found"
 msgstr ""
 
@@ -150,6 +154,14 @@ msgstr ""
 
 #: app.py
 msgid "The server hit an error. Please try again in a moment."
+msgstr ""
+
+#: app.py
+msgid "This request didn't go through"
+msgstr ""
+
+#: app.py
+msgid "Go back and try again."
 msgstr ""
 
 #: app.py

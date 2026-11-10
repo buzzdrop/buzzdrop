@@ -120,14 +120,11 @@ def upload_note(name='upload', share='begin'):
 
 
 def download(name='download', share='begin', ticket=None):
-    # /download answers the ticket or nothing; X-Requested-With is dead
-    # there, so the step doesn't send it.
-    headers = {'X-Download-Ticket': ticket} if ticket is not None else {}
-    step = {'name': name, 'method': 'GET', 'as': None,
+    # /download answers the ticket or nothing. X-Requested-With is sent as
+    # fetchBlob sends it: only the rate limit's 429 reads it, to answer JSON.
+    headers = {**XHR, 'X-Download-Ticket': ticket} if ticket is not None else XHR
+    return {'name': name, 'method': 'GET', 'as': None, 'headers': headers,
             'path': ['/download/', file_id(share)]}
-    if headers:
-        step['headers'] = headers
-    return step
 
 
 def release(name='release', share='begin', v=V):

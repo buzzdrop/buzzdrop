@@ -4,10 +4,15 @@ buttons and the footer note, as the server renders them per page (#232).
 How the header lays out at narrow widths is a visual property; the E2E
 spec tests/e2e/header.spec.js covers it.
 """
+import io
 import re
+from html import unescape
 
 import pytest
 from flask import url_for
+from werkzeug.exceptions import BadRequest, ImATeapot
+
+from app import handle_http_error
 
 
 def _login(client, username='testuser', password='password'):
@@ -117,6 +122,112 @@ def test_footer_links_to_the_source_code(client, endpoint, values):
     footer = _footer(client, endpoint, **values)
     assert 'href="https://github.com/buzzdrop/buzzdrop"' in _tag_with_text(footer, 'Source code')
     assert 'href="https://www.gnu.org/licenses/agpl-3.0.html"' in _tag_with_text(footer, 'AGPL-3.0')
+
+
+def _assert_links_to_source_and_licence(html):
+    footer = re.search(r'<footer\b.*?</footer>', html, re.S)
+    assert footer, 'no <footer>'
+    assert 'href="https://github.com/buzzdrop/buzzdrop"' in _tag_with_text(footer.group(0), 'Source code')
+    assert 'href="https://www.gnu.org/licenses/agpl-3.0.html"' in _tag_with_text(footer.group(0), 'AGPL-3.0')
+
+
+@pytest.fixture
+def rate_limited(app, monkeypatch):
+    """The second of two requests a minute is a 429."""
+    monkeypatch.setitem(app.config, 'PUBLIC_FILE_RATE_LIMIT', '1 per minute')
+    monkeypatch.setitem(app.config, 'REPORT_DECRYPTION_RATE_LIMIT', '1 per minute')
+
+    def second(send):
+        send()
+        return send()
+    return second
+
+
+def test_rate_limit_page_links_to_the_source_code(client, rate_limited):
+    response = rate_limited(lambda: client.get(url_for('view_file', file_id='missing')))
+
+    assert response.status_code == 429
+    html = response.get_data(as_text=True)
+    assert 'Slow down' in html
+    assert 'Too many requests. Please try again later.' in html
+    _assert_links_to_source_and_licence(html)
+
+
+def test_rate_limit_answers_xhr_clients_with_json(client, rate_limited):
+    response = rate_limited(lambda: client.get(url_for('view_file', file_id='missing'),
+                                               headers={'X-Requested-With': 'XMLHttpRequest'}))
+
+    assert response.status_code == 429
+    assert response.get_json() == {'error': 'Too many requests. Please try again later.', 'code': 'rate_limited'}
+
+
+def test_rate_limit_answers_a_json_body_with_json(client, rate_limited):
+    # The browser's receipt report is a plain fetch with a JSON body and no
+    # X-Requested-With; no page navigation sends JSON.
+    response = rate_limited(lambda: client.post(url_for('report_decryption', file_id='missing-id'),
+                                                json={'success': False}))
+
+    assert response.status_code == 429
+    assert response.get_json() == {'error': 'Too many requests. Please try again later.', 'code': 'rate_limited'}
+
+
+def _allowed(response):
+    return {method.strip() for method in response.headers['Allow'].split(',')}
+
+
+def test_method_not_allowed_page_links_to_the_source_code(client):
+    response = client.get(url_for('set_language'))
+
+    assert response.status_code == 405
+    assert _allowed(response) == {'OPTIONS', 'POST'}
+    html = response.get_data(as_text=True)
+    assert "This request didn't go through" in unescape(html)
+    _assert_links_to_source_and_licence(html)
+
+
+def test_method_not_allowed_answers_api_clients_with_json(client):
+    response = client.get(url_for('create_api_token'))
+
+    assert response.status_code == 405
+    assert _allowed(response) == {'OPTIONS', 'POST'}
+    assert response.get_json() == {'error': 'Method Not Allowed', 'code': 'method_not_allowed'}
+
+
+def test_bad_request_page_links_to_the_source_code(app):
+    # No route raises a bare 400 today, so the handler is called directly.
+    with app.test_request_context('/'):
+        response = app.make_response(handle_http_error(BadRequest()))
+
+    assert response.status_code == 400
+    _assert_links_to_source_and_licence(response.get_data(as_text=True))
+
+
+def test_bad_request_answers_api_clients_with_json(app):
+    with app.test_request_context('/api/token'):
+        response = app.make_response(handle_http_error(BadRequest()))
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Bad Request', 'code': 'bad_request'}
+
+
+def test_an_unlisted_status_answers_api_clients_with_the_generic_code(app):
+    with app.test_request_context('/api/token'):
+        response = app.make_response(handle_http_error(ImATeapot()))
+
+    assert response.status_code == 418
+    assert response.get_json() == {'error': "I'm a teapot", 'code': 'http_error'}
+
+
+def test_too_large_drop_lands_on_a_page_that_links_to_the_source_code(app, client, monkeypatch):
+    _login(client)
+    monkeypatch.setitem(app.config, 'MAX_CONTENT_LENGTH', 10)
+
+    response = client.post(url_for('upload_file'), data={'file': (io.BytesIO(b'more than ten bytes'), 'big.txt')},
+                           content_type='multipart/form-data', follow_redirects=True)
+
+    html = response.get_data(as_text=True)
+    assert 'Drop too large' in html
+    _assert_links_to_source_and_licence(html)
 
 
 def test_footer_source_link_shows_the_github_icon(client):

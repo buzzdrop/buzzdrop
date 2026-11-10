@@ -121,6 +121,7 @@
               }
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -175,6 +176,7 @@
               }
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -334,6 +336,7 @@
               }
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -1159,7 +1162,10 @@
               {
                 "$ref": "begin.file_id"
               }
-            ]
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
           },
           "response": {
             "status": 403,
@@ -2236,7 +2242,10 @@
             "path": [
               "/download/",
               "00000000-0000-4000-8000-00000000dead"
-            ]
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
           },
           "response": {
             "status": 403,
@@ -2258,6 +2267,7 @@
               "00000000-0000-4000-8000-00000000dead"
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": "2222222222222222222222222222222222222222222222222222222222222222"
             }
           },
@@ -2305,7 +2315,10 @@
               {
                 "$ref": "begin-unfinished.file_id"
               }
-            ]
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
           },
           "response": {
             "status": 403,
@@ -2403,7 +2416,10 @@
               {
                 "$ref": "begin.file_id"
               }
-            ]
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
           },
           "response": {
             "status": 403,
@@ -2457,6 +2473,7 @@
               }
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": "2222222222222222222222222222222222222222222222222222222222222222"
             }
           },
@@ -2482,6 +2499,7 @@
               }
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -2507,6 +2525,7 @@
               }
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -2640,6 +2659,7 @@
               }
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -2668,6 +2688,7 @@
               }
             ],
             "headers": {
+              "X-Requested-With": "XMLHttpRequest",
               "X-Download-Ticket": {
                 "$ticket": "release"
               }
@@ -3293,7 +3314,10 @@
               {
                 "$ref": "begin.file_id"
               }
-            ]
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
           },
           "response": {
             "status": 403,
@@ -3316,14 +3340,20 @@
               {
                 "$ref": "begin.file_id"
               }
-            ]
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest"
+            }
           },
           "response": {
             "status": 429,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8"
+              "Content-Type": "application/json"
             },
-            "bodyBase64": "VG9vIG1hbnkgcmVxdWVzdHMuIFBsZWFzZSB0cnkgYWdhaW4gbGF0ZXIu"
+            "json": {
+              "code": "rate_limited",
+              "error": "Too many requests. Please try again later."
+            }
           }
         }
       ]
@@ -3595,9 +3625,12 @@
           "response": {
             "status": 429,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8"
+              "Content-Type": "application/json"
             },
-            "bodyBase64": "VG9vIG1hbnkgcmVxdWVzdHMuIFBsZWFzZSB0cnkgYWdhaW4gbGF0ZXIu"
+            "json": {
+              "code": "rate_limited",
+              "error": "Too many requests. Please try again later."
+            }
           }
         }
       ]
@@ -7356,9 +7389,12 @@
           "response": {
             "status": 429,
             "headers": {
-              "Content-Type": "text/html; charset=utf-8"
+              "Content-Type": "application/json"
             },
-            "bodyBase64": "VG9vIG1hbnkgcmVxdWVzdHMuIFBsZWFzZSB0cnkgYWdhaW4gbGF0ZXIu"
+            "json": {
+              "code": "rate_limited",
+              "error": "Too many requests. Please try again later."
+            }
           }
         }
       ]
