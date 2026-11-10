@@ -1520,15 +1520,20 @@ def upload(server: str, token: str, filename: str, encrypted: bytes,
     ``file_id`` + ``key_verifier`` complete the two-phase key-release
     handshake started by upload_begin() (docs/true-one-time.md §6.3);
     ``receipt_hash`` is the SHA-256 of the in-ciphertext decryption
-    receipt.
+    receipt. ``filename`` contributes only its extension — the real name
+    stays inside the ciphertext (#246).
 
     The body is streamed in 64 KB chunks so that a live progress bar can be
     rendered while data travels over the network.
     """
     requests = _requests()
 
+    # The name stays inside the ciphertext: the multipart filename is a
+    # neutral "drop.<ext>" carrying only the extension the server's
+    # ALLOWED_EXTENSIONS gate checks (#246).
+    ext = os.path.basename(filename).rsplit('.', 1)[-1].lower()
     files = {
-        'file': (os.path.basename(filename), BytesIO(encrypted), 'application/octet-stream'),
+        'file': (f'drop.{ext}', BytesIO(encrypted), 'application/octet-stream'),
     }
     data = {
         'file_id': file_id,

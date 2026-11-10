@@ -9,7 +9,8 @@ test('the uploader deletes a file and the link is dead', async ({ page, recipien
     const file = uniqueFile();
 
     await logIn(page);
-    const link = await shareFile(page, file, sharePassword());
+    // The list no longer names files (#246): the memo is the row's title.
+    const link = await shareFile(page, file, sharePassword(), { memo: file.name });
 
     // Other tests' files share the list, so search for this one's own row.
     await page.goto('/');

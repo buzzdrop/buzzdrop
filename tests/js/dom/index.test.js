@@ -481,7 +481,7 @@ describe('index page', () => {
             expect(copyLinkButton('Note · 15:35')).toBeVisible();
             expect(queryCopyLinkButton('photo.png')).toBeNull();
             expect(queryCopyLinkButton('old.txt')).toBeNull();
-            expect(queryCopyLinkButton('locked.zip')).toBeNull();
+            expect(queryCopyLinkButton('File · 06:00')).toBeNull();
         });
     });
 
@@ -665,7 +665,7 @@ describe('index page', () => {
             expect(shareRow('report.pdf').getByText('Active')).toBeVisible();
             expect(shareRow('photo.png').getByText('Decrypted')).toBeVisible();
             expect(shareRow('old.txt').getByText('Expired')).toBeVisible();
-            expect(shareRow('locked.zip').getByText('Locked')).toBeVisible();
+            expect(shareRow('File · 06:00').getByText('Locked')).toBeVisible();
         });
 
         it('titles a text note by its memo, or else by its time', () => {
@@ -740,7 +740,7 @@ describe('index page', () => {
 
             expect(screen.getByRole('combobox', { name: 'Sort by' })).toHaveDisplayValue('Sent (newest)');
             expect(upload.sharesShown()).toEqual(
-                ['Note · 15:35', 'report.pdf', 'For the auditor', 'photo.png', 'old.txt', 'locked.zip']);
+                ['Note · 15:35', 'report.pdf', 'For the auditor', 'photo.png', 'old.txt', 'File · 06:00']);
 
             await upload.sortSharesBy('Expiry (soonest)');
 
@@ -773,7 +773,7 @@ describe('index page', () => {
             await upload.nextSharesPage();
             await upload.nextSharesPage();
 
-            expect(upload.sharesShown()).toEqual(['old.txt', 'locked.zip']);
+            expect(upload.sharesShown()).toEqual(['old.txt', 'File · 06:00']);
             expect(screen.getByText('Page 3 of 3')).toBeVisible();
             expect(screen.getByText('Showing 5–6 of 6 drops')).toBeVisible();
             expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();

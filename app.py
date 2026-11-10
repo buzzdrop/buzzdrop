@@ -24,7 +24,6 @@ from flask import (
     has_app_context,
 )
 from werkzeug.exceptions import InternalServerError, NotFound, RequestEntityTooLarge
-from werkzeug.utils import secure_filename
 from flask_limiter import Limiter
 from typing import NamedTuple, Optional
 from db import create_backend
@@ -38,7 +37,7 @@ env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
 # Import new modules AFTER loading .env
-from config import get_config, is_production
+from config import get_config, is_production, check_runtime_config
 from storage import get_storage_backend, print_backend_info, StorageError
 from auth import login_required, json_login_required, admin_required, api_auth_required, bearer_token, get_users, get_current_user, get_auth_backend, start_session, logout_user
 from timestamps import now_iso, parse_expiry, parse_timestamp, to_utc_iso, utcnow
@@ -63,6 +62,10 @@ app = Flask(__name__)
 # Load configuration
 config_class = get_config()
 app.config.from_object(config_class)
+
+# A key from_object never copied (or a subclass never defined) would die
+# as a 500 on the first request that reads it — fail now (#220).
+check_runtime_config(app.config)
 
 # Handle SECRET_KEY: outside production, generate a temporary one. In
 # production config_class.validate() below refuses to start without it.
@@ -271,7 +274,7 @@ def _open_notification_text(file_info: dict):
 
     is_note = file_info.get('type') == 'text'
     # Email subjects are not private (notification previews, provider
-    # logs) — the filename stays out of the subject line, period.
+    # logs) — and the server has no filename to leak anywhere now (#246).
     subject = _('Buzzdrop note opened') if is_note else _('Buzzdrop file opened')
     opened_at = parse_timestamp(file_info.get('downloaded_at')) or utcnow()
     lines = [
@@ -279,9 +282,8 @@ def _open_notification_text(file_info: dict):
         '',
         _('Type: %(type)s', type=_('Note') if is_note else _('File')),
     ]
-    # A note has no name of its own.
-    if not is_note:
-        lines.append(_('Original name: %(name)s', name=file_info.get('original_name') or ''))
+    # The drop's name is not in here on purpose: it stays inside the
+    # ciphertext, so the server — and this email — never has it (#246).
     lines += [
         # An email has no browser to localize it: DEFAULT_TIMEZONE, named.
         # Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35 CET".
@@ -1436,9 +1438,10 @@ def upload_file():
         flash(_('No selected file'))
         return redirect(url_for('index'))
     
+    # The multipart filename is ignored beyond its extension: the client
+    # sends a neutral "drop.<ext>" and the real name rides inside the
+    # ciphertext, so nothing here may store it (#246).
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-
         # The file_id was minted by /upload/begin
         unique_id = file_id
 
@@ -1465,7 +1468,9 @@ def upload_file():
         try:
             file_path = storage.save(unique_id, file)
             file_repo.create({
-                'original_name': filename,
+                # A neutral label, like a note's "Secret Note": the list
+                # titles the drop by its memo or its sent time instead.
+                'original_name': 'File',
                 'path': file_path,
                 'uploaded_by': g.username,
                 'expiry_at': expiry_iso,
@@ -1624,6 +1629,12 @@ def delete_file(file_id):
 def upload_success(file_id):
     file_info = file_repo.get_by_id(file_id)
     if not file_info or file_info.get('uploaded_by') != get_current_user()['username']:
+        flash(_('Drop not found'))
+        return redirect(url_for('index'))
+    # A drop already opened or expired has no live link to celebrate —
+    # answer like a drop that isn't there (#233).
+    if (file_info.get('downloaded_at') is not None
+            or check_and_handle_expiry(file_info)):
         flash(_('Drop not found'))
         return redirect(url_for('index'))
     share_link = url_for('view_file', file_id=file_id, _external=True)

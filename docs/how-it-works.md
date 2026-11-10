@@ -4,7 +4,7 @@ The user-facing account of what happens when you share a file or a note with Buz
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
-<!-- how-it-works-fingerprint: sha256:99b5d55ae5037c9ff0ec18c7c69c91fdae71a2990dd3d9efc1179a631eb368da -->
+<!-- how-it-works-fingerprint: sha256:4c410fab3bfe84b1bb46e80aeb47fa5123aef6b841cf430ef68da7d8ee3d8fe2 -->
 
 > **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto (drops and dropzone submissions), the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release and dropzone defaults, and the server code that releases, serves, expires and deletes a drop or a dropzone submission (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc against the change, fix what is now wrong (and, if a claim the Website's explainer makes has changed, open an issue in `buzzdrop/website`), and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer — keep in step" says the same for reviewers.
 
@@ -12,7 +12,7 @@ The design behind it, and the reasoning for each choice, is in [`true-one-time.m
 
 - **We can't read your files or notes.** Encryption happens in the sender's browser (or terminal). The server only ever holds ciphertext, and it never sees the password.
 - **One time really means one time.** The server holds half of the key and gives it out once, only to someone who proves they know the password. Then it destroys it.
-- **We do keep some metadata.** Who uploaded what and when, the filename of a file, when it was opened and from which IP address. See [What we keep, and for how long](#what-we-keep).
+- **We do keep some metadata.** Who uploaded what and when, when it was opened and from which IP address. See [What we keep, and for how long](#what-we-keep).
 
 ## Two switches, one protocol
 
@@ -30,13 +30,13 @@ Whether you send from the web app or the `buzz` CLI, and whether you send a file
 |---|---|---|
 | Step 3 upload | the ciphertext as a multipart `file` | the ciphertext, base64-encoded, in a `note_text` field |
 | End of step 7 | saved as a download | shown on the page, with Copy |
-| What the server sees | ciphertext, its approximate size, and the **original filename in plain text** | ciphertext, its approximate size, and the label "Secret Note" |
+| What the server sees | ciphertext, its approximate size, and the declared file extension | ciphertext, its approximate size, and the label "Secret Note" |
 
 The recipient's side (steps 5–7) always runs in a browser, whichever sender was used.
 
 **CLI + text note doesn't exist yet.** `buzz` only sends files (no note mode, no stdin), so a text note can only be sent from the web app. That changes when [#247](https://github.com/buzzdrop/buzzdrop/issues/247) (CLI note mode) lands.
 
-**The filename is sender-facing, not recipient-facing.** A file's name still travels in plain text at upload (the multipart filename) and is stored so the sender's drop list can show it. But it is never rendered to whoever holds only the link: the recipient's pages stay nameless, the download's `Content-Disposition` is neutral, and the name the browser finally saves the file under arrives inside the ciphertext itself — readable only after the password held ([#246](https://github.com/buzzdrop/buzzdrop/issues/246)).
+**The filename never reaches the server.** A file's name rides inside the ciphertext, readable only after the password held: the upload's multipart filename is a neutral `drop.<ext>` — the extension alone, which is all `ALLOWED_EXTENSIONS` can still check — and the drop's record stores the label "File", like a note's "Secret Note". The recipient's pages stay nameless, the download's `Content-Disposition` is neutral, and the sender's list titles a drop by the sender's own memo or its sent time ([#246](https://github.com/buzzdrop/buzzdrop/issues/246)).
 
 ## The flow
 
@@ -67,10 +67,10 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 
 - **Who acts:** the sender's browser or terminal, then the server.
 - **What crosses the wire:** `POST /upload` with the ciphertext, the `file_id`, `V` and `SHA-256(receipt)`, authenticated the same way as step 1. Only the account that ran step 1 may finish it.
-- **What the server sees:** the ciphertext and its approximate size, `V`, the receipt's hash, the expiry you chose, an optional private note to yourself, and for a file its original filename. It stores the ciphertext (on disk or in S3) and binds `V` to `H`.
+- **What the server sees:** the ciphertext and its approximate size, `V`, the receipt's hash, the expiry you chose, an optional private note to yourself, and for a file its declared extension. It stores the ciphertext (on disk or in S3) and binds `V` to `H`.
 - **Never sees:** the password, `Kp` and the content.
 - **Why:** `V` lets the server check the password later without ever learning it. `V` can't be turned back into `Kp`.
-- **Content switch:** a file goes up as a multipart `file`, with its filename. A text note goes up as base64 in a `note_text` field, labelled "Secret Note".
+- **Content switch:** a file goes up as a multipart `file` under a neutral `drop.<ext>` filename — the extension feeds the `ALLOWED_EXTENSIONS` check, the real name is inside the ciphertext. A text note goes up as base64 in a `note_text` field, labelled "Secret Note".
 
 <a id="step-share"></a>
 
@@ -187,7 +187,7 @@ The same guarantees, direction reversed: a requester creates a one-time dropzone
 |---|---|---|
 | Content | ciphertext and its approximate size | the plaintext |
 | Password | `V`, a one-way fingerprint of it | the password, `Kp`, the file key |
-| Name | a file's original filename; for a note, the label "Secret Note" | — |
+| Name | a file's declared extension; the labels "File"/"Secret Note" | a file's original filename |
 | People | the sender's account; the recipient's IP address | who the recipient is |
 
 <a id="what-we-keep"></a>
@@ -196,7 +196,7 @@ The same guarantees, direction reversed: a requester creates a one-time dropzone
 
 - **The ciphertext:** until it is downloaded, it expires, or the sender deletes it. Then it is deleted from storage.
 - **`H` and `V`:** until the release succeeds, the drop locks, it expires, or it is deleted. Whichever comes first destroys them. With `KEY_RELEASE_BURN_ON_LOCKOUT` off, a locked drop keeps them (refusing every attempt) until it expires or is deleted.
-- **The drop's record:** the filename (or "Secret Note"), the sender's account, when it was created, its expiry, when it was opened and from which IP address, whether decryption worked, the receipt's hash, and the sender's optional private note and notification address; also the language it was sent in, which the notification is written in. Beside it stays what is left of the key share once `H` and `V` are gone (its `file_keys` row): the password's salt, the sending account, the count of wrong attempts and when it was released. All of it stays in the sender's list until the sender deletes it; there is no automatic purge.
+- **The drop's record:** a neutral label ("File" or "Secret Note"), the sender's account, when it was created, its expiry, when it was opened and from which IP address, whether decryption worked, the receipt's hash, and the sender's optional private note and notification address; also the language it was sent in, which the notification is written in. Beside it stays what is left of the key share once `H` and `V` are gone (its `file_keys` row): the password's salt, the sending account, the count of wrong attempts and when it was released. All of it stays in the sender's list until the sender deletes it; there is no automatic purge.
 - **The dropzone's record:** the requester's account, when it was created, its expiry, when the request link was consumed, when it was released and collected and from which IP address, the count of wrong attempts, the password's salt, and the requester's optional memo, notification address and language. The submission's record keeps its kind (file or note), `wK`, the receipt's hash, the responder's IP and whether decryption worked. `wS`, `V` and `SV` are wiped as each step lands — on release or lockout burn, or on expiry only while the link is still unspent (a landed submission outlives the request link's deadline; expiry bounds submission, not collection). All of it stays in the requester's list until they delete the zone.
 - **Server logs:** every successful or wrong release attempt is logged with the requester's IP address. How long logs are kept is up to whoever runs the server.
 

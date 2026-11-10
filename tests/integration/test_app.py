@@ -35,10 +35,10 @@ def upload_file_for_user(client, app, files_store, filename, content, username_f
     # Make sure to use the logged-in client to POST
     response = client.post(url_for('upload_file'), data=file_data, content_type='multipart/form-data')
 
-    # Get file_id from DB to return
-
-    # Query by original_name AND the user who uploaded it to ensure uniqueness if multiple users upload same filename
-    file_info = files_store.get_by(original_name=filename, uploaded_by=username_for_db_record)
+    # The row is the share this helper minted: query it by id. (The
+    # multipart filename is no longer stored, so it cannot key the
+    # lookup, #246.)
+    file_info = files_store.get_by_id(file_id)
     return (file_info['id'], receipt.hex()) if file_info else (None, None)
 
 def test_index_anonymous_user_is_sent_to_login(client):
@@ -165,7 +165,10 @@ def test_index_logged_in_user_with_own_files(client, app, files_store):
     response = client.get(url_for('index'))
     assert response.status_code == 200
     assert b'Your drops' in response.data # This section title should now appear
-    assert b'my_document.txt' in response.data
+    # The stored name is a neutral label (#246): the list titles the drop
+    # "File · HH:MM", and the real filename is nowhere on the page.
+    assert 'File \u00b7'.encode() in response.data
+    assert b'my_document.txt' not in response.data
     assert b'id="shared-files-search"' in response.data
     assert b'id="shared-files-sort"' in response.data
     assert b'value="uploaded:desc" selected' in response.data
@@ -252,7 +255,8 @@ def test_index_logged_in_user_sees_own_private_note(client, app, files_store):
 
     response = client.get(url_for('index'))
     assert response.status_code == 200
-    assert b'noted_document.txt' in response.data
+    # The memo is the drop's title now; the filename never appears (#246).
+    assert b'noted_document.txt' not in response.data
     assert b'haslo do wordpressa' in response.data
 
 def test_index_logged_in_user_with_shared_files(client, app, files_store):
@@ -351,7 +355,9 @@ def test_index_lists_own_files_newest_upload_first(client, app, files_store):
                                 ('c-middle', '2025-01-02T12:00:00')):
         files_store.insert({
             'id': file_id,
-            'original_name': f'{file_id}.txt',
+            # The stored label is neutral (#246): a memo titles the row.
+            'original_name': 'File',
+            'private_note': f'{file_id}.txt',
             'path': f'/fake/{file_id}',
             'uploaded_by': 'testuser',
             'created_at': created_at,

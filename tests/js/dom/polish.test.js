@@ -71,7 +71,9 @@ describe('in Polish', () => {
     });
 
     it('serves the success page for a file', () => {
-        const success = openSuccessPage({ language: 'pl' });
+        // The one-click section only renders once the fragment supplied a
+        // password (#233).
+        const success = openSuccessPage({ language: 'pl', link: 'one-click' });
 
         expect(success.language()).toBe('pl');
         expect(screen.getByRole('heading', { level: 1, name: 'Plik jest w\u00a0ulu' })).toBeVisible();
@@ -184,7 +186,7 @@ describe('in Polish', () => {
         expect(row('report.pdf').getByText('Aktywna')).toBeVisible();
         expect(row('photo.png').getByText('Odszyfrowana')).toBeVisible();
         expect(row('old.txt').getByText('Wygasła')).toBeVisible();
-        expect(row('locked.zip').getByText('Zablokowana')).toBeVisible();
+        expect(row('Plik · 06:00').getByText('Zablokowana')).toBeVisible();
         expect(row('Notatka · 15:35').getByText('Bez terminu')).toBeVisible();
         expect(row('report.pdf').getByText('Jeszcze nie')).toBeVisible();
         expect(screen.getByRole('combobox', { name: 'Sortuj według' })).toHaveDisplayValue('Najnowsze wysłane');

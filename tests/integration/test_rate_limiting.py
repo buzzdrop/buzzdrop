@@ -145,7 +145,7 @@ def test_public_file_rate_limit_is_shared_across_view_and_download(client, app, 
     )
     assert upload.status_code == 200
 
-    file_info = files_store.get_by(original_name='shared.txt')
+    file_info = files_store.get_by_id(file_id)
     assert file_info is not None
 
     first = client.get(url_for('view_file', file_id=file_info['id']))

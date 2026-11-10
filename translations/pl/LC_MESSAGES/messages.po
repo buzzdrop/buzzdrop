@@ -96,14 +96,9 @@ msgstr "Typ: %(type)s"
 msgid "Note"
 msgstr "Notatka"
 
-#: app.py templates/_composer.html
+#: app.py templates/_composer.html utils.py
 msgid "File"
 msgstr "Plik"
-
-#: app.py
-#, python-format
-msgid "Original name: %(name)s"
-msgstr "Nazwa pliku: %(name)s"
 
 #. Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35
 #. CET".
@@ -245,6 +240,13 @@ msgstr "Wygasła"
 #, python-format
 msgid "Note · %(time)s"
 msgstr "Notatka · %(time)s"
+
+#. the title of a file sent without a memo; %(time)s is when it was sent, e.g.
+#. "21:35".
+#: templates/_shared_files_strings.html utils.py
+#, python-format
+msgid "File · %(time)s"
+msgstr "Plik · %(time)s"
 
 #: auth/decorators.py
 msgid "Please log in to access this page"
@@ -1042,13 +1044,11 @@ msgstr "Poproś kogoś o plik lub notatkę"
 msgid ""
 "<strong>Encrypt a file or a note in your browser</strong>, send one link,"
 " and let the drop delete itself the moment it is downloaded. The contents"
-" are ciphertext to the server; details like the filename and your memo "
-"are not."
+" and the filename are ciphertext to the server; your memo is not."
 msgstr ""
 "<strong>Zaszyfruj plik albo notatkę w przeglądarce</strong>, wyślij jeden"
 " link, a przesyłka usunie się sama, gdy tylko zostanie pobrana. Dla "
-"serwera treść to szyfrogram; szczegóły takie jak nazwa pliku czy twój "
-"dopisek – już nie."
+"serwera treść i nazwa pliku to szyfrogram; twój dopisek – już nie."
 
 #: templates/index.html
 msgid "What are you sending?"
@@ -1343,6 +1343,16 @@ msgstr ""
 #: templates/success.html
 msgid "Link"
 msgstr "Link"
+
+#: templates/success.html
+msgid ""
+"The password is shown once, right after the upload, and is never stored. "
+"The link above still works — copy it here or from Your drops; if the "
+"password is lost, create a new drop."
+msgstr ""
+"Hasło pokazujemy tylko raz, zaraz po wysłaniu, i nigdzie go nie "
+"zapisujemy. Link powyżej nadal działa — skopiuj go stąd albo z listy "
+"„Twoje przesyłki”; jeśli hasło zaginęło, utwórz nową przesyłkę."
 
 #: templates/success.html
 msgid "One-click link"

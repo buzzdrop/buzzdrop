@@ -47,7 +47,7 @@
   - It also fixes drop links: behind a TLS proxy, `url_for(_external=True)` and `request.is_secure` follow `X-Forwarded-Proto` in both modes.
 - **Notifications** (uploader emails, sent once the recipient's decryption report arrives): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `SMTP_USE_TLS`, `SMTP_USE_SSL`, `SMTP_TIMEOUT_SECONDS` (examples in `.env.example`). They are off unless both `SMTP_HOST` and `SMTP_FROM_EMAIL` are set.
   - `DEFAULT_TIMEZONE` (default `Europe/Warsaw`) is the zone of their times (root `CLAUDE.md`, *Timestamps are UTC*).
-  - A subject never carries the filename: subjects show up in previews and provider logs.
+  - The notification never carries the filename: the server no longer has it (#246), and subjects show up in previews and provider logs regardless.
 
 ## Deployment
 

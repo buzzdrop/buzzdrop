@@ -36,7 +36,10 @@ def upload_file_for_user(client, app, files_store, filename, content, username_f
     client.post(url_for('upload_file'), data=file_data, content_type='multipart/form-data')
 
 
-    file_info = files_store.get_by(original_name=filename, uploaded_by=username_for_db_record)
+    # The row is the share this helper minted: query it by id. (The
+    # multipart filename is no longer stored, so it cannot key the
+    # lookup, #246.)
+    file_info = files_store.get_by_id(file_id)
     return (file_info['id'], receipt.hex()) if file_info else (None, None)
 
 def test_upload_file_requires_login(client):
@@ -63,7 +66,9 @@ def test_upload_file_success(client, app, files_store, key_release_upload):
 
     file_info = files_store.get_by_id(file_id)
     assert file_info is not None
-    assert file_info['original_name'] == file_name
+    # The multipart filename is not stored: the row keeps a neutral label
+    # while the real name rides inside the ciphertext (#246).
+    assert file_info['original_name'] == 'File'
     assert file_info['uploaded_by'] == 'testuser'
 
     # Use the path from file_info which is set by storage backend
@@ -494,10 +499,10 @@ def test_report_decryption_sends_notification_once(client, app, files_store, mon
 
     assert len(sent_messages) == 1
     assert sent_messages[0][0] == 'testuser@example.com'
-    # Email subjects are not private — the filename never leaks into the
-    # subject; it may still appear in the uploader-only body.
+    # The filename is nowhere in the notification: the server never had
+    # it — it stayed inside the ciphertext (#246).
     assert 'notify_once.txt' not in sent_messages[0][1]
-    assert 'notify_once.txt' in sent_messages[0][2]
+    assert 'notify_once.txt' not in sent_messages[0][2]
     assert 'Decryption status: successful' in sent_messages[0][2]
     # An email has no browser to show the time in the reader's zone: it is
     # written in DEFAULT_TIMEZONE, not UTC and not the host's zone (#250).

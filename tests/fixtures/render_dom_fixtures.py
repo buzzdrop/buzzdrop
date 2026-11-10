@@ -36,6 +36,9 @@ RECEIPT_HASH = 'ab' * 32
 def _file(file_id, name, **fields):
     record = {
         'id': file_id,
+        # The stored name is a neutral label (#246): a file's list title
+        # is its memo, or its sent time when the sender left none — so
+        # most listed rows below carry their old name as private_note.
         'original_name': name,
         'path': f'uploads/{file_id}',
         'uploaded_by': 'testuser',
@@ -80,21 +83,25 @@ LOCKED_DROPZONE = {**OPEN_DROPZONE, 'id': '00000000-0000-4000-8000-0000000000d3'
 LISTED_FILES = [
     _file('00000000-0000-4000-8000-000000000006', 'Secret Note', type='text',
           created_at='2025-01-06T20:35:00.000000+00:00'),
-    _file('00000000-0000-4000-8000-000000000001', 'report.pdf',
+    _file('00000000-0000-4000-8000-000000000001', 'File',
+          private_note='report.pdf',
           created_at='2025-01-05T11:00:00.000000+00:00', expiry_at=FUTURE),
     _file('00000000-0000-4000-8000-000000000002', 'Secret Note', type='text',
           created_at='2025-01-04T11:00:00.000000+00:00', private_note='For the auditor'),
-    _file('00000000-0000-4000-8000-000000000003', 'photo.png',
+    _file('00000000-0000-4000-8000-000000000003', 'File',
+          private_note='photo.png',
           created_at='2025-01-03T11:00:00.000000+00:00', downloaded_at='2025-01-06T08:30:00.000000+00:00',
           downloaded_by_ip='203.0.113.7', decryption_success=True),
-    _file('00000000-0000-4000-8000-000000000004', 'old.txt',
+    _file('00000000-0000-4000-8000-000000000004', 'File',
+          private_note='old.txt',
           created_at='2025-01-02T11:00:00.000000+00:00', expiry_at=PAST, status='expired'),
     # Key-release lockout: the browser fetches the blob before it asks for
-    # the key, so a locked-out drop was downloaded but never decrypted.
-    _file('00000000-0000-4000-8000-000000000007', 'locked.zip',
+    # the key, so a locked-out drop was downloaded but never decrypted. No
+    # memo: this row titles itself "File · HH:MM" (#246).
+    _file('00000000-0000-4000-8000-000000000007', 'File',
           downloaded_at='2025-01-05T07:00:00.000000+00:00', downloaded_by_ip='203.0.113.9',
           decryption_success=False),
-    _file('00000000-0000-4000-8000-000000000005', 'shared.docx',
+    _file('00000000-0000-4000-8000-000000000005', 'File',
           uploaded_by='adminuser', shared_with=['testuser']),
 ]
 # Two existing tokens so the /users token table renders a row that was used
@@ -112,7 +119,7 @@ API_TOKENS = [{
     'last_used_at': '2025-01-06T08:30:00.000000+00:00',
     'expires_at': FUTURE,
 }]
-SHARE_FILE = _file('00000000-0000-4000-8000-0000000000f1', 'contract.pdf')
+SHARE_FILE = _file('00000000-0000-4000-8000-0000000000f1', 'File')
 SHARE_TEXT = _file('00000000-0000-4000-8000-0000000000f2', 'Secret Note', type='text')
 # The bound share behind each view fixture — the salt it carries lands in
 # view-config-json; the JS page drivers substitute the real share's salt.

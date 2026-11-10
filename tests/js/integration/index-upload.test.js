@@ -118,7 +118,9 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
                 expect(field(request, 'file')).toBeNull();
             } else {
                 const file = field(request, 'file');
-                expect(file instanceof File && file.name).toBe(FILE_NAME);
+                // The name stays inside the ciphertext; the multipart
+                // filename is the neutral "drop.<ext>" (#246).
+                expect(file instanceof File && file.name).toBe('drop.pdf');
                 expect(field(request, 'note_text')).toBeNull();
             }
             // Options left unset are left out.
@@ -227,6 +229,21 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
                 const text = await requestText(request);
                 expect(text).not.toContain(PASSWORD);
                 expect(text).not.toContain(encodeURIComponent(PASSWORD));
+            }
+        });
+
+        it('the filename never reaches the server', async () => {
+            // The name is sealed inside the ciphertext; every request the
+            // page sends carries at most the neutral "drop.<ext>" (#246).
+            const upload = openUploadPage({ account: 'with-email', crypto: 'real' });
+            await upload.setSendOptions(SEND_OPTIONS);
+            await sendIn(upload, 'file');
+
+            expect(upload.sendError()).toBe('');
+            expect(upload.requestsSent()).toHaveLength(2);
+            for (const request of upload.requestsSent()) {
+                const text = await requestText(request);
+                expect(text).not.toContain(FILE_NAME);
             }
         });
 

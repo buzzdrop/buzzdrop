@@ -16,7 +16,7 @@ Every stored time is a UTC string from `timestamps.py` (root `CLAUDE.md`, *Times
 
 ## `files`
 
-- `id` (UUID), `original_name`, `path` (local path or S3 key), `type` (`'file'` or `'text'` for text notes)
+- `id` (UUID), `original_name` — a neutral label (`'File'`/`'Secret Note'`): the real name rides inside the ciphertext (#246), `path` (local path or S3 key), `type` (`'file'` or `'text'` for text notes)
 - `created_at`, `downloaded_at`, `expiry_at`
 - `uploaded_by` (username), `status` (active/expired), `downloaded_by_ip`
 - `decryption_success`: a bool, NULL-guarded and written once. Whichever lands first wins:

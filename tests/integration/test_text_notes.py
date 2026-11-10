@@ -422,3 +422,22 @@ def test_success_route_says_drop_not_found_for_other_users_share_in_the_page_lan
 
     assert response.request.path == url_for('index')
     assert 'Nie znaleziono przesyłki' in response.get_data(as_text=True)
+
+
+def test_success_route_gone_drop_answers_like_not_found(client, app, files_store, claim_ticket):
+    """An already-opened drop has no live link to celebrate: /success
+    answers exactly like a drop that isn't there (#233)."""
+    login_user(client, 'testuser', 'password')
+    file_id = upload_note(client, files_store).get_json()['file_id']
+
+    from conftest import ticket_headers
+    client.get(url_for('download_file', file_id=file_id),
+               headers=ticket_headers(claim_ticket(file_id)))
+
+    gone = client.get(url_for('upload_success', file_id=file_id), follow_redirects=True)
+    missing = client.get(url_for('upload_success', file_id='no-such-id'), follow_redirects=True)
+
+    assert gone.status_code == missing.status_code
+    assert gone.request.path == missing.request.path == url_for('index')
+    assert b'Drop not found' in gone.data
+    assert b'is in the hive' not in gone.data
