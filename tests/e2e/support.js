@@ -12,24 +12,37 @@ import { bytesToHex } from '../../static/js/lib/hex.js';
  * @typedef {{ name: string, mimeType: string, buffer: Buffer }} FilePayload
  */
 
+/** @typedef {{ username: string, password: string }} Account */
+
 // Matches FLASK_USER_1 in tests/e2e/e2e.env.
+/** @type {Account} */
 export const USER = { username: 'e2e', password: 'e2e-login-password' };
 
 // Matches FLASK_USER_2 in tests/e2e/e2e.env: the one admin (#299).
+/** @type {Account} */
 export const ADMIN = { username: 'e2e-admin', password: 'e2e-admin-login-password' };
 
-/** @typedef {{ username: string, password: string }} Account */
+// FLASK_USER_3 to _5 in tests/e2e/e2e.env, keyed by the project names in
+// playwright.config.js.
+/** @type {Record<string, string>} */
+const TOKEN_HOLDERS = {
+    chromium: 'e2e-token-chromium',
+    firefox: 'e2e-token-firefox',
+    webkit: 'e2e-token-webkit',
+};
 
 /**
- * The regular user a browser's API-token journey gives its token to:
- * FLASK_USER_3 to _5 in tests/e2e/e2e.env, one per browser project, as the
- * three browsers run that journey at once against one database (#299).
- * Nobody logs in as them.
+ * The regular user a browser's API-token journey gives its token to, one per
+ * browser project, as the three browsers run that journey at once against
+ * one database (#299). Nobody logs in as them.
  * @param {string} project - the Playwright project name
  * @returns {string}
  */
 export function tokenHolder(project) {
-    return `e2e-token-${project}`;
+    if (!Object.hasOwn(TOKEN_HOLDERS, project)) {
+        throw new Error(`no token holder for project "${project}": add one to tests/e2e/e2e.env and TOKEN_HOLDERS`);
+    }
+    return TOKEN_HOLDERS[project];
 }
 
 /**
@@ -104,12 +117,22 @@ export function uniqueFile() {
 }
 
 /**
+ * Waits for the page to load `pathname`, up to DOMContentLoaded. Module
+ * scripts run before it: from then on the page's listeners are wired, and a
+ * click is not lost on a half-booted page (WebKit).
+ * @param {Page} page
+ * @param {string} pathname
+ */
+export async function waitForPage(page, pathname) {
+    await page.waitForURL((url) => url.pathname === pathname, { waitUntil: 'domcontentloaded' });
+}
+
+/**
  * Logs in as the regular user, or as `account`.
  * @param {Page} page
- * @param {UiText} [text]
- * @param {Account} [account]
+ * @param {{ text?: UiText, account?: Account }} [options]
  */
-export async function logIn(page, text = EN, account = USER) {
+export async function logIn(page, { text = EN, account = USER } = {}) {
     await page.goto('/login');
     // The username field's autofocus can land late (WebKit): typing before it
     // does sends the password into the username field (#451).
@@ -117,19 +140,8 @@ export async function logIn(page, text = EN, account = USER) {
     await page.getByLabel(text.username).fill(account.username);
     await page.getByLabel(text.password).fill(account.password);
     await page.getByRole('button', { name: text.login }).click();
-    // Module scripts run before DOMContentLoaded: from then on the composer's
-    // listeners are wired, and a click is not lost on a half-booted page.
-    await page.waitForURL((url) => url.pathname === '/', { waitUntil: 'domcontentloaded' });
+    await waitForPage(page, '/');
     await expect(page.getByRole('button', { name: text.sendFile })).toBeVisible();
-}
-
-/**
- * Logs in as the admin, whose header also offers Manage Users.
- * @param {Page} page
- * @param {UiText} [text]
- */
-export async function logInAsAdmin(page, text = EN) {
-    await logIn(page, text, ADMIN);
 }
 
 /**

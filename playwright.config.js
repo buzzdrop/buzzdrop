@@ -36,6 +36,8 @@ export default defineConfig({
         // Polish journey asks for pl-PL itself.
         locale: 'en-US',
     },
+    // Each project has an API-token holder in tests/e2e/e2e.env (tokenHolder
+    // in tests/e2e/support.js): add one there with a new project.
     projects: [
         // Chrome grants clipboard-write to a page on a click; Playwright's
         // Chromium denies it unless granted. Firefox and WebKit need nothing.

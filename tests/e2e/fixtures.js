@@ -7,7 +7,8 @@
 //   anything else, persisted client-side) when it closes or the test ends.
 // The guard covers the default context and every context the test opens
 // with browser.newContext() or browser.newPage(). Calls a test makes itself
-// through page.request are not browser traffic and are not watched.
+// through page.request or the request fixture are not browser traffic and
+// are not watched.
 import { randomBytes } from 'node:crypto';
 import { test as base, expect } from '@playwright/test';
 
