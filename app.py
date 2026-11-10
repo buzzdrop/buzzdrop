@@ -23,7 +23,7 @@ from flask import (
     current_app,
     has_app_context,
 )
-from werkzeug.exceptions import InternalServerError, NotFound, RequestEntityTooLarge
+from werkzeug.exceptions import HTTPException, InternalServerError, NotFound, RequestEntityTooLarge
 from flask_limiter import Limiter
 from typing import NamedTuple, Optional
 from db import create_backend
@@ -762,11 +762,14 @@ def handle_large_file(error):
 
 
 def _is_api_request():
-    """True when the client expects JSON rather than an HTML page."""
+    """True when the client expects JSON rather than an HTML page. A JSON
+    body counts too: no page navigation sends one, while the browser's
+    receipt reports are plain fetches without X-Requested-With (#255)."""
     return (
         request.path.startswith('/api/')
         or bearer_token() is not None
         or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or request.is_json
     )
 
 
@@ -782,7 +785,7 @@ def handle_rate_limit(error):
         flash(_(RATE_LIMIT_EXCEEDED_MESSAGE))
         return render_template('login.html'), 429
 
-    return message, 429
+    return _error_page(429, '429', _('Slow down'), _(RATE_LIMIT_EXCEEDED_MESSAGE))
 
 
 def _error_page(status, eyebrow, heading, message, detail=None):
@@ -807,6 +810,21 @@ def handle_server_error(error):
         return {'error': 'Internal server error', 'code': 'server_error'}, 500
     return _error_page(500, '500', _('Something went wrong'),
                        _('The server hit an error. Please try again in a moment.'))
+
+
+@app.errorhandler(HTTPException)
+def handle_http_error(error):
+    """Every other HTTP error (400, 405, …) as the themed page instead of
+    Werkzeug's default, so it keeps the footer's source link (#255). JSON for
+    API clients, with the error's own headers (a 405's Allow) kept."""
+    headers = [(name, value) for name, value in error.get_headers()
+               if name.lower() != 'content-type']
+    if _is_api_request():
+        code = '_'.join(error.name.lower().replace("'", '').split())
+        return {'error': error.name, 'code': code}, error.code, headers
+    body, status = _error_page(error.code, str(error.code), _("This request didn't go through"),
+                               _('Go back and try again.'))
+    return body, status, headers
 
 
 def _openable_drop(file_id):

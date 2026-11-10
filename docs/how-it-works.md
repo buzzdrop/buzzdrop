@@ -4,7 +4,7 @@ The user-facing account of what happens when you share a file or a note with Buz
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
-<!-- how-it-works-fingerprint: sha256:4c410fab3bfe84b1bb46e80aeb47fa5123aef6b841cf430ef68da7d8ee3d8fe2 -->
+<!-- how-it-works-fingerprint: sha256:730b50886d4d90e0e0385d87bdd931476a80f6b2c981f9af6faa16b9e4560249 -->
 
 > **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto (drops and dropzone submissions), the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release and dropzone defaults, and the server code that releases, serves, expires and deletes a drop or a dropzone submission (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc against the change, fix what is now wrong (and, if a claim the Website's explainer makes has changed, open an issue in `buzzdrop/website`), and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer — keep in step" says the same for reviewers.
 

@@ -362,6 +362,24 @@ def _users_page_refused(as_user):
     return render
 
 
+def _rate_limited_page(client):
+    """A page navigation over a route's rate limit (#255)."""
+    from app import app
+    original = app.config['PUBLIC_FILE_RATE_LIMIT']
+    app.config['PUBLIC_FILE_RATE_LIMIT'] = '1 per minute'
+    try:
+        url = url_for('view_file', file_id='missing')
+        client.get(url)
+        return client.get(url)
+    finally:
+        app.config['PUBLIC_FILE_RATE_LIMIT'] = original
+
+
+def _method_not_allowed_page(client):
+    """A GET on a POST-only route: the generic HTTP error page (#255)."""
+    return client.get(url_for('set_language'))
+
+
 # The pages converted so far; each i18n issue adds its own.
 CONVERTED_PAGES = {
     'login': _login_page,
@@ -370,6 +388,8 @@ CONVERTED_PAGES = {
     'drop is gone, admin header and flash': _gone_page_as_admin_with_a_flash,
     'drop is gone, ephemeral instance': _gone_page_on_an_ephemeral_instance,
     'unknown URL': _unknown_url,
+    'rate limited': _rate_limited_page,
+    'method not allowed': _method_not_allowed_page,
     'success, file': _success_page('file'),
     'success, note': _success_page('text'),
     'composer': _composer,
