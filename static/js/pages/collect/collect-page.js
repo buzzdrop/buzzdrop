@@ -147,19 +147,16 @@ export function initCollect(root, deps) {
             err instanceof Error ? err : null);
         const code = e && (e.serverCode || e.code);
         if (e && typeof e.attemptsRemaining === 'number') {
-            // Keep the static warning honest — it still says the full
-            // count until it is rewritten here.
-            attemptsWarning.textContent = strings.plural('attemptsLeft', e.attemptsRemaining,
-                { count: formatNumber(e.attemptsRemaining, lang) });
             return {
                 message: strings.plural('attemptsRemaining', e.attemptsRemaining,
                     { count: formatNumber(e.attemptsRemaining, lang) }),
                 retryable: true,
             };
         }
+        // Before the bare 403 below: a CSRF refusal never looked at the password.
+        if (code === 'login_required' || code === 'csrf_failed') return { message: strings.text('sessionExpired'), retryable: true };
         if (e && e.status === 403) return { message: strings.text('incorrectPassword'), retryable: true };
         if (code === 'no_submission') return { message: strings.text('noSubmission'), retryable: true };
-        if (code === 'login_required') return { message: strings.text('sessionExpired'), retryable: true };
         if (code === 'rate_limited') return { message: strings.text('throttled'), retryable: true };
         // The rate limit answers 429 too, but only it carries a code; a bare
         // 429 is this zone's own wrong-password lockout.

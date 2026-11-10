@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="fixture-csrf-token">
+    <meta name="theme-color" content="#07080B">
+    <meta name="description" content="Buzzdrop: bezpieczne, jednorazowe przesyłanie plików. Wyślij zaszyfrowany plik albo notatkę, przekaż link i pozwól im zniknąć, gdy tylko odbiorca je pobierze.">
+    <meta property="og:locale" content="pl_PL">
+    <title>Buzzdrop: bezpieczne, jednorazowe przesyłanie plików</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/css/app.css?v=sha384-FIXTURE">
+</head>
+<body class="min-h-full">
+    <!-- Ambient layers: warm light pooling at the top, drifting honeycomb lattice. -->
+    <div class="glow-field" aria-hidden="true"></div>
+    <div class="hex-veil" aria-hidden="true"></div>
+
+    <div class="relative z-10 flex min-h-screen flex-col">
+        <div class="topline" aria-hidden="true"></div>
+
+        <nav class="nav-shell">
+            <div class="container-shell">
+                
+                <div class="flex items-center justify-between gap-2 py-3 sm:gap-4 sm:py-4">
+                    <div class="flex shrink-0 items-center gap-1 sm:gap-5">
+                        <a href="/" class="group flex shrink-0 items-center gap-3">
+                            <span class="relative">
+                                <span class="absolute inset-0 animate-halo-pulse rounded-full bg-honey-400/30 blur-lg" aria-hidden="true"></span>
+                                <svg viewBox="0 0 40 40" class="relative h-10 w-10 transition-transform duration-500 group-hover:-rotate-6" role="img" aria-label="Buzzdrop">
+                                    <defs>
+                                        <linearGradient id="bd-honey" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="#FFE49B"/>
+                                            <stop offset="55%" stop-color="#FFB627"/>
+                                            <stop offset="100%" stop-color="#D97706"/>
+                                        </linearGradient>
+                                        <clipPath id="bd-drop">
+                                            <path d="M20 9s8 8.6 8 13.4a8 8 0 0 1-16 0C12 17.6 20 9 20 9Z"/>
+                                        </clipPath>
+                                    </defs>
+                                    <path d="M20 1.5 35.5 10.4v19.2L20 38.5 4.5 29.6V10.4z" fill="url(#bd-honey)" opacity=".15"/>
+                                    <path d="M20 1.5 35.5 10.4v19.2L20 38.5 4.5 29.6V10.4z" fill="none" stroke="url(#bd-honey)" stroke-width="1.5"/>
+                                    <path d="M20 9s8 8.6 8 13.4a8 8 0 0 1-16 0C12 17.6 20 9 20 9Z" fill="url(#bd-honey)"/>
+                                    <g clip-path="url(#bd-drop)" fill="#0B0D12" opacity=".85">
+                                        <rect x="10" y="19.4" width="20" height="2.3" rx="1.15"/>
+                                        <rect x="10" y="24.2" width="20" height="2.3" rx="1.15"/>
+                                    </g>
+                                </svg>
+                            </span>
+                            <span class="hidden sm:block">
+                                <span class="block text-lg font-semibold tracking-tight text-white">Buzz<span class="honey-text">drop</span></span>
+                                <span class="block text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Przesyłka jednorazowa</span>
+                            </span>
+                        </a>
+                        
+                    </div>
+                    <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                        
+
+<details id="language-menu" class="relative shrink-0">
+    <summary id="language-menu-button" role="button" aria-haspopup="menu" aria-controls="language-menu-list"
+             
+             aria-label="Język: Polski"
+             class="btn-ghost lang-menu-button">
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.5"><circle cx="10" cy="10" r="7.5"/><path d="M2.5 10h15M10 2.5c2.2 2.3 3.2 4.8 3.2 7.5s-1 5.2-3.2 7.5c-2.2-2.3-3.2-4.8-3.2-7.5s1-5.2 3.2-7.5Z"/></svg>
+        <span translate="no" class="text-xs uppercase tracking-wider">pl</span>
+        <svg aria-hidden="true" viewBox="0 0 20 20" class="hidden h-3 w-3 fill-current sm:block"><path d="M5.5 7.5 10 12l4.5-4.5z"/></svg>
+    </summary>
+    <div id="language-menu-list" role="menu" aria-labelledby="language-menu-button" class="lang-menu-list">
+        
+        <form method="post" action="/language" role="none">
+            <input type="hidden" name="csrf_token" value="fixture-csrf-token">
+            <input type="hidden" name="lang" value="en">
+            <input type="hidden" name="next" value="/dropzone/00000000-0000-4000-8000-0000000000d2">
+            <button type="submit" role="menuitemradio" aria-checked="false" lang="en" translate="no" class="lang-menu-item">
+                <span>English</span>
+                
+            </button>
+        </form>
+        
+        <form method="post" action="/language" role="none">
+            <input type="hidden" name="csrf_token" value="fixture-csrf-token">
+            <input type="hidden" name="lang" value="pl">
+            <input type="hidden" name="next" value="/dropzone/00000000-0000-4000-8000-0000000000d2">
+            <button type="submit" role="menuitemradio" aria-checked="true" lang="pl" translate="no" class="lang-menu-item">
+                <span>Polski</span>
+                <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4 shrink-0 fill-current"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
+            </button>
+        </form>
+        
+    </div>
+</details>
+
+                        
+                            <a href="/login" class="btn-secondary px-3 py-2 sm:px-4">Zaloguj</a>
+                        
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container-shell flex-1 py-10 sm:py-14">
+            
+            
+                
+            
+
+            
+<div class="mx-auto max-w-xl">
+    <div class="surface-card animate-zoom-in p-8 sm:p-10">
+        <div class="text-center">
+            <span class="eyebrow">Skrytka</span>
+            <h1 class="mt-5 wrap-break-word text-2xl font-semibold tracking-tight text-white">Złóż bezpiecznie</h1>
+            <p id="status" class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400" role="status" aria-live="polite">
+                Twój plik lub notatka jest szyfrowany w tej przeglądarce, zanim zostanie wysłany – serwer nigdy nie może go odczytać.
+            </p>
+        </div>
+
+        <div class="mt-7">
+            
+            <div id="respond-composer">
+                <span id="share-mode-label" class="field-label">Co składasz?</span>
+        <div class="tab-rail sm:inline-flex" role="tablist" aria-labelledby="share-mode-label">
+            <button id="file-tab" type="button" role="tab" aria-selected="true" aria-controls="file-upload-section" class="share-tab share-tab-active">
+                Plik
+            </button>
+            <button id="text-tab" type="button" role="tab" aria-selected="false" aria-controls="text-note-section" tabindex="-1" class="share-tab">
+                Notatka
+            </button>
+        </div>
+
+        
+        <div class="mt-6 grid *:col-start-1 *:row-start-1">
+        <div id="file-upload-section" class="flex flex-col" role="tabpanel" aria-labelledby="file-tab">
+            
+            <form action="/upload" method="post" enctype="multipart/form-data" novalidate class="flex flex-1 flex-col">
+                <label id="file-dropzone" for="file" class="dropzone flex flex-1 flex-col justify-center">
+                    <div class="relative flex flex-col items-center gap-4">
+                        <svg viewBox="0 0 48 48" class="h-14 w-14 text-honey-300" fill="none" aria-hidden="true">
+                            <path d="M24 3 42 13.5v21L24 45 6 34.5v-21z" stroke="currentColor" stroke-width="1.4" opacity=".45"/>
+                            <path d="M24 31.5V16.5m0 0-6.5 6.5M24 16.5l6.5 6.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="space-y-1">
+                            <p id="dropzone-label" class="text-base font-semibold text-white">
+                                Upuść tu plik albo <span class="text-honey-300 underline decoration-honey-400/40 underline-offset-4">wybierz go</span>
+                            </p>
+                            <p class="dropzone-hint text-sm text-slate-400">Zostanie zaszyfrowany na tym urządzeniu, zanim opuści je choćby jeden bajt.</p>
+                        </div>
+                        <p id="file-selected" hidden>
+                            <span class="file-chip">
+                                <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 0 1 2-2h4.586A2 2 0 0 1 12 2.586L15.414 6A2 2 0 0 1 16 7.414V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4Zm6 0v3a1 1 0 0 0 1 1h3l-4-4Z" clip-rule="evenodd"/>
+                                </svg>
+                                <span id="file-selected-name" class="truncate"></span>
+                            </span>
+                        </p>
+                        <div class="space-y-2 pt-1">
+                            <p><span class="stat-chip">Do 100 MB</span></p>
+                            
+                            <p translate="no" class="mx-auto max-w-sm text-xs leading-5 text-slate-600">DOC · DOCX · GIF · JPEG · JPG · MP4 · PDF · PNG · TXT · XLS · XLSX</p>
+                        </div>
+                    </div>
+                    <input id="file" name="file" type="file" class="sr-only" aria-labelledby="dropzone-label" aria-describedby="file-error" required>
+                </label>
+                <p id="file-error" class="file-error" role="alert"></p>
+            </form>
+        </div>
+
+        <div id="text-note-section" style="visibility:hidden;" class="flex flex-col" role="tabpanel" aria-labelledby="text-tab">
+            <label for="note-text" class="field-label">Treść notatki</label>
+            <textarea id="note-text" rows="9" class="field-input min-h-56 flex-1 font-mono text-[0.8rem] leading-6" placeholder="Wklej notatkę, którą chcesz wysłać jednorazowo…" aria-required="true" aria-describedby="note-error"></textarea>
+            <p class="field-help">Szyfrowana w przeglądarce, zanim dotrze do serwera.</p>
+            <p id="note-error" class="file-error" role="alert"></p>
+        </div>
+        </div>
+            </div>
+
+            <p id="submit-error" class="mt-3 text-sm text-rose-300" role="alert" hidden></p>
+
+            <div id="submit-progress" class="w-full mt-4" role="progressbar" aria-label="Postęp szyfrowania i wysyłania" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+    <p data-progress-step class="mb-2 text-sm text-slate-300" hidden></p>
+    <div class="flex items-center gap-3">
+        <div class="honey-track">
+            <div data-progress-fill class="honey-bar" style="width: 0%"></div>
+        </div>
+        <span data-progress-percent class="w-[5ch] shrink-0 text-right text-sm font-semibold tabular-nums text-honey-300">0%</span>
+    </div>
+</div>
+
+            <button id="submit-btn" type="button" class="btn-primary mt-4 w-full">
+                <span class="relative z-10">Zaszyfruj i złóż</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script id="respond-config-json" type="application/json">{"allowedExtensions": ["doc", "docx", "gif", "jpeg", "jpg", "mp4", "pdf", "png", "txt", "xls", "xlsx"], "maxBytes": 104857600, "submitUrl": "/dropzone/00000000-0000-4000-8000-0000000000d2/submit"}</script>
+<script id="page-strings-json" type="application/json">{"composer": {"chooseFile": "Wybierz plik do z\u0142o\u017cenia.", "refusals": {"file_too_large": "Ten plik jest za du\u017cy dla tego serwera.", "note_too_large": "Ta notatka jest za du\u017ca dla tego serwera.", "type_not_allowed": "Ten typ pliku jest niedozwolony."}, "writeNote": "Napisz notatk\u0119 do z\u0142o\u017cenia."}, "respond": {"badLink": "Ten link do skrytki jest nieprawid\u0142owy \u2013 sprawd\u017a, czy skopiowano ca\u0142y link, wraz z\u00a0cz\u0119\u015bci\u0105 po #.", "encryptFailed": "Nie uda\u0142o si\u0119 zaszyfrowa\u0107 \u2014 ta przegl\u0105darka mo\u017ce tego nie wspiera\u0107. Spr\u00f3buj w\u00a0nowoczesnej przegl\u0105darce albo przez bezpieczne po\u0142\u0105czenie (https).", "encrypting": "Szyfrowanie\u2026", "readFailed": "Nie uda\u0142o si\u0119 odczyta\u0107 tego pliku. Wybierz go jeszcze raz i\u00a0spr\u00f3buj ponownie.", "refusals": {"consumed": "Tego linku do skrytki ju\u017c u\u017cyto. Popro\u015b zamawiaj\u0105cego o\u00a0nowy.", "expired": "Ta skrytka wygas\u0142a. Popro\u015b zamawiaj\u0105cego o\u00a0nowy link.", "file_too_large": "Ten plik jest za du\u017cy dla tego serwera.", "invalid_link": "Ten link do skrytki jest nieprawid\u0142owy \u2013 sprawd\u017a, czy skopiowano ca\u0142y link, wraz z\u00a0cz\u0119\u015bci\u0105 po #.", "invalid_submission": "Zg\u0142oszenie odrzucono. Spr\u00f3buj ponownie.", "not_found": "Tej skrytki ju\u017c nie ma. Popro\u015b zamawiaj\u0105cego o\u00a0nowy link.", "rate_limited": "Zbyt wiele pr\u00f3b w\u00a0kr\u00f3tkim czasie \u2013 odczekaj chwil\u0119 i\u00a0spr\u00f3buj ponownie.", "submit_failed": "Zg\u0142oszenie nie powiod\u0142o si\u0119. Spr\u00f3buj ponownie."}, "submit": "Z\u0142\u00f3\u017c", "submitted": "Z\u0142o\u017cono \u2013 zamawiaj\u0105cy mo\u017ce teraz odebra\u0107 zg\u0142oszenie. Mo\u017cesz zamkn\u0105\u0107 t\u0119 stron\u0119.", "submitting": "Sk\u0142adanie\u2026", "throttled": "Zbyt wiele pr\u00f3b w\u00a0kr\u00f3tkim czasie \u2013 odczekaj chwil\u0119 i\u00a0spr\u00f3buj ponownie.", "unreachable": "Nie uda\u0142o si\u0119 po\u0142\u0105czy\u0107 z\u00a0serwerem \u2013 sprawd\u017a po\u0142\u0105czenie i\u00a0spr\u00f3buj ponownie."}}</script>
+
+        </main>
+
+        <footer class="footer-shell">
+            <div class="container-shell flex flex-col gap-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                
+                
+                
+                <p class="flex items-start gap-2 sm:items-center">
+                    <span class="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-honey-400 sm:mt-0" aria-hidden="true"></span>
+                    <span>Każdą przesyłkę można otworzyć raz, potem znika.</span>
+                </p>
+                
+                <p class="text-slate-600 sm:ml-auto">
+                    
+                    <a href="https://buzzdrop.io/pl/jak-to-dziala/" target="_blank" rel="noopener noreferrer" aria-label="Jak to działa (otwiera się w nowej karcie)" class="footer-link">Jak to działa</a>
+                    &middot;
+                    
+                    Tworzony jawnie.
+                    <a href="https://github.com/buzzdrop/buzzdrop" target="_blank" rel="noopener noreferrer" aria-label="Kod źródłowy (otwiera się w nowej karcie)" class="footer-link"><svg aria-hidden="true" viewBox="0 0 24 24" class="mr-1 inline-block h-3.5 w-3.5 fill-current align-[-0.15em]"><path d="M12 1.5a10.5 10.5 0 0 0-3.32 20.46c.53.1.72-.23.72-.51v-1.78c-2.94.64-3.56-1.25-3.56-1.25-.48-1.2-1.16-1.52-1.16-1.52-.95-.65.07-.64.07-.64 1.05.08 1.6 1.08 1.6 1.08.94 1.6 2.46 1.14 3.06.87.09-.68.37-1.14.66-1.4-2.35-.27-4.82-1.17-4.82-5.23 0-1.16.42-2.1 1.09-2.84-.11-.27-.47-1.37.1-2.84 0 0 .89-.28 2.92 1.08a10.2 10.2 0 0 1 5.32 0c2.03-1.36 2.92-1.08 2.92-1.08.57 1.47.21 2.57.1 2.84.68.74 1.09 1.68 1.09 2.84 0 4.07-2.48 4.96-4.84 5.22.38.33.72.97.72 1.96v2.91c0 .28.19.62.73.51A10.5 10.5 0 0 0 12 1.5Z"/></svg>Kod źródłowy</a>
+                    (<a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" aria-label="Tekst licencji AGPL-3.0 (otwiera się w nowej karcie)" class="footer-link">AGPL-3.0</a>)
+                </p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

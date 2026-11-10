@@ -373,14 +373,6 @@ msgstr[0] "Nieprawidłowe hasło. Została %(count)s próba."
 msgstr[1] "Nieprawidłowe hasło. Zostały %(count)s próby."
 msgstr[2] "Nieprawidłowe hasło. Zostało %(count)s prób."
 
-#: templates/_collect_strings.html
-#, python-format
-msgid "One attempt left — check the password before you continue."
-msgid_plural "%(count)s attempts left — check the password before you continue."
-msgstr[0] "Została jedna próba – sprawdź hasło, zanim przejdziesz dalej."
-msgstr[1] "Zostały %(count)s próby – sprawdź hasło, zanim przejdziesz dalej."
-msgstr[2] "Zostało %(count)s prób – sprawdź hasło, zanim przejdziesz dalej."
-
 #: templates/_collect_strings.html templates/_dropzones_strings.html
 msgid "Nothing has been submitted to this dropzone yet."
 msgstr "Do tej skrytki nic jeszcze nie złożono."
@@ -541,10 +533,6 @@ msgid "Enter the dropzone password"
 msgstr "Wpisz hasło do skrytki"
 
 #: templates/_dropzones_strings.html
-msgid "Enter the dropzone password first."
-msgstr "Najpierw wpisz hasło do skrytki."
-
-#: templates/_dropzones_strings.html
 msgid "Awaiting submission"
 msgstr "Oczekuje na zgłoszenie"
 
@@ -618,6 +606,18 @@ msgstr "Nie udało się pobrać zgłoszenia."
 #, python-format
 msgid "Language: %(language)s"
 msgstr "Język: %(language)s"
+
+#: templates/_password_gate.html
+msgid "Generate a 6-word passphrase (about 77 bits of entropy)"
+msgstr "Wygeneruj hasło z 6 słów (ok. 77 bitów entropii)"
+
+#: templates/_password_gate.html
+msgid "Generate"
+msgstr "Wygeneruj"
+
+#: templates/_password_gate.html
+msgid "Password strength"
+msgstr "Siła hasła"
 
 #. %(reason)s is one of the strength messages, e.g. "Too weak (~30 bits). …".
 #: templates/_password_gate_strings.html
@@ -708,6 +708,12 @@ msgstr ""
 "Nie udało się zaszyfrować — ta przeglądarka może tego nie wspierać. "
 "Spróbuj w nowoczesnej przeglądarce albo przez bezpieczne połączenie "
 "(https)."
+
+#: templates/_respond_strings.html
+msgid "That file could not be read. Choose it again and try again."
+msgstr ""
+"Nie udało się odczytać tego pliku. Wybierz go jeszcze raz i spróbuj "
+"ponownie."
 
 #: templates/_respond_strings.html
 msgid "Submitting…"
@@ -1057,21 +1063,9 @@ msgstr "Hasło"
 msgid "Enter a strong password"
 msgstr "Wpisz silne hasło"
 
-#: templates/index.html
-msgid "Generate a 6-word passphrase (about 77 bits of entropy)"
-msgstr "Wygeneruj hasło z 6 słów (ok. 77 bitów entropii)"
-
-#: templates/index.html
-msgid "Generate"
-msgstr "Wygeneruj"
-
 #: templates/index.html templates/success.html
 msgid "Copy password"
 msgstr "Skopiuj hasło"
-
-#: templates/index.html
-msgid "Password strength"
-msgstr "Siła hasła"
 
 #: templates/index.html
 msgid "Send it through a different channel than the link."

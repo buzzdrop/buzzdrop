@@ -322,7 +322,7 @@ export function initIndex(root, deps) {
     });
 
     // --- Dropzones (ADR-0001) ---
-    initDropzones(root, deps, pageStrings.section('dropzones'), ask);
+    initDropzones(root, deps, pageStrings.section('dropzones'), pageStrings.section('password-gate'), ask);
 
     // --- Shared Files Search & Pagination ---
     initSharedFilesList(root, { fetch: deps.fetch, now: deps.now, strings: pageStrings.section('shared-files') });
@@ -336,18 +336,23 @@ export function initIndex(root, deps) {
  * @param {Document} root
  * @param {Pick<IndexDeps, 'fetch' | 'navigate' | 'now' | 'dropzoneCrypto'>} deps
  * @param {import('../../lib/strings.js').Strings} strings
+ * @param {import('../../lib/strings.js').Strings} passwordGateStrings
  * @param {import('../../features/confirm-dialog/index.js').Ask} ask - asks before a delete
  */
-function initDropzones(root, deps, strings, ask) {
+function initDropzones(root, deps, strings, passwordGateStrings, ask) {
     const lang = root.documentElement.lang || 'en';
     const island = required(root, '#dropzones-json', 'script');
     const createBtn = /** @type {HTMLButtonElement | null} */ (root.getElementById('dz-create-btn'));
-    if (!createBtn) return;
+    // The password opens every future submission (ADR-0001), so it passes
+    // the same gate as a drop's.
+    const passwordGate = initPasswordGate(root, {
+        strings: passwordGateStrings, lang, idPrefix: 'dz-',
+    });
+    if (!createBtn || !passwordGate) return;
     const { zones, endpoints } = JSON.parse(island.text);
     const refusals = strings.section('refusals');
     const csrf = () => csrfToken(root);
 
-    const passwordInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-password'));
     const expiryInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-expiry'));
     const memoInput = /** @type {HTMLInputElement} */ (root.getElementById('dz-memo'));
     const notifyInput = /** @type {HTMLInputElement | null} */ (root.getElementById('dz-notify'));
@@ -471,8 +476,8 @@ function initDropzones(root, deps, strings, ask) {
 
     createBtn.addEventListener('click', async () => {
         errorEl.textContent = '';
-        const password = passwordInput.value;
-        if (!password) { refuse(errorEl, 'noPassword'); return; }
+        const password = passwordGate.input.value;
+        if (!passwordGate.accept(password)) return;
         createBtn.disabled = true;
         try {
             const expiry = expiryInput.value ? new Date(expiryInput.value).toISOString() : null;

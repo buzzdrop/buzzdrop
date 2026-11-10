@@ -5,7 +5,7 @@
 // one-way material. The composer itself (tabs, drop zone, file chip,
 // note panel) is the feature the index page shares (features/composer).
 
-import { required } from '../../lib/required.js';
+import { required, requiredWindow } from '../../lib/required.js';
 import * as dropzoneCrypto from '../../lib/dropzone-crypto.js';
 import { restoreFragmentAfterLanguageSwitch, stashFragmentForLanguageSwitch } from '../../lib/one-click-link.js';
 import { initComposer } from '../../features/composer/index.js';
@@ -39,6 +39,7 @@ function takeFragmentSecret(win) {
  * @param {RespondDeps} deps
  */
 export function initRespond(root, deps) {
+    const window = requiredWindow(root);
     const config = JSON.parse(required(root, '#respond-config-json', 'script').text);
     const pageStrings = readStrings(required(root, '#page-strings-json', 'script'));
     const strings = pageStrings.section('respond');
@@ -89,22 +90,26 @@ export function initRespond(root, deps) {
         errorEl.hidden = true;
         const payload = composer.getPayload();
         if (!payload) return;
-        /** @type {Bytes} */
-        let data;
-        let name = '';
-        if (payload.kind === 'text') {
-            data = new TextEncoder().encode(payload.text);
-        } else {
-            data = new Uint8Array(await payload.file.arrayBuffer());
-            name = payload.file.name;
-        }
-
+        // Before the file is read: a second press during the read would send
+        // a second submission, whose 'consumed' refusal hides the success.
         submitBtn.disabled = true;
         statusEl.textContent = strings.text('encrypting');
+        /** @type {Bytes} */
+        let plaintext;
+        try {
+            plaintext = payload.kind === 'text'
+                ? new TextEncoder().encode(payload.text)
+                : new Uint8Array(await payload.file.arrayBuffer());
+        } catch {
+            // e.g. the file was moved or deleted after it was chosen.
+            fail(strings.text('readFailed'));
+            return;
+        }
         /** @type {{ blob: Bytes, wk: string, receiptHash: string, sv: string }} */
         let sealed;
         try {
-            sealed = await deps.crypto.sealSubmission(data, name, s);
+            sealed = await deps.crypto.sealSubmission(
+                plaintext, payload.kind === 'text' ? '' : payload.file.name, s);
         } catch {
             // e.g. crypto.subtle missing on an insecure origin — surface it.
             fail(strings.text('encryptFailed'));

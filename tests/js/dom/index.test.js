@@ -1,6 +1,6 @@
 import { within } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
-import { openUploadPage, screen } from '../support/pages/upload.js';
+import { PASSWORDS, openUploadPage, screen } from '../support/pages/upload.js';
 
 // Six EFF words score ~77.5 bits (strong); seven score ~90.5, past the 90 bits
 // that fill the meter.
@@ -8,6 +8,7 @@ const SIX_WORDS = 'abacus-abdomen-abdominal-abide-abiding-ability';
 const SEVEN_WORDS = `${SIX_WORDS}-ablaze`;
 
 const passwordField = () => screen.getByLabelText('Password');
+const dropzonePasswordField = () => screen.getByLabelText('Dropzone password');
 const passwordToggle = () => screen.getByRole('button', { name: 'Show password' });
 const fileField = () => screen.getByLabelText('Drop a file here, or browse');
 const strengthMeter = () => screen.getByRole('meter', { name: 'Password strength' });
@@ -525,6 +526,135 @@ describe('index page', () => {
 
             expect(await screen.findByText('Your session has expired. Log in again to manage your dropzones.')).toBeVisible();
             expect(upload.dropzoneShown('Tax documents')).toBe(true);
+        });
+    });
+
+    describe('new dropzone', () => {
+        it.each([
+            ['common', PASSWORDS.weak],
+            ['short', 'k7q'],
+        ])('refuses a %s password inline and sends nothing', async (_, password) => {
+            const upload = openUploadPage();
+            await upload.chooseMode('collect');
+
+            await upload.enterDropzonePassword(password);
+            await upload.createDropzone();
+
+            expect(await screen.findByText(/^Password rejected: /)).toBeVisible();
+            expect(upload.dropzonePasswordsUsed()).toEqual([]);
+            expect(upload.dropzoneCreates()).toBe(0);
+            expect(dropzonePasswordField()).toHaveFocus();
+            expect(upload.dropzoneCreated()).toBe(false);
+        });
+
+        it('refuses a missing password and sends nothing', async () => {
+            const upload = openUploadPage();
+            await upload.chooseMode('collect');
+
+            await upload.createDropzone();
+
+            expect(await screen.findByText('Enter a password, or press Generate.')).toBeVisible();
+            expect(upload.dropzoneCreates()).toBe(0);
+        });
+
+        it('rates the password as it is typed, and re-typing clears the refusal', async () => {
+            const upload = openUploadPage();
+            await upload.chooseMode('collect');
+            await upload.enterDropzonePassword({ strength: 'weak' });
+            await upload.createDropzone();
+
+            await upload.enterDropzonePassword({ strength: 'strong' });
+
+            expect(strengthMeter()).toHaveAttribute('aria-valuetext', 'Strong');
+            expect(screen.queryByText(/^Password rejected: /)).toBeNull();
+        });
+
+        it('shows and hides the password', async () => {
+            const upload = openUploadPage();
+            await upload.chooseMode('collect');
+            await upload.enterDropzonePassword({ strength: 'strong' });
+
+            await upload.showPassword();
+            expect(dropzonePasswordField()).toHaveAttribute('type', 'text');
+            await upload.hidePassword();
+            expect(dropzonePasswordField()).toHaveAttribute('type', 'password');
+        });
+
+        it('creates the dropzone with a strong password and shows the link', async () => {
+            const upload = openUploadPage();
+            await upload.chooseMode('collect');
+
+            await upload.enterDropzonePassword({ strength: 'strong' });
+            await upload.createDropzone();
+
+            expect(upload.dropzoneCreated()).toBe(true);
+            expect(upload.dropzonePasswordsUsed()).toEqual([PASSWORDS.strong]);
+            expect(upload.dropzoneCreates()).toBe(1);
+        });
+
+        it('accepts a generated passphrase, shown so it can be read back', async () => {
+            const upload = openUploadPage();
+            await upload.chooseMode('collect');
+
+            await upload.generatePassword();
+            await upload.createDropzone();
+
+            const used = upload.dropzonePasswordsUsed();
+            expect(used).toHaveLength(1);
+            expect(used[0].split('-').length).toBeGreaterThanOrEqual(6);
+            expect(dropzonePasswordField()).toHaveValue(used[0]);
+            expect(dropzonePasswordField()).toHaveAttribute('type', 'text');
+            expect(upload.dropzoneCreated()).toBe(true);
+        });
+
+        it('leaves the composer\'s password alone', async () => {
+            const upload = openUploadPage();
+            await upload.enterPassword({ strength: 'strong' });
+            await upload.chooseMode('collect');
+
+            await upload.generatePassword();
+            await upload.chooseMode('send');
+
+            expect(passwordField()).toHaveValue(PASSWORDS.strong);
+            expect(passwordField()).toHaveAttribute('type', 'password');
+        });
+
+        it.each(/** @type {const} */ ([
+            ['signed-out', 'Your session has expired. Log in again to manage your dropzones.'],
+            ['rate-limited', 'Too many tries in a short time — wait a minute and try again.'],
+            ['failing', 'Could not create the dropzone. Please try again.'],
+            ['unreachable', 'Could not create the dropzone. Please try again.'],
+        ]))('says why a create failed when the server is %s', async (server, message) => {
+            const upload = openUploadPage();
+            await upload.chooseMode('collect');
+            await upload.enterDropzonePassword({ strength: 'strong' });
+
+            await upload.createDropzone({ server });
+
+            expect(await screen.findByText(message)).toBeVisible();
+            expect(upload.dropzoneCreated()).toBe(false);
+        });
+
+        it('tells a page left open past its session to log in again', async () => {
+            const upload = openUploadPage({ session: 'stale' });
+            await upload.chooseMode('collect');
+            await upload.enterDropzonePassword({ strength: 'strong' });
+
+            await upload.createDropzone();
+
+            expect(await screen.findByText('Your session has expired. Log in again to manage your dropzones.')).toBeVisible();
+            expect(upload.dropzoneCreated()).toBe(false);
+        });
+
+        it('says it could not create the dropzone when the server won\'t store what the browser derived', async () => {
+            const upload = openUploadPage({ dropzoneSecrets: 'malformed' });
+            await upload.chooseMode('collect');
+            await upload.enterDropzonePassword({ strength: 'strong' });
+
+            await upload.createDropzone();
+
+            expect(await screen.findByText('Could not create the dropzone. Please try again.')).toBeVisible();
+            expect(upload.dropzoneCreated()).toBe(false);
         });
     });
 

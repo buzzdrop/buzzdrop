@@ -360,13 +360,6 @@ msgid_plural "Incorrect password. %(count)s attempts remaining."
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/_collect_strings.html
-#, python-format
-msgid "One attempt left — check the password before you continue."
-msgid_plural "%(count)s attempts left — check the password before you continue."
-msgstr[0] ""
-msgstr[1] ""
-
 #: templates/_collect_strings.html templates/_dropzones_strings.html
 msgid "Nothing has been submitted to this dropzone yet."
 msgstr ""
@@ -519,10 +512,6 @@ msgid "Enter the dropzone password"
 msgstr ""
 
 #: templates/_dropzones_strings.html
-msgid "Enter the dropzone password first."
-msgstr ""
-
-#: templates/_dropzones_strings.html
 msgid "Awaiting submission"
 msgstr ""
 
@@ -595,6 +584,18 @@ msgstr ""
 #: templates/_language_menu.html
 #, python-format
 msgid "Language: %(language)s"
+msgstr ""
+
+#: templates/_password_gate.html
+msgid "Generate a 6-word passphrase (about 77 bits of entropy)"
+msgstr ""
+
+#: templates/_password_gate.html
+msgid "Generate"
+msgstr ""
+
+#: templates/_password_gate.html
+msgid "Password strength"
 msgstr ""
 
 #. %(reason)s is one of the strength messages, e.g. "Too weak (~30 bits). …".
@@ -678,6 +679,10 @@ msgstr ""
 msgid ""
 "Encryption failed — this browser may not support it. Try a modern browser"
 " or a secure (https) connection."
+msgstr ""
+
+#: templates/_respond_strings.html
+msgid "That file could not be read. Choose it again and try again."
 msgstr ""
 
 #: templates/_respond_strings.html
@@ -1008,20 +1013,8 @@ msgstr ""
 msgid "Enter a strong password"
 msgstr ""
 
-#: templates/index.html
-msgid "Generate a 6-word passphrase (about 77 bits of entropy)"
-msgstr ""
-
-#: templates/index.html
-msgid "Generate"
-msgstr ""
-
 #: templates/index.html templates/success.html
 msgid "Copy password"
-msgstr ""
-
-#: templates/index.html
-msgid "Password strength"
 msgstr ""
 
 #: templates/index.html

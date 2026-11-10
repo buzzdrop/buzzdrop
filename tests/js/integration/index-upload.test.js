@@ -27,6 +27,10 @@ const TEST_TIMEOUT = 30_000;
 /** @type {Mode[]} */
 const MODES = ['file', 'text'];
 
+/** @param {LoggedRequest} request */
+const csrfHeaderOf = (request) => Object.fromEntries(
+    Object.entries(request.headers).map(([name, value]) => [name.toLowerCase(), value]))['x-csrf-token'];
+
 /**
  * Where a finished upload sends the page: the success page, with the password
  * in the fragment.
@@ -264,9 +268,35 @@ describe('index page uploads', { timeout: TEST_TIMEOUT }, () => {
                 'POST /upload/begin', 'POST /upload', 'POST /upload/begin', 'POST /upload',
             ]);
             for (const request of upload.requestsSent()) {
-                const headers = Object.fromEntries(
-                    Object.entries(request.headers).map(([name, value]) => [name.toLowerCase(), value]));
-                expect(headers['x-csrf-token']).toBe(CSRF_TOKEN);
+                expect(csrfHeaderOf(request)).toBe(CSRF_TOKEN);
+            }
+        });
+
+        it('a weak dropzone password is refused before any request is sent', async () => {
+            const upload = openUploadPage({ account: 'no-shares', crypto: 'real' });
+            await upload.chooseMode('collect');
+
+            await upload.enterDropzonePassword({ strength: 'weak' });
+            await upload.createDropzone();
+
+            expect(screen.getByText(/^Password rejected: /)).toBeVisible();
+            expect(upload.requestsSent()).toEqual([]);
+        });
+
+        it('creating and deleting a dropzone carry the CSRF token', async () => {
+            const upload = openUploadPage({ crypto: 'real' });
+            await upload.chooseMode('collect');
+
+            await upload.enterDropzonePassword({ strength: 'strong' });
+            await upload.createDropzone();
+            await upload.deleteDropzone('Tax documents', { confirm: true });
+
+            const sent = upload.requestsSent();
+            expect(sent.map((request) => `${request.method} ${pathOf(request)}`)).toEqual([
+                'POST /api/dropzones', 'POST /dropzones/00000000-0000-4000-8000-0000000000d1/delete',
+            ]);
+            for (const request of sent) {
+                expect(csrfHeaderOf(request)).toBe(CSRF_TOKEN);
             }
         });
 

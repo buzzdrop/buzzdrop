@@ -1,5 +1,5 @@
-// The composer's password field: the strength meter, Show/Hide, Generate,
-// and the gate every upload passes through. The server never sees the
+// A password field with its strength meter, Show/Hide, Generate, and the gate
+// every upload and new dropzone passes through. The server never sees the
 // password (encryption is client-side), so this gate is the only place a
 // weak key can be refused — and it must refuse.
 
@@ -15,8 +15,8 @@ import { required } from '../../lib/required.js';
  * @typedef {object} PasswordGate
  * @property {HTMLInputElement} input - the password field
  * @property {(password: string) => boolean} accept - whether `password` may
- *   be used; a missing or weak one is refused inline in #password-error,
- *   with the field focused
+ *   be used; a missing or weak one is refused inline in the gate's error
+ *   region, with the field focused
  */
 
 // Per level: the bar's and the message's colour, and the key in `levels` of
@@ -41,6 +41,9 @@ const LEVEL = {
  * @property {(password: string) => void} [onChange] - after every change to
  *   the password, typed or generated, for the page's own controls that act
  *   on it (the index page's Copy)
+ * @property {string} [idPrefix] - what the ids of a second gate on the page
+ *   start with, its field being `<prefix>password`; left out, the gate is the
+ *   composer's, whose field is 'shared-password' (templates/_password_gate.html)
  */
 
 /**
@@ -50,7 +53,7 @@ const LEVEL = {
  * @returns {PasswordGate | null}
  */
 export function initPasswordGate(root, options) {
-    const input = /** @type {HTMLInputElement | null} */ (root.getElementById('shared-password'));
+    const input = /** @type {HTMLInputElement | null} */ (root.getElementById(options.idPrefix ? `${options.idPrefix}password` : 'shared-password'));
     return input && wire(root, input, options);
 }
 
@@ -60,18 +63,18 @@ export function initPasswordGate(root, options) {
  * @param {PasswordGateOptions} options
  * @returns {PasswordGate}
  */
-function wire(root, input, { strings, lang, onChange }) {
+function wire(root, input, { strings, lang, onChange, idPrefix = '' }) {
     const levels = strings.section('levels');
     const messages = strings.section('messages');
-    const generateBtn = required(root, '#generate-password-btn', 'button');
-    const toggleBtn = required(root, '#toggle-password-btn', 'button');
-    const strengthRegion = required(root, '#password-strength', 'div');
-    const strengthMeter = required(root, '#password-strength-meter', 'div');
-    const strengthBar = required(root, '#password-strength-bar', 'div');
-    const strengthText = required(root, '#password-strength-text', 'p');
+    const generateBtn = required(root, `#${idPrefix}generate-password-btn`, 'button');
+    const toggleBtn = required(root, `#${idPrefix}toggle-password-btn`, 'button');
+    const strengthRegion = required(root, `#${idPrefix}password-strength`, 'div');
+    const strengthMeter = required(root, `#${idPrefix}password-strength-meter`, 'div');
+    const strengthBar = required(root, `#${idPrefix}password-strength-bar`, 'div');
+    const strengthText = required(root, `#${idPrefix}password-strength-text`, 'p');
     // Always present: only its text changes, so assistive tech announces
     // every refusal rather than a one-time reveal.
-    const refusal = required(root, '#password-error', 'p');
+    const refusal = required(root, `#${idPrefix}password-error`, 'p');
 
     /**
      * What the meter says about an assessment, in the page's language.
@@ -107,7 +110,7 @@ function wire(root, input, { strings, lang, onChange }) {
      */
     function setVisible(visible) {
         input.type = visible ? 'text' : 'password';
-        required(toggleBtn, '#toggle-password-label', 'span').textContent = strings.text(visible ? 'hide' : 'show');
+        required(toggleBtn, `#${idPrefix}toggle-password-label`, 'span').textContent = strings.text(visible ? 'hide' : 'show');
         toggleBtn.setAttribute('aria-pressed', String(visible));
     }
 

@@ -18,6 +18,26 @@ export const ORIGIN = 'http://localhost';
 /** The share password when a test doesn't name one. */
 export const DEFAULT_PASSWORD = 'correct horse';
 
+/** Picks among próba/próby/prób as the page's plural forms do. */
+const POLISH_PLURAL = new Intl.PluralRules('pl');
+
+/** The session's CSRF token, as the fixtures render it. */
+export const FIXTURE_CSRF_TOKEN = 'fixture-csrf-token';
+
+/** What the session's token has become once a page's is stale. */
+export const NEWER_CSRF_TOKEN = 'a-newer-session-token';
+
+/**
+ * How the view and collect pages count the attempts before the first one, in
+ * each language: the start of the warning the server renders.
+ * @type {Record<'en' | 'pl', (count: number) => string>}
+ */
+export const ATTEMPTS_WARNING = {
+    en: (count) => (count === 1 ? 'You have one attempt' : `You have ${count} attempts`),
+    pl: (count) => (count === 1 ? 'Masz jedną próbę'
+        : `Masz ${count} ${POLISH_PLURAL.select(count) === 'few' ? 'próby' : 'prób'}`),
+};
+
 /**
  * How long a driver waits for a step that runs the real lib/crypto.js, whose
  * 600k-iteration PBKDF2 runs on every seal and every password attempt.
@@ -292,6 +312,40 @@ export function typeable(text) {
 export function replaceInFixture(html, search, replacement) {
     if (!html.includes(search)) throw new Error(`fixture edit: "${search}" is not in the fixture`);
     return html.replaceAll(search, replacement);
+}
+
+/**
+ * @typedef {object} SavedFile
+ * @property {string} name
+ * @property {Uint8Array<ArrayBuffer>} bytes
+ */
+
+/**
+ * Catch the files a page saves: a file reaches the visitor as a Blob URL on a
+ * link the page clicks. Returns a reader for the one file saved.
+ * @param {Page} page
+ * @returns {() => Promise<SavedFile>}
+ */
+export function recordSavedFiles({ window }) {
+    /** @type {Map<string, Blob>} */
+    const blobs = new Map();
+    const createObjectURL = URL.createObjectURL.bind(URL);
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((object) => {
+        const url = createObjectURL(object);
+        if (object instanceof Blob) blobs.set(url, object);
+        return url;
+    });
+    /** @type {Array<{ name: string, blob: Blob | undefined }>} */
+    const saved = [];
+    vi.spyOn(window.HTMLAnchorElement.prototype, 'click').mockImplementation(/** @this {HTMLAnchorElement} */ function () {
+        saved.push({ name: this.download, blob: blobs.get(this.href) });
+    });
+    return async () => {
+        if (saved.length !== 1) throw new Error(`the page saved ${saved.length} files, not one`);
+        const [{ name, blob }] = saved;
+        if (!blob) throw new Error('the page saved a link that is not one of its Blobs');
+        return { name, bytes: new Uint8Array(await blob.arrayBuffer()) };
+    };
 }
 
 /**
