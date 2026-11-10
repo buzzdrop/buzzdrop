@@ -161,15 +161,15 @@ def pseudo_locale(template, monkeypatch):
 
 
 class _VisibleText(HTMLParser):
-    """The text a reader meets: text nodes, translatable attributes and the
-    words a page script writes (the strings island's string leaves)."""
+    """The text a reader meets: text nodes and translatable attributes, and
+    the strings island's raw JSON a page script reads its words from."""
 
     def __init__(self, pending=()):
         super().__init__()
         self.pending = set(pending)
         self.text = []
-        # Attribute values and island strings, each checked on its own.
-        self.values = []
+        self.attributes = []
+        self.islands = []
         self._skipping = 0
         # The translate="no" element we are in, and how deep in its own tag.
         self._untranslated = None
@@ -193,9 +193,9 @@ class _VisibleText(HTMLParser):
             return
         for name in TRANSLATABLE_ATTRIBUTES + TEXT_DATA_ATTRIBUTES:
             if attrs.get(name):
-                self.values.append(attrs[name])
+                self.attributes.append(attrs[name])
         if tag == 'meta' and attrs.get('name') == 'description':
-            self.values.append(attrs['content'])
+            self.attributes.append(attrs['content'])
 
     def _is_pending(self, attrs):
         classes = (attrs.get('class') or '').split()
@@ -207,9 +207,7 @@ class _VisibleText(HTMLParser):
         if tag in ('script', 'style'):
             self._skipping -= 1
         if tag == 'script' and self._island is not None:
-            # A placeholder the script fills, such as %(user)s, is not a word.
-            self.values += [PLACEHOLDER.sub(' ', leaf)
-                            for leaf in _string_leaves(json.loads(''.join(self._island)))]
+            self.islands.append(''.join(self._island))
             self._island = None
         if tag == self._untranslated:
             self._untranslated_depth -= 1
@@ -262,8 +260,12 @@ def _unwrapped(html, pending=()):
     parser.feed(html)
     # Runs of inline text join as rendered: one marker pair may span inline tags.
     found = _outside_markers(''.join(parser.text))
-    for value in parser.values:
+    for value in parser.attributes:
         found += _outside_markers(value)
+    for island in parser.islands:
+        # A placeholder the script fills, such as %(user)s, is not a word.
+        for leaf in _string_leaves(json.loads(island)):
+            found += _outside_markers(PLACEHOLDER.sub(' ', leaf))
     return found
 
 
@@ -476,7 +478,7 @@ def test_the_pseudo_locale_check_catches_unwrapped_text_a_script_writes():
             f'<form data-confirm-message="Delete this drop?" data-confirm-action="{_pseudo("Delete")}"'
             f' data-id="abc123"><span data-label="Copy"></span></form>')
 
-    assert _unwrapped(html) == ['Revoke', 'the', 'token', 'attempts', 'Delete', 'this', 'drop', 'Copy']
+    assert _unwrapped(html) == ['Delete', 'this', 'drop', 'Copy', 'Revoke', 'the', 'token', 'attempts']
 
 
 def test_the_pseudo_locale_check_skips_what_is_marked_untranslated():
