@@ -128,11 +128,12 @@ export async function waitForPage(page, pathname) {
 }
 
 /**
- * Logs in as the regular user, or as `account`.
+ * Logs in as `account`, the regular user unless given.
  * @param {Page} page
- * @param {{ text?: UiText, account?: Account }} [options]
+ * @param {Account} [account]
+ * @param {UiText} [text]
  */
-export async function logIn(page, { text = EN, account = USER } = {}) {
+export async function logIn(page, account = USER, text = EN) {
     await page.goto('/login');
     // The username field's autofocus can land late (WebKit): typing before it
     // does sends the password into the username field (#451).

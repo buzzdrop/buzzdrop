@@ -30,16 +30,16 @@ async function expectOneRow(page, controls) {
 }
 
 /**
- * Each header and the controls it carries beside the language button.
- * @type {{ who: string, account?: Account, controls: (header: Locator) => Locator[] }[]}
+ * Each state the header is seen in, and the controls it carries beside the language button.
+ * @type {{ state: string, account?: Account, controls: (header: Locator) => Locator[] }[]}
  */
-const headers = [
+const headerCases = [
     {
-        who: 'logged out',
+        state: 'logged out',
         controls: (header) => [header.getByRole('link', { name: 'Login' })],
     },
     {
-        who: 'logged in',
+        state: 'logged in',
         account: USER,
         controls: (header) => [
             header.getByText(USER.username, { exact: true }),
@@ -49,7 +49,7 @@ const headers = [
     {
         // Below 22rem the username badge gives way to Manage Users
         // (templates/base.html), so it isn't checked here.
-        who: 'logged in as the admin',
+        state: 'logged in as the admin',
         account: ADMIN,
         controls: (header) => [
             header.getByRole('link', { name: 'Manage Users' }),
@@ -59,12 +59,12 @@ const headers = [
 ];
 
 for (const width of [375, 320]) {
-    for (const { who, account, controls } of headers) {
-        test(`the header stays one row at ${width}px, ${who}`, async ({ page }) => {
+    for (const { state, account, controls } of headerCases) {
+        test(`the header stays one row at ${width}px, ${state}`, async ({ page }) => {
             await page.setViewportSize({ width, height: 740 });
             const header = page.getByRole('navigation');
 
-            if (account) await logIn(page, { account });
+            if (account) await logIn(page, account);
             else await page.goto('/does-not-exist');
             await expectOneRow(page, [
                 header.getByRole('button', { name: 'Language: English' }),

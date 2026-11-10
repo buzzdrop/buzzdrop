@@ -6,7 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import { test, expect } from './fixtures.js';
 import {
-    PL, decryptButton, decryptMessage, expectLanguage, languageButton, logIn, proceedToView, shareNote,
+    PL, USER, decryptButton, decryptMessage, expectLanguage, languageButton, logIn, proceedToView, shareNote,
 } from './support.js';
 
 // Every context in this file, the recipient's too, asks for Polish.
@@ -23,7 +23,7 @@ test('a note makes the round trip in Polish, with no language menu for the recip
 
     // Send: the composer's tab, labels and button, the last of them written
     // by the page script from the server's strings (#286).
-    await logIn(page, { text: PL });
+    await logIn(page, USER, PL);
     const link = await shareNote(page, note, password, PL);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Notatka jest w ulu');
 

@@ -46,7 +46,7 @@ test('a token generated on /users uploads until it is revoked there', async ({ p
     // token to its own user, so it revokes the one row it made.
     const holder = tokenHolder(testInfo.project.name);
 
-    await logIn(page, { account: ADMIN });
+    await logIn(page, ADMIN);
     await page.getByRole('navigation').getByRole('link', { name: 'Manage Users' }).click();
     await waitForPage(page, '/users');
     await expect(page.getByRole('heading', { name: 'User management' })).toBeVisible();
