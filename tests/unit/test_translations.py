@@ -5,6 +5,7 @@ every Polish entry translated, and no template text left unwrapped.
 When one of the drift checks fails, run ``python translations/catalogs.py``
 (the pre-commit hook does it for you) and translate what it added.
 """
+import json
 import re
 import sys
 import uuid
@@ -129,6 +130,12 @@ OPEN, CLOSE = '⟦', '⟧'
 # Brand names, numbers and user data the pages show as they are.
 ALLOWED = {'Buzzdrop', 'AGPL-3.0', 'adminuser', 'testuser'}
 TRANSLATABLE_ATTRIBUTES = ('aria-label', 'title', 'placeholder', 'alt')
+# data-* attributes whose value a script or the stylesheet turns into text:
+# the confirmation dialog's question and button (features/confirm-dialog/),
+# and the label a copy button is sized to (tailwind.css, .btn-label-sizer).
+TEXT_DATA_ATTRIBUTES = ('data-confirm-message', 'data-confirm-action', 'data-label')
+# The island a page script reads its words from (_page_strings.html).
+STRINGS_ISLAND = 'page-strings-json'
 # Text runs on across these; any other tag ends a run of words.
 INLINE_TAGS = {'a', 'abbr', 'b', 'code', 'em', 'i', 'small', 'span', 'strong', 'time'}
 NOT_WORDS = re.compile(r'^[\W\d_]*$')
@@ -153,7 +160,8 @@ def pseudo_locale(template, monkeypatch):
 
 
 class _VisibleText(HTMLParser):
-    """The text a reader meets: text nodes and translatable attributes."""
+    """The text a reader meets: text nodes, translatable attributes and the
+    words a page script writes (the strings island's string leaves)."""
 
     def __init__(self, pending=()):
         super().__init__()
@@ -164,6 +172,8 @@ class _VisibleText(HTMLParser):
         # The translate="no" element we are in, and how deep in its own tag.
         self._untranslated = None
         self._untranslated_depth = 0
+        # The strings island's JSON while we are in it, else None.
+        self._island = None
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -174,10 +184,12 @@ class _VisibleText(HTMLParser):
             self._untranslated, self._untranslated_depth = tag, 1
         if tag in ('script', 'style') or self._untranslated == tag and self._untranslated_depth == 1:
             self._skipping += 1
+        if tag == 'script' and attrs.get('id') == STRINGS_ISLAND:
+            self._island = []
         # translate="no" covers an element's attributes too.
         if self._untranslated is not None:
             return
-        for name in TRANSLATABLE_ATTRIBUTES:
+        for name in TRANSLATABLE_ATTRIBUTES + TEXT_DATA_ATTRIBUTES:
             if attrs.get(name):
                 self.attributes.append(attrs[name])
         if tag == 'meta' and attrs.get('name') == 'description':
@@ -192,6 +204,9 @@ class _VisibleText(HTMLParser):
         self._break(tag)
         if tag in ('script', 'style'):
             self._skipping -= 1
+        if tag == 'script' and self._island is not None:
+            self.attributes += _string_leaves(json.loads(''.join(self._island)))
+            self._island = None
         if tag == self._untranslated:
             self._untranslated_depth -= 1
             if not self._untranslated_depth:
@@ -203,8 +218,21 @@ class _VisibleText(HTMLParser):
             self.text.append(' ')
 
     def handle_data(self, data):
+        if self._island is not None:
+            self._island.append(data)
         if not self._skipping:
             self.text.append(data)
+
+
+def _string_leaves(value):
+    """Every string in a JSON value, plural forms included."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        value = value.values()
+    elif not isinstance(value, list):
+        return []
+    return [leaf for item in value for leaf in _string_leaves(item)]
 
 
 def _outside_markers(text):
@@ -217,7 +245,9 @@ def _outside_markers(text):
             depth -= 1
         elif depth == 0:
             outside.append(char)
-    words = (word.strip(SURROUNDING_PUNCTUATION) for word in ''.join(outside).split())
+    # A placeholder a page script fills, such as %(user)s, is not a word.
+    outside = PLACEHOLDER.sub(' ', ''.join(outside))
+    words = (word.strip(SURROUNDING_PUNCTUATION) for word in outside.split())
     return [word for word in words
             if word not in ALLOWED and not NOT_WORDS.match(word) and not URL.match(word)]
 
@@ -430,6 +460,21 @@ def test_the_pseudo_locale_check_catches_unwrapped_text():
             '<span>Buzz<b>drop</b> 404 &middot;</span>')
 
     assert _unwrapped(html) == ['Unwrapped', 'Close']
+
+
+def test_the_pseudo_locale_check_catches_unwrapped_text_a_script_writes():
+    island = json.dumps({'users': {
+        'revoke': _pseudo('Revoke'),
+        'confirmRevoke': 'Revoke the %(user)s token?',
+        'attemptsRemaining': {'one': _pseudo('%(count)s attempt'), 'other': '%(count)s attempts'},
+        'limit': 3,
+    }})
+    html = (f'<script id="{STRINGS_ISLAND}" type="application/json">{island}</script>'
+            f'<script>const notChecked = "Script";</script>'
+            f'<form data-confirm-message="Delete this drop?" data-confirm-action="{_pseudo("Delete")}"'
+            f' data-id="abc123"><span data-label="Copy"></span></form>')
+
+    assert _unwrapped(html) == ['Revoke', 'the', 'token', 'attempts', 'Delete', 'this', 'drop', 'Copy']
 
 
 def test_the_pseudo_locale_check_skips_what_is_marked_untranslated():
