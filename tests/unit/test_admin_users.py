@@ -13,6 +13,13 @@ from auth import get_users, validate_users, verify_password
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
+def test_the_test_session_has_only_the_conftest_users():
+    # A developer's .env with ADMIN_* must not bring back the admin that
+    # conftest removed (#449).
+    assert not [k for k in os.environ if k.startswith('ADMIN_')]
+    assert set(get_users()) == {'testuser', 'adminuser'}
+
+
 @pytest.fixture
 def users_env(monkeypatch):
     """Only the users a test sets: no FLASK_USER_N, no ADMIN_*."""

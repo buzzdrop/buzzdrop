@@ -8,8 +8,8 @@ import sys
 import tempfile
 import time
 import uuid
+import dotenv
 import pytest
-from dotenv import load_dotenv
 
 # Run on a host clock that is neither UTC nor Warsaw time, so a timestamp
 # written or compared in the host's zone shows up as a failure (#250).
@@ -31,8 +31,10 @@ os.environ.setdefault('EXPIRY_SWEEP_INTERVAL_SECONDS', '0')
 os.environ['DEFAULT_LANGUAGE'] = 'en'
 os.environ['LANGUAGES'] = 'en,pl'
 
-# Load .env.example for all test runs
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env.example'), override=False)
+# Load .env.example for all test runs, then disable app.py's load_dotenv:
+# the developer's .env would bring back what is removed below (#449).
+dotenv.load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env.example'), override=False)
+dotenv.load_dotenv = lambda *args, **kwargs: False
 # Its first-admin lines are for a real install; the test users above are
 # the only ones. A test that needs ADMIN_* sets it itself.
 for _var in ('ADMIN_USERNAME', 'ADMIN_PASSWORD', 'ADMIN_EMAIL'):
