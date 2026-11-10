@@ -92,6 +92,9 @@ export function uniqueFile() {
  */
 export async function logIn(page, text = EN) {
     await page.goto('/login');
+    // The username field's autofocus can land late (WebKit): typing before it
+    // does sends the password into the username field (#451).
+    await expect(page.getByLabel(text.username)).toBeFocused();
     await page.getByLabel(text.username).fill(USER.username);
     await page.getByLabel(text.password).fill(USER.password);
     await page.getByRole('button', { name: text.login }).click();
