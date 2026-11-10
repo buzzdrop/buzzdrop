@@ -1,4 +1,6 @@
 import hashlib
+import importlib.machinery
+import importlib.util
 import io
 import os
 import secrets
@@ -265,6 +267,17 @@ def bound_share(files_store):
         files_store.bind_key_verifier(file_id, v_hex, salt_hex)
         return file_id
     return _create
+
+
+def import_buzz():
+    """Import cli/buzz as a module (file has no .py extension)."""
+    buzz_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'cli', 'buzz'))
+    loader = importlib.machinery.SourceFileLoader('buzz', buzz_path)
+    spec = importlib.util.spec_from_loader('buzz', loader)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def download_ticket(h_hex):

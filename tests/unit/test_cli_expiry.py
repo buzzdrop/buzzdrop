@@ -1,24 +1,12 @@
 """The CLI sends an expiry only as an exact moment, in UTC (#250)."""
 import argparse
-import importlib.machinery
-import importlib.util
-import os
 
 import pytest
 
-
-def _import_buzz():
-    """Import cli/buzz as a module (file has no .py extension)."""
-    buzz_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', '..', 'cli', 'buzz'))
-    loader = importlib.machinery.SourceFileLoader('buzz', buzz_path)
-    spec = importlib.util.spec_from_loader('buzz', loader)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+from conftest import import_buzz
 
 
-buzz = _import_buzz()
+buzz = import_buzz()
 
 
 @pytest.mark.parametrize('raw, sent', [

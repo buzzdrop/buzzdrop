@@ -22,22 +22,10 @@ import sys
 
 import pytest
 
+from conftest import import_buzz
+
 # Make cli/buzz importable as a module
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'cli'))
-
-
-def _import_buzz():
-    """Import cli/buzz as a module (file has no .py extension)."""
-    import importlib.util
-    import importlib.machinery
-    buzz_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', '..', 'cli', 'buzz')
-    )
-    loader = importlib.machinery.SourceFileLoader('buzz', buzz_path)
-    spec = importlib.util.spec_from_loader('buzz', loader)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 try:
@@ -79,7 +67,7 @@ V3_FIXTURE_RECEIPT = bytes.fromhex(
 
 @requires_cryptography
 def test_encrypt_output_length():
-    buzz = _import_buzz()
+    buzz = import_buzz()
     data = b'hello world'
     blob, _v, receipt_hash = buzz.encrypt_file(
         data, 'test-password', h=os.urandom(32), name='hello.txt')
@@ -94,7 +82,7 @@ def test_encrypt_output_length():
 def test_encrypt_receipt_hash_matches_payload():
     """The stored receipt_hash is SHA-256 of the in-plaintext receipt."""
     import hashlib
-    buzz = _import_buzz()
+    buzz = import_buzz()
     h = os.urandom(32)
     blob, _v, receipt_hash = buzz.encrypt_file(b'data', 'pw', h)
     _data, receipt, _name = buzz.decrypt_file(blob, 'pw', h)
@@ -104,7 +92,7 @@ def test_encrypt_receipt_hash_matches_payload():
 @requires_cryptography
 def test_encrypt_produces_v3_envelope():
     """encrypt_file() must emit the BKV3 envelope magic at offset 0."""
-    buzz = _import_buzz()
+    buzz = import_buzz()
     blob, v_hex, _rh = buzz.encrypt_file(b'data', 'pw', h=os.urandom(32))
     assert blob[:4] == buzz.MAGIC_V3 == b'BKV3'
     assert len(v_hex) == 64
@@ -112,7 +100,7 @@ def test_encrypt_produces_v3_envelope():
 
 @requires_cryptography
 def test_encrypt_rejects_bad_h_length():
-    buzz = _import_buzz()
+    buzz = import_buzz()
     with pytest.raises(ValueError):
         buzz.encrypt_file(b'data', 'pw', h=b'too-short')
 
@@ -120,7 +108,7 @@ def test_encrypt_rejects_bad_h_length():
 @requires_cryptography
 def test_encrypt_decrypt_roundtrip():
     """encrypt_file + decrypt_file(h) returns the original bytes."""
-    buzz = _import_buzz()
+    buzz = import_buzz()
     original = b'key-release payload \x00\xff'
     h = os.urandom(32)
     blob, _v, _rh = buzz.encrypt_file(original, 'pw', h, name='payload.bin')
@@ -133,7 +121,7 @@ def test_encrypt_decrypt_roundtrip():
 @requires_cryptography
 def test_v3_fixture_decrypts_and_verifier_matches():
     """Pinned v3 fixture: same bytes in JS test (crypto.test.js)."""
-    buzz = _import_buzz()
+    buzz = import_buzz()
     data, receipt, name = buzz.decrypt_file(
         V3_FIXTURE, FIXTURE_PASSWORD, h=V3_FIXTURE_H)
     assert data == FIXTURE_DATA
@@ -148,7 +136,7 @@ def test_v3_fixture_decrypts_and_verifier_matches():
 @requires_cryptography
 def test_decrypt_requires_v3_magic():
     """Only BKV3 is supported — other formats fail loudly."""
-    buzz = _import_buzz()
+    buzz = import_buzz()
     with pytest.raises(ValueError):
         buzz.decrypt_file(b'BKV2' + V3_FIXTURE[4:], FIXTURE_PASSWORD, h=V3_FIXTURE_H)
     with pytest.raises(ValueError):
@@ -158,7 +146,7 @@ def test_decrypt_requires_v3_magic():
 @requires_cryptography
 def test_decrypt_requires_server_share():
     """The whole point: a blob alone cannot be decrypted."""
-    buzz = _import_buzz()
+    buzz = import_buzz()
     with pytest.raises(ValueError):
         buzz.decrypt_file(V3_FIXTURE, FIXTURE_PASSWORD, h=None)
     with pytest.raises(ValueError):
@@ -168,7 +156,7 @@ def test_decrypt_requires_server_share():
 @requires_cryptography
 def test_wrong_password_or_h_fails():
     from cryptography.exceptions import InvalidTag
-    buzz = _import_buzz()
+    buzz = import_buzz()
     with pytest.raises(InvalidTag):
         buzz.decrypt_file(V3_FIXTURE, 'wrong-password', h=V3_FIXTURE_H)
     with pytest.raises(InvalidTag):
@@ -178,7 +166,7 @@ def test_wrong_password_or_h_fails():
 @requires_cryptography
 def test_hkdf_domain_separation():
     """Kp, V and file_key must be pairwise distinct for the same master."""
-    buzz = _import_buzz()
+    buzz = import_buzz()
     salt = bytes(range(16))
     kp, v = buzz.derive_key_release_keys('pw', salt)
     fk = buzz._derive_file_key(kp, bytes(range(32, 64)), salt)
@@ -188,7 +176,7 @@ def test_hkdf_domain_separation():
 @requires_cryptography
 def test_encrypt_is_non_deterministic():
     """Each call should produce different ciphertext (random salt+iv)."""
-    buzz = _import_buzz()
+    buzz = import_buzz()
     h = os.urandom(32)
     blob1, _v1, _r1 = buzz.encrypt_file(b'same data', 'same-password', h)
     blob2, _v2, _r2 = buzz.encrypt_file(b'same data', 'same-password', h)
@@ -198,7 +186,7 @@ def test_encrypt_is_non_deterministic():
 @requires_cryptography
 def test_unicode_password():
     """Non-ASCII passwords should work and round-trip correctly."""
-    buzz = _import_buzz()
+    buzz = import_buzz()
     original = b'secret data'
     password = 'pässwörd-日本語'
     h = os.urandom(32)
@@ -209,7 +197,7 @@ def test_unicode_password():
 
 
 def test_generate_passphrase_format():
-    buzz = _import_buzz()
+    buzz = import_buzz()
     phrase = buzz.generate_passphrase()
     # Four EFF words contain a hyphen ('yo-yo', 't-shirt', ...), so a
     # naive split('-') overcounts. Re-merge fragments when the joined
@@ -236,7 +224,7 @@ def test_wordlist_is_eff_large_wordlist():
     duplicates and only 691 entries — the whole point of a passphrase
     generator is entropy, so guard the list size and uniqueness.
     """
-    buzz = _import_buzz()
+    buzz = import_buzz()
     assert len(buzz._WORDS) == 7776
     assert len(set(buzz._WORDS)) == 7776
 
@@ -244,7 +232,7 @@ def test_wordlist_is_eff_large_wordlist():
 def test_js_wordlist_matches_cli():
     """static/js/lib/eff-wordlist.js must be the same list as cli/buzz's."""
     import re
-    buzz = _import_buzz()
+    buzz = import_buzz()
     js_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', '..',
                      'static', 'js', 'lib', 'eff-wordlist.js')
@@ -257,12 +245,12 @@ def test_js_wordlist_matches_cli():
 def test_generate_passphrase_entropy():
     """Default passphrases should carry ~77.5 bits of entropy."""
     import math
-    buzz = _import_buzz()
+    buzz = import_buzz()
     bits_per_word = math.log2(len(buzz._WORDS))
     assert 6 * bits_per_word >= 75
 
 
 def test_generate_passphrase_is_random():
-    buzz = _import_buzz()
+    buzz = import_buzz()
     phrases = {buzz.generate_passphrase() for _ in range(20)}
     assert len(phrases) > 1

@@ -14,6 +14,8 @@ from timestamps import to_utc_iso, utcnow
 import pytest
 from flask import url_for
 
+from conftest import import_buzz
+
 # Fixtures: 'app', 'client', 'db_instance', 'files_store' from conftest.py
 # Test users from conftest.py: 'testuser:password:false', 'adminuser:adminpass:true'
 
@@ -533,20 +535,6 @@ def test_delete_file_drops_key_share(client, files_store, csrf_form_data):
 # End-to-end v3 crypto through the real routes
 # ---------------------------------------------------------------------------
 
-def _import_buzz():
-    """Import cli/buzz as a module (file has no .py extension)."""
-    import importlib.util
-    import importlib.machinery
-    buzz_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', '..', 'cli', 'buzz')
-    )
-    loader = importlib.machinery.SourceFileLoader('buzz', buzz_path)
-    spec = importlib.util.spec_from_loader('buzz', loader)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 try:
     import cryptography  # noqa: F401
     _crypto_available = True
@@ -562,7 +550,7 @@ def test_key_release_end_to_end(client, files_store, key_release_settings):
     # Allow one miss before the winning release — the production
     # default of 1 would lock the share right after the wrong try.
     key_release_settings['KEY_RELEASE_MAX_ATTEMPTS'] = 2
-    buzz = _import_buzz()
+    buzz = import_buzz()
     login_user(client)
 
     password = 'end-to-end-password'

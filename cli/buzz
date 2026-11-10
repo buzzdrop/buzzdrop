@@ -33,6 +33,7 @@ import secrets
 import sys
 import zipfile
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 from io import BytesIO
 from urllib.parse import urlparse
 
@@ -1135,6 +1136,37 @@ def _requests():
         sys.exit(1)
 
 
+class _CsrfMetaParser(HTMLParser):
+    """Collect the content of a page's <meta name="csrf-token">."""
+
+    def __init__(self):
+        super().__init__()
+        self.token = None
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if tag == 'meta' and attributes.get('name') == 'csrf-token':
+            self.token = attributes.get('content')
+
+
+def _csrf_token_from_page(page: str) -> str | None:
+    """Return the session's CSRF token rendered in an HTML page, if any."""
+    parser = _CsrfMetaParser()
+    parser.feed(page)
+    return parser.token
+
+
+_NOT_JSON = object()
+
+
+def _error_field(resp, field: str, default=None):
+    """Return a field of a JSON error body, or _NOT_JSON if it has no such body."""
+    try:
+        return resp.json().get(field, default)
+    except Exception:
+        return _NOT_JSON
+
+
 def setup_token(server_override: str = None,
                 insecure: bool = False) -> tuple[str, str]:
     """
@@ -1187,10 +1219,22 @@ def setup_token(server_override: str = None,
         print(f"Error: login request failed: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    # Buzzdrop redirects to / on success and back to /login on failure.
-    # Check for the session cookie as a reliable success signal.
-    if 'session' not in session.cookies:
+    # Buzzdrop redirects away from /login on success and renders /login
+    # again on failure. A session cookie proves nothing: rendering the
+    # login page sets one too, to hold its CSRF token.
+    if urlparse(resp.url).path.rstrip('/').endswith('/login'):
         print("Error: login failed — check your username and password.", file=sys.stderr)
+        sys.exit(1)
+
+    # Login rotates the session's CSRF token, so it comes from the page the
+    # login redirected to.
+    csrf_token = _csrf_token_from_page(resp.text)
+    if not csrf_token:
+        print(
+            f"Error: found no CSRF token on the page at {resp.url} — "
+            f"is {server} a Buzzdrop server?",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     # Generate token for self
@@ -1198,6 +1242,7 @@ def setup_token(server_override: str = None,
         resp = session.post(
             f"{server}/api/token",
             json={'username': username},
+            headers={'X-CSRF-Token': csrf_token},
             timeout=15,
         )
     except requests.RequestException as exc:
@@ -1205,14 +1250,18 @@ def setup_token(server_override: str = None,
         sys.exit(1)
 
     if resp.status_code == 403:
-        print("Error: your account does not have permission to generate tokens.", file=sys.stderr)
-        sys.exit(1)
+        code = _error_field(resp, 'code')
+        if code == 'admin_required':
+            print("Error: your account does not have permission to generate tokens.", file=sys.stderr)
+            sys.exit(1)
+        if code == 'csrf_failed':
+            print("Error: the server refused the token request (CSRF validation failed).", file=sys.stderr)
+            sys.exit(1)
     if not resp.ok:
         msg = f"Server returned {resp.status_code}"
-        try:
-            msg += f": {resp.json().get('error', '')}"
-        except Exception:
-            pass
+        error = _error_field(resp, 'error', '')
+        if error is not _NOT_JSON:
+            msg += f": {error}"
         print(f"Error: {msg}", file=sys.stderr)
         sys.exit(1)
 
