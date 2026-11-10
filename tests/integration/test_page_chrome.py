@@ -10,7 +10,7 @@ from html import unescape
 
 import pytest
 from flask import url_for
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, ImATeapot
 
 from app import handle_http_error
 
@@ -208,6 +208,14 @@ def test_bad_request_answers_api_clients_with_json(app):
 
     assert response.status_code == 400
     assert response.get_json() == {'error': 'Bad Request', 'code': 'bad_request'}
+
+
+def test_an_unlisted_status_answers_api_clients_with_the_generic_code(app):
+    with app.test_request_context('/api/token'):
+        response = app.make_response(handle_http_error(ImATeapot()))
+
+    assert response.status_code == 418
+    assert response.get_json() == {'error': "I'm a teapot", 'code': 'http_error'}
 
 
 def test_too_large_drop_lands_on_a_page_that_links_to_the_source_code(app, client, monkeypatch):

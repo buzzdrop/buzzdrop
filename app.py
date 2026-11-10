@@ -812,6 +812,31 @@ def handle_server_error(error):
                        _('The server hit an error. Please try again in a moment.'))
 
 
+# The JSON `code` of handle_http_error, fixed per status so it stays stable
+# whatever Werkzeug names the error. Any status not listed is `http_error`.
+HTTP_ERROR_CODES = {
+    400: 'bad_request',
+    401: 'unauthorized',
+    403: 'forbidden',
+    405: 'method_not_allowed',
+    406: 'not_acceptable',
+    408: 'request_timeout',
+    409: 'conflict',
+    410: 'gone',
+    411: 'length_required',
+    412: 'precondition_failed',
+    414: 'uri_too_long',
+    415: 'unsupported_media_type',
+    416: 'range_not_satisfiable',
+    422: 'unprocessable_entity',
+    431: 'request_header_fields_too_large',
+    501: 'not_implemented',
+    502: 'bad_gateway',
+    503: 'service_unavailable',
+    504: 'gateway_timeout',
+}
+
+
 @app.errorhandler(HTTPException)
 def handle_http_error(error):
     """Every other HTTP error (400, 405, …) as the themed page instead of
@@ -820,7 +845,7 @@ def handle_http_error(error):
     headers = [(name, value) for name, value in error.get_headers()
                if name.lower() != 'content-type']
     if _is_api_request():
-        code = '_'.join(error.name.lower().replace("'", '').split())
+        code = HTTP_ERROR_CODES.get(error.code, 'http_error')
         return {'error': error.name, 'code': code}, error.code, headers
     body, status = _error_page(error.code, str(error.code), _("This request didn't go through"),
                                _('Go back and try again.'))
