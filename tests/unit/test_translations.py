@@ -122,6 +122,7 @@ def test_parity_check_catches(msgid, msgstr):
 #
 # Every translation in `xx` is the English text between markers, stretched.
 # A converted page rendered in it must show no text outside the markers,
+# nor hold any for its script to write (the strings island, TEXT_DATA_ATTRIBUTES),
 # except what is never translated (ALLOWED) and what the page marks
 # translate="no", such as the language menu's names, each in itself (#287). The catalog is built in
 # memory here; it is never committed, and LANGUAGES can't list it.
@@ -167,7 +168,8 @@ class _VisibleText(HTMLParser):
         super().__init__()
         self.pending = set(pending)
         self.text = []
-        self.attributes = []
+        # Attribute values and island strings, each checked on its own.
+        self.values = []
         self._skipping = 0
         # The translate="no" element we are in, and how deep in its own tag.
         self._untranslated = None
@@ -191,9 +193,9 @@ class _VisibleText(HTMLParser):
             return
         for name in TRANSLATABLE_ATTRIBUTES + TEXT_DATA_ATTRIBUTES:
             if attrs.get(name):
-                self.attributes.append(attrs[name])
+                self.values.append(attrs[name])
         if tag == 'meta' and attrs.get('name') == 'description':
-            self.attributes.append(attrs['content'])
+            self.values.append(attrs['content'])
 
     def _is_pending(self, attrs):
         classes = (attrs.get('class') or '').split()
@@ -205,7 +207,9 @@ class _VisibleText(HTMLParser):
         if tag in ('script', 'style'):
             self._skipping -= 1
         if tag == 'script' and self._island is not None:
-            self.attributes += _string_leaves(json.loads(''.join(self._island)))
+            # A placeholder the script fills, such as %(user)s, is not a word.
+            self.values += [PLACEHOLDER.sub(' ', leaf)
+                            for leaf in _string_leaves(json.loads(''.join(self._island)))]
             self._island = None
         if tag == self._untranslated:
             self._untranslated_depth -= 1
@@ -245,9 +249,7 @@ def _outside_markers(text):
             depth -= 1
         elif depth == 0:
             outside.append(char)
-    # A placeholder a page script fills, such as %(user)s, is not a word.
-    outside = PLACEHOLDER.sub(' ', ''.join(outside))
-    words = (word.strip(SURROUNDING_PUNCTUATION) for word in outside.split())
+    words = (word.strip(SURROUNDING_PUNCTUATION) for word in ''.join(outside).split())
     return [word for word in words
             if word not in ALLOWED and not NOT_WORDS.match(word) and not URL.match(word)]
 
@@ -260,7 +262,7 @@ def _unwrapped(html, pending=()):
     parser.feed(html)
     # Runs of inline text join as rendered: one marker pair may span inline tags.
     found = _outside_markers(''.join(parser.text))
-    for value in parser.attributes:
+    for value in parser.values:
         found += _outside_markers(value)
     return found
 
