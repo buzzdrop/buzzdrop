@@ -200,9 +200,10 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
 5. A one-click `#password` link decrypts without typing, and the fragment is gone from the URL afterwards.
 6. The uploader deletes the file from the index list, and the link is dead. The confirmation dialog opens with Cancel focused, and Esc declines it first (#320): happy-dom does not close a dialog on Esc.
 7. Login → upload → logout (session and CSRF over real HTTP).
-8. The header stays one row at 375px and 320px, logged out and logged in, with no sideways scroll (#232), the language button included (#287).
+8. The header stays one row at 375px and 320px, logged out, logged in and logged in as the admin, whose header is the widest (logo, Manage Users, language button, Logout; #299), with no sideways scroll (#232), the language button included (#287).
 9. The language menu (#287): Tab, Enter and the arrows pick Polski, Space opens it too, and the choice holds on the next page; Escape gives focus back to the button; with JavaScript off the menu still switches the language.
 10. Polish (#294, §7c): under a `pl-PL` browser, a note makes its round trip with the Polish UI checked at each step, the recipient's confirm and view pages have no language menu, and a switch to English in the menu holds across pages.
+11. API token (#299): the admin generates a token on `/users` against the real `POST /api/token` and reads it from the page; an upload with it as `Authorization: Bearer` succeeds (through Playwright's `request` fixture, with no session cookie, as the CLI sends it), and once the admin has revoked it on `/users` the same upload is refused (401). Each browser gives its token to its own user (`tokenHolder`), as the three run it at once against one database.
 
 Hard-to-produce failures (410 edge cases, 429) are mocked per test with `page.route()`. There is no separate mocked-server E2E mode.
 
@@ -306,7 +307,9 @@ From [Pin down E2E harness facts: Playwright against the Buzzdrop Docker image](
   | Variable | Value | Why |
   |---|---|---|
   | `FLASK_ENV` | `testing` | HTTP cookies; limiter on with relaxed limits (all E2E traffic comes from one IP) |
-  | `FLASK_USER_1` | `e2e:<password>:false` | Single non-admin user (the admin token UI is covered in the DOM layer, not E2E) |
+  | `FLASK_USER_1` | `e2e:<password>:false` | The regular user the journeys log in as (`USER` in `support.js`) |
+  | `FLASK_USER_2` | `e2e-admin:<password>:true` | The admin, for the admin header and the users page (`ADMIN` in `support.js`; #299) |
+  | `FLASK_USER_3`–`_5` | `e2e-token-<browser>:<password>:false` | Journey 11's token holders, one per browser project (`tokenHolder`, keyed by the project names in `playwright.config.js`); nobody logs in as them |
   | `FLASK_SECRET_KEY` | fixed dummy | Deterministic; silences the temporary-key warning |
   | `STORAGE_BACKEND` | `local` | No mounts; state disappears with `--rm` |
   | `DATABASE_URL` | `sqlite:////tmp/e2e/buzzdrop.db` | |

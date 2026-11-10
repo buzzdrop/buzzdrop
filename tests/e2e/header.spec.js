@@ -1,12 +1,14 @@
 // Journey 8 (docs/frontend-test-strategy.md §7): on a phone-width viewport
-// the sticky header stays one row, logged out and logged in, and the page
-// doesn't scroll sideways (#232). Desktop Chrome's window can't go this
-// narrow, so this is the only place it gets checked.
+// the sticky header stays one row, logged out, logged in and logged in as
+// the admin, whose header is the widest (#299), and the page doesn't scroll
+// sideways (#232). Desktop Chrome's window can't go this narrow, so this is
+// the only place it gets checked.
 import { test, expect } from './fixtures.js';
-import { USER, logIn } from './support.js';
+import { ADMIN, USER, logIn } from './support.js';
 
 /** @typedef {import('@playwright/test').Page} Page */
 /** @typedef {import('@playwright/test').Locator} Locator */
+/** @typedef {import('./support.js').Account} Account */
 
 /**
  * Fails unless every control sits on the logo's row of the header.
@@ -27,24 +29,47 @@ async function expectOneRow(page, controls) {
     expect(overflow).toBeLessThanOrEqual(0);
 }
 
-for (const width of [375, 320]) {
-    test(`the header stays one row at ${width}px`, async ({ page }) => {
-        await page.setViewportSize({ width, height: 740 });
-        const header = page.getByRole('navigation');
-
-        const language = header.getByRole('button', { name: 'Language: English' });
-
-        await page.goto('/does-not-exist');
-        await expectOneRow(page, [
-            language,
-            header.getByRole('link', { name: 'Login' }),
-        ]);
-
-        await logIn(page);
-        await expectOneRow(page, [
-            language,
+/**
+ * Each state the header is seen in, and the controls it carries beside the language button.
+ * @type {{ state: string, account?: Account, controls: (header: Locator) => Locator[] }[]}
+ */
+const headerCases = [
+    {
+        state: 'logged out',
+        controls: (header) => [header.getByRole('link', { name: 'Login' })],
+    },
+    {
+        state: 'logged in',
+        account: USER,
+        controls: (header) => [
             header.getByText(USER.username, { exact: true }),
             header.getByRole('button', { name: 'Logout' }),
-        ]);
-    });
+        ],
+    },
+    {
+        // Below 22rem the username badge gives way to Manage Users
+        // (templates/base.html), so it isn't checked here.
+        state: 'logged in as the admin',
+        account: ADMIN,
+        controls: (header) => [
+            header.getByRole('link', { name: 'Manage Users' }),
+            header.getByRole('button', { name: 'Logout' }),
+        ],
+    },
+];
+
+for (const width of [375, 320]) {
+    for (const { state, account, controls } of headerCases) {
+        test(`the header stays one row at ${width}px, ${state}`, async ({ page }) => {
+            await page.setViewportSize({ width, height: 740 });
+            const header = page.getByRole('navigation');
+
+            if (account) await logIn(page, account);
+            else await page.goto('/does-not-exist');
+            await expectOneRow(page, [
+                header.getByRole('button', { name: 'Language: English' }),
+                ...controls(header),
+            ]);
+        });
+    }
 }
