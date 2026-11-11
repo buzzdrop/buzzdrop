@@ -90,11 +90,15 @@ const dom = readReport('dom');
 // A unit report from an earlier run must not be merged into this one.
 rmSync(`${REPORT_DIR}/unit.json`, { force: true });
 const ranges = undetectedRanges(dom);
-if (ranges.length) stryker('unit.config.js', ranges);
-const unit = ranges.length ? readReport('unit') : { ...dom, files: {}, testFiles: {} };
+/** @type {Record<string, MutationTestResult>} */
+const tiers = { dom };
+if (ranges.length) {
+    stryker('unit.config.js', ranges);
+    tiers.unit = readReport('unit');
+}
 
-// DOM first: the merged report keeps the first tier's config and framework.
-const merged = mergeReports({ dom, unit });
+// The merged report keeps the DOM run's config and framework.
+const merged = mergeReports({ base: dom, tiers });
 writeFileSync(`${REPORT_DIR}/mutation.json`, JSON.stringify(merged));
 writeHtml(merged);
 

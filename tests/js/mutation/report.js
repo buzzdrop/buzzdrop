@@ -11,6 +11,12 @@ import { calculateMutationTestMetrics } from 'mutation-testing-metrics';
  */
 
 /**
+ * What a tier detects a mutant by. Every other status leaves it to the next tier.
+ * @type {MutantStatus[]}
+ */
+const DETECTED = ['Killed', 'Timeout'];
+
+/**
  * Best first: a later status only stands when no tier reached an earlier
  * one. Detected, then undetected (a tier ran it beats none did), then the
  * runs that say nothing about the tests (the mutant broke the run). The
@@ -18,7 +24,7 @@ import { calculateMutationTestMetrics } from 'mutation-testing-metrics';
  * reaches, and a merged Survived may be NoCoverage in truth.
  * @type {MutantStatus[]}
  */
-const STATUS_RANK = ['Killed', 'Timeout', 'Survived', 'NoCoverage', 'RuntimeError', 'CompileError', 'Ignored', 'Pending'];
+const STATUS_RANK = [...DETECTED, 'Survived', 'NoCoverage', 'RuntimeError', 'CompileError', 'Ignored', 'Pending'];
 
 /**
  * Where a mutant is, and what it does there: the same in every run over
@@ -29,20 +35,22 @@ const mutantKey = ({ mutatorName, replacement, location: { start, end } }) =>
     `${mutatorName}|${replacement}|${start.line}:${start.column}-${end.line}:${end.column}`;
 
 /**
- * @param {Record<string, MutationTestResult>} byTier - each tier's report, by tier name
+ * @param {object} reports
+ * @param {MutationTestResult} reports.base - the report whose config and framework the merge keeps
+ * @param {Record<string, MutationTestResult>} reports.tiers - each tier's report, by tier name
  * @returns {MutationTestResult}
  */
-export function mergeReports(byTier) {
+export function mergeReports({ base, tiers }) {
     /** @type {MutationTestResult['files']} */
     const files = {};
     /** @type {NonNullable<MutationTestResult['testFiles']>} */
     const testFiles = {};
     /** @type {Map<string, Map<string, MutantResult>>} the best result so far, by file and mutant */
     const best = new Map();
-    for (const [tier, report] of Object.entries(byTier)) {
+    for (const [tier, report] of Object.entries(tiers)) {
         // Each runner numbers its own tests, so the tier keeps the ids apart.
         /** @param {string[] | undefined} ids */
-        const own = (ids) => ids?.map((id) => `${tier}:${id}`);
+        const tierIds = (ids) => ids?.map((id) => `${tier}:${id}`);
         for (const [name, file] of Object.entries(report.testFiles ?? {})) {
             testFiles[name] = { ...file, tests: file.tests.map((t) => ({ ...t, id: `${tier}:${t.id}` })) };
         }
@@ -54,13 +62,13 @@ export function mergeReports(byTier) {
                 const key = mutantKey(mutant);
                 const kept = mutants.get(key);
                 if (!kept || STATUS_RANK.indexOf(mutant.status) < STATUS_RANK.indexOf(kept.status)) {
-                    mutants.set(key, { ...mutant, killedBy: own(mutant.killedBy), coveredBy: own(mutant.coveredBy) });
+                    mutants.set(key, { ...mutant, killedBy: tierIds(mutant.killedBy), coveredBy: tierIds(mutant.coveredBy) });
                 }
             }
         }
     }
     for (const [name, mutants] of best) files[name].mutants = [...mutants.values()];
-    return { ...Object.values(byTier)[0], files, testFiles };
+    return { ...base, files, testFiles };
 }
 
 /**
@@ -71,7 +79,7 @@ export function mergeReports(byTier) {
  */
 export function undetectedRanges(report) {
     return Object.entries(report.files).flatMap(([name, file]) => file.mutants
-        .filter(({ status }) => !['Killed', 'Timeout', 'Ignored'].includes(status))
+        .filter(({ status }) => !DETECTED.includes(status) && status !== 'Ignored')
         // A range counts columns from 0, the report from 1.
         .map(({ location: { start, end } }) =>
             `${name}:${start.line}:${start.column - 1}-${end.line}:${end.column - 1}`));

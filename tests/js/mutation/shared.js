@@ -7,8 +7,7 @@ import vitestConfig from '../../../vitest.config.js';
 /** @typedef {import('@stryker-mutator/api/core').PartialStrykerOptions} PartialStrykerOptions */
 
 const { coverage = {}, env = {} } = vitestConfig.test ?? {};
-const covered = 'include' in coverage ? coverage.include ?? [] : [];
-const uncovered = 'exclude' in coverage ? coverage.exclude ?? [] : [];
+const coverageExclude = 'exclude' in coverage ? coverage.exclude ?? [] : [];
 
 /**
  * What a run mutates unless told otherwise: the modules where a missed
@@ -21,7 +20,8 @@ export const SECURITY_MODULES = [
     'static/js/lib/passphrase.js',
 ];
 
-export const ALL_MODULES = covered;
+/** What `--all` mutates: everything coverage measures. */
+export const ALL_MODULES = 'include' in coverage ? coverage.include ?? [] : [];
 
 export const REPORT_DIR = 'reports/mutation';
 
@@ -37,7 +37,7 @@ export function sharedOptions(tier) {
     /** @type {string[]} */
     const mutate = mutateFile ? JSON.parse(readFileSync(mutateFile, 'utf8')) : SECURITY_MODULES;
     return {
-        mutate: [...mutate, ...uncovered.map((pattern) => `!${pattern}`)],
+        mutate: [...mutate, ...coverageExclude.map((pattern) => `!${pattern}`)],
         // The sandbox gets only what the JS tests read.
         ignorePatterns: ['/*', '!/static', '!/tests', '!/package.json', '!/vitest.config.js'],
         // Plain JS: nothing to strip @ts-check from, and the templates
@@ -50,7 +50,11 @@ export function sharedOptions(tier) {
     };
 }
 
-// Vitest's `env` sets TZ inside its workers, which Stryker's runner starts
-// as threads, where a changed TZ doesn't move the clock. The runner
-// processes inherit it from here instead.
-if (env.TZ) process.env.TZ = env.TZ;
+/**
+ * Sets this process's TZ to Vitest's. Vitest's `env` sets TZ inside its
+ * workers, which Stryker's runner starts as threads, where a changed TZ
+ * doesn't move the clock. The runner processes inherit it from here instead.
+ */
+export function pinClock() {
+    if (env.TZ) process.env.TZ = env.TZ;
+}

@@ -40,6 +40,12 @@ const report = (mutantsByFile, testFiles) => ({
 });
 
 /**
+ * Merges the tiers' reports the way run.js does, keeping the DOM report's config.
+ * @param {{ unit: MutationTestResult, dom: MutationTestResult }} tiers
+ */
+const mergeTiers = (tiers) => mergeReports({ base: tiers.dom, tiers });
+
+/**
  * @param {MutationTestResult} merged
  * @param {string} file
  * @returns {MutantStatus[]}
@@ -47,7 +53,7 @@ const report = (mutantsByFile, testFiles) => ({
 const statuses = (merged, file) => merged.files[file].mutants.map((m) => m.status);
 
 test('a mutant killed by either tier is killed in the merged report', () => {
-    const merged = mergeReports({
+    const merged = mergeTiers({
         unit: report({ 'static/js/lib/hex.js': [mutant('1', 3, 'Survived'), mutant('2', 4, 'Killed')] }),
         dom: report({ 'static/js/lib/hex.js': [mutant('7', 3, 'Killed'), mutant('8', 4, 'Survived')] }),
     });
@@ -64,7 +70,7 @@ test('a timeout is detected, and a mutant a tier ran beats one no tier covered',
         ['RuntimeError', 'Survived', 'Survived'],
         ['CompileError', 'NoCoverage', 'NoCoverage'],
     ];
-    const merged = mergeReports({
+    const merged = mergeTiers({
         unit: report({ 'a.js': cases.map(([unit], line) => mutant(`u${line}`, line + 1, unit)) }),
         dom: report({ 'a.js': cases.map(([, dom], line) => mutant(`d${line}`, line + 1, dom)) }),
     });
@@ -73,7 +79,7 @@ test('a timeout is detected, and a mutant a tier ran beats one no tier covered',
 });
 
 test('files and mutants only one tier reported are kept', () => {
-    const merged = mergeReports({
+    const merged = mergeTiers({
         unit: report({ 'a.js': [mutant('1', 1, 'Killed')] }),
         dom: report({ 'a.js': [mutant('2', 1, 'Survived'), mutant('3', 2, 'NoCoverage')], 'b.js': [mutant('4', 1, 'Survived')] }),
     });
@@ -83,7 +89,7 @@ test('files and mutants only one tier reported are kept', () => {
 });
 
 test('a killed mutant names the test that killed it, though each tier numbers its tests from 0', () => {
-    const merged = mergeReports({
+    const merged = mergeTiers({
         unit: report(
             { 'a.js': [mutant('1', 1, 'Survived', { coveredBy: ['0'] })] },
             { 'tests/js/hex.test.js': { tests: [{ id: '0', name: 'hexToBytes rejects odd lengths' }] } },
@@ -101,7 +107,7 @@ test('a killed mutant names the test that killed it, though each tier numbers it
 });
 
 test('the score counts detected mutants among the valid ones, across both tiers', () => {
-    const merged = mergeReports({
+    const merged = mergeTiers({
         unit: report({ 'a.js': [mutant('1', 1, 'Killed'), mutant('2', 2, 'Survived'), mutant('3', 3, 'Survived')] }),
         dom: report({
             'a.js': [mutant('1', 1, 'Survived'), mutant('2', 2, 'Timeout'), mutant('3', 3, 'NoCoverage')],

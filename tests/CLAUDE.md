@@ -33,7 +33,7 @@ pnpm test:mutation --all                               # all that coverage measu
 ```
 
 Stryker takes one test runner per run, so `tests/js/mutation/run.js` runs two and merges them (spec §2):
-1. `dom.config.js`: the Vitest tiers, with per-test coverage. `TZ` reaches the tests through the process (`shared.js`), because Vitest's `env` doesn't move the clock in Stryker's worker threads.
+1. `dom.config.js`: the Vitest tiers, with per-test coverage. `TZ` reaches the tests through the process (`pinClock` in `shared.js`), because Vitest's `env` doesn't move the clock in Stryker's worker threads.
 2. `unit.config.js`: the command runner reruns `unit-tier.js` (the `tests/js/*.test.js` files that import from `static/js`) for each mutant, on only the mutants step 1 missed. A unit test that only reads files is left out, since under Stryker the source holds every mutant at once.
 3. The merge (`report.js`, tested in `tests/js/mutation-report.test.js`): a mutant is detected when either tier detects it.
 

@@ -1,6 +1,8 @@
 // The Vitest tiers (DOM + JS integration) under Stryker, with per-test
 // coverage: each mutant runs only the tests that reach it.
-import { sharedOptions } from './shared.js';
+import { pinClock, sharedOptions } from './shared.js';
+
+pinClock();
 
 /** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */
 export default {
