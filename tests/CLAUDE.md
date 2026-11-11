@@ -22,6 +22,23 @@ Write test times with `timestamps.utcnow()`.
 
 DOM and JS-integration tests drive each page through its driver in `tests/js/support/pages/`. They query only by role, label or text (Testing Library), never by id or class.
 
+## Mutation testing
+
+`pnpm test:mutation` (StrykerJS, #312) mutates browser JS and checks that some unit, DOM or JS-integration test fails for each mutant. It writes `reports/mutation/index.html` (the surviving mutants) and prints the score. E2E and Python are out. Nothing runs it automatically and nothing gates on the score: run it when you change a module it covers, and read the survivors.
+
+```bash
+pnpm test:mutation                                     # the security modules (SECURITY_MODULES in shared.js): minutes
+pnpm test:mutation 'static/js/features/composer/**'    # the globs given
+pnpm test:mutation --all                               # all that coverage measures: about two hours on a 10-core laptop
+```
+
+Stryker takes one test runner per run, so `tests/js/mutation/run.js` runs two and merges them (spec §2):
+1. `dom.config.js`: the Vitest tiers, with per-test coverage. `TZ` reaches the tests through the process (`pinClock` in `shared.js`), because Vitest's `env` doesn't move the clock in Stryker's worker threads.
+2. `unit.config.js`: the command runner reruns `unit-tier.js` (the `tests/js/*.test.js` files that import from `static/js`) for each mutant, on only the mutants step 1 missed. A unit test that only reads files is left out, since under Stryker the source holds every mutant at once.
+3. The merge (`report.js`, tested in `tests/js/mutation-report.test.js`): a mutant is detected when either tier detects it.
+
+A timeout counts as detected. When a loaded machine slows the runs, timeouts pile up and the score rises, so a score well above the last one with many timeouts is the machine, not the tests. Many survivors are `StringLiteral` mutants in text and constants, which no behaviour test should pin; look at the changed conditions and arithmetic first.
+
 ## Protocol contract
 
 The JS protocol fake (`tests/js/support/protocol-fake.js`) is held to responses recorded from `app.py`, but only for requests that a scenario sends. A new server response that nothing exercises passes every check silently. So when a response of one of the routes named in root `CLAUDE.md`, *Protocol contract — keep in step*, changes:
