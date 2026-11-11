@@ -30,6 +30,10 @@ From [Choose the runner and DOM environment for DOM + JS-integration tests](http
 - **Testing Library** (from [#235](https://github.com/buzzdrop/buzzdrop/issues/235)): devDeps `@testing-library/dom` (queries), `@testing-library/jest-dom` (matchers such as `toBeDisabled`, `toBeVisible`, `toHaveAccessibleName`) and `@testing-library/user-event` (typing, clicking, keys, file upload), plus `dom-accessibility-api` for the accessible names a driver lists. `tests/js/support/setup.js` is Vitest's `setupFiles` entry: it registers the jest-dom matchers and, after each test, restores timers and mocks and closes every page a driver opened. Queries go through the driver's page, never Testing Library's own `screen`, which is bound to the global document rather than to a fixture's window.
 - **happy-dom and visibility:** happy-dom ignores CSS inside `@layer`, which is all Tailwind v4 emits, and has no built-in style for `[hidden]`. Testing Library and jest-dom do check the `hidden` attribute themselves, and inline `style="display: none"` is honoured. So page scripts show and hide with the `hidden` attribute (Tailwind's preflight hides `[hidden]` with `!important` in the browser) or inline `display`, never by toggling the `.hidden` class. One exception: elements that overlap in a shared grid cell so the cell keeps the taller one's height (the index page's File and Text note panels) hide with inline `visibility: hidden`, which keeps their space. Testing Library and jest-dom honour it too, and it removes the element from the tab order and the accessibility tree. A test that has to see an element appear or disappear depends on this.
 - **Coverage** is reported, not gated.
+- **Mutation testing** ([#312](https://github.com/buzzdrop/buzzdrop/issues/312)): `pnpm test:mutation` runs StrykerJS (devDeps `@stryker-mutator/core`, `@stryker-mutator/vitest-runner`, and `@stryker-mutator/api` for the config types) and checks that some unit, DOM or JS-integration test fails for each mutant. By default it mutates the security modules of `static/js/lib` (crypto, envelopes, KDF, passphrase, one-click link, hex), in minutes; `--all` mutates what coverage measures, with the same exclusions, in about two hours. E2E and Python are out. Stryker takes one test runner per run, so the tiers are mutated in two runs and merged (`tests/js/mutation/run.js`; how to run it is in `tests/CLAUDE.md`):
+  - **DOM + integration** first: the Vitest runner, with per-test coverage.
+  - **Unit** next, on only the mutants the DOM tiers missed: the command runner reruns the `node --test` files that import a module from `static/js` for each one, with no coverage to skip mutants. The unit tests stay on `node --test`. `architecture` and `js-literals` are left out, because they parse the source, which holds every mutant at once under Stryker's mutant switching.
+  - **Merged:** a mutant is detected when either tier detects it. The score (Stryker's own, from `mutation-testing-metrics`) is reported, not gated: the first full run scored 83.5%, with most survivors string literals no behaviour test should pin, and a floor would reward tests that pin them.
 
 ## 3. Testability refactor of page scripts
 
@@ -220,7 +224,7 @@ Hard-to-produce failures (410 edge cases, 429) are mocked per test with `page.ro
 | Web Crypto is only available in a secure context | E2E (happy-dom doesn't model `isSecureContext`) |
 
 ### Mutation table
-Each row is a small mistake and the layer that must catch it. A test that owns a row is checked by making that mistake in the code and watching the test fail; record the result in the PR. A test may move between layers as long as its rows are still caught. Issues point to the rows they own.
+Each row is a small mistake and the layer that must catch it. A test that owns a row is checked by making that mistake in the code and watching the test fail; record the result in the PR. A test may move between layers as long as its rows are still caught. Issues point to the rows they own. These rows are mistakes of meaning, made by hand. `pnpm test:mutation` (§2) makes Stryker's small mechanical ones (a flipped condition, a dropped call), which doesn't replace them.
 
 | # | Mutation | Must be caught by |
 |---|---|---|
@@ -342,6 +346,7 @@ All gating CI lives in `ci.yml`. **`build-test.yml` is deleted** (it duplicated 
 - **E2E failure artifacts:** `playwright-report/` and `test-results/` are uploaded `if: failure()` and kept for 7 days.
 - **Cleanup:** drop the unused `docker:dind` service and the dead `/tmp/.buildx-cache` step.
 - **Merge gating:** `js-fast`, `pytest` and `e2e` are required status checks on `main` (a repo setting).
+- **Mutation testing** (§2, [#312](https://github.com/buzzdrop/buzzdrop/issues/312)) is not in CI. It is a tool run by hand when a sensitive module changes: a full run takes hours, a loaded runner inflates the score (a timeout counts as detected), and the journeys it can't see are already held by E2E.
 
 ## 10. Out of scope
 

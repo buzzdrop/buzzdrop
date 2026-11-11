@@ -11,12 +11,16 @@
     "test:unit": "node --test tests/js/*.test.js",
     "test:dom": "vitest run --coverage",
     "test": "pnpm test:unit && pnpm test:dom",
+    "test:mutation": "node tests/js/mutation/run.js",
     "typecheck": "tsc -p jsconfig.json",
     "fixtures": "python tests/fixtures/render_dom_fixtures.py && python tests/fixtures/record_protocol_contract.py",
     "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@stryker-mutator/api": "^10.1.1",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@tailwindcss/cli": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
@@ -27,6 +31,9 @@
     "acorn-walk": "^8.3.5",
     "dom-accessibility-api": "^0.7.1",
     "happy-dom": "^20.14.5",
+    "mutation-testing-elements": "^3.8.4",
+    "mutation-testing-metrics": "^3.8.4",
+    "mutation-testing-report-schema": "^3.8.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
