@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { open, receiptHash, seal } from '../../static/js/lib/crypto.js';
+import { downloadTicket, open, openSalted, receiptHash, seal } from '../../static/js/lib/crypto.js';
 import { bytesToHex, hexToBytes } from '../../static/js/lib/hex.js';
 
 const encoder = new TextEncoder();
@@ -113,4 +113,105 @@ test('non-BKV3 payloads are rejected outright', async () => {
     assert.throws(() => open(new Uint8Array(4)), /Unsupported/);
     // below the BKV3 minimum (magic + salt + iv + GCM tag + header + receipt)
     assert.throws(() => open(new Uint8Array(87)), /Unsupported/);
+});
+
+const UNSUPPORTED = { message: 'Unsupported share format' };
+const CORRUPT = { message: 'Invalid password or corrupted data' };
+const BAD_SHARE = { message: 'server share H must be 32 bytes' };
+// 'BKV3' ‖ salt (16) ‖ iv (12) ‖ GCM tag (16) ‖ 'BKP-FIL2' ‖ receipt (32) ‖ name_len (2)
+const MIN_BLOB_LENGTH = 90;
+
+/** @param {number} length */
+const bkv3Blob = (length) => {
+    const blob = new Uint8Array(length);
+    blob.set(encoder.encode('BKV3'));
+    return blob;
+};
+
+test('a nameless seal opens with an empty name', async () => {
+    const h = randomShare();
+    const { blob } = await seal(encoder.encode('note'), 'pw', h);
+    const opened = await (await open(blob).unlock('pw')).finish(h);
+    assert.equal(opened.name, '');
+});
+
+test('a BKV3 blob of the minimum length parses, one byte less does not', () => {
+    assert.doesNotThrow(() => open(bkv3Blob(MIN_BLOB_LENGTH)));
+    assert.throws(() => open(bkv3Blob(MIN_BLOB_LENGTH - 1)), UNSUPPORTED);
+});
+
+test('openSalted rejects a salt that is not 16 bytes', () => {
+    // @ts-expect-error -- a non-bytes salt must be rejected by the runtime guard
+    assert.throws(() => openSalted(undefined), UNSUPPORTED);
+    // @ts-expect-error -- as above, an array is not bytes
+    assert.throws(() => openSalted(Array(16).fill(0)), UNSUPPORTED);
+    assert.throws(() => openSalted(new Uint8Array(15)), UNSUPPORTED);
+    assert.throws(() => openSalted(new Uint8Array(17)), UNSUPPORTED);
+});
+
+test('a salt-only share opens the blob that carries its salt', async () => {
+    const h = randomShare();
+    const data = encoder.encode('salted');
+    const sealed = await seal(data, 'pw', h, 'a.txt');
+    const attempt = await openSalted(sealed.blob.slice(4, 20)).unlock('pw');
+    assert.deepEqual(attempt.verifier, sealed.verifier);
+    const opened = await attempt.finish(h, sealed.blob);
+    assert.deepEqual(opened.data, data);
+    assert.equal(opened.name, 'a.txt');
+});
+
+test("a salt-only share rejects a blob whose salt differs from the page's", async () => {
+    const h = randomShare();
+    const { blob } = await seal(encoder.encode('x'), 'pw', h);
+    for (const at of [0, 15]) {
+        const salt = blob.slice(4, 20);
+        salt[at] ^= 0x01;
+        const attempt = await openSalted(salt).unlock('pw');
+        await assert.rejects(attempt.finish(h, blob), CORRUPT, `salt byte ${at}`);
+    }
+});
+
+test('a salt-only share rejects a missing blob', async () => {
+    const { blob } = await seal(encoder.encode('x'), 'pw', randomShare());
+    const attempt = await openSalted(blob.slice(4, 20)).unlock('pw');
+    await assert.rejects(attempt.finish(randomShare()), UNSUPPORTED);
+});
+
+test('finish rejects a malformed server share before decrypting', async () => {
+    const h = randomShare();
+    const { blob } = await seal(encoder.encode('x'), 'pw', h);
+    const attempt = await open(blob).unlock('pw');
+    await assert.rejects(attempt.finish(h.slice(0, 8)), BAD_SHARE);
+    await assert.rejects(attempt.finish(new Uint8Array(33)), BAD_SHARE);
+});
+
+test('downloadTicket rejects a malformed server share', async () => {
+    await assert.rejects(downloadTicket(randomShare().slice(0, 8)), BAD_SHARE);
+    // @ts-expect-error -- a non-bytes H must be rejected by the runtime guard
+    await assert.rejects(downloadTicket(undefined), BAD_SHARE);
+    assert.match(await downloadTicket(randomShare()), /^[0-9a-f]{64}$/);
+});
+
+test('the AES-GCM file key is never extractable', async () => {
+    const { encrypt, decrypt } = crypto.subtle;
+    /** @type {CryptoKey[]} */
+    const keys = [];
+    crypto.subtle.encrypt = function (algorithm, key, data) {
+        keys.push(key);
+        return encrypt.call(this, algorithm, key, data);
+    };
+    crypto.subtle.decrypt = function (algorithm, key, data) {
+        keys.push(key);
+        return decrypt.call(this, algorithm, key, data);
+    };
+    try {
+        const h = randomShare();
+        const { blob } = await seal(encoder.encode('x'), 'pw', h);
+        await (await open(blob).unlock('pw')).finish(h);
+    } finally {
+        crypto.subtle.encrypt = encrypt;
+        crypto.subtle.decrypt = decrypt;
+    }
+    assert.equal(keys.length, 2);
+    for (const key of keys) assert.equal(key.extractable, false);
 });
