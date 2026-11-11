@@ -2,7 +2,8 @@
 // "Generate token" buttons on /users POST /api/token and render the raw token
 // inline. The token is returned exactly once and is never stored server-side,
 // so the result panel stays visible until the page is reloaded. Revoke asks
-// first, naming the token: a revoked token can't come back.
+// first, naming the token by its label, or by its creation time when it has
+// none: a revoked token can't come back.
 import { copyWithFeedback } from '../../features/clipboard-feedback/index.js';
 import { confirmBeforeSubmit, confirmDialog } from '../../features/confirm-dialog/index.js';
 import { csrfToken } from '../../features/csrf/index.js';
@@ -27,7 +28,7 @@ import { readStrings } from '../../lib/strings.js';
 
 // The refusals of POST /api/token the page can explain, each by its `code`
 // under the 'refusals' strings; any other refusal is the 'failed' string.
-const EXPLAINED_CODES = /** @type {const} */ (['admin_required', 'unknown_user', 'csrf_failed', 'rate_limited', 'login_required']);
+const EXPLAINED_CODES = /** @type {const} */ (['admin_required', 'unknown_user', 'csrf_failed', 'rate_limited', 'login_required', 'invalid_label']);
 
 /** @typedef {typeof EXPLAINED_CODES[number]} ExplainedCode */
 
@@ -75,6 +76,7 @@ export function initUsers(root, deps) {
     /** @param {HTMLButtonElement} button */
     async function generateToken(button) {
         const card = requiredClosest(button, '.token-card', 'section');
+        const label = required(card, '.token-label-input', 'input');
         const result = required(card, '.token-result', 'div');
         const input = required(card, '.generated-token-input', 'input');
         const expires = required(card, '.token-expires', 'p');
@@ -91,7 +93,8 @@ export function initUsers(root, deps) {
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': csrf,
                 },
-                body: JSON.stringify({ username: button.dataset.username }),
+                // A blank label is no label; the server trims it the same way.
+                body: JSON.stringify({ username: button.dataset.username, ...(label.value.trim() && { label: label.value }) }),
             });
         } catch {
             // No answer at all (offline, server down). The browser's own
@@ -105,6 +108,7 @@ export function initUsers(root, deps) {
         // A proxy in front of the app can answer 2xx with its own page.
         if (resp?.ok && body.token && body.expires_at) {
             input.value = body.token;
+            label.value = '';
             expires.textContent = strings.text('expires', { time: inViewerZone(body.expires_at, body.expires_at) });
         } else {
             error.hidden = false;
@@ -118,11 +122,13 @@ export function initUsers(root, deps) {
 
     const ask = confirmDialog(root);
     /** @type {NodeListOf<HTMLFormElement>} */ (root.querySelectorAll('.revoke-token-form')).forEach((form) => {
+        const user = requiredData(form, 'username');
+        const label = requiredData(form, 'tokenLabel');
         // A token with no creation time shows '—' in its row; so does the question.
         confirmBeforeSubmit(form, ask, {
-            question: strings.text('confirmRevoke', {
-                user: requiredData(form, 'username'), created: inViewerZone(requiredData(form, 'created'), '—'),
-            }),
+            question: label
+                ? strings.text('confirmRevokeLabelled', { user, label })
+                : strings.text('confirmRevoke', { user, created: inViewerZone(requiredData(form, 'created'), '—') }),
             action: strings.text('revoke'),
         });
     });

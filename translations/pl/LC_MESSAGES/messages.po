@@ -807,6 +807,17 @@ msgstr ""
 "Unieważnić token użytkownika %(user)s utworzony %(created)s? Wszystko, co"
 " z niego korzysta, przestanie działać."
 
+#. asked before revoking an API token that has a label; %(user)s is whose token
+#. it is, %(label)s the name its owner gave it, e.g. "backup job".
+#: templates/_users_strings.html
+#, python-format
+msgid ""
+"Revoke the %(user)s token “%(label)s”? Anything that uses it stops "
+"working."
+msgstr ""
+"Unieważnić token „%(label)s” użytkownika %(user)s? Wszystko, co z niego "
+"korzysta, przestanie działać."
+
 #: templates/_users_strings.html
 msgid "Only an admin can generate a token for another user."
 msgstr "Token dla innego użytkownika może wygenerować tylko administrator."
@@ -818,6 +829,11 @@ msgstr "Ten użytkownik już nie istnieje."
 #: templates/_users_strings.html
 msgid "Your session has expired. Log in again to generate a token."
 msgstr "Sesja wygasła. Zaloguj się ponownie, aby wygenerować token."
+
+#: templates/_users_strings.html
+#, python-format
+msgid "Use a label of at most %(max)s characters, on one line."
+msgstr "Skróć etykietę (limit znaków: %(max)s) i zapisz ją w jednym wierszu."
 
 #: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."
@@ -1432,6 +1448,14 @@ msgid "Active API tokens"
 msgstr "Aktywne tokeny API"
 
 #: templates/users.html
+msgid "Token label"
+msgstr "Etykieta tokenu"
+
+#: templates/users.html
+msgid "Label (optional)"
+msgstr "Etykieta (opcjonalnie)"
+
+#: templates/users.html
 msgid "Generate token"
 msgstr "Wygeneruj token"
 
@@ -1459,6 +1483,10 @@ msgstr "Nowy token API"
 #: templates/users.html
 msgid "Copy token"
 msgstr "Skopiuj token"
+
+#: templates/users.html
+msgid "Label"
+msgstr "Etykieta"
 
 #: templates/users.html
 msgid "Last used"

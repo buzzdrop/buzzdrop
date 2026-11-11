@@ -377,7 +377,8 @@ describe('in Polish', () => {
         const card = within(screen.getByRole('region', { name: 'testuser' }));
         expect(card.getByText('2 tokeny')).toBeVisible();
         expect(card.getAllByRole('columnheader').map((header) => header.textContent))
-            .toEqual(['Utworzono', 'Ostatnio użyty', 'Wygasa', 'Akcje']);
+            .toEqual(['Etykieta', 'Utworzono', 'Ostatnio użyty', 'Wygasa', 'Akcje']);
+        expect(card.getByRole('textbox', { name: 'Etykieta tokenu' })).toHaveAttribute('placeholder', 'Etykieta (opcjonalnie)');
         expect(card.getAllByRole('button', { name: 'Unieważnij' })).toHaveLength(2);
         expect(within(screen.getByRole('region', { name: 'adminuser' })).getByText('Brak aktywnych tokenów API.'))
             .toBeVisible();
@@ -388,7 +389,7 @@ describe('in Polish', () => {
 
         const card = within(screen.getByRole('region', { name: 'testuser' }));
         const rows = within(card.getByRole('table')).getAllByRole('row').slice(1)
-            .map((tr) => within(tr).getAllByRole('cell').slice(0, 3).map((cell) => cell.textContent?.trim()));
+            .map((tr) => within(tr).getAllByRole('cell').slice(1, 4).map((cell) => cell.textContent?.trim()));
         expect(rows).toEqual([
             ['3 sty 2025, 06:00 GMT-5', '6 sty 2025, 03:30 GMT-5', '31 gru 2098, 19:00 GMT-5'],
             ['1 sty 2025, 06:00 GMT-5', 'Nigdy', '31 gru 2098, 19:00 GMT-5'],
@@ -413,12 +414,16 @@ describe('in Polish', () => {
         const users = openUsersPage({ language: 'pl' });
 
         expect((await users.revokeToken('testuser', 0, { confirm: false })).question).toBe(
-            'Unieważnić token użytkownika testuser utworzony 3 sty 2025, 06:00 GMT-5? Wszystko, co z\u00a0niego korzysta, przestanie działać.',
+            'Unieważnić token „backup job” użytkownika testuser? Wszystko, co z niego korzysta, przestanie działać.',
+        );
+        expect((await users.revokeToken('testuser', 1, { confirm: false })).question).toBe(
+            'Unieważnić token użytkownika testuser utworzony 1 sty 2025, 06:00 GMT-5? Wszystko, co z\u00a0niego korzysta, przestanie działać.',
         );
     });
 
     it.each([
         ['forbidden', 'Token dla innego użytkownika może wygenerować tylko administrator.'],
+        ['badLabel', 'Skróć etykietę (limit znaków: 64) i zapisz ją w jednym wierszu.'],
         ['unexplained', 'Nie udało się wygenerować tokenu. Spróbuj ponownie.'],
         ['signedOut', 'Sesja wygasła. Zaloguj się ponownie, aby wygenerować token.'],
     ])('says in Polish why a token was refused (%s)', async (server, message) => {

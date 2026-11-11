@@ -103,6 +103,27 @@ def test_first_run_setup_gets_a_token_that_authenticates(app, run_setup):
     assert response.status_code == 200
 
 
+def _token_labels(app):
+    from tokens import list_api_tokens
+    with app.app_context():
+        return [token['label'] for token in list_api_tokens('testuser')]
+
+
+def test_first_run_setup_labels_the_token_with_this_machine(
+        app, run_setup, monkeypatch):
+    monkeypatch.setattr(buzz.socket, 'gethostname', lambda: 'work-laptop')
+    run_setup('testuser', 'password')
+
+    assert _token_labels(app) == ['buzz CLI on work-laptop']
+
+
+def test_a_long_hostname_is_cut_to_the_label_limit(app, run_setup, monkeypatch):
+    monkeypatch.setattr(buzz.socket, 'gethostname', lambda: 'h' * 200)
+    run_setup('testuser', 'password')
+
+    assert _token_labels(app) == [('buzz CLI on ' + 'h' * 200)[:64]]
+
+
 PERMISSION_MESSAGE = 'does not have permission'
 
 

@@ -18,15 +18,46 @@ describe('users page', () => {
         expect(card().queryByRole('alert')).toBeNull();
     });
 
-    it('the token table shows each time in the viewer\'s zone', () => {
+    it('the token table shows each label, and each time in the viewer\'s zone', () => {
         openUsersPage();
 
         const rows = within(card().getByRole('table')).getAllByRole('row').slice(1)
-            .map((row) => within(row).getAllByRole('cell').slice(0, 3).map((cell) => cell.textContent?.trim()));
+            .map((row) => within(row).getAllByRole('cell').slice(0, 4).map((cell) => cell.textContent?.trim()));
         expect(rows).toEqual([
-            ['Jan 3, 2025, 06:00 EST', 'Jan 6, 2025, 03:30 EST', 'Dec 31, 2098, 19:00 EST'],
-            ['Jan 1, 2025, 06:00 EST', 'Never', 'Dec 31, 2098, 19:00 EST'],
+            ['backup job', 'Jan 3, 2025, 06:00 EST', 'Jan 6, 2025, 03:30 EST', 'Dec 31, 2098, 19:00 EST'],
+            ['—', 'Jan 1, 2025, 06:00 EST', 'Never', 'Dec 31, 2098, 19:00 EST'],
         ]);
+    });
+
+    it('a label typed before Generate goes with the request, and is cleared once the token is shown', async () => {
+        const users = openUsersPage();
+
+        await users.labelToken('testuser', 'laptop CLI');
+        await users.generateToken('testuser');
+
+        expect(users.requestsSent().map((request) => request.body)).toEqual([{ username: 'testuser', label: 'laptop CLI' }]);
+        expect(card().getByRole('textbox', { name: 'New API token' })).toHaveValue(TOKEN);
+        expect(users.tokenLabel('testuser')).toBe('');
+    });
+
+    it('a blank label is left out of the request', async () => {
+        const users = openUsersPage();
+
+        await users.labelToken('testuser', '   ');
+        await users.generateToken('testuser');
+
+        expect(users.requestsSent().map((request) => request.body)).toEqual([{ username: 'testuser' }]);
+    });
+
+    it('a refused label says why, and keeps the label to fix', async () => {
+        const users = openUsersPage({ server: 'badLabel' });
+
+        await users.labelToken('testuser', 'laptop CLI');
+        await users.generateToken('testuser');
+
+        expect(card().getByRole('alert')).toHaveTextContent('Use a label of at most 64 characters, on one line.');
+        expect(card().getByRole('textbox', { name: 'New API token' })).toHaveValue('');
+        expect(users.tokenLabel('testuser')).toBe('laptop CLI');
     });
 
     it('a refusal shows the message for its code', async () => {
@@ -108,16 +139,16 @@ describe('users page', () => {
     });
 
     describe('revoke confirmation', () => {
-        it('declining the confirmation keeps the token', async () => {
+        it('names a token with a label by its label; declining keeps the token', async () => {
             const users = openUsersPage();
 
             expect(await users.revokeToken('testuser', 0, { confirm: false })).toEqual({
-                question: 'Revoke the testuser token created Jan 3, 2025, 06:00 EST? Anything that uses it stops working.',
+                question: 'Revoke the testuser token “backup job”? Anything that uses it stops working.',
                 revoked: false,
             });
         });
 
-        it('accepting the confirmation revokes the token', async () => {
+        it('names a token without a label by its creation time; accepting revokes it', async () => {
             const users = openUsersPage();
 
             expect(await users.revokeToken('testuser', 1, { confirm: true })).toEqual({

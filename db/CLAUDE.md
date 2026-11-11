@@ -28,6 +28,7 @@ Every stored time is a UTC string from `timestamps.py` (root `CLAUDE.md`, *Times
 
 - `token_hash`: a PBKDF2-HMAC-SHA256 fingerprint. The raw token is never stored.
 - `username`, `created_at`, `last_used_at`, `expires_at`
+- `label`: the owner's optional name for the token ("backup job"), NULL when none was given (#368). User data: the users page escapes it and marks it `translate="no"`.
 
 ## `file_keys`
 

@@ -209,12 +209,14 @@
             
             
             <section class="token-card overflow-hidden rounded-2xl border border-white/6 bg-white/2" aria-labelledby="token-card-1">
-                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
                         <h3 id="token-card-1" class="text-sm font-semibold text-white">testuser</h3>
                         <p class="text-xs text-slate-500">Użytkownik</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        
+                        <input type="text" maxlength="64" aria-label="Etykieta tokenu" placeholder="Etykieta (opcjonalnie)" class="token-label-input field-input w-44 px-3 py-1.5 text-xs" autocomplete="off">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="testuser">Wygeneruj token</button>
                         <span class="status-badge status-badge-slate">2 tokeny</span>
                     </div>
@@ -240,6 +242,7 @@
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="border-b border-white/6">
+                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Etykieta</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Utworzono</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Ostatnio użyty</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Wygasa</th>
@@ -249,11 +252,13 @@
                         <tbody>
                             
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
+                                
+                                <td class="px-4 py-3 text-slate-300"><span translate="no">backup job</span></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-300"><time datetime="2025-01-03T11:00:00+00:00" translate="no">2025-01-03 11:00:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2025-01-06T08:30:00+00:00" translate="no">2025-01-06 08:30:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="/api/tokens/2/revoke" class="revoke-token-form inline-block" data-username="testuser" data-created="2025-01-03T11:00:00+00:00">
+                                    <form method="post" action="/api/tokens/2/revoke" class="revoke-token-form inline-block" data-username="testuser" data-token-label="backup job" data-created="2025-01-03T11:00:00+00:00">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Unieważnij</button>
                                     </form>
@@ -261,11 +266,13 @@
                             </tr>
                             
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
+                                
+                                <td class="px-4 py-3 text-slate-300">—</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-300"><time datetime="2025-01-01T11:00:00+00:00" translate="no">2025-01-01 11:00:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500">Nigdy</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="/api/tokens/1/revoke" class="revoke-token-form inline-block" data-username="testuser" data-created="2025-01-01T11:00:00+00:00">
+                                    <form method="post" action="/api/tokens/1/revoke" class="revoke-token-form inline-block" data-username="testuser" data-token-label="" data-created="2025-01-01T11:00:00+00:00">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Unieważnij</button>
                                     </form>
@@ -281,12 +288,14 @@
             
             
             <section class="token-card overflow-hidden rounded-2xl border border-white/6 bg-white/2" aria-labelledby="token-card-2">
-                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
                         <h3 id="token-card-2" class="text-sm font-semibold text-white">adminuser</h3>
                         <p class="text-xs text-slate-500">Administrator</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        
+                        <input type="text" maxlength="64" aria-label="Etykieta tokenu" placeholder="Etykieta (opcjonalnie)" class="token-label-input field-input w-44 px-3 py-1.5 text-xs" autocomplete="off">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="adminuser">Wygeneruj token</button>
                         <span class="status-badge status-badge-slate">0 tokenów</span>
                     </div>
@@ -315,12 +324,14 @@
             
             
             <section class="token-card overflow-hidden rounded-2xl border border-white/6 bg-white/2" aria-labelledby="token-card-3">
-                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
                         <h3 id="token-card-3" class="text-sm font-semibold text-white">notifyuser</h3>
                         <p class="text-xs text-slate-500">Użytkownik</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        
+                        <input type="text" maxlength="64" aria-label="Etykieta tokenu" placeholder="Etykieta (opcjonalnie)" class="token-label-input field-input w-44 px-3 py-1.5 text-xs" autocomplete="off">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="notifyuser">Wygeneruj token</button>
                         <span class="status-badge status-badge-slate">0 tokenów</span>
                     </div>
@@ -359,7 +370,7 @@
     </div>
 </dialog>
 
-<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Skopiowano do schowka link do przesy\u0142ki.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku do przesy\u0142ki."}, "link": {"copied": "Skopiowano link do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku."}, "oneClickLink": {"copied": "Skopiowano link z\u00a0has\u0142em do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku z\u00a0has\u0142em."}, "password": {"copied": "Skopiowano has\u0142o do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano has\u0142a."}, "text": {"copied": "Skopiowano tekst do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tekstu."}, "token": {"copied": "Skopiowano token do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tokenu."}}, "copied": "Skopiowano!", "failed": "B\u0142\u0105d"}, "users": {"confirmRevoke": "Uniewa\u017cni\u0107 token u\u017cytkownika %(user)s utworzony %(created)s? Wszystko, co z\u00a0niego korzysta, przestanie dzia\u0142a\u0107.", "expires": "Wygasa %(time)s. Od\u015bwie\u017c stron\u0119, by zobaczy\u0107 go na li\u015bcie poni\u017cej.", "failed": "Nie uda\u0142o si\u0119 wygenerowa\u0107 tokenu. Spr\u00f3buj ponownie.", "refusals": {"admin_required": "Token dla innego u\u017cytkownika mo\u017ce wygenerowa\u0107 tylko administrator.", "csrf_failed": "Sesja wygas\u0142a. Od\u015bwie\u017c stron\u0119 i\u00a0spr\u00f3buj ponownie.", "login_required": "Sesja wygas\u0142a. Zaloguj si\u0119 ponownie, aby wygenerowa\u0107 token.", "rate_limited": "Zbyt wiele \u017c\u0105da\u0144. Spr\u00f3buj ponownie p\u00f3\u017aniej.", "unknown_user": "Ten u\u017cytkownik ju\u017c nie istnieje."}, "revoke": "Uniewa\u017cnij"}}</script>
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Skopiowano do schowka link do przesy\u0142ki.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku do przesy\u0142ki."}, "link": {"copied": "Skopiowano link do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku."}, "oneClickLink": {"copied": "Skopiowano link z\u00a0has\u0142em do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano linku z\u00a0has\u0142em."}, "password": {"copied": "Skopiowano has\u0142o do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano has\u0142a."}, "text": {"copied": "Skopiowano tekst do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tekstu."}, "token": {"copied": "Skopiowano token do schowka.", "failed": "Przegl\u0105darka zablokowa\u0142a dost\u0119p do schowka, wi\u0119c nie skopiowano tokenu."}}, "copied": "Skopiowano!", "failed": "B\u0142\u0105d"}, "users": {"confirmRevoke": "Uniewa\u017cni\u0107 token u\u017cytkownika %(user)s utworzony %(created)s? Wszystko, co z\u00a0niego korzysta, przestanie dzia\u0142a\u0107.", "confirmRevokeLabelled": "Uniewa\u017cni\u0107 token \u201e%(label)s\u201d u\u017cytkownika %(user)s? Wszystko, co z\u00a0niego korzysta, przestanie dzia\u0142a\u0107.", "expires": "Wygasa %(time)s. Od\u015bwie\u017c stron\u0119, by zobaczy\u0107 go na li\u015bcie poni\u017cej.", "failed": "Nie uda\u0142o si\u0119 wygenerowa\u0107 tokenu. Spr\u00f3buj ponownie.", "refusals": {"admin_required": "Token dla innego u\u017cytkownika mo\u017ce wygenerowa\u0107 tylko administrator.", "csrf_failed": "Sesja wygas\u0142a. Od\u015bwie\u017c stron\u0119 i\u00a0spr\u00f3buj ponownie.", "invalid_label": "Skr\u00f3\u0107 etykiet\u0119 (limit znak\u00f3w: 64) i\u00a0zapisz j\u0105 w\u00a0jednym wierszu.", "login_required": "Sesja wygas\u0142a. Zaloguj si\u0119 ponownie, aby wygenerowa\u0107 token.", "rate_limited": "Zbyt wiele \u017c\u0105da\u0144. Spr\u00f3buj ponownie p\u00f3\u017aniej.", "unknown_user": "Ten u\u017cytkownik ju\u017c nie istnieje."}, "revoke": "Uniewa\u017cnij"}}</script>
 
         </main>
 

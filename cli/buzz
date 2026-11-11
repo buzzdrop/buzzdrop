@@ -30,6 +30,7 @@ import hashlib
 import json
 import os
 import secrets
+import socket
 import sys
 import zipfile
 from datetime import datetime, timezone
@@ -1237,11 +1238,13 @@ def setup_token(server_override: str = None,
         )
         sys.exit(1)
 
-    # Generate token for self
+    # Generate token for self, labelled with this machine so the users page
+    # can tell which one to revoke (#368). The server allows 64 characters.
+    label = f"buzz CLI on {socket.gethostname()}"[:64]
     try:
         resp = session.post(
             f"{server}/api/token",
-            json={'username': username},
+            json={'username': username, 'label': label},
             headers={'X-CSRF-Token': csrf_token},
             timeout=15,
         )

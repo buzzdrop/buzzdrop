@@ -209,12 +209,14 @@
             
             
             <section class="token-card overflow-hidden rounded-2xl border border-white/6 bg-white/2" aria-labelledby="token-card-1">
-                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
                         <h3 id="token-card-1" class="text-sm font-semibold text-white">testuser</h3>
                         <p class="text-xs text-slate-500">User</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        
+                        <input type="text" maxlength="64" aria-label="Token label" placeholder="Label (optional)" class="token-label-input field-input w-44 px-3 py-1.5 text-xs" autocomplete="off">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="testuser">Generate token</button>
                         <span class="status-badge status-badge-slate">2 tokens</span>
                     </div>
@@ -240,6 +242,7 @@
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="border-b border-white/6">
+                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Label</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Created</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Last used</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">Expires</th>
@@ -249,11 +252,13 @@
                         <tbody>
                             
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
+                                
+                                <td class="px-4 py-3 text-slate-300"><span translate="no">backup job</span></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-300"><time datetime="2025-01-03T11:00:00+00:00" translate="no">2025-01-03 11:00:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2025-01-06T08:30:00+00:00" translate="no">2025-01-06 08:30:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="/api/tokens/2/revoke" class="revoke-token-form inline-block" data-username="testuser" data-created="2025-01-03T11:00:00+00:00">
+                                    <form method="post" action="/api/tokens/2/revoke" class="revoke-token-form inline-block" data-username="testuser" data-token-label="backup job" data-created="2025-01-03T11:00:00+00:00">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Revoke</button>
                                     </form>
@@ -261,11 +266,13 @@
                             </tr>
                             
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
+                                
+                                <td class="px-4 py-3 text-slate-300">—</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-300"><time datetime="2025-01-01T11:00:00+00:00" translate="no">2025-01-01 11:00:00 UTC</time></td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500">Never</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500"><time datetime="2099-01-01T00:00:00+00:00" translate="no">2099-01-01 00:00:00 UTC</time></td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="/api/tokens/1/revoke" class="revoke-token-form inline-block" data-username="testuser" data-created="2025-01-01T11:00:00+00:00">
+                                    <form method="post" action="/api/tokens/1/revoke" class="revoke-token-form inline-block" data-username="testuser" data-token-label="" data-created="2025-01-01T11:00:00+00:00">
                                         <input type="hidden" name="csrf_token" value="fixture-csrf-token">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">Revoke</button>
                                     </form>
@@ -281,12 +288,14 @@
             
             
             <section class="token-card overflow-hidden rounded-2xl border border-white/6 bg-white/2" aria-labelledby="token-card-2">
-                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
                         <h3 id="token-card-2" class="text-sm font-semibold text-white">adminuser</h3>
                         <p class="text-xs text-slate-500">Admin</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        
+                        <input type="text" maxlength="64" aria-label="Token label" placeholder="Label (optional)" class="token-label-input field-input w-44 px-3 py-1.5 text-xs" autocomplete="off">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="adminuser">Generate token</button>
                         <span class="status-badge status-badge-slate">0 tokens</span>
                     </div>
@@ -315,12 +324,14 @@
             
             
             <section class="token-card overflow-hidden rounded-2xl border border-white/6 bg-white/2" aria-labelledby="token-card-3">
-                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
                         <h3 id="token-card-3" class="text-sm font-semibold text-white">notifyuser</h3>
                         <p class="text-xs text-slate-500">User</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        
+                        <input type="text" maxlength="64" aria-label="Token label" placeholder="Label (optional)" class="token-label-input field-input w-44 px-3 py-1.5 text-xs" autocomplete="off">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="notifyuser">Generate token</button>
                         <span class="status-badge status-badge-slate">0 tokens</span>
                     </div>
@@ -359,7 +370,7 @@
     </div>
 </dialog>
 
-<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "users": {"confirmRevoke": "Revoke the %(user)s token created %(created)s? Anything that uses it stops working.", "expires": "Expires %(time)s. Reload to see it in the list below.", "failed": "Could not generate a token. Please try again.", "refusals": {"admin_required": "Only an admin can generate a token for another user.", "csrf_failed": "Your session has expired. Reload the page and try again.", "login_required": "Your session has expired. Log in again to generate a token.", "rate_limited": "Too many requests. Please try again later.", "unknown_user": "That user no longer exists."}, "revoke": "Revoke"}}</script>
+<script id="page-strings-json" type="application/json">{"clipboard-feedback": {"announcements": {"dropLink": {"copied": "Drop link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the drop link was not copied."}, "link": {"copied": "Link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the link was not copied."}, "oneClickLink": {"copied": "One-click link copied to clipboard.", "failed": "Your browser blocked clipboard access, so the one-click link was not copied."}, "password": {"copied": "Password copied to clipboard.", "failed": "Your browser blocked clipboard access, so the password was not copied."}, "text": {"copied": "Text copied to clipboard.", "failed": "Your browser blocked clipboard access, so the text was not copied."}, "token": {"copied": "Token copied to clipboard.", "failed": "Your browser blocked clipboard access, so the token was not copied."}}, "copied": "Copied!", "failed": "Failed"}, "users": {"confirmRevoke": "Revoke the %(user)s token created %(created)s? Anything that uses it stops working.", "confirmRevokeLabelled": "Revoke the %(user)s token \u201c%(label)s\u201d? Anything that uses it stops working.", "expires": "Expires %(time)s. Reload to see it in the list below.", "failed": "Could not generate a token. Please try again.", "refusals": {"admin_required": "Only an admin can generate a token for another user.", "csrf_failed": "Your session has expired. Reload the page and try again.", "invalid_label": "Use a label of at most 64 characters, on one line.", "login_required": "Your session has expired. Log in again to generate a token.", "rate_limited": "Too many requests. Please try again later.", "unknown_user": "That user no longer exists."}, "revoke": "Revoke"}}</script>
 
         </main>
 

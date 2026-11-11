@@ -1162,6 +1162,14 @@ def test_token_insert_and_get(backend):
     assert backend.tokens.get_by_token_hash('missing') is None
 
 
+def test_token_label_round_trips(backend):
+    labelled = backend.tokens.insert(_token_doc(label='backup job “nightly”'))
+    unlabelled = backend.tokens.insert(_token_doc(label=None))
+
+    assert backend.tokens.get_by_id(labelled)['label'] == 'backup job “nightly”'
+    assert backend.tokens.get_by_id(unlabelled)['label'] is None
+
+
 def test_token_get_by_and_list_by(backend):
     backend.tokens.insert(_token_doc(username='u1'))
     backend.tokens.insert(_token_doc(username='u1'))

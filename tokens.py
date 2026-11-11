@@ -6,6 +6,7 @@ hash secret; the raw token is shown only once at generation.
 import hashlib
 import os
 import secrets
+import unicodedata
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
@@ -17,6 +18,9 @@ DEFAULT_TOKEN_EXPIRY_DAYS = 30
 TOKEN_HASH_ITERATIONS = 310_000
 TOKEN_HASH_BYTES = 32
 TOKEN_HASH_VERSION = 'pbkdf2-sha256-v1'
+# A token's label names what uses it ("laptop CLI", "backup job"), so the
+# users page can tell a person's tokens apart (#368).
+TOKEN_LABEL_MAX_LENGTH = 64
 
 
 def _get_token_store():
@@ -54,6 +58,7 @@ def _serialize_token(entry: Dict[str, Any]) -> Dict[str, Any]:
     return {
         'id': entry['doc_id'],
         'username': entry['username'],
+        'label': entry.get('label'),
         'created_at': entry.get('created_at'),
         'last_used_at': entry.get('last_used_at'),
         'expires_at': to_utc_iso(expires_at) if expires_at is not None else None,
@@ -99,7 +104,28 @@ def _hash_token(raw_token: str) -> str:
     return digest.hex()
 
 
-def generate_api_token(username: str, expires_at: Optional[datetime] = None) -> str:
+def normalize_token_label(value: Any) -> Optional[str]:
+    """
+    Return a requested token label as stored: trimmed, or None when blank.
+
+    Raises:
+        ValueError: the label is not a string, is longer than
+            TOKEN_LABEL_MAX_LENGTH, or holds a control character.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError('label must be a string')
+    label = value.strip()
+    if len(label) > TOKEN_LABEL_MAX_LENGTH:
+        raise ValueError(f'label must be at most {TOKEN_LABEL_MAX_LENGTH} characters')
+    if any(unicodedata.category(char) == 'Cc' for char in label):
+        raise ValueError('label must not contain control characters')
+    return label or None
+
+
+def generate_api_token(username: str, expires_at: Optional[datetime] = None,
+                       label: Optional[str] = None) -> str:
     """
     Generate a new API token for a user, store its hash, and return the raw token.
 
@@ -108,6 +134,7 @@ def generate_api_token(username: str, expires_at: Optional[datetime] = None) -> 
 
     Args:
         username: Username to associate with the token
+        label: Optional name for the token, as normalize_token_label returns it
 
     Returns:
         Raw 64-character hex token (show to user once)
@@ -120,6 +147,7 @@ def generate_api_token(username: str, expires_at: Optional[datetime] = None) -> 
         'token_hash': token_hash,
         'token_hash_version': TOKEN_HASH_VERSION,
         'username': username,
+        'label': label,
         'created_at': to_utc_iso(now),
         'last_used_at': None,
         'expires_at': to_utc_iso(expires_at),

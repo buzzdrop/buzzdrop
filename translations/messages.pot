@@ -770,6 +770,15 @@ msgid ""
 "stops working."
 msgstr ""
 
+#. asked before revoking an API token that has a label; %(user)s is whose token
+#. it is, %(label)s the name its owner gave it, e.g. "backup job".
+#: templates/_users_strings.html
+#, python-format
+msgid ""
+"Revoke the %(user)s token “%(label)s”? Anything that uses it stops "
+"working."
+msgstr ""
+
 #: templates/_users_strings.html
 msgid "Only an admin can generate a token for another user."
 msgstr ""
@@ -780,6 +789,11 @@ msgstr ""
 
 #: templates/_users_strings.html
 msgid "Your session has expired. Log in again to generate a token."
+msgstr ""
+
+#: templates/_users_strings.html
+#, python-format
+msgid "Use a label of at most %(max)s characters, on one line."
 msgstr ""
 
 #: templates/_users_strings.html
@@ -1350,6 +1364,14 @@ msgid "Active API tokens"
 msgstr ""
 
 #: templates/users.html
+msgid "Token label"
+msgstr ""
+
+#: templates/users.html
+msgid "Label (optional)"
+msgstr ""
+
+#: templates/users.html
 msgid "Generate token"
 msgstr ""
 
@@ -1373,6 +1395,10 @@ msgstr ""
 
 #: templates/users.html
 msgid "Copy token"
+msgstr ""
+
+#: templates/users.html
+msgid "Label"
 msgstr ""
 
 #: templates/users.html

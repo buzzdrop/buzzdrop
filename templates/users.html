@@ -56,12 +56,14 @@
             {% set user_tokens = tokens_by_user.get(username, []) %}
             {% set shown_name = user.display_name or username %}
             <section class="token-card overflow-hidden rounded-2xl border border-white/6 bg-white/2" aria-labelledby="token-card-{{ loop.index }}">
-                <div class="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
                     <div>
                         <h3 id="token-card-{{ loop.index }}" class="text-sm font-semibold text-white">{{ shown_name }}</h3>
                         <p class="text-xs text-slate-500">{{ _('Admin') if user.is_admin else _('User') }}</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        {# What uses the token, so Revoke can name it later (#368). #}
+                        <input type="text" maxlength="{{ token_label_max_length }}" aria-label="{{ _('Token label') }}" placeholder="{{ _('Label (optional)') }}" class="token-label-input field-input w-44 px-3 py-1.5 text-xs" autocomplete="off">
                         <button type="button" class="btn-secondary generate-token-btn px-3 py-1.5 text-xs" data-username="{{ username }}">{{ _('Generate token') }}</button>
                         <span class="status-badge status-badge-slate">{{ ngettext('%(num)s token', '%(num)s tokens', user_tokens|length) }}</span>
                     </div>
@@ -87,6 +89,7 @@
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="border-b border-white/6">
+                                <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ _('Label') }}</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ _('Created') }}</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ _('Last used') }}</th>
                                 <th class="px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-500">{{ _('Expires') }}</th>
@@ -96,11 +99,13 @@
                         <tbody>
                             {% for token in user_tokens %}
                             <tr class="border-b border-white/4 transition last:border-0 hover:bg-white/3">
+                                {# The owner's own words: escaped, and translate="no" like other user data. #}
+                                <td class="px-4 py-3 text-slate-300">{% if token.label %}<span translate="no">{{ token.label }}</span>{% else %}—{% endif %}</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-300">{{ utc_time(token.created_at, '—') }}</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.last_used_at, _('Never')) }}</td>
                                 <td class="px-4 py-3 tabular-nums text-slate-500">{{ utc_time(token.expires_at, _('Never')) }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <form method="post" action="{{ url_for('revoke_api_token_route', token_id=token.id) }}" class="revoke-token-form inline-block" data-username="{{ username }}" data-created="{{ token.created_at|timestamp_iso or '' }}">
+                                    <form method="post" action="{{ url_for('revoke_api_token_route', token_id=token.id) }}" class="revoke-token-form inline-block" data-username="{{ username }}" data-token-label="{{ token.label or '' }}" data-created="{{ token.created_at|timestamp_iso or '' }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn-danger px-3 py-1.5 text-xs">{{ _('Revoke') }}</button>
                                     </form>
