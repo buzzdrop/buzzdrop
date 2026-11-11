@@ -1113,7 +1113,7 @@ def create_api_token():
     Response JSON: {"token": "<raw_token>", "expires_at": "<ISO timestamp>"}
     ← shown once, store securely
     """
-    from tokens import DEFAULT_TOKEN_EXPIRY_DAYS, generate_api_token, normalize_token_label
+    from tokens import DEFAULT_TOKEN_EXPIRY_DAYS, InvalidTokenLabel, generate_api_token
     if not _session_csrf_required():
         return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
     data = request.get_json(silent=True) or {}
@@ -1138,13 +1138,12 @@ def create_api_token():
         return {'error': 'expires_in_days must be a positive integer',
                 'code': 'invalid_expiry_days'}, 400
 
-    try:
-        label = normalize_token_label(data.get('label'))
-    except ValueError as exc:
-        return {'error': str(exc), 'code': 'invalid_label'}, 400
-
     expires_at = utcnow() + timedelta(days=requested_expiry_days)
-    raw_token = generate_api_token(requested_username, expires_at=expires_at, label=label)
+    try:
+        raw_token = generate_api_token(requested_username, expires_at=expires_at,
+                                       label=data.get('label'))
+    except InvalidTokenLabel as exc:
+        return {'error': str(exc), 'code': 'invalid_label'}, 400
     return {'token': raw_token, 'expires_at': to_utc_iso(expires_at)}, 201
 
 

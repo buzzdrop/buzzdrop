@@ -1206,9 +1206,13 @@ def setup_token(server_override: str = None,
         sys.exit(1)
 
     # The label names the token on the users page, so its owner can tell
-    # which one to revoke (#368). Enter keeps one naming this machine.
+    # which one to revoke (#368). Enter keeps one naming this machine. It is
+    # checked here, before logging in, so a long one costs no second run.
     default_label = f"buzz CLI on {socket.gethostname()}"[:TOKEN_LABEL_MAX_LENGTH]
     label = input(f"Token label [{default_label}]: ").strip() or default_label
+    if len(label) > TOKEN_LABEL_MAX_LENGTH:
+        print(f"Error: the label can be at most {TOKEN_LABEL_MAX_LENGTH} characters.", file=sys.stderr)
+        sys.exit(1)
 
     session = requests.Session()
 

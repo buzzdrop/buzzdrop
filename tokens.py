@@ -104,23 +104,27 @@ def _hash_token(raw_token: str) -> str:
     return digest.hex()
 
 
+class InvalidTokenLabel(ValueError):
+    """A requested token label normalize_token_label refuses; str() says why."""
+
+
 def normalize_token_label(value: Any) -> Optional[str]:
     """
     Return a requested token label as stored: trimmed, or None when blank.
 
     Raises:
-        ValueError: the label is not a string, is longer than
+        InvalidTokenLabel: the label is not a string, is longer than
             TOKEN_LABEL_MAX_LENGTH, or holds a control character.
     """
     if value is None:
         return None
     if not isinstance(value, str):
-        raise ValueError('label must be a string')
+        raise InvalidTokenLabel('label must be a string')
     label = value.strip()
     if len(label) > TOKEN_LABEL_MAX_LENGTH:
-        raise ValueError(f'label must be at most {TOKEN_LABEL_MAX_LENGTH} characters')
+        raise InvalidTokenLabel(f'label must be at most {TOKEN_LABEL_MAX_LENGTH} characters')
     if any(unicodedata.category(char) == 'Cc' for char in label):
-        raise ValueError('label must not contain control characters')
+        raise InvalidTokenLabel('label must not contain control characters')
     return label or None
 
 
@@ -140,7 +144,7 @@ def generate_api_token(username: str, expires_at: Optional[datetime] = None,
         Raw 64-character hex token (show to user once)
 
     Raises:
-        ValueError: the label is one normalize_token_label refuses.
+        InvalidTokenLabel: the label is one normalize_token_label refuses.
     """
     label = normalize_token_label(label)
     now = utcnow()

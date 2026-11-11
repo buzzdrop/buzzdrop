@@ -76,9 +76,9 @@ export function initUsers(root, deps) {
     /** @param {HTMLButtonElement} button */
     async function generateToken(button) {
         const card = requiredClosest(button, '.token-card', 'section');
-        const label = required(card, '.token-label-input', 'input');
+        const labelInput = required(card, '.token-label-input', 'input');
         const result = required(card, '.token-result', 'div');
-        const input = required(card, '.generated-token-input', 'input');
+        const tokenInput = required(card, '.generated-token-input', 'input');
         const expires = required(card, '.token-expires', 'p');
         const error = required(card, '.token-error', 'p');
 
@@ -94,7 +94,7 @@ export function initUsers(root, deps) {
                     'X-CSRF-Token': csrf,
                 },
                 // A blank label is no label; the server trims it the same way.
-                body: JSON.stringify({ username: button.dataset.username, ...(label.value.trim() && { label: label.value }) }),
+                body: JSON.stringify({ username: button.dataset.username, ...(labelInput.value.trim() && { label: labelInput.value }) }),
             });
         } catch {
             // No answer at all (offline, server down). The browser's own
@@ -107,8 +107,8 @@ export function initUsers(root, deps) {
         button.disabled = false;
         // A proxy in front of the app can answer 2xx with its own page.
         if (resp?.ok && body.token && body.expires_at) {
-            input.value = body.token;
-            label.value = '';
+            tokenInput.value = body.token;
+            labelInput.value = '';
             expires.textContent = strings.text('expires', { time: inViewerZone(body.expires_at, body.expires_at) });
         } else {
             error.hidden = false;

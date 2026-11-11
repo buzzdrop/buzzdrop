@@ -132,6 +132,21 @@ def test_first_run_setup_takes_the_label_typed_at_its_prompt(app, run_setup):
     assert _token_labels(app) == ['backup job']
 
 
+def test_a_label_over_the_limit_stops_setup_before_logging_in(
+        app, run_setup, capsys):
+    class Offline(FlaskRequests):
+        def Session(self):
+            raise AssertionError('setup reached the server')
+
+    too_long = 'x' * (buzz.TOKEN_LABEL_MAX_LENGTH + 1)
+    with pytest.raises(SystemExit):
+        run_setup('testuser', 'password', transport=Offline(app), label=too_long)
+
+    assert 'at most 64 characters' in capsys.readouterr().err
+    assert not run_setup.token_file.exists()
+    assert _token_labels(app) == []
+
+
 def test_the_cli_label_limit_matches_the_server(app):
     from tokens import TOKEN_LABEL_MAX_LENGTH
 
