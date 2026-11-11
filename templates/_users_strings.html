@@ -2,14 +2,17 @@
    and why POST /api/token refused one, keyed by the response's `code`
    (#285); a refusal it can't explain is `failed`. `confirmRevoke` is what
    Revoke asks before its form posts, `confirmRevokeLabelled` the same for
-   a token with a label (#368), and `revoke` the dialog's button (#320). What the copy announces
-   is clipboard-feedback's (_clipboard_feedback_strings.html). #}
+   a token with a label (#368), and `revoke` the dialog's button (#320).
+   What the copy announces is clipboard-feedback's
+   (_clipboard_feedback_strings.html). #}
 {# Translators: shown under a new API token; %(time)s is when it expires, in the viewer's zone, e.g. "Dec 31, 2098, 19:00 CET". #}
 {% set expires = script_gettext('Expires %(time)s. Reload to see it in the list below.') %}
 {# Translators: asked before an API token is revoked; %(user)s is whose token it is, %(created)s when it was created, in the viewer's zone, e.g. "Dec 31, 2098, 19:00 CET". #}
 {% set confirm_revoke = script_gettext('Revoke the %(user)s token created %(created)s? Anything that uses it stops working.') %}
 {# Translators: asked before revoking an API token that has a label; %(user)s is whose token it is, %(label)s the name its owner gave it, e.g. "backup job". #}
 {% set confirm_revoke_labelled = script_gettext('Revoke the %(user)s token “%(label)s”? Anything that uses it stops working.') %}
+{# Translators: why a new API token was refused; %(max)s is the most characters its label may have, e.g. "64". #}
+{% set invalid_label = _('Use a label of at most %(max)s characters, on one line.', max=token_label_max_length) %}
 {% set strings = {
     'expires': expires,
     'refusals': {
@@ -18,7 +21,7 @@
         'csrf_failed': _('Your session has expired. Reload the page and try again.'),
         'rate_limited': _('Too many requests. Please try again later.'),
         'login_required': _('Your session has expired. Log in again to generate a token.'),
-        'invalid_label': _('Use a label of at most %(max)s characters, on one line.', max=token_label_max_length),
+        'invalid_label': invalid_label,
     },
     'failed': _('Could not generate a token. Please try again.'),
     'confirmRevoke': confirm_revoke,

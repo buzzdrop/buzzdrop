@@ -414,7 +414,7 @@ describe('in Polish', () => {
         const users = openUsersPage({ language: 'pl' });
 
         expect((await users.revokeToken('testuser', 0, { confirm: false })).question).toBe(
-            'Unieważnić token „backup job” użytkownika testuser? Wszystko, co z niego korzysta, przestanie działać.',
+            'Unieważnić token „backup job” użytkownika testuser? Wszystko, co z\u00a0niego korzysta, przestanie działać.',
         );
         expect((await users.revokeToken('testuser', 1, { confirm: false })).question).toBe(
             'Unieważnić token użytkownika testuser utworzony 1 sty 2025, 06:00 GMT-5? Wszystko, co z\u00a0niego korzysta, przestanie działać.',

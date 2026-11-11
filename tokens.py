@@ -134,11 +134,15 @@ def generate_api_token(username: str, expires_at: Optional[datetime] = None,
 
     Args:
         username: Username to associate with the token
-        label: Optional name for the token, as normalize_token_label returns it
+        label: Optional name for the token; normalize_token_label trims it
 
     Returns:
         Raw 64-character hex token (show to user once)
+
+    Raises:
+        ValueError: the label is one normalize_token_label refuses.
     """
+    label = normalize_token_label(label)
     now = utcnow()
     raw_token = secrets.token_hex(32)
     token_hash = _hash_token(raw_token)

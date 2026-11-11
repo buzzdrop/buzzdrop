@@ -80,8 +80,10 @@ def run_setup(app, db_instance, monkeypatch, tmp_path):
     token_file = tmp_path / '.buzz_token'
     monkeypatch.setattr(buzz, 'TOKEN_FILE', str(token_file))
 
-    def _run(username, password, transport=None):
-        monkeypatch.setattr('builtins.input', lambda prompt='': username)
+    def _run(username, password, transport=None, label=''):
+        monkeypatch.setattr(
+            'builtins.input',
+            lambda prompt='': label if prompt.startswith('Token label') else username)
         monkeypatch.setattr(getpass, 'getpass', lambda prompt='': password)
         monkeypatch.setattr(buzz, '_requests', lambda: transport or FlaskRequests(app))
         return buzz.setup_token(server_override=SERVER)
@@ -121,7 +123,19 @@ def test_a_long_hostname_is_cut_to_the_label_limit(app, run_setup, monkeypatch):
     monkeypatch.setattr(buzz.socket, 'gethostname', lambda: 'h' * 200)
     run_setup('testuser', 'password')
 
-    assert _token_labels(app) == [('buzz CLI on ' + 'h' * 200)[:64]]
+    assert _token_labels(app) == [('buzz CLI on ' + 'h' * 200)[:buzz.TOKEN_LABEL_MAX_LENGTH]]
+
+
+def test_first_run_setup_takes_the_label_typed_at_its_prompt(app, run_setup):
+    run_setup('testuser', 'password', label='  backup job  ')
+
+    assert _token_labels(app) == ['backup job']
+
+
+def test_the_cli_label_limit_matches_the_server(app):
+    from tokens import TOKEN_LABEL_MAX_LENGTH
+
+    assert buzz.TOKEN_LABEL_MAX_LENGTH == TOKEN_LABEL_MAX_LENGTH
 
 
 PERMISSION_MESSAGE = 'does not have permission'

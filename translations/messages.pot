@@ -779,6 +779,13 @@ msgid ""
 "working."
 msgstr ""
 
+#. why a new API token was refused; %(max)s is the most characters its label
+#. may have, e.g. "64".
+#: templates/_users_strings.html
+#, python-format
+msgid "Use a label of at most %(max)s characters, on one line."
+msgstr ""
+
 #: templates/_users_strings.html
 msgid "Only an admin can generate a token for another user."
 msgstr ""
@@ -789,11 +796,6 @@ msgstr ""
 
 #: templates/_users_strings.html
 msgid "Your session has expired. Log in again to generate a token."
-msgstr ""
-
-#: templates/_users_strings.html
-#, python-format
-msgid "Use a label of at most %(max)s characters, on one line."
 msgstr ""
 
 #: templates/_users_strings.html

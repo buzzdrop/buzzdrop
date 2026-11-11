@@ -93,7 +93,7 @@ GET  /api/tokens                 # list your tokens
 POST /api/tokens/<id>/revoke
 ```
 
-Body: `{"username": "name", "expires_in_days": 30, "label": "backup job"}` → `{"token": "<64-hex>"}`, shown once. `expires_in_days` defaults to 30. `label` is optional (up to 64 characters, one line) and names the token on **Manage Users**; `buzz` labels the token it sets up with the machine's hostname. Tokens are stored as PBKDF2-HMAC-SHA256 digests; the raw value is never persisted. In production `TOKEN_HASH_SECRET` is required and must differ from `FLASK_SECRET_KEY`. Admins can review and revoke tokens for any user on the **Manage Users** page.
+Body: `{"username": "name", "expires_in_days": 30, "label": "backup job"}` → `{"token": "<64-hex>"}`, shown once. `expires_in_days` defaults to 30. `label` is optional (up to 64 characters, one line) and names the token on **Manage Users**; `buzz` asks for one when it sets up its token, offering one with the machine's hostname. Tokens are stored as PBKDF2-HMAC-SHA256 digests; the raw value is never persisted. In production `TOKEN_HASH_SECRET` is required and must differ from `FLASK_SECRET_KEY`. Admins can review and revoke tokens for any user on the **Manage Users** page.
 
 ## Storage and database
 

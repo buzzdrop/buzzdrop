@@ -818,6 +818,13 @@ msgstr ""
 "Unieważnić token „%(label)s” użytkownika %(user)s? Wszystko, co z niego "
 "korzysta, przestanie działać."
 
+#. why a new API token was refused; %(max)s is the most characters its label
+#. may have, e.g. "64".
+#: templates/_users_strings.html
+#, python-format
+msgid "Use a label of at most %(max)s characters, on one line."
+msgstr "Skróć etykietę (limit znaków: %(max)s) i zapisz ją w jednym wierszu."
+
 #: templates/_users_strings.html
 msgid "Only an admin can generate a token for another user."
 msgstr "Token dla innego użytkownika może wygenerować tylko administrator."
@@ -829,11 +836,6 @@ msgstr "Ten użytkownik już nie istnieje."
 #: templates/_users_strings.html
 msgid "Your session has expired. Log in again to generate a token."
 msgstr "Sesja wygasła. Zaloguj się ponownie, aby wygenerować token."
-
-#: templates/_users_strings.html
-#, python-format
-msgid "Use a label of at most %(max)s characters, on one line."
-msgstr "Skróć etykietę (limit znaków: %(max)s) i zapisz ją w jednym wierszu."
 
 #: templates/_users_strings.html
 msgid "Could not generate a token. Please try again."

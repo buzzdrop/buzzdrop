@@ -8,7 +8,7 @@ buzz file.pdf -p mypassword
 buzz file.pdf --expiry 2025-12-31T23:59+01:00
 ```
 
-On first run it logs in and requests its own token, labelled `buzz CLI on <hostname>` (cut to the server's 64-character limit) so the users page can tell machines apart (#368).
+On first run it logs in and requests its own token. It asks for the token's label, which names it on the users page (#368); Enter keeps `buzz CLI on <hostname>`, cut to the server's 64-character limit (`TOKEN_LABEL_MAX_LENGTH`, kept in step with `tokens.py`).
 
 It encrypts with the same `BKV3` format as the browser and runs the same two-phase upload (`/upload/begin` → `/upload`; see `docs/dev/share-protocol.md`), with Bearer token auth. It aborts if `/upload/begin` answers 404, i.e. the server doesn't speak the key-release protocol.
 
