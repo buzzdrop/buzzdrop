@@ -2,6 +2,8 @@
 // token on /users against the real POST /api/token, an upload with it as a
 // Bearer token and no session cookie succeeds the way the CLI sends one, and
 // once the admin has revoked it on /users the same upload is refused (#299).
+// The token carries a label, which the table and the revoke question name
+// (#368).
 // The DOM tests answer /api/token by hand; this holds the page to the
 // server's answer.
 import { test, expect } from './fixtures.js';
@@ -53,9 +55,12 @@ test('a token generated on /users uploads until it is revoked there', async ({ p
 
     const card = page.getByRole('region', { name: holder });
     await expect(card.getByText('No active API tokens.')).toBeVisible();
+    const labelField = card.getByLabel('Token label');
+    await labelField.fill('backup job');
     await card.getByRole('button', { name: 'Generate token' }).click();
     const tokenField = card.getByLabel('New API token');
     await expect(tokenField).toHaveValue(/\S/);
+    await expect(labelField).toHaveValue('');
     await expect(card.getByText(/^Expires /)).toBeVisible();
     const token = await tokenField.inputValue();
 
@@ -65,8 +70,11 @@ test('a token generated on /users uploads until it is revoked there', async ({ p
 
     // The token shows in the card's table once the page is loaded again.
     await page.reload();
+    await expect(card.getByRole('cell', { name: 'backup job' })).toBeVisible();
     await card.getByRole('button', { name: 'Revoke' }).click();
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Revoke' }).click();
+    const dialog = page.getByRole('alertdialog');
+    await expect(dialog).toContainText(`Revoke the ${holder} token “backup job”?`);
+    await dialog.getByRole('button', { name: 'Revoke' }).click();
     await expect(flash(page)).toHaveText('API token revoked');
     await expect(card.getByText('No active API tokens.')).toBeVisible();
 
