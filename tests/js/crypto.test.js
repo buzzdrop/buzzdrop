@@ -30,7 +30,26 @@ const V3_FIXTURE_V =
 const V3_FIXTURE_RECEIPT = hexToBytes(
     '404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f');
 
+const UNSUPPORTED = { message: 'Unsupported share format' };
+const CORRUPT = { message: 'Invalid password or corrupted data' };
+const BAD_SHARE = { message: 'server share H must be 32 bytes' };
+// 'BKV3' ‖ salt (16) ‖ iv (12) ‖ GCM tag (16) ‖ 'BKP-FIL2' ‖ receipt (32) ‖ name_len (2)
+const MIN_BLOB_LENGTH = 4 + 16 + 12 + 16 + 8 + 32 + 2;
+
 const randomShare = () => crypto.getRandomValues(new Uint8Array(32));
+
+/** @param {number} length */
+const bkv3Blob = (length) => {
+    const blob = new Uint8Array(length);
+    blob.set(encoder.encode('BKV3'));
+    return blob;
+};
+
+/**
+ * A copy of the blob's salt, the 16 bytes after the 'BKV3' magic.
+ * @param {Uint8Array} blob
+ */
+const saltOf = (blob) => blob.slice(4, 4 + 16);
 
 test('seal produces a BKV3 envelope with a verifier and a receipt', async () => {
     const { blob, verifier, receipt } = await seal(encoder.encode('secret'), 'pw', randomShare());
@@ -81,9 +100,10 @@ test('seal and finish reject a malformed server share', async () => {
     const { blob } = await seal(encoder.encode('x'), 'pw', h);
     await assert.rejects(seal(encoder.encode('x'), 'pw', h.slice(0, 8)));
     const attempt = await open(blob).unlock('pw');
-    await assert.rejects(attempt.finish(h.slice(0, 8)));
+    await assert.rejects(attempt.finish(h.slice(0, 8)), BAD_SHARE);
+    await assert.rejects(attempt.finish(new Uint8Array(33)), BAD_SHARE);
     // @ts-expect-error -- a non-bytes H must be rejected by the runtime guard
-    await assert.rejects(attempt.finish('not-bytes'));
+    await assert.rejects(attempt.finish('not-bytes'), BAD_SHARE);
 });
 
 test('python-generated v3 fixture opens in JS', async () => {
@@ -111,22 +131,7 @@ test('non-BKV3 payloads are rejected outright', async () => {
     assert.throws(() => open(bkv2), /Unsupported share format/);
     assert.throws(() => open(crypto.getRandomValues(new Uint8Array(64))), /Unsupported share format/);
     assert.throws(() => open(new Uint8Array(4)), /Unsupported/);
-    // below the BKV3 minimum (magic + salt + iv + GCM tag + header + receipt)
-    assert.throws(() => open(new Uint8Array(87)), /Unsupported/);
 });
-
-const UNSUPPORTED = { message: 'Unsupported share format' };
-const CORRUPT = { message: 'Invalid password or corrupted data' };
-const BAD_SHARE = { message: 'server share H must be 32 bytes' };
-// 'BKV3' ‖ salt (16) ‖ iv (12) ‖ GCM tag (16) ‖ 'BKP-FIL2' ‖ receipt (32) ‖ name_len (2)
-const MIN_BLOB_LENGTH = 90;
-
-/** @param {number} length */
-const bkv3Blob = (length) => {
-    const blob = new Uint8Array(length);
-    blob.set(encoder.encode('BKV3'));
-    return blob;
-};
 
 test('a nameless seal opens with an empty name', async () => {
     const h = randomShare();
@@ -153,7 +158,7 @@ test('a salt-only share opens the blob that carries its salt', async () => {
     const h = randomShare();
     const data = encoder.encode('salted');
     const sealed = await seal(data, 'pw', h, 'a.txt');
-    const attempt = await openSalted(sealed.blob.slice(4, 20)).unlock('pw');
+    const attempt = await openSalted(saltOf(sealed.blob)).unlock('pw');
     assert.deepEqual(attempt.verifier, sealed.verifier);
     const opened = await attempt.finish(h, sealed.blob);
     assert.deepEqual(opened.data, data);
@@ -163,26 +168,18 @@ test('a salt-only share opens the blob that carries its salt', async () => {
 test("a salt-only share rejects a blob whose salt differs from the page's", async () => {
     const h = randomShare();
     const { blob } = await seal(encoder.encode('x'), 'pw', h);
-    for (const at of [0, 15]) {
-        const salt = blob.slice(4, 20);
-        salt[at] ^= 0x01;
+    for (const byteIndex of [0, 15]) {
+        const salt = saltOf(blob);
+        salt[byteIndex] ^= 0x01;
         const attempt = await openSalted(salt).unlock('pw');
-        await assert.rejects(attempt.finish(h, blob), CORRUPT, `salt byte ${at}`);
+        await assert.rejects(attempt.finish(h, blob), CORRUPT, `salt byte ${byteIndex}`);
     }
 });
 
 test('a salt-only share rejects a missing blob', async () => {
     const { blob } = await seal(encoder.encode('x'), 'pw', randomShare());
-    const attempt = await openSalted(blob.slice(4, 20)).unlock('pw');
+    const attempt = await openSalted(saltOf(blob)).unlock('pw');
     await assert.rejects(attempt.finish(randomShare()), UNSUPPORTED);
-});
-
-test('finish rejects a malformed server share before decrypting', async () => {
-    const h = randomShare();
-    const { blob } = await seal(encoder.encode('x'), 'pw', h);
-    const attempt = await open(blob).unlock('pw');
-    await assert.rejects(attempt.finish(h.slice(0, 8)), BAD_SHARE);
-    await assert.rejects(attempt.finish(new Uint8Array(33)), BAD_SHARE);
 });
 
 test('downloadTicket rejects a malformed server share', async () => {
@@ -193,24 +190,22 @@ test('downloadTicket rejects a malformed server share', async () => {
 });
 
 test('the AES-GCM file key is never extractable', async () => {
-    const { encrypt, decrypt } = crypto.subtle;
+    const importKey = crypto.subtle.importKey;
     /** @type {CryptoKey[]} */
     const keys = [];
-    crypto.subtle.encrypt = function (algorithm, key, data) {
-        keys.push(key);
-        return encrypt.call(this, algorithm, key, data);
+    /** @type {(...args: Parameters<typeof importKey>) => Promise<CryptoKey>} */
+    const spy = async function (...args) {
+        const key = await importKey.apply(crypto.subtle, args);
+        if (key.algorithm.name === 'AES-GCM') keys.push(key);
+        return key;
     };
-    crypto.subtle.decrypt = function (algorithm, key, data) {
-        keys.push(key);
-        return decrypt.call(this, algorithm, key, data);
-    };
+    crypto.subtle.importKey = /** @type {typeof importKey} */ (spy);
     try {
         const h = randomShare();
         const { blob } = await seal(encoder.encode('x'), 'pw', h);
         await (await open(blob).unlock('pw')).finish(h);
     } finally {
-        crypto.subtle.encrypt = encrypt;
-        crypto.subtle.decrypt = decrypt;
+        crypto.subtle.importKey = importKey;
     }
     assert.equal(keys.length, 2);
     for (const key of keys) assert.equal(key.extractable, false);
