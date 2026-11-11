@@ -6,7 +6,6 @@ hash secret; the raw token is shown only once at generation.
 import hashlib
 import os
 import secrets
-import unicodedata
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
@@ -114,7 +113,10 @@ def normalize_token_label(value: Any) -> Optional[str]:
 
     Raises:
         InvalidTokenLabel: the label is not a string, is longer than
-            TOKEN_LABEL_MAX_LENGTH, or holds a control character.
+            TOKEN_LABEL_MAX_LENGTH, or holds a character isprintable()
+            refuses — control characters, but also bidi overrides,
+            zero-width marks, surrogates and the line/paragraph
+            separators that would break the "one line" promise.
     """
     if value is None:
         return None
@@ -123,7 +125,7 @@ def normalize_token_label(value: Any) -> Optional[str]:
     label = value.strip()
     if len(label) > TOKEN_LABEL_MAX_LENGTH:
         raise InvalidTokenLabel(f'label must be at most {TOKEN_LABEL_MAX_LENGTH} characters')
-    if any(unicodedata.category(char) == 'Cc' for char in label):
+    if not label.isprintable():
         raise InvalidTokenLabel('label must not contain control characters')
     return label or None
 

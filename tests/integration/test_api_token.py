@@ -145,6 +145,10 @@ def test_create_token_accepts_a_label_of_the_maximum_length(user_client, db_inst
 @pytest.mark.parametrize('label, error', [
     ('x' * 65, 'label must be at most 64 characters'),
     ('line\nbreak', 'label must not contain control characters'),
+    ('line\u2028break', 'label must not contain control characters'),
+    ('zero\u200bwidth', 'label must not contain control characters'),
+    ('bidi\u202eoverride', 'label must not contain control characters'),
+    ('lone\ud800surrogate', 'label must not contain control characters'),
     (42, 'label must be a string'),
     (['backup'], 'label must be a string'),
 ])
