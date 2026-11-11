@@ -130,7 +130,7 @@ files(doc_id PK AUTOINCREMENT, id TEXT UNIQUE, original_name, path,
       notification_sent_at, notification_claimed_at, extra)
 
 api_tokens(doc_id PK AUTOINCREMENT, token_hash, token_hash_version,
-           username, created_at, last_used_at, expires_at, extra)
+           username, label, created_at, last_used_at, expires_at, extra)
 ```
 
 Type mapping per engine:

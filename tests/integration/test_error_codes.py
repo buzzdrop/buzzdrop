@@ -315,3 +315,11 @@ def test_token_with_an_invalid_expiry(client):
                            json={'expires_in_days': 0, 'csrf_token': CSRF_TOKEN})
     assert_refused(response, 400, 'invalid_expiry_days',
                    'expires_in_days must be a positive integer')
+
+
+def test_token_with_an_overlong_label(client):
+    login(client)
+    response = client.post(url_for('create_api_token'),
+                           json={'label': 'x' * 65, 'csrf_token': CSRF_TOKEN})
+    assert_refused(response, 400, 'invalid_label',
+                   'label must be at most 64 characters')

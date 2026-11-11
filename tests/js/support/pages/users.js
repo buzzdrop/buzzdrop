@@ -23,9 +23,10 @@ export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
 
 /**
  * @typedef {object} UsersOptions
- * @property {'ok' | 'forbidden' | 'unexplained' | 'signedOut' | 'proxyPage' | 'unreachable'} [server] -
+ * @property {'ok' | 'forbidden' | 'badLabel' | 'unexplained' | 'signedOut' | 'proxyPage' | 'unreachable'} [server] -
  *   forbidden: the server refuses the token, as it does a session that is no
- *   longer an admin's; unexplained: it refuses with a code the page doesn't
+ *   longer an admin's; badLabel: it refuses the label (too long, or more
+ *   than one line); unexplained: it refuses with a code the page doesn't
  *   know; signedOut: the session has expired, so json_login_required refuses
  *   it; proxyPage: a proxy in front of the app answers with its own page
  *   instead of a token; unreachable: the request fails before any answer, as
@@ -33,10 +34,10 @@ export const EXPIRES_AT = '2099-01-01T00:00:00.000000+00:00';
  * @property {'en' | 'pl'} [language] - the language the browser asked for
  */
 
-/** The card's buttons, as each language names them. */
+/** The card's controls, as each language names them. */
 const WORDS = {
-    en: { generate: 'Generate token', copy: 'Copy token', revoke: 'Revoke' },
-    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token', revoke: 'Unieważnij' },
+    en: { generate: 'Generate token', copy: 'Copy token', revoke: 'Revoke', label: 'Token label' },
+    pl: { generate: 'Wygeneruj token', copy: 'Skopiuj token', revoke: 'Unieważnij', label: 'Etykieta tokenu' },
 };
 
 /**
@@ -69,6 +70,7 @@ export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
         const answers = {
             ok: [201, { token: TOKEN, expires_at: EXPIRES_AT }],
             forbidden: [403, { error: 'Admin access required to generate tokens for other users', code: 'admin_required' }],
+            badLabel: [400, { error: 'label must be at most 64 characters', code: 'invalid_label' }],
             signedOut: [401, { error: 'Login required', code: 'login_required' }],
             unexplained: [500, { error: 'Something new went wrong', code: 'something_new' }],
         };
@@ -103,6 +105,14 @@ export function openUsersPage({ server = 'ok', language = 'en' } = {}) {
          */
         startGeneratingToken: (username) => user.click(generateButton(username)),
         finishTokenRequest,
+        /**
+         * Type a label for the next token into a user's card.
+         * @param {string} username
+         * @param {string} label
+         */
+        labelToken: (username, label) => user.type(card(username).getByRole('textbox', { name: WORDS[language].label }), label),
+        /** @param {string} username - whose card; the label box's current value */
+        tokenLabel: (username) => /** @type {HTMLInputElement} */ (card(username).getByRole('textbox', { name: WORDS[language].label })).value,
         /**
          * Press Generate token on a user's card and wait for the answer.
          * @param {string} username

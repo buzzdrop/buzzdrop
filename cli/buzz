@@ -30,6 +30,7 @@ import hashlib
 import json
 import os
 import secrets
+import socket
 import sys
 import zipfile
 from datetime import datetime, timezone
@@ -1021,6 +1022,8 @@ _WORDS = [
 ]
 
 TOKEN_FILE = os.path.expanduser('~/.buzz_token')
+# The server's limit on a token label (TOKEN_LABEL_MAX_LENGTH in tokens.py).
+TOKEN_LABEL_MAX_LENGTH = 64
 
 # ---------------------------------------------------------------------------
 # Crypto wire format (shared with static/js/lib/crypto.js).
@@ -1172,9 +1175,9 @@ def setup_token(server_override: str = None,
     """
     Interactive flow to obtain and save an API token.
 
-    Prompts for server URL (if not supplied), username, and password,
-    logs in via the web session, generates a token, and writes it to
-    ~/.buzz_token with mode 0600.
+    Prompts for server URL (if not supplied), username, password and a
+    label for the token, logs in via the web session, generates a token,
+    and writes it to ~/.buzz_token with mode 0600.
 
     Returns (token, server_url).
     """
@@ -1200,6 +1203,15 @@ def setup_token(server_override: str = None,
     password = getpass.getpass("Password: ")
     if not password:
         print("Error: password is required.", file=sys.stderr)
+        sys.exit(1)
+
+    # The label names the token on the users page, so its owner can tell
+    # which one to revoke (#368). Enter keeps one naming this machine. It is
+    # checked here, before logging in, so a long one costs no second run.
+    default_label = f"buzz CLI on {socket.gethostname()}"[:TOKEN_LABEL_MAX_LENGTH]
+    label = input(f"Token label [{default_label}]: ").strip() or default_label
+    if len(label) > TOKEN_LABEL_MAX_LENGTH:
+        print(f"Error: the label can be at most {TOKEN_LABEL_MAX_LENGTH} characters.", file=sys.stderr)
         sys.exit(1)
 
     session = requests.Session()
@@ -1241,7 +1253,7 @@ def setup_token(server_override: str = None,
     try:
         resp = session.post(
             f"{server}/api/token",
-            json={'username': username},
+            json={'username': username, 'label': label},
             headers={'X-CSRF-Token': csrf_token},
             timeout=15,
         )

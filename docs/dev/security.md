@@ -64,7 +64,7 @@ The remaining dropzone routes are `@api_auth_required` (Bearer token or session 
 
 ## API tokens (`tokens.py`)
 
-- `generate_api_token(username)` stores a PBKDF2-HMAC-SHA256 fingerprint in the `api_tokens` table and returns the raw 64-character token, which is shown once.
+- `generate_api_token(username, label=…)` stores a PBKDF2-HMAC-SHA256 fingerprint in the `api_tokens` table and returns the raw 64-character token, which is shown once. The optional label (`normalize_token_label`, which `generate_api_token` applies: trimmed, at most 64 characters, no control characters, else `InvalidTokenLabel`, which `/api/token` answers with `400 invalid_label`) is user data: the users page escapes it and marks it `translate="no"`.
 - `validate_api_token(raw_token)` returns the username or None, and updates `last_used_at`.
 - `revoke_api_token(raw_token)` removes the entry.
 

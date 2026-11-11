@@ -105,7 +105,7 @@ LISTED_FILES = [
           uploaded_by='adminuser', shared_with=['testuser']),
 ]
 # Two existing tokens so the /users token table renders a row that was used
-# and one that never was.
+# and one that never was, and one with a label and one without (#368).
 API_TOKENS = [{
     'token_hash': 'cd' * 32,
     'username': 'testuser',
@@ -115,6 +115,7 @@ API_TOKENS = [{
 }, {
     'token_hash': 'ce' * 32,
     'username': 'testuser',
+    'label': 'backup job',
     'created_at': '2025-01-03T11:00:00.000000+00:00',
     'last_used_at': '2025-01-06T08:30:00.000000+00:00',
     'expires_at': FUTURE,

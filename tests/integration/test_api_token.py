@@ -119,6 +119,57 @@ def test_create_token_rejects_non_integer_expiry_values(user_client, expires_in_
     assert resp.get_json()['error'] == 'expires_in_days must be a positive integer'
 
 
+def _created_token_labels(client):
+    return [token['label'] for token in client.get('/api/tokens').get_json()['tokens']]
+
+
+def test_create_token_stores_its_label_trimmed(user_client, db_instance):
+    resp = user_client.post('/api/token', headers=_csrf_headers(user_client), json={'label': '  backup job  '})
+    assert resp.status_code == 201
+    assert _created_token_labels(user_client) == ['backup job']
+
+
+@pytest.mark.parametrize('body', [{}, {'label': None}, {'label': '   '}])
+def test_create_token_without_a_label_stores_none(user_client, db_instance, body):
+    resp = user_client.post('/api/token', headers=_csrf_headers(user_client), json=body)
+    assert resp.status_code == 201
+    assert _created_token_labels(user_client) == [None]
+
+
+def test_create_token_accepts_a_label_of_the_maximum_length(user_client, db_instance):
+    resp = user_client.post('/api/token', headers=_csrf_headers(user_client), json={'label': 'x' * 64})
+    assert resp.status_code == 201
+    assert _created_token_labels(user_client) == ['x' * 64]
+
+
+@pytest.mark.parametrize('label, error', [
+    ('x' * 65, 'label must be at most 64 characters'),
+    ('line\nbreak', 'label must not contain control characters'),
+    ('line\u2028break', 'label must not contain control characters'),
+    ('zero\u200bwidth', 'label must not contain control characters'),
+    ('bidi\u202eoverride', 'label must not contain control characters'),
+    ('lone\ud800surrogate', 'label must not contain control characters'),
+    (42, 'label must be a string'),
+    (['backup'], 'label must be a string'),
+])
+def test_create_token_rejects_an_invalid_label(user_client, db_instance, label, error):
+    resp = user_client.post('/api/token', headers=_csrf_headers(user_client), json={'label': label})
+    assert resp.status_code == 400
+    assert resp.get_json() == {'error': error, 'code': 'invalid_label'}
+    assert _created_token_labels(user_client) == []
+
+
+def test_users_page_shows_a_token_label_escaped(app, admin_client, db_instance):
+    with app.app_context():
+        from tokens import generate_api_token
+        generate_api_token('testuser', label='<b>backup</b> job')
+
+    page = admin_client.get('/users').get_data(as_text=True)
+    assert '<span translate="no">&lt;b&gt;backup&lt;/b&gt; job</span>' in page
+    assert 'data-token-label="&lt;b&gt;backup&lt;/b&gt; job"' in page
+    assert '<b>backup</b>' not in page
+
+
 def test_list_tokens_for_self(app, user_client, db_instance):
     with app.app_context():
         from tokens import generate_api_token

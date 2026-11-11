@@ -365,9 +365,11 @@ def _view_page(file_type):
 
 
 def _users_page(client):
-    """/users as an admin, with a token in its table."""
+    """/users as an admin, with a token in its table: one with a label, which
+    is user data, and one without."""
     from tokens import generate_api_token
     generate_api_token('testuser')
+    generate_api_token('testuser', label='backup job')
     client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
     return client.get(url_for('manage_users'))
 

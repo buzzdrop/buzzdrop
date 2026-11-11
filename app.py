@@ -1082,13 +1082,14 @@ def set_language():
 @app.route('/users', methods=['GET'])
 @admin_required
 def manage_users():
-    from tokens import list_api_tokens
+    from tokens import TOKEN_LABEL_MAX_LENGTH, list_api_tokens
 
     users = get_users()
     tokens_by_user = {username: [] for username in users}
     for token in list_api_tokens():
         tokens_by_user.setdefault(token['username'], []).append(token)
-    return render_template('users.html', users=users, tokens_by_user=tokens_by_user)
+    return render_template('users.html', users=users, tokens_by_user=tokens_by_user,
+                           token_label_max_length=TOKEN_LABEL_MAX_LENGTH)
 
 
 @app.route('/api/token', methods=['POST'])
@@ -1107,11 +1108,12 @@ def create_api_token():
     - Admins may generate a token for any existing user by passing
       ``{"username": "targetuser"}``.
 
-    Request JSON: {"username": "<existing_username>", "expires_in_days": 30}
+    Request JSON: {"username": "<existing_username>", "expires_in_days": 30,
+                   "label": "<optional name, e.g. backup job>"}
     Response JSON: {"token": "<raw_token>", "expires_at": "<ISO timestamp>"}
     ← shown once, store securely
     """
-    from tokens import DEFAULT_TOKEN_EXPIRY_DAYS, generate_api_token
+    from tokens import DEFAULT_TOKEN_EXPIRY_DAYS, InvalidTokenLabel, generate_api_token
     if not _session_csrf_required():
         return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
     data = request.get_json(silent=True) or {}
@@ -1137,7 +1139,11 @@ def create_api_token():
                 'code': 'invalid_expiry_days'}, 400
 
     expires_at = utcnow() + timedelta(days=requested_expiry_days)
-    raw_token = generate_api_token(requested_username, expires_at=expires_at)
+    try:
+        raw_token = generate_api_token(requested_username, expires_at=expires_at,
+                                       label=data.get('label'))
+    except InvalidTokenLabel as exc:
+        return {'error': str(exc), 'code': 'invalid_label'}, 400
     return {'token': raw_token, 'expires_at': to_utc_iso(expires_at)}, 201
 
 

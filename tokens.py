@@ -17,6 +17,9 @@ DEFAULT_TOKEN_EXPIRY_DAYS = 30
 TOKEN_HASH_ITERATIONS = 310_000
 TOKEN_HASH_BYTES = 32
 TOKEN_HASH_VERSION = 'pbkdf2-sha256-v1'
+# A token's label names what uses it ("laptop CLI", "backup job"), so the
+# users page can tell a person's tokens apart (#368).
+TOKEN_LABEL_MAX_LENGTH = 64
 
 
 def _get_token_store():
@@ -54,6 +57,7 @@ def _serialize_token(entry: Dict[str, Any]) -> Dict[str, Any]:
     return {
         'id': entry['doc_id'],
         'username': entry['username'],
+        'label': entry.get('label'),
         'created_at': entry.get('created_at'),
         'last_used_at': entry.get('last_used_at'),
         'expires_at': to_utc_iso(expires_at) if expires_at is not None else None,
@@ -99,7 +103,35 @@ def _hash_token(raw_token: str) -> str:
     return digest.hex()
 
 
-def generate_api_token(username: str, expires_at: Optional[datetime] = None) -> str:
+class InvalidTokenLabel(ValueError):
+    """A requested token label normalize_token_label refuses; str() says why."""
+
+
+def normalize_token_label(value: Any) -> Optional[str]:
+    """
+    Return a requested token label as stored: trimmed, or None when blank.
+
+    Raises:
+        InvalidTokenLabel: the label is not a string, is longer than
+            TOKEN_LABEL_MAX_LENGTH, or holds a character isprintable()
+            refuses — control characters, but also bidi overrides,
+            zero-width marks, surrogates and the line/paragraph
+            separators that would break the "one line" promise.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise InvalidTokenLabel('label must be a string')
+    label = value.strip()
+    if len(label) > TOKEN_LABEL_MAX_LENGTH:
+        raise InvalidTokenLabel(f'label must be at most {TOKEN_LABEL_MAX_LENGTH} characters')
+    if not label.isprintable():
+        raise InvalidTokenLabel('label must not contain control characters')
+    return label or None
+
+
+def generate_api_token(username: str, expires_at: Optional[datetime] = None,
+                       label: Optional[str] = None) -> str:
     """
     Generate a new API token for a user, store its hash, and return the raw token.
 
@@ -108,10 +140,15 @@ def generate_api_token(username: str, expires_at: Optional[datetime] = None) -> 
 
     Args:
         username: Username to associate with the token
+        label: Optional name for the token; normalize_token_label trims it
 
     Returns:
         Raw 64-character hex token (show to user once)
+
+    Raises:
+        InvalidTokenLabel: the label is one normalize_token_label refuses.
     """
+    label = normalize_token_label(label)
     now = utcnow()
     raw_token = secrets.token_hex(32)
     token_hash = _hash_token(raw_token)
@@ -120,6 +157,7 @@ def generate_api_token(username: str, expires_at: Optional[datetime] = None) -> 
         'token_hash': token_hash,
         'token_hash_version': TOKEN_HASH_VERSION,
         'username': username,
+        'label': label,
         'created_at': to_utc_iso(now),
         'last_used_at': None,
         'expires_at': to_utc_iso(expires_at),

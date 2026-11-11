@@ -243,6 +243,9 @@ def test_missing_columns_added_to_existing_table(tmp_path):
         # insert using the previously-missing column must not fail
         assert backend.files.insert(
             {'id': 'x', 'notification_claimed_at': None}) == 1
+        # a token table from before #368 gains the label column
+        token_id = backend.tokens.insert({'token_hash': 'h', 'label': 'backup job'})
+        assert backend.tokens.get_by_id(token_id)['label'] == 'backup job'
     finally:
         backend.close()
 

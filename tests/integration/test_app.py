@@ -320,7 +320,8 @@ def test_manage_users_page_for_admin(client, app, db_instance):
 
 def test_manage_users_token_without_times_shows_no_none(client, app, db_instance):
     """A token row with no created_at has no expiry either (it never
-    expires): its cells read a dash and Never, not Python's None."""
+    expires), and no label: its cells read dashes and Never, not Python's
+    None."""
     login_user(client, 'adminuser', 'adminpass')
     with app.app_context():
         from app import get_backend
@@ -335,8 +336,8 @@ def test_manage_users_token_without_times_shows_no_none(client, app, db_instance
     assert response.status_code == 200
     row = re.search(rb'<tbody>.*?</tbody>', response.data, flags=re.S).group(0)
     cells = [re.sub(rb'\s+', b' ', cell).strip()
-             for cell in re.findall(rb'<td[^>]*>(.*?)</td>', row, flags=re.S)[:3]]
-    assert cells == ['—'.encode(), b'Never', b'Never']
+             for cell in re.findall(rb'<td[^>]*>(.*?)</td>', row, flags=re.S)[:4]]
+    assert cells == ['—'.encode(), '—'.encode(), b'Never', b'Never']
 
 # Removing placeholder tests as the template logic for empty lists is different
 # (it omits the section rather than showing a placeholder message within the section)

@@ -80,8 +80,10 @@ def run_setup(app, db_instance, monkeypatch, tmp_path):
     token_file = tmp_path / '.buzz_token'
     monkeypatch.setattr(buzz, 'TOKEN_FILE', str(token_file))
 
-    def _run(username, password, transport=None):
-        monkeypatch.setattr('builtins.input', lambda prompt='': username)
+    def _run(username, password, transport=None, label=''):
+        monkeypatch.setattr(
+            'builtins.input',
+            lambda prompt='': label if prompt.startswith('Token label') else username)
         monkeypatch.setattr(getpass, 'getpass', lambda prompt='': password)
         monkeypatch.setattr(buzz, '_requests', lambda: transport or FlaskRequests(app))
         return buzz.setup_token(server_override=SERVER)
@@ -101,6 +103,54 @@ def test_first_run_setup_gets_a_token_that_authenticates(app, run_setup):
     response = app.test_client().get(
         '/api/dropzones', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
+
+
+def _token_labels(app):
+    from tokens import list_api_tokens
+    with app.app_context():
+        return [token['label'] for token in list_api_tokens('testuser')]
+
+
+def test_first_run_setup_labels_the_token_with_this_machine(
+        app, run_setup, monkeypatch):
+    monkeypatch.setattr(buzz.socket, 'gethostname', lambda: 'work-laptop')
+    run_setup('testuser', 'password')
+
+    assert _token_labels(app) == ['buzz CLI on work-laptop']
+
+
+def test_a_long_hostname_is_cut_to_the_label_limit(app, run_setup, monkeypatch):
+    monkeypatch.setattr(buzz.socket, 'gethostname', lambda: 'h' * 200)
+    run_setup('testuser', 'password')
+
+    assert _token_labels(app) == [('buzz CLI on ' + 'h' * 200)[:buzz.TOKEN_LABEL_MAX_LENGTH]]
+
+
+def test_first_run_setup_takes_the_label_typed_at_its_prompt(app, run_setup):
+    run_setup('testuser', 'password', label='  backup job  ')
+
+    assert _token_labels(app) == ['backup job']
+
+
+def test_a_label_over_the_limit_stops_setup_before_logging_in(
+        app, run_setup, capsys):
+    class Offline(FlaskRequests):
+        def Session(self):
+            raise AssertionError('setup reached the server')
+
+    too_long = 'x' * (buzz.TOKEN_LABEL_MAX_LENGTH + 1)
+    with pytest.raises(SystemExit):
+        run_setup('testuser', 'password', transport=Offline(app), label=too_long)
+
+    assert 'at most 64 characters' in capsys.readouterr().err
+    assert not run_setup.token_file.exists()
+    assert _token_labels(app) == []
+
+
+def test_the_cli_label_limit_matches_the_server(app):
+    from tokens import TOKEN_LABEL_MAX_LENGTH
+
+    assert buzz.TOKEN_LABEL_MAX_LENGTH == TOKEN_LABEL_MAX_LENGTH
 
 
 PERMISSION_MESSAGE = 'does not have permission'

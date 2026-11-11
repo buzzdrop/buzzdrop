@@ -59,7 +59,7 @@ FILE_COLUMNS = FILE_BOOL_COLUMNS | FILE_JSON_COLUMNS | FILE_TEXT_COLUMNS
 TOKEN_BOOL_COLUMNS = frozenset()
 TOKEN_JSON_COLUMNS = frozenset()
 TOKEN_TEXT_COLUMNS = frozenset({
-    'token_hash', 'token_hash_version', 'username', 'created_at',
+    'token_hash', 'token_hash_version', 'username', 'label', 'created_at',
     'last_used_at', 'expires_at',
 })
 TOKEN_COLUMNS = TOKEN_BOOL_COLUMNS | TOKEN_JSON_COLUMNS | TOKEN_TEXT_COLUMNS
@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS api_tokens (
     token_hash TEXT,
     token_hash_version TEXT,
     username TEXT,
+    label TEXT,
     created_at TEXT,
     last_used_at TEXT,
     expires_at TEXT,
