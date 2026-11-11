@@ -161,6 +161,7 @@ From [Which behaviours and journeys must each layer cover?](https://github.com/b
 ### Unit (`node --test`)
 - Existing: `crypto`, `passphrase`, `shared-files` (the crypto fixtures are byte-identical to `tests/unit/test_cli_crypto.py`).
 - New: `one-click-link.test.js`, `file-extensions.test.js`, `hex.test.js`, `architecture.test.js` (the layer rules, #251); `shared-files.test.js` gains the search-text and `compareRows` cases (§3).
+- `bkp.test.js` (#455): the payload round trip with a name of 256 bytes or more and one over the cap; a short, mis-headed or truncated-name plaintext is rejected.
 - `required.test.js`: the element lookups (§3) return the match, and throw on a missing element, a wrong tag or a windowless document.
 - `strings.test.js` (#286): the page-strings reader throws on an unknown key, a section or plural read as a string, and a placeholder without a value; `%(name)s` fill and `%%`; the plural helper picks the CLDR form with `Intl.PluralRules` (`pl`: 1, 2, 5, 12, 22, 25, and a fraction), falling back to `other`.
 - `format.test.js` (#286, #289): `lib/format.js` numbers and whole percentages per language (`en`, `pl`, `de`), and the drop list's relative, full and clock times.

@@ -41,10 +41,10 @@ test('a plaintext shorter than the fixed header is rejected', () => {
 });
 
 test('a plaintext with one wrong header byte is rejected', () => {
-    for (const at of [0, 7]) {
+    for (const byteIndex of [0, 7]) {
         const { plain } = packPayload(encoder.encode('data'), 'a.txt');
-        plain[at] ^= 0x01;
-        assert.throws(() => parsePayload(plain), CORRUPT, `header byte ${at}`);
+        plain[byteIndex] ^= 0x01;
+        assert.throws(() => parsePayload(plain), CORRUPT, `header byte ${byteIndex}`);
     }
 });
 

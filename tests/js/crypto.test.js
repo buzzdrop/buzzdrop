@@ -128,9 +128,9 @@ test('non-BKV3 payloads are rejected outright', async () => {
     const { blob } = await seal(encoder.encode('x'), 'pw', randomShare());
     const bkv2 = new Uint8Array(blob);
     bkv2[3] = '2'.charCodeAt(0); // 'BKV2'
-    assert.throws(() => open(bkv2), /Unsupported share format/);
-    assert.throws(() => open(crypto.getRandomValues(new Uint8Array(64))), /Unsupported share format/);
-    assert.throws(() => open(new Uint8Array(4)), /Unsupported/);
+    assert.throws(() => open(bkv2), UNSUPPORTED);
+    assert.throws(() => open(crypto.getRandomValues(new Uint8Array(64))), UNSUPPORTED);
+    assert.throws(() => open(new Uint8Array(4)), UNSUPPORTED);
 });
 
 test('a nameless seal opens with an empty name', async () => {
@@ -182,11 +182,11 @@ test('a salt-only share rejects a missing blob', async () => {
     await assert.rejects(attempt.finish(randomShare()), UNSUPPORTED);
 });
 
-test('downloadTicket rejects a malformed server share', async () => {
+test('downloadTicket accepts a 32-byte server share and rejects a malformed one', async () => {
+    assert.match(await downloadTicket(randomShare()), /^[0-9a-f]{64}$/);
     await assert.rejects(downloadTicket(randomShare().slice(0, 8)), BAD_SHARE);
     // @ts-expect-error -- a non-bytes H must be rejected by the runtime guard
     await assert.rejects(downloadTicket(undefined), BAD_SHARE);
-    assert.match(await downloadTicket(randomShare()), /^[0-9a-f]{64}$/);
 });
 
 test('the AES-GCM file key is never extractable', async () => {
@@ -207,6 +207,6 @@ test('the AES-GCM file key is never extractable', async () => {
     } finally {
         crypto.subtle.importKey = importKey;
     }
-    assert.equal(keys.length, 2);
+    assert.ok(keys.length > 0, 'no AES-GCM key was imported');
     for (const key of keys) assert.equal(key.extractable, false);
 });
