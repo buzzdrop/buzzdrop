@@ -2906,7 +2906,7 @@
         "DROPZONE_MAX_ATTEMPTS": 3,
         "DROPZONE_BURN_ON_LOCKOUT": false,
         "DROPZONE_COLLECT_TTL_SECONDS": 600,
-        "MAX_CONTENT_LENGTH": 64,
+        "MAX_CONTENT_LENGTH": 256,
         "NOTIFICATIONS_CONFIGURED": true
       },
       "steps": [

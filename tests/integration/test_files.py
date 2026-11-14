@@ -12,7 +12,7 @@ import i18n
 # Test users from conftest.py: 'testuser:password:false', 'adminuser:adminpass:true'
 
 def login_user(client, username, password):
-    response = client.post(url_for('login'), data={'username': username, 'password': password}, follow_redirects=True)
+    response = client.post(url_for('login'), data={'username': username, 'password': password, 'csrf_token': 'test-csrf-token'}, follow_redirects=True)
     with client.session_transaction() as session:
         session['csrf_token'] = 'test-csrf-token'
     return response
@@ -563,3 +563,10 @@ def test_report_decryption_requires_json_body(client, app, files_store, request_
 def test_report_decryption_file_not_found(client):
     res = client.post(url_for('report_decryption', file_id='missing'), json={'success': False})
     assert res.status_code == 404
+
+
+def test_head_on_download_is_refused_before_the_ticket(client):
+    # A HEAD probe must not reach the ticket claim — it would burn the
+    # one-shot ticket and deliver nothing (#465).
+    resp = client.head('/download/whatever')
+    assert resp.status_code == 405

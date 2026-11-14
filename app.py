@@ -566,7 +566,9 @@ if app.config['STORAGE_BACKEND'] == 'local':
         for sub in files_store.list_dropzone_submissions()
         if sub.get('path')
     )
-    cleanup_orphaned_files(app.config['UPLOAD_FOLDER'], tracked_files)
+    cleanup_orphaned_files(
+        app.config['UPLOAD_FOLDER'], tracked_files,
+        min_age_seconds=app.config['KEY_SHARE_PENDING_TTL_SECONDS'])
 
 # Sweep pending key shares abandoned mid-handshake (begin but no finish).
 file_repo.purge_stale_key_shares(
@@ -1013,6 +1015,12 @@ def login():
     # the env form or a backend's own sign-in page (auth/CLAUDE.md).
     if get_current_user():
         return redirect(_local_path(request.args.get('next')) or url_for('index'))
+    # Login CSRF (#465): a cross-site form must not sign the visitor in
+    # under somebody else's account. The anonymous session already
+    # carries the token the login template renders.
+    if request.method == 'POST' and not _session_csrf_required():
+        flash(_('Invalid request'))
+        return redirect(url_for('login', next=request.args.get('next')))
     return get_auth_backend().login(request)
 
 @app.route('/auth/session', methods=['POST'])
@@ -1584,6 +1592,10 @@ def download_file(file_id):
     winner holds a ticket, so everyone else gets one uniform 403 —
     whether the drop is live, dead or imaginary reveals nothing (#240).
     """
+    # Flask routes HEAD here as a GET: a probe would burn the one-shot
+    # ticket and deliver nothing (#465).
+    if request.method == 'HEAD':
+        return {'error': 'Method not allowed'}, 405
     ticket = request.headers.get('X-Download-Ticket')
     if isinstance(ticket, str):
         ticket = ticket.strip().lower()

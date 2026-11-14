@@ -55,9 +55,10 @@ def login_user(client, username='testuser', password='password'):
     # accounts mid-test starts by clearing the old session.
     with client.session_transaction() as session:
         session.clear()
+        session['csrf_token'] = CSRF_TOKEN
     response = client.post(
         url_for('login'),
-        data={'username': username, 'password': password},
+        data={'username': username, 'password': password, 'csrf_token': 'test-csrf-token'},
         follow_redirects=True,
     )
     with client.session_transaction() as session:

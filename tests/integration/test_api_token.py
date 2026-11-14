@@ -16,7 +16,7 @@ def _csrf_headers(client):
 @pytest.fixture
 def admin_client(client):
     """A test client logged in as admin."""
-    client.post('/login', data={'username': 'adminuser', 'password': 'adminpass'})
+    client.post('/login', data={'username': 'adminuser', 'password': 'adminpass', 'csrf_token': 'test-csrf-token'})
     # login rotates the session CSRF token — pin a known value for tests
     with client.session_transaction() as session:
         session['csrf_token'] = 'test-csrf-token'
@@ -26,7 +26,7 @@ def admin_client(client):
 @pytest.fixture
 def user_client(client):
     """A test client logged in as a regular user."""
-    client.post('/login', data={'username': 'testuser', 'password': 'password'})
+    client.post('/login', data={'username': 'testuser', 'password': 'password', 'csrf_token': 'test-csrf-token'})
     with client.session_transaction() as session:
         session['csrf_token'] = 'test-csrf-token'
     return client

@@ -57,6 +57,20 @@ class _Session:
         self._client = client
         self._transport = transport
 
+    def get(self, url, headers=None, timeout=None):
+        parts = urlsplit(url)
+        request = {'headers': dict(headers or {})}
+        if self._transport.alter_request:
+            self._transport.alter_request(parts.path, request)
+        response = _Response(self._client.get(
+            parts.path,
+            base_url=f'{parts.scheme}://{parts.netloc}',
+            **request,
+        ))
+        if self._transport.alter_response:
+            self._transport.alter_response(parts.path, response)
+        return response
+
     def post(self, url, data=None, json=None, headers=None,
              allow_redirects=True, timeout=None):
         parts = urlsplit(url)
