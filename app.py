@@ -82,7 +82,15 @@ get_auth_backend().validate(is_production())
 app.secret_key = app.config['SECRET_KEY']
 # The real client IP and scheme behind a host's proxy (proxy.py).
 app.wsgi_app = proxy.wrap(
-    app.wsgi_app, app.config['TRUSTED_PROXY_HOPS'], app.config['CLIENT_IP_HEADER'])
+    app.wsgi_app, app.config['TRUSTED_PROXY_HOPS'],
+    app.config['CLIENT_IP_HEADER'], app.config['TRUSTED_PROXY_IPS'])
+if (app.config['TRUSTED_PROXY_HOPS'] or app.config['CLIENT_IP_HEADER']) \
+        and not app.config['TRUSTED_PROXY_IPS']:
+    app.logger.warning(
+        'Forwarded-IP headers are trusted from ANY peer: set '
+        'TRUSTED_PROXY_IPS to an ingress allowlist, or make sure the '
+        'origin is only reachable through the proxy '
+        '(docs/dev/edge-hardening.md).')
 i18n.init_app(app)
 website.init_app(app)
 # English for API clients; translated where it is flashed.
