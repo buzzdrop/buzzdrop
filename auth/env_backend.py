@@ -193,6 +193,12 @@ def clear_users_cache():
     _env_users.cache_clear()
 
 
+# Unknown usernames pay the same PBKDF2 cost as known ones: verify_password
+# hashes against this throwaway hash instead of skipping the check, so the
+# response time doesn't reveal which usernames exist (#465).
+_DUMMY_PASSWORD_HASH = hash_password('placeholder-dummy')
+
+
 def verify_password(username: str, password: str) -> bool:
     """
     Verify username and password combination.
@@ -205,7 +211,9 @@ def verify_password(username: str, password: str) -> bool:
         True if credentials are valid, False otherwise
     """
     user = _env_users().get(username)
-    return bool(user) and check_password_hash(user['password'], password)
+    matched = check_password_hash(
+        user['password'] if user else _DUMMY_PASSWORD_HASH, password)
+    return matched and bool(user)
 
 
 def is_admin(username: str) -> bool:
