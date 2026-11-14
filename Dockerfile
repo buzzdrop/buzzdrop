@@ -60,7 +60,7 @@ USER root
 # pytest has always run; the fixture scripts pick testing themselves.
 ENV FLASK_ENV=
 COPY requirements-dev.txt .
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements-dev.txt
 COPY tests/ tests/
 COPY cli/ cli/
 COPY docs/how-it-works.md docs/
