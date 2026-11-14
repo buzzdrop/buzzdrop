@@ -155,12 +155,15 @@ def _session_csrf_required() -> bool:
     """
     CSRF gate for routes that accept session OR Bearer auth.
 
-    An ``Authorization`` header exempts the request outright: a
+    A ``Bearer`` Authorization header exempts the request outright: a
     cross-site form/fetch cannot set it, so Bearer API clients are
-    CSRF-immune by construction. Session-authed requests must present
-    the session token (header, form field, or JSON field).
+    CSRF-immune by construction. Any *other* Authorization scheme
+    (Basic, garbage) is not API auth — the request still falls back
+    to session auth, so it must present the session token (header,
+    form field, or JSON field) like any session request.
     """
-    if request.headers.get('Authorization'):
+    auth = request.headers.get('Authorization', '').lower()
+    if auth.startswith('bearer '):
         return True
     return _is_valid_csrf_token()
 
