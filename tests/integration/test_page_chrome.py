@@ -16,7 +16,7 @@ from app import handle_http_error
 
 
 def _login(client, username='testuser', password='password'):
-    response = client.post(url_for('login'), data={'username': username, 'password': password})
+    response = client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': username, 'password': password})
     assert response.status_code == 302
 
 

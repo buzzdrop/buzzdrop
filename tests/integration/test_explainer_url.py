@@ -15,7 +15,7 @@ CUSTOM = 'https://example.com/en/how-it-works/'
 
 
 def _login(client):
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
 
 def _pages(client, bound_share, file_record, **headers):

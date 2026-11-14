@@ -2,6 +2,7 @@
 Configuration module for Buzzdrop application.
 Centralizes all configuration settings from environment variables.
 """
+import ipaddress
 import os
 import re
 from typing import Optional, Set
@@ -11,8 +12,20 @@ import proxy
 
 
 def _env_bool(name: str, default: bool) -> bool:
-    """Read a boolean environment variable."""
-    return os.getenv(name, str(default)).strip().lower() in {'1', 'true', 'yes', 'on'}
+    """
+    Read a boolean environment variable. A set-but-unrecognized value
+    (``=flase``) refuses to start rather than silently picking a side —
+    for the security knobs the wrong side is usually the open one (#465).
+    """
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    value = raw.strip().lower()
+    if value in {'1', 'true', 'yes', 'on'}:
+        return True
+    if value in {'0', 'false', 'no', 'off'}:
+        return False
+    raise ValueError(f'{name} must be a boolean (true/false), got {raw!r}')
 
 
 # Values copied verbatim from .env.example are not credentials.
@@ -117,6 +130,12 @@ class Config:
     # (proxy.py; the spoofing warning is in docs/dev/configuration.md).
     TRUSTED_PROXY_HOPS = int(os.getenv('TRUSTED_PROXY_HOPS', '0'))
     CLIENT_IP_HEADER = (os.getenv('CLIENT_IP_HEADER') or '').strip() or None
+    # Optional: only these peers' forwarded headers are honored (proxy.py).
+    # Empty = trust the header/XFF from any peer (legacy behavior).
+    TRUSTED_PROXY_IPS = tuple(
+        entry.strip()
+        for entry in (os.getenv('TRUSTED_PROXY_IPS') or '').split(',')
+        if entry.strip())
     LOGIN_RATE_LIMIT = os.getenv('LOGIN_RATE_LIMIT', '10 per minute')
     API_TOKEN_RATE_LIMIT = os.getenv('API_TOKEN_RATE_LIMIT', '10 per hour')
     # Two-phase upload: /upload/begin and /upload share this bucket —
@@ -311,6 +330,19 @@ class Config:
                 raise ValueError(
                     "CLIENT_IP_HEADER can't be Forwarded: clients can set it")
 
+        for entry in cls.TRUSTED_PROXY_IPS:
+            try:
+                ipaddress.ip_network(entry, strict=False)
+            except ValueError:
+                raise ValueError(
+                    "TRUSTED_PROXY_IPS entries must be IPs or CIDRs, "
+                    f"got {entry!r}")
+        if cls.TRUSTED_PROXY_IPS and not (
+                cls.TRUSTED_PROXY_HOPS or cls.CLIENT_IP_HEADER):
+            raise ValueError(
+                "TRUSTED_PROXY_IPS only applies together with "
+                "TRUSTED_PROXY_HOPS or CLIENT_IP_HEADER")
+
         # Replaced by WEBSITE_URL (#371): a full page URL can't follow the
         # visitor's language, so refuse it rather than ignore it silently.
         if os.getenv('EXPLAINER_URL') is not None:
@@ -466,12 +498,19 @@ def get_config():
     Returns:
         Config class appropriate for current environment
     """
-    env = os.getenv('FLASK_ENV', 'development').lower()
-    
+    env = (os.getenv('FLASK_ENV', 'development').strip().lower()
+           or 'development')
+
     config_map = {
         'development': DevelopmentConfig,
         'testing': TestingConfig,
         'production': ProductionConfig,
     }
-    
-    return config_map.get(env, DevelopmentConfig)
+
+    if env not in config_map:
+        raise ValueError(
+            f'Unknown FLASK_ENV {env!r} (expected development, testing or '
+            'production) — refusing to guess, because guessing landed on '
+            'the development config (#465)')
+
+    return config_map[env]

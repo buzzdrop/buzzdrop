@@ -7,7 +7,7 @@
 /**
  * utils.STATUS_LABELS' keys, which the badge's data-status styles by and
  * the page strings' `statuses` names.
- * @typedef {'active' | 'decrypted' | 'downloaded' | 'locked-out' | 'expired'} StatusKey
+ * @typedef {'active' | 'decrypted' | 'downloaded' | 'locked-out' | 'reported-failed' | 'expired'} StatusKey
  */
 
 /**

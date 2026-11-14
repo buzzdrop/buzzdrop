@@ -12,22 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7
         with:
           python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          pip install pyinstaller
-          pip install -r requirements-cli.txt
+          pip install --require-hashes -r requirements-cli-build.txt
 
       - name: Build binary with PyInstaller
         run: |
@@ -41,13 +42,24 @@ jobs:
         run: |
           ./dist/buzz --help
 
+      - name: Checksum binary
+        run: |
+          sha256sum dist/buzz | sed 's|dist/||' > dist/buzz.sha256
+          cat dist/buzz.sha256
+
+      # Verify with: gh attestation verify ~/.local/bin/buzz -R buzzdrop/buzzdrop
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4
+        with:
+          subject-path: dist/buzz
+
       - name: Compute release tag
         id: tag
         run: |
           echo "tag=cli-$(date -u '+%Y%m%d%H%M%S')-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3  # v3
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: "buzz CLI – ${{ steps.tag.outputs.tag }}"
@@ -71,6 +83,14 @@ jobs:
             chmod +x ~/.local/bin/buzz
             ```
 
+            Verify the download (optional but recommended):
+
+            ```bash
+            curl -fsSL https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/buzz.sha256 -o /tmp/buzz.sha256
+            (cd ~/.local/bin && sha256sum -c /tmp/buzz.sha256)
+            gh attestation verify ~/.local/bin/buzz -R ${{ github.repository }}
+            ```
+
             Then create `~/.buzz_token`:
             ```json
             {"token": "YOUR_API_TOKEN", "server": "https://your-buzzdrop-instance.example.com"}
@@ -83,5 +103,7 @@ jobs:
             buzz file.pdf -p my-passphrase   # use your own password
             buzz file.pdf --expiry 2025-12-31T23:59+01:00
             ```
-          files: dist/buzz
+          files: |
+            dist/buzz
+            dist/buzz.sha256
           fail_on_unmatched_files: true

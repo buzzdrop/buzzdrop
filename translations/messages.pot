@@ -224,6 +224,12 @@ msgstr ""
 msgid "Decrypted"
 msgstr ""
 
+#. Translators: a drop's status — the recipient reported a failed
+#. decrypt after actually downloading the ciphertext.
+#: utils.py
+msgid "Reported as failed"
+msgstr ""
+
 #: templates/_dropzones_strings.html utils.py
 msgid "Locked"
 msgstr ""

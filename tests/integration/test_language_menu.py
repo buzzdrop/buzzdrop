@@ -57,7 +57,7 @@ def _menu(response):
 
 
 def _log_in(client):
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
     # Logging in starts a new session; seed its CSRF token again.
     with client.session_transaction() as session:
         session['csrf_token'] = CSRF_TOKEN
@@ -164,6 +164,6 @@ def test_a_page_rendered_from_a_post_only_route_goes_back_home(client, key_relea
 
 
 def test_a_page_rendered_from_a_post_to_a_get_route_goes_back_to_it(client):
-    response = client.post(url_for('login'), data={'username': 'testuser', 'password': 'nope'})
+    response = client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'nope'})
 
     assert {item['fields']['next'] for item in _menu(response).items} == {'/login'}

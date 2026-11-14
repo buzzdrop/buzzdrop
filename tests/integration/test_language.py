@@ -249,6 +249,8 @@ def test_only_the_language_form_sets_the_cookie(client):
     ({'LANGUAGES': 'en,de'}, "'de', but it has no compiled catalog"),
     ({'LANGUAGES': 'en,xx'}, 'pseudo-locale'),
     ({'LANGUAGES': ' , '}, 'at least one language'),
+    ({'LANGUAGES': 'en,PL'}, 'canonical code'),
+    ({'LANGUAGES': 'en,en-GB'}, 'Babel cannot parse'),
 ])
 def test_startup_fails_on_a_bad_language_setup(tmp_path, env, message):
     environment = {
@@ -310,10 +312,10 @@ def test_a_server_error_page_in_polish(app):
 def test_login_and_logout_flashes_in_polish(client, csrf_form_data):
     client.set_cookie('lang', 'pl')
 
-    response = client.post(url_for('login'), data={'username': 'testuser', 'password': 'nope'})
+    response = client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'nope'})
     assert 'Nieprawidłowa nazwa użytkownika lub hasło' in response.get_data(as_text=True)
 
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
     assert 'Zalogowano' in client.get('/').get_data(as_text=True)
 
     client.post(url_for('logout'), data=csrf_form_data())
@@ -321,7 +323,7 @@ def test_login_and_logout_flashes_in_polish(client, csrf_form_data):
 
 
 def test_the_header_in_polish_when_logged_in_as_admin(client):
-    client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'adminuser', 'password': 'adminpass'})
 
     html = _polish(client, 'GET', url_for('view_file', file_id='never-existed')).get_data(as_text=True)
 

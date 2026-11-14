@@ -1216,11 +1216,22 @@ def setup_token(server_override: str = None,
 
     session = requests.Session()
 
-    # Log in
+    # Log in — CSRF-gated (#465): the anonymous session's token comes
+    # from the login page itself, and rides back in the form field.
     try:
+        login_page = session.get(f"{server}/login", timeout=15)
+        csrf_token = _csrf_token_from_page(login_page.text)
+        if not csrf_token:
+            print(
+                f"Error: found no CSRF token on the login page at "
+                f"{server} — is it a Buzzdrop server?",
+                file=sys.stderr,
+            )
+            sys.exit(1)
         resp = session.post(
             f"{server}/login",
-            data={'username': username, 'password': password},
+            data={'username': username, 'password': password,
+                  'csrf_token': csrf_token},
             allow_redirects=True,
             timeout=15,
         )
@@ -1284,9 +1295,13 @@ def setup_token(server_override: str = None,
 
     # Write ~/.buzz_token with restricted permissions
     token_data = json.dumps({'token': token, 'server': server}, indent=2) + '\n'
-    # Open with O_CREAT | O_WRONLY | O_TRUNC and mode 0600 atomically
-    fd = os.open(TOKEN_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    # O_NOFOLLOW refuses a planted symlink; fchmod fixes the mode of a
+    # file that already existed (mode only applies at creation, #465).
+    fd = os.open(TOKEN_FILE,
+                 os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW,
+                 0o600)
     try:
+        os.fchmod(fd, 0o600)
         os.write(fd, token_data.encode())
     finally:
         os.close(fd)
@@ -2039,16 +2054,24 @@ def cmd_dropzone_collect(args) -> None:
         print(data.decode('utf-8', errors='replace'))
         return
 
+    # The submission's name is responder-chosen metadata: basename strips
+    # any path components, and O_EXCL refuses to overwrite an existing
+    # file — a responder must not be able to clobber one (#465).
     out_name = os.path.basename(name or '') or 'submission'
     out_path = args.output or out_name
     if os.path.isdir(out_path):
         out_path = os.path.join(out_path, out_name)
     try:
-        with open(out_path, 'wb') as fh:
-            fh.write(data)
+        fd = os.open(out_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        print(f"Error: {out_path} already exists — remove it or pass -o",
+              file=sys.stderr)
+        sys.exit(1)
     except OSError as exc:
         print(f"Error: cannot write {out_path}: {exc}", file=sys.stderr)
         sys.exit(1)
+    with os.fdopen(fd, 'wb') as fh:
+        fh.write(data)
 
     _report_dropzone_result(
         server, token, dropzone_id, success=True, receipt=receipt)
@@ -2235,6 +2258,19 @@ def main():
             print(f"Error: cannot read {args.file}: {exc}", file=sys.stderr)
             sys.exit(1)
         upload_name = args.file
+        # The multipart name is neutral — drop.<ext> — but for a dotless
+        # or dotted name the "extension" IS the name ('id_rsa' →
+        # 'drop.id_rsa'), leaking it to the server and any proxy logs
+        # before the server's extension gate rejects it (#465).
+        base = os.path.basename(upload_name)
+        if '.' not in base or base.startswith('.') or base.endswith('.'):
+            print(
+                f"Error: {base} has no real extension — refuse to send "
+                "the name as the extension. Zip it first (-z) or rename "
+                "it with an extension.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
     # Key-release handshake first: the file key needs the server share H
     # before we can encrypt.

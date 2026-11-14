@@ -22,12 +22,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       # Installs the pnpm version in package.json's packageManager.
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115  # v6
       - name: Set up Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -57,7 +57,7 @@ jobs:
         .claude/settings.json .venv/pyvenv.cfg node_modules/stray.js
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       # A clean checkout has no secrets or local state, so plant decoys
       # where a developer's tree has them: the Dockerfile's allowlist and
       # .dockerignore must keep them out of both images (#163). The images
@@ -96,7 +96,7 @@ jobs:
       - name: Save Docker images
         run: docker save buzzdrop-runtime buzzdrop-test -o ${{ runner.temp }}/buzzdrop-test.tar
       - name: Upload Docker image
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7
         with:
           name: buzzdrop-test-image
           path: ${{ runner.temp }}/buzzdrop-test.tar
@@ -108,9 +108,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - name: Download Docker image
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8
         with:
           name: buzzdrop-test-image
           path: ${{ runner.temp }}
@@ -149,9 +149,9 @@ jobs:
       PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - name: Download Docker image
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8
         with:
           name: buzzdrop-test-image
           path: ${{ runner.temp }}
@@ -159,9 +159,9 @@ jobs:
         run: docker load -i ${{ runner.temp }}/buzzdrop-test.tar
       # Installs the pnpm version in package.json's packageManager.
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115  # v6
       - name: Set up Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -197,7 +197,7 @@ jobs:
         run: docker stop -t 10 buzzdrop-e2e
       - name: Upload Playwright report and traces
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7
         with:
           name: playwright-output
           path: |

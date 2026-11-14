@@ -33,6 +33,7 @@ def test_login_page_loads_its_script_under_sri(client):
 def test_login_successful_normal_user(client, app):
     # 'testuser:password:false'
     response = client.post(url_for('login'), data={
+        'csrf_token': 'test-csrf-token',
         'username': 'testuser',
         'password': 'password'
     }, follow_redirects=True)
@@ -71,6 +72,7 @@ class _ParentClasses(HTMLParser):
 def test_login_flash_shares_the_composer_width(client):
     """The banner sits in the page's own column, so their edges line up."""
     response = client.post(url_for('login'), data={
+        'csrf_token': 'test-csrf-token',
         'username': 'testuser',
         'password': 'password'
     }, follow_redirects=True)
@@ -85,6 +87,7 @@ def test_login_flash_shares_the_composer_width(client):
 def test_login_successful_admin_user(client, app):
     # 'adminuser:adminpass:true'
     response = client.post(url_for('login'), data={
+        'csrf_token': 'test-csrf-token',
         'username': 'adminuser',
         'password': 'adminpass'
     }, follow_redirects=True)
@@ -97,6 +100,7 @@ def test_login_successful_admin_user(client, app):
 
 def test_login_invalid_username(client):
     response = client.post(url_for('login'), data={
+        'csrf_token': 'test-csrf-token',
         'username': 'wronguser',
         'password': 'password'
     }, follow_redirects=True)
@@ -108,6 +112,7 @@ def test_login_invalid_username(client):
 
 def test_login_invalid_password(client):
     response = client.post(url_for('login'), data={
+        'csrf_token': 'test-csrf-token',
         'username': 'testuser',
         'password': 'wrongpassword'
     }, follow_redirects=True)
@@ -118,7 +123,7 @@ def test_login_invalid_password(client):
     assert b'Invalid username or password' in response.data
 
 def test_login_redirects_a_logged_in_user_to_index(client):
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
     response = client.get(url_for('login'))
 
@@ -129,9 +134,10 @@ def test_login_redirects_a_logged_in_user_to_index(client):
 def test_login_post_while_logged_in_goes_to_index_without_rechecking(client):
     # POST counts against the login rate limit but never re-verifies: the
     # active session wins and bad credentials still land on the index.
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
     response = client.post(url_for('login'), data={
+        'csrf_token': 'test-csrf-token',
         'username': 'wronguser',
         'password': 'wrongpassword',
     })
@@ -153,7 +159,7 @@ def _post_logout(client, csrf_token='test-csrf-token'):
 
 def test_logout(client, app):
     # First, log in a user
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
     # Then, log out via POST with a valid CSRF token
     response = _post_logout(client)
@@ -167,7 +173,7 @@ def test_logout(client, app):
 
 def test_logout_get_not_allowed(client, app):
     """GET /logout must not exist — logout mutates state and needs CSRF."""
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
     response = client.get(url_for('logout'))
     assert response.status_code == 405
     with client.session_transaction() as sess:
@@ -176,7 +182,7 @@ def test_logout_get_not_allowed(client, app):
 
 def test_logout_requires_csrf_token(client, app):
     """POST /logout without a matching CSRF token leaves the session intact."""
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
     response = _post_logout(client, csrf_token='forged-token')
     assert response.status_code == 200  # redirects to index
@@ -189,7 +195,7 @@ def test_logout_requires_csrf_token(client, app):
         assert sess.get('username') == 'testuser'
 
 def test_session_cookie_flags_on_login(client):
-    response = client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    response = client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
     set_cookie = response.headers.get('Set-Cookie', '')
     assert 'HttpOnly' in set_cookie
     assert 'SameSite=Lax' in set_cookie
@@ -207,7 +213,7 @@ def test_login_required_redirects_to_login(client):
 
 def test_login_required_allows_access_when_logged_in(client, app):
     # Log in first
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
     # Now access the protected page. This will likely fail if 'somefile' doesn't exist,
     # but the point is to get past the login_required check.
@@ -235,7 +241,7 @@ def test_login_required_allows_access_when_logged_in(client, app):
 
 
 def test_removed_session_user_is_logged_out_on_index(client, monkeypatch, clear_user_cache):
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
     monkeypatch.delenv('FLASK_USER_1', raising=False)
     from auth import get_users
@@ -251,7 +257,7 @@ def test_removed_session_user_is_logged_out_on_index(client, monkeypatch, clear_
 
 
 def test_login_required_logs_out_removed_user(client, monkeypatch, clear_user_cache):
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
     monkeypatch.delenv('FLASK_USER_1', raising=False)
     from auth import get_users
@@ -269,7 +275,7 @@ def test_login_required_logs_out_removed_user(client, monkeypatch, clear_user_ca
 
 def test_admin_required_redirects_non_admin_to_index(client, app):
     # Log in as a normal user
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
 
     response = client.get(url_for('manage_users'), follow_redirects=True)
     assert response.status_code == 200
@@ -284,7 +290,7 @@ def test_admin_required_redirects_anonymous_to_login(client, app):
 
 def test_admin_required_allows_admin_access(client, app):
     # Log in as an admin user
-    client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'adminuser', 'password': 'adminpass'})
 
     response = client.get(url_for('manage_users'))
     assert response.status_code == 200
@@ -295,7 +301,7 @@ def test_admin_required_allows_admin_access(client, app):
 
 
 def test_admin_required_logs_out_removed_admin(client, monkeypatch, clear_user_cache):
-    client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'adminuser', 'password': 'adminpass'})
 
     monkeypatch.delenv('FLASK_USER_2', raising=False)
     from auth import get_users
@@ -312,7 +318,7 @@ def test_admin_required_logs_out_removed_admin(client, monkeypatch, clear_user_c
 
 
 def test_admin_required_revokes_session_admin_on_demotion(client, monkeypatch, clear_user_cache):
-    client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'adminuser', 'password': 'adminpass'})
 
     monkeypatch.setenv('FLASK_USER_2', 'adminuser:adminpass:false')
     from auth import get_users
@@ -326,3 +332,31 @@ def test_admin_required_revokes_session_admin_on_demotion(client, monkeypatch, c
     with client.session_transaction() as sess:
         assert sess['username'] == 'adminuser'
         assert sess['is_admin'] is False
+
+
+def test_login_post_without_a_csrf_token_is_refused(client):
+    # Login CSRF (#465): a cross-site POST (no session token in the form)
+    # must not sign anyone in, not even with valid credentials.
+    response = client.post(url_for('login'), data={
+        'username': 'testuser',
+        'password': 'password'
+    })
+    assert response.status_code == 302
+    with client.session_transaction() as sess:
+        assert 'username' not in sess
+
+
+def test_login_post_with_a_wrong_csrf_token_is_refused(client):
+    response = client.post(url_for('login'), data={
+        'username': 'testuser',
+        'password': 'password',
+        'csrf_token': 'not-the-session-token'
+    })
+    assert response.status_code == 302
+    with client.session_transaction() as sess:
+        assert 'username' not in sess
+
+
+def test_login_form_renders_the_csrf_token(client):
+    response = client.get(url_for('login'))
+    assert b'name="csrf_token"' in response.data

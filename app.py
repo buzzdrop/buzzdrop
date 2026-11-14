@@ -82,7 +82,15 @@ get_auth_backend().validate(is_production())
 app.secret_key = app.config['SECRET_KEY']
 # The real client IP and scheme behind a host's proxy (proxy.py).
 app.wsgi_app = proxy.wrap(
-    app.wsgi_app, app.config['TRUSTED_PROXY_HOPS'], app.config['CLIENT_IP_HEADER'])
+    app.wsgi_app, app.config['TRUSTED_PROXY_HOPS'],
+    app.config['CLIENT_IP_HEADER'], app.config['TRUSTED_PROXY_IPS'])
+if (app.config['TRUSTED_PROXY_HOPS'] or app.config['CLIENT_IP_HEADER']) \
+        and not app.config['TRUSTED_PROXY_IPS']:
+    app.logger.warning(
+        'Forwarded-IP headers are trusted from ANY peer: set '
+        'TRUSTED_PROXY_IPS to an ingress allowlist, or make sure the '
+        'origin is only reachable through the proxy '
+        '(docs/dev/edge-hardening.md).')
 i18n.init_app(app)
 website.init_app(app)
 # English for API clients; translated where it is flashed.
@@ -155,12 +163,15 @@ def _session_csrf_required() -> bool:
     """
     CSRF gate for routes that accept session OR Bearer auth.
 
-    An ``Authorization`` header exempts the request outright: a
+    A ``Bearer`` Authorization header exempts the request outright: a
     cross-site form/fetch cannot set it, so Bearer API clients are
-    CSRF-immune by construction. Session-authed requests must present
-    the session token (header, form field, or JSON field).
+    CSRF-immune by construction. Any *other* Authorization scheme
+    (Basic, garbage) is not API auth — the request still falls back
+    to session auth, so it must present the session token (header,
+    form field, or JSON field) like any session request.
     """
-    if request.headers.get('Authorization'):
+    auth = request.headers.get('Authorization', '').lower()
+    if auth.startswith('bearer '):
         return True
     return _is_valid_csrf_token()
 
@@ -555,7 +566,9 @@ if app.config['STORAGE_BACKEND'] == 'local':
         for sub in files_store.list_dropzone_submissions()
         if sub.get('path')
     )
-    cleanup_orphaned_files(app.config['UPLOAD_FOLDER'], tracked_files)
+    cleanup_orphaned_files(
+        app.config['UPLOAD_FOLDER'], tracked_files,
+        min_age_seconds=app.config['KEY_SHARE_PENDING_TTL_SECONDS'])
 
 # Sweep pending key shares abandoned mid-handshake (begin but no finish).
 file_repo.purge_stale_key_shares(
@@ -1002,6 +1015,12 @@ def login():
     # the env form or a backend's own sign-in page (auth/CLAUDE.md).
     if get_current_user():
         return redirect(_local_path(request.args.get('next')) or url_for('index'))
+    # Login CSRF (#465): a cross-site form must not sign the visitor in
+    # under somebody else's account. The anonymous session already
+    # carries the token the login template renders.
+    if request.method == 'POST' and not _session_csrf_required():
+        flash(_('Invalid request'))
+        return redirect(url_for('login', next=request.args.get('next')))
     return get_auth_backend().login(request)
 
 @app.route('/auth/session', methods=['POST'])
@@ -1573,6 +1592,10 @@ def download_file(file_id):
     winner holds a ticket, so everyone else gets one uniform 403 —
     whether the drop is live, dead or imaginary reveals nothing (#240).
     """
+    # Flask routes HEAD here as a GET: a probe would burn the one-shot
+    # ticket and deliver nothing (#465).
+    if request.method == 'HEAD':
+        return {'error': 'Method not allowed'}, 405
     ticket = request.headers.get('X-Download-Ticket')
     if isinstance(ticket, str):
         ticket = ticket.strip().lower()

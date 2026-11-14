@@ -255,3 +255,34 @@ def test_runtime_config_check_names_missing_keys():
 
     with pytest.raises(ValueError, match='KEY_RELEASE_BURN_ON_LOCKOUT'):
         check_runtime_config(loaded)
+
+
+def test_env_bool_refuses_a_typo(monkeypatch):
+    from config import _env_bool
+    monkeypatch.setenv('SOME_FLAG', 'flase')
+
+    with pytest.raises(ValueError, match='SOME_FLAG must be a boolean'):
+        _env_bool('SOME_FLAG', True)
+
+
+def test_env_bool_blank_means_default(monkeypatch):
+    from config import _env_bool
+    monkeypatch.setenv('SOME_FLAG', '  ')
+
+    assert _env_bool('SOME_FLAG', True) is True
+    assert _env_bool('SOME_FLAG', False) is False
+
+
+def test_get_config_refuses_an_unknown_flask_env(monkeypatch):
+    from config import get_config
+    monkeypatch.setenv('FLASK_ENV', 'staging')
+
+    with pytest.raises(ValueError, match='Unknown FLASK_ENV'):
+        get_config()
+
+
+def test_get_config_strips_whitespace(monkeypatch):
+    from config import get_config, ProductionConfig
+    monkeypatch.setenv('FLASK_ENV', ' production ')
+
+    assert get_config() is ProductionConfig

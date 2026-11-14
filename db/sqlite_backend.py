@@ -750,8 +750,12 @@ class SQLiteFileStore(_SQLiteStoreBase, FileStore):
             return False
 
     def record_decryption_result(self, file_id: str, success: bool) -> bool:
+        # decryption_reported marks this False as recipient-reported, not
+        # lockout-stamped — the owner's status label depends on it (#465).
         cursor = self._conn().execute(
-            'UPDATE files SET decryption_success = ? '
+            "UPDATE files SET decryption_success = ?, "
+            "extra = json_set(COALESCE(extra, '{}'), "
+            "'$.decryption_reported', json('true')) "
             'WHERE id = ? AND decryption_success IS NULL',
             (1 if success else 0, file_id),
         )

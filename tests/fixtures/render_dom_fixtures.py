@@ -146,9 +146,12 @@ def _reset(files, tokens=()):
 
 def _client(username=None):
     client = flask_app.test_client()
+    with client.session_transaction() as session:
+        session['csrf_token'] = CSRF_TOKEN
     if username:
         response = client.post('/login', data={
-            'username': username, 'password': PASSWORDS[username]})
+            'username': username, 'password': PASSWORDS[username],
+            'csrf_token': CSRF_TOKEN})
         assert response.status_code == 302, f'login failed for {username}'
     with client.session_transaction() as session:
         session['csrf_token'] = CSRF_TOKEN

@@ -159,6 +159,19 @@ def test_status_display_lockout_with_or_without_download():
         assert (f['status_key'], f['status_display']) == ('locked-out', 'Locked')
 
 
+def test_status_display_reported_failed():
+    """A receipt-backed success=false report is a lying recipient — the
+    receipt only exists in the plaintext. Flagged decryption_reported by
+    record_decryption_result, it shows 'Reported as failed' (#465)."""
+    f = {'status': 'active',
+         'downloaded_at': '2026-10-04T21:21:08',
+         'decryption_success': False,
+         'decryption_reported': True}
+    enhance_file_display(f)
+    assert (f['status_key'], f['status_display']) == (
+        'reported-failed', 'Reported as failed')
+
+
 def test_status_display_expired_and_active():
     expired = {'status': 'expired', 'downloaded_at': None, 'decryption_success': None}
     enhance_file_display(expired)
@@ -254,5 +267,23 @@ def test_the_list_words_are_translated_by_the_given_function():
 def test_status_labels_cover_every_status_key():
     from utils import status_labels
     assert status_labels(str.upper) == {
-        'active': 'ACTIVE', 'decrypted': 'DECRYPTED', 'locked-out': 'LOCKED',
+        'active': 'ACTIVE', 'decrypted': 'DECRYPTED',
+        'reported-failed': 'REPORTED AS FAILED', 'locked-out': 'LOCKED',
         'downloaded': 'OPENED', 'expired': 'EXPIRED'}
+
+
+def test_cleanup_orphaned_files_skips_young_files(tmp_path):
+    import os, time
+    from utils import cleanup_orphaned_files
+    young = tmp_path / 'in-flight'
+    young.write_bytes(b'x')
+    old = tmp_path / 'stale-orphan'
+    old.write_bytes(b'x')
+    old_mtime = time.time() - 7200
+    os.utime(old, (old_mtime, old_mtime))
+
+    removed = cleanup_orphaned_files(
+        str(tmp_path), tracked_files=set(), min_age_seconds=3600)
+
+    assert removed == 1
+    assert young.exists() and not old.exists()
