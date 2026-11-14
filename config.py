@@ -2,6 +2,7 @@
 Configuration module for Buzzdrop application.
 Centralizes all configuration settings from environment variables.
 """
+import ipaddress
 import os
 import re
 from typing import Optional, Set
@@ -117,6 +118,12 @@ class Config:
     # (proxy.py; the spoofing warning is in docs/dev/configuration.md).
     TRUSTED_PROXY_HOPS = int(os.getenv('TRUSTED_PROXY_HOPS', '0'))
     CLIENT_IP_HEADER = (os.getenv('CLIENT_IP_HEADER') or '').strip() or None
+    # Optional: only these peers' forwarded headers are honored (proxy.py).
+    # Empty = trust the header/XFF from any peer (legacy behavior).
+    TRUSTED_PROXY_IPS = tuple(
+        entry.strip()
+        for entry in (os.getenv('TRUSTED_PROXY_IPS') or '').split(',')
+        if entry.strip())
     LOGIN_RATE_LIMIT = os.getenv('LOGIN_RATE_LIMIT', '10 per minute')
     API_TOKEN_RATE_LIMIT = os.getenv('API_TOKEN_RATE_LIMIT', '10 per hour')
     # Two-phase upload: /upload/begin and /upload share this bucket —
@@ -310,6 +317,19 @@ class Config:
             if cls.CLIENT_IP_HEADER.lower() == 'forwarded':
                 raise ValueError(
                     "CLIENT_IP_HEADER can't be Forwarded: clients can set it")
+
+        for entry in cls.TRUSTED_PROXY_IPS:
+            try:
+                ipaddress.ip_network(entry, strict=False)
+            except ValueError:
+                raise ValueError(
+                    "TRUSTED_PROXY_IPS entries must be IPs or CIDRs, "
+                    f"got {entry!r}")
+        if cls.TRUSTED_PROXY_IPS and not (
+                cls.TRUSTED_PROXY_HOPS or cls.CLIENT_IP_HEADER):
+            raise ValueError(
+                "TRUSTED_PROXY_IPS only applies together with "
+                "TRUSTED_PROXY_HOPS or CLIENT_IP_HEADER")
 
         # Replaced by WEBSITE_URL (#371): a full page URL can't follow the
         # visitor's language, so refuse it rather than ignore it silently.
