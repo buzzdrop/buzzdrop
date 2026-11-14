@@ -249,6 +249,8 @@ def test_only_the_language_form_sets_the_cookie(client):
     ({'LANGUAGES': 'en,de'}, "'de', but it has no compiled catalog"),
     ({'LANGUAGES': 'en,xx'}, 'pseudo-locale'),
     ({'LANGUAGES': ' , '}, 'at least one language'),
+    ({'LANGUAGES': 'en,PL'}, 'canonical code'),
+    ({'LANGUAGES': 'en,en-GB'}, 'Babel cannot parse'),
 ])
 def test_startup_fails_on_a_bad_language_setup(tmp_path, env, message):
     environment = {

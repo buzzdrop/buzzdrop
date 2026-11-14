@@ -198,3 +198,20 @@ def test_production_startup_names_a_missing_admin_password(tmp_path):
 
     assert result.returncode != 0
     assert 'ADMIN_PASSWORD must be set and not empty' in result.stderr
+
+
+def test_verify_password_still_hashes_an_unknown_username(monkeypatch):
+    # The timing fix (#465): an unknown username must cost the same
+    # PBKDF2 check as a known one, not skip it.
+    import auth.env_backend as env_backend
+    calls = []
+    real_check = env_backend.check_password_hash
+
+    def spy(pwhash, password):
+        calls.append(pwhash)
+        return real_check(pwhash, password)
+
+    monkeypatch.setattr(env_backend, 'check_password_hash', spy)
+
+    assert verify_password('no-such-user', 'whatever') is False
+    assert calls == [env_backend._DUMMY_PASSWORD_HASH]

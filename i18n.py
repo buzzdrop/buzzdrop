@@ -65,6 +65,22 @@ def validate_languages(languages, default, translations_dir=TRANSLATIONS_DIR):
     for code in languages:
         if code == PSEUDO_LANGUAGE:
             raise ValueError(f'LANGUAGES must not list the test-only pseudo-locale {code!r}')
+        # A code must survive the whole pipeline in the form it's listed:
+        # native_name() Babel-parses it and language_menu() compares it to
+        # the canonical locale — a non-canonical spelling ('PL', 'en-GB',
+        # 'root') that slips through on a catalog path crashes every
+        # menu-bearing page (#465).
+        try:
+            locale = Locale.parse(code)
+        except (ValueError, UnknownLocaleError):
+            raise ValueError(
+                f'LANGUAGES lists {code!r}, which Babel cannot parse')
+        if str(locale) != code:
+            raise ValueError(
+                f'LANGUAGES lists {code!r}; use the canonical code {str(locale)!r}')
+        if locale.get_display_name(code) is None:
+            raise ValueError(
+                f'LANGUAGES lists {code!r}, which has no display name')
         if code == SOURCE_LANGUAGE:
             continue
         catalog = Path(translations_dir) / code / 'LC_MESSAGES' / 'messages.mo'
