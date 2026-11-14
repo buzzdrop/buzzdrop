@@ -5,7 +5,7 @@ from flask import url_for
 
 
 def login_user(client, username, password):
-    response = client.post(url_for('login'), data={'username': username, 'password': password}, follow_redirects=True)
+    response = client.post(url_for('login'), data={'username': username, 'password': password, 'csrf_token': 'test-csrf-token'}, follow_redirects=True)
     with client.session_transaction() as session:
         session['csrf_token'] = 'test-csrf-token'
     return response
@@ -28,11 +28,11 @@ def restore_rate_limits(app):
 def test_login_rate_limit_blocks_repeated_attempts(client, app, restore_rate_limits):
     app.config['LOGIN_RATE_LIMIT'] = '1 per minute'
 
-    first = client.post(url_for('login'), data={'username': 'testuser', 'password': 'wrongpassword'})
+    first = client.post(url_for('login'), data={'username': 'testuser', 'password': 'wrongpassword', 'csrf_token': 'test-csrf-token'})
     assert first.status_code == 200
     assert b'Invalid username or password' in first.data
 
-    second = client.post(url_for('login'), data={'username': 'testuser', 'password': 'wrongpassword'})
+    second = client.post(url_for('login'), data={'username': 'testuser', 'password': 'wrongpassword', 'csrf_token': 'test-csrf-token'})
     assert second.status_code == 429
     assert b'Too many requests. Please try again later.' in second.data
 
@@ -40,7 +40,7 @@ def test_login_rate_limit_blocks_repeated_attempts(client, app, restore_rate_lim
 def test_login_rate_limit_flash_follows_the_language(client, app, restore_rate_limits):
     app.config['LOGIN_RATE_LIMIT'] = '1 per minute'
     polish = {'Accept-Language': 'pl'}
-    attempt = {'username': 'testuser', 'password': 'wrongpassword'}
+    attempt = {'username': 'testuser', 'password': 'wrongpassword', 'csrf_token': 'test-csrf-token'}
 
     client.post(url_for('login'), data=attempt, headers=polish)
     second = client.post(url_for('login'), data=attempt, headers=polish)
@@ -67,7 +67,7 @@ def test_login_rate_limit_ignores_x_forwarded_for_spoofing(client, app, restore_
 
     first = client.post(
         url_for('login'),
-        data={'username': 'testuser', 'password': 'wrongpassword'},
+        data={'username': 'testuser', 'password': 'wrongpassword', 'csrf_token': 'test-csrf-token'},
         headers={'X-Forwarded-For': '198.51.100.10'},
         environ_overrides=environ_overrides,
     )
@@ -76,7 +76,7 @@ def test_login_rate_limit_ignores_x_forwarded_for_spoofing(client, app, restore_
 
     second = client.post(
         url_for('login'),
-        data={'username': 'testuser', 'password': 'wrongpassword'},
+        data={'username': 'testuser', 'password': 'wrongpassword', 'csrf_token': 'test-csrf-token'},
         headers={'X-Forwarded-For': '198.51.100.11'},
         environ_overrides=environ_overrides,
     )

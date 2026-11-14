@@ -275,6 +275,14 @@ class S3Storage(StorageBackend):
         except ClientError:
             return False
 
+    def list_files(self):
+        """All object keys under uploads/ — the only prefix Buzzdrop writes."""
+        keys = []
+        paginator = self.client.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=self.bucket, Prefix='uploads/'):
+            keys.extend(obj['Key'] for obj in page.get('Contents', []))
+        return keys
+
     def read_prefix(self, s3_key: str, length: int) -> bytes:
         """Read the first `length` bytes of an S3 object via a Range GET."""
         try:

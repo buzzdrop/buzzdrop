@@ -183,3 +183,5 @@ def test_allowlist_healthz_from_untrusted_peer_logs_nothing(caplog):
 
     assert [r for r in caplog.records
             if 'TRUSTED_PROXY_IPS' in r.getMessage()] == []
+
+

@@ -274,7 +274,7 @@ def _login_page(client):
 
 
 def _login_with_a_flash(client):
-    return client.post(url_for('login'), data={'username': 'testuser', 'password': 'nope'})
+    return client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'nope'})
 
 
 def _gone_page(client):
@@ -282,7 +282,7 @@ def _gone_page(client):
 
 
 def _gone_page_as_admin_with_a_flash(client):
-    client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'adminuser', 'password': 'adminpass'})
     return _gone_page(client)
 
 
@@ -296,7 +296,7 @@ def _unknown_url(client):
 
 
 def _composer(client):
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
     return client.get(url_for('index'))
 
 
@@ -314,7 +314,7 @@ def _drop_list(client):
     store.insert({**opened, 'id': str(uuid.uuid4()), 'original_name': 'locked.txt', 'decryption_success': False})
     store.insert({**base, 'id': str(uuid.uuid4()), 'original_name': 'expired.txt', 'status': 'expired',
                   'expiry_at': now_iso()})
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
     return client.get(url_for('index'))
 
 
@@ -333,7 +333,7 @@ def _live_drop(file_type):
 def _success_page(file_type):
     def render(client):
         file_id = _live_drop(file_type)
-        client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+        client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
         return client.get(url_for('upload_success', file_id=file_id))
     return render
 
@@ -370,7 +370,7 @@ def _users_page(client):
     from tokens import generate_api_token
     generate_api_token('testuser')
     generate_api_token('testuser', label='backup job')
-    client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+    client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'adminuser', 'password': 'adminpass'})
     return client.get(url_for('manage_users'))
 
 
@@ -380,7 +380,7 @@ def _users_page_after_revoking(token_exists):
         from tokens import generate_api_token, list_api_tokens
         generate_api_token('testuser')
         token_id = list_api_tokens()[0]['id'] if token_exists else 999_999
-        client.post(url_for('login'), data={'username': 'adminuser', 'password': 'adminpass'})
+        client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'adminuser', 'password': 'adminpass'})
         with client.session_transaction() as session:
             session['csrf_token'] = 'pseudo-locale-token'
         return client.post(url_for('revoke_api_token_route', token_id=token_id),
@@ -393,7 +393,7 @@ def _users_page_refused(as_user):
     login page for a visitor, the composer for a user who isn't an admin."""
     def render(client):
         if as_user:
-            client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+            client.post(url_for('login'), data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
         return client.get(url_for('manage_users'), follow_redirects=True)
     return render
 

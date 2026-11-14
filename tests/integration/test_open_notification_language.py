@@ -15,7 +15,7 @@ from conftest import ticket_headers
 
 
 def login_user(client):
-    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password'})
+    client.post(url_for('login'), data={'username': 'testuser', 'password': 'password', 'csrf_token': 'test-csrf-token'})
     with client.session_transaction() as session:
         session['csrf_token'] = 'test-csrf-token'
 

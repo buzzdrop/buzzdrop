@@ -98,6 +98,9 @@ def format_file_timestamps(file_dict: dict, tz_name: str = WEB_TIMEZONE) -> dict
 STATUS_LABELS = {
     'active': gettext_noop('Active'),
     'decrypted': gettext_noop('Decrypted'),
+    # Translators: a drop's status — the recipient reported a failed
+    # decrypt after actually downloading the ciphertext.
+    'reported-failed': gettext_noop('Reported as failed'),
     'locked-out': gettext_noop('Locked'),
     # Translators: a drop's status, also the label of when it was opened; it agrees with "drop".
     'downloaded': gettext_noop('Opened'),
@@ -180,13 +183,17 @@ def enhance_file_display(file_dict: dict, tz_name: str = WEB_TIMEZONE,
     # downloaded_at outranks expired: a drop that was claimed before its
     # deadline was consumed, not expired — and a downloaded drop with no
     # decryption report (e.g. wrong password, share burned) must not fall
-    # through to Active. decryption_success=False is the key-release
-    # lockout: a False report needs the receipt, which only a successful
-    # decrypt yields, so the browser never sends one that sticks.
+    # through to Active. decryption_success=False has two writers: the
+    # key-release lockout (a terminal never-decrypted outcome) and a
+    # receipt-backed report, which also sets extra.decryption_reported
+    # (db/). The receipt only exists inside the ciphertext, so a reported
+    # False means the recipient decrypted, then claimed failure — show
+    # that as "reported as failed", not "Locked" (#465).
     if file_dict.get('decryption_success') is True:
         status_key = 'decrypted'
     elif file_dict.get('decryption_success') is False:
-        status_key = 'locked-out'
+        status_key = ('reported-failed' if file_dict.get('decryption_reported')
+                      else 'locked-out')
     elif file_dict.get('downloaded_at'):
         status_key = 'downloaded'
     elif file_dict.get('status') == 'expired':
@@ -233,34 +240,41 @@ def get_client_ip() -> str:
     return request.remote_addr or 'unknown'
 
 
-def cleanup_orphaned_files(upload_dir: str, tracked_files: set) -> int:
+def cleanup_orphaned_files(upload_dir: str, tracked_files: set,
+                           min_age_seconds: int = 0) -> int:
     """
     Remove files from upload directory that are not tracked in database.
-    
+
     Args:
         upload_dir: Path to upload directory
         tracked_files: Set of filenames that should be kept
-    
+        min_age_seconds: Skip files younger than this — a blob whose
+            two-phase upload is still in flight is untracked but live (#465)
+
     Returns:
         Number of files removed
     """
     import os
-    
+    import time
+
     if not os.path.exists(upload_dir):
         return 0
-    
+
     # Get list of files in uploads directory
     uploaded_files = set(os.listdir(upload_dir))
-    
+
     # Find orphaned files
     orphaned_files = uploaded_files - tracked_files
-    
+
     removed_count = 0
-    
+    cutoff = time.time() - min_age_seconds
+
     # Remove orphaned files
     for orphaned_file in orphaned_files:
         try:
             file_path = os.path.join(upload_dir, orphaned_file)
+            if os.path.getmtime(file_path) > cutoff:
+                continue
             os.remove(file_path)
             print(f"Removed orphaned file: {orphaned_file}")
             removed_count += 1
