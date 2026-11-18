@@ -110,7 +110,7 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 ### 7. Decrypt in the browser
 
 - **Who acts:** the recipient's browser, then the server.
-- **What happens:** the browser derives the file key from `Kp` (from the password) and `H`, decrypts, and takes out the receipt. It posts the receipt to `POST /report_decryption/<id>`, so the sender's list shows the drop as opened (and, if the sender asked, emails them).
+- **What happens:** the browser derives the file key from `Kp` (from the password) and `H`, decrypts, and takes out the receipt. It posts the receipt to `POST /report_decryption/<id>`, so the sender's list shows the drop as opened (and, if the sender asked, emails them — with the sender's own memo when one was set, so the sender can tell which drop it was).
 - **What the server sees:** the receipt, which only matches its stored hash if the drop was really decrypted. It learns that decryption worked, never the content.
 - **Never sees:** the content and the file key.
 - **Content switch:** a file is saved as a download. A text note is shown on the page with a Copy button.

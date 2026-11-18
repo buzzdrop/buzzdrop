@@ -145,3 +145,27 @@ def test_a_note_is_called_a_note(client, files_store, sent_messages,
     assert subject == 'Buzzdrop note opened'
     assert 'Type: Note' in body
     assert 'Secret Note' not in body
+
+
+def test_the_memo_names_the_drop_in_the_email(client, files_store, sent_messages,
+                                              key_release_upload, open_drop):
+    login_user(client)
+    form = _notify_form()
+    form['private_note'] = 'Q4 numbers for finance'
+    file_id, _h, receipt, _response = key_release_upload(data=form)
+
+    open_drop(file_id, receipt)
+
+    [(_recipient, _subject, body)] = sent_messages
+    assert 'Memo: Q4 numbers for finance' in body
+
+
+def test_no_memo_no_memo_line(client, files_store, sent_messages,
+                              key_release_upload, open_drop):
+    login_user(client)
+    file_id, _h, receipt, _response = key_release_upload(data=_notify_form())
+
+    open_drop(file_id, receipt)
+
+    [(_recipient, _subject, body)] = sent_messages
+    assert 'Memo:' not in body

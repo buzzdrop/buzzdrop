@@ -94,6 +94,11 @@ msgstr ""
 msgid "File"
 msgstr ""
 
+#: app.py
+#, python-format
+msgid "Memo: %(memo)s"
+msgstr ""
+
 #. Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35
 #. CET".
 #: app.py
