@@ -135,6 +135,52 @@ def test_upload_begin_returns_pending_share(client, files_store):
     assert files_store.get_by_id(body['file_id']) is None
 
 
+def test_upload_begin_names_the_share_protocol(client):
+    """The response names the share-protocol version the app speaks
+    (#346), so a client can fail fast when it stops matching."""
+    login_user(client)
+    response = client.post(
+        url_for('upload_begin'),
+        data={'protocol': 'BKV3'},
+        headers={'X-Requested-With': 'XMLHttpRequest',
+                      'X-CSRF-Token': 'test-csrf-token'},
+    )
+    assert response.status_code == 200
+    assert response.get_json()['protocol'] == 'BKV3'
+
+
+def test_upload_begin_refuses_a_declared_mismatch(client):
+    """A client declaring a share protocol the server doesn't speak is
+    refused before a share mints — no file_id, no dangling H (#346)."""
+    login_user(client)
+    response = client.post(
+        url_for('upload_begin'),
+        data={'protocol': 'BKV4'},
+        headers={'X-Requested-With': 'XMLHttpRequest',
+                      'X-CSRF-Token': 'test-csrf-token'},
+    )
+    assert response.status_code == 400
+    body = response.get_json()
+    assert body['code'] == 'protocol_mismatch'
+    assert 'file_id' not in body
+
+
+def test_upload_refuses_a_declared_mismatch(client):
+    """/upload runs the same check (#346): a declared-incompatible client
+    stops before the share binds."""
+    login_user(client)
+    response = client.post(
+        url_for('upload_file'),
+        data={'protocol': 'BKV4',
+              'file': (io.BytesIO(b'blob'), 'x.txt')},
+        content_type='multipart/form-data',
+        headers={'X-Requested-With': 'XMLHttpRequest',
+                      'X-CSRF-Token': 'test-csrf-token'},
+    )
+    assert response.status_code == 400
+    assert response.get_json()['code'] == 'protocol_mismatch'
+
+
 # ---------------------------------------------------------------------------
 # /upload finish (key-release fields)
 # ---------------------------------------------------------------------------

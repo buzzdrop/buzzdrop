@@ -9,7 +9,7 @@
 // download ticket /download requires from H (HKDF), fetches the ciphertext
 // with it — only after the password held — then reports the receipt.
 
-import { downloadTicket } from '../../lib/crypto.js';
+import { downloadTicket, SHARE_FORMAT } from '../../lib/crypto.js';
 import { fileExtension } from '../../lib/file-extensions.js';
 import { bytesToHex, hexToBytes } from '../../lib/hex.js';
 
@@ -95,11 +95,13 @@ const SERVER_SHARE_BYTES = 32;
  */
 
 /**
- * What POST /upload/begin answers: the new share's id and the server share H
- * (hex) on success, `{error, code}` otherwise.
+ * What POST /upload/begin answers: the new share's id, the server share H
+ * (hex) and the share-protocol version it speaks on success, `{error, code}`
+ * otherwise.
  * @typedef {object} UploadBeginResponse
  * @property {string} file_id
  * @property {string} h
+ * @property {string} protocol
  * @property {string} [code]
  */
 
@@ -165,9 +167,13 @@ function refused(code, otherwise) {
 export async function createShare(payload, password, options, deps) {
     const headers = { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': deps.csrfToken };
 
+    // The client declares its share-format version (#346): a server that
+    // stopped speaking it refuses before a share mints.
+    const beginBody = new FormData();
+    beginBody.append('protocol', SHARE_FORMAT);
     let begun;
     try {
-        begun = await deps.fetch(deps.urls.begin, { method: 'POST', headers });
+        begun = await deps.fetch(deps.urls.begin, { method: 'POST', headers, body: beginBody });
     } catch {
         return { kind: 'unreachable' };
     }
@@ -184,6 +190,7 @@ export async function createShare(payload, password, options, deps) {
     try {
         /** @type {UploadBeginResponse} */
         const body = await begun.json();
+        if (body.protocol && body.protocol !== SHARE_FORMAT) throw new Error('protocol mismatch');
         fileId = body.file_id;
         h = hexToBytes(body.h);
         if (h.length !== SERVER_SHARE_BYTES) throw new Error('server share H has the wrong length');
@@ -204,6 +211,7 @@ export async function createShare(payload, password, options, deps) {
         form.append('note_text', toBase64(blob));
         form.append('type', 'text');
     }
+    form.append('protocol', SHARE_FORMAT);
     form.append('file_id', fileId);
     form.append('key_verifier', bytesToHex(verifier));
     // SHA-256 of the in-ciphertext receipt: the server stores the hash so

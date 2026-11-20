@@ -1041,6 +1041,11 @@ TOKEN_LABEL_MAX_LENGTH = 64
 # validation.
 # ---------------------------------------------------------------------------
 MAGIC_V3 = b'BKV3'
+# The share-protocol version this buzz declares on /upload/begin and
+# /upload (#346). The server refuses a declared-incompatible client
+# before a share mints and names the version it speaks in the response.
+# Bump with MAGIC_V3 when the format changes.
+PROTOCOL_VERSION = 'BKV3'
 PLAINTEXT_MAGIC = b'BKP-FIL2'
 # Plaintext: 'BKP-FIL2' ‖ receipt(32B) ‖ name_len(2B BE) ‖ name(utf-8)
 # ‖ data. The receipt is the decryption proof — the server stores only
@@ -1516,13 +1521,38 @@ def decrypt_file(encrypted: bytes, password: str, h: bytes
     return plaintext[head_len:], receipt, name
 
 
+def _response_code(resp) -> str | None:
+    """The stable ``code`` of a JSON refusal, or None when there is none."""
+    try:
+        return resp.json().get('code')
+    except Exception:
+        return None
+
+
+def _protocol_mismatch(server_protocol: str | None = None) -> None:
+    """Abort on a client/server protocol-version split (#346)."""
+    detail = (
+        f" (it speaks {server_protocol}, buzz speaks {PROTOCOL_VERSION})"
+        if server_protocol else "")
+    print(
+        f"Error: this buzz is too old for the server{detail} — "
+        "download the latest release: "
+        "https://github.com/buzzdrop/buzzdrop/releases",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+
 def upload_begin(server: str, token: str) -> dict | None:
     """
     Phase 1 of a key-release upload: ask the server for file_id + H.
 
-    Returns the JSON body on success, or None when the server does not
-    offer server-gated key release (older server without /upload/begin) —
-    every upload is two-phase, so the caller must abort in that case.
+    Declares ``PROTOCOL_VERSION`` so the server can refuse an outdated
+    buzz before a share mints (#346); a mismatch aborts here, before any
+    ciphertext exists. Returns the JSON body on success, or None when the
+    server does not offer server-gated key release (older server without
+    /upload/begin) — every upload is two-phase, so the caller must abort
+    in that case.
     """
     requests = _requests()
     try:
@@ -1531,8 +1561,8 @@ def upload_begin(server: str, token: str) -> dict | None:
             headers={
                 'Authorization': f'Bearer {token}',
                 'X-Requested-With': 'XMLHttpRequest',
-                
             },
+            data={'protocol': PROTOCOL_VERSION},
             timeout=30,
         )
     except requests.RequestException as exc:
@@ -1548,6 +1578,8 @@ def upload_begin(server: str, token: str) -> dict | None:
         sys.exit(1)
     if resp.status_code == 404:
         return None
+    if resp.status_code == 400 and _response_code(resp) == 'protocol_mismatch':
+        _protocol_mismatch()
     if not resp.ok:
         msg = f"Server returned {resp.status_code}"
         try:
@@ -1558,6 +1590,9 @@ def upload_begin(server: str, token: str) -> dict | None:
         sys.exit(1)
 
     body = resp.json()
+    server_protocol = body.get('protocol')
+    if server_protocol and server_protocol != PROTOCOL_VERSION:
+        _protocol_mismatch(server_protocol)
     file_id = body.get('file_id')
     h_hex = body.get('h')
     if not file_id or not h_hex:
@@ -1615,6 +1650,7 @@ def upload(server: str, token: str, filename: str, encrypted: bytes,
         'file_id': file_id,
         'key_verifier': key_verifier,
         'receipt_hash': receipt_hash,
+        'protocol': PROTOCOL_VERSION,
     }
     if expiry:
         data['expiry'] = expiry
@@ -1673,6 +1709,8 @@ def upload(server: str, token: str, filename: str, encrypted: bytes,
         )
         sys.exit(1)
 
+    if resp.status_code == 400 and _response_code(resp) == 'protocol_mismatch':
+        _protocol_mismatch()
     if not resp.ok:
         msg = f"Server returned {resp.status_code}"
         try:

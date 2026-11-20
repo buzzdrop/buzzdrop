@@ -159,8 +159,8 @@ const PROGRESS_STEPS = [0.5, 1];
  * @type {Array<[Route, number, 'state' | 'injected']>}
  */
 export const EMITS = [
-    ['/upload/begin', 200, 'state'], ['/upload/begin', 403, 'state'],
-    ['/upload/begin', 429, 'injected'],
+    ['/upload/begin', 200, 'state'], ['/upload/begin', 400, 'state'],
+    ['/upload/begin', 403, 'state'], ['/upload/begin', 429, 'injected'],
     ['/upload', 200, 'state'], ['/upload', 400, 'state'], ['/upload', 403, 'state'],
     ['/upload', 400, 'injected'],
     ['/upload', 409, 'state'], ['/upload', 413, 'injected'], ['/upload', 429, 'injected'],
@@ -537,16 +537,25 @@ export function makeProtocolFake(opts = {}) {
         }
     }
 
-    /** @param {Record<string, string>} headers */
-    function uploadBegin(headers) {
+    /**
+     * @param {Record<string, string>} headers
+     * @param {FakeRequest['body']} body
+     */
+    function uploadBegin(headers, body) {
         const owner = requireUser('/upload/begin');
         if (!hasCsrf(headers)) {
             return json(403, { error: 'CSRF validation failed', code: 'csrf_failed' });
         }
+        // A client may declare its share-format version (#346); a declared
+        // mismatch is refused before a share mints.
+        const declared = body instanceof FormData ? body.get('protocol') : null;
+        if (declared !== null && declared !== shareCrypto.SHARE_FORMAT) {
+            return json(400, { error: 'Unsupported share protocol version', code: 'protocol_mismatch' });
+        }
         const fileId = crypto.randomUUID();
         const h = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
         state.keys.set(fileId, { h, v: null, owner, attempts: 0, releasedAt: null, ticketHash: null });
-        return json(200, { file_id: fileId, h });
+        return json(200, { file_id: fileId, h, protocol: shareCrypto.SHARE_FORMAT });
     }
 
     /**
@@ -566,6 +575,12 @@ export function makeProtocolFake(opts = {}) {
             const value = body.get(field);
             return typeof value === 'string' ? value : null;
         };
+        // Same declared-version check as /upload/begin (#346): refused
+        // before the notification lookup or the share binding.
+        const declaredProtocol = field('protocol');
+        if (declaredProtocol !== null && declaredProtocol !== shareCrypto.SHARE_FORMAT) {
+            return json(400, { error: 'Unsupported share protocol version', code: 'protocol_mismatch' });
+        }
         const notificationError = notificationPreferenceError(owner, field);
         if (notificationError) {
             return json(400, notificationError);
@@ -1291,7 +1306,7 @@ export function makeProtocolFake(opts = {}) {
         } else if (LOGIN_ROUTES.has(route) && !state.user) {
             response = json(401, { error: 'Login required', code: 'login_required' });
         } else if (route === '/upload/begin') {
-            response = uploadBegin(headers);
+            response = uploadBegin(headers, body);
         } else if (route === '/upload') {
             response = await upload(headers, body);
         } else if (route === '/download') {

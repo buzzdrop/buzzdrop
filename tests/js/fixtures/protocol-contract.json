@@ -28,6 +28,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -37,7 +40,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -58,7 +62,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -247,6 +252,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -256,7 +264,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -279,7 +288,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -404,6 +414,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -413,7 +426,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -434,7 +448,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -568,6 +583,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -577,7 +595,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -598,7 +617,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -736,6 +756,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -745,7 +768,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -766,7 +790,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -903,6 +928,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -912,7 +940,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -933,7 +962,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -1039,6 +1069,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1048,7 +1081,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1070,6 +1104,7 @@
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
               "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3",
               "expiry": "2000-01-01T00:00:00.000Z"
             },
             "files": {
@@ -1230,6 +1265,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1239,7 +1277,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1298,6 +1337,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1307,7 +1349,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1328,7 +1371,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -1430,6 +1474,9 @@
             ],
             "headers": {
               "X-Requested-With": "XMLHttpRequest"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1454,6 +1501,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1463,7 +1513,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1483,7 +1534,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -1528,6 +1580,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1537,7 +1592,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1558,7 +1614,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "not-hex",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -1575,6 +1632,113 @@
             "json": {
               "code": "invalid_upload",
               "error": "Invalid key-release upload"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "upload-protocol-mismatch",
+      "config": {
+        "KEY_RELEASE_MAX_ATTEMPTS": 1,
+        "KEY_RELEASE_BURN_ON_LOCKOUT": true,
+        "KEY_RELEASE_DOWNLOAD_TTL_SECONDS": 600,
+        "DROPZONE_MAX_ATTEMPTS": 3,
+        "DROPZONE_BURN_ON_LOCKOUT": false,
+        "DROPZONE_COLLECT_TTL_SECONDS": 600,
+        "NOTIFICATIONS_CONFIGURED": true
+      },
+      "steps": [
+        {
+          "name": "begin-old",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload/begin"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV4"
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "protocol_mismatch",
+              "error": "Unsupported share protocol version"
+            }
+          }
+        },
+        {
+          "name": "begin",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload/begin"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "file_id": "<uuid>",
+              "h": "<hex64>",
+              "protocol": "BKV3"
+            }
+          }
+        },
+        {
+          "name": "upload-old",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "file_id": {
+                "$ref": "begin.file_id"
+              },
+              "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV4"
+            },
+            "files": {
+              "file": {
+                "filename": "drop.pdf",
+                "content": "BKV3 dummy ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "protocol_mismatch",
+              "error": "Unsupported share protocol version"
             }
           }
         }
@@ -1603,6 +1767,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1612,7 +1779,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1634,6 +1802,7 @@
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
               "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3",
               "expiry": "2099-01-01T00:00"
             },
             "files": {
@@ -1672,6 +1841,7 @@
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
               "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3",
               "expiry": "next tuesday"
             },
             "files": {
@@ -1710,6 +1880,7 @@
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
               "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3",
               "expiry": "2099-01-01T00:00:00.000Z"
             },
             "files": {
@@ -1756,6 +1927,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1765,7 +1939,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1786,7 +1961,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -1826,7 +2002,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1914,6 +2091,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1923,7 +2103,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1945,6 +2126,7 @@
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
               "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3",
               "notify_on_open": "true"
             },
             "files": {
@@ -1976,6 +2158,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -1985,7 +2170,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -2007,6 +2193,7 @@
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
               "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3",
               "notify_on_open": "true",
               "notification_email": "other@example.test"
             },
@@ -2046,6 +2233,7 @@
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
               "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3",
               "notify_on_open": "true",
               "notification_email": "notify@example.test"
             },
@@ -2094,6 +2282,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -2103,7 +2294,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -2125,6 +2317,7 @@
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
               "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3",
               "notify_on_open": "true"
             },
             "files": {
@@ -2170,6 +2363,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -2179,7 +2375,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -2200,7 +2397,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -2292,6 +2490,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -2301,7 +2502,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -2355,6 +2557,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -2364,7 +2569,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -2385,7 +2591,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -2566,6 +2773,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -2575,7 +2785,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -2596,7 +2807,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -2786,6 +2998,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -2795,7 +3010,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -2816,7 +3032,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -2921,6 +3138,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -2930,7 +3150,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -2952,7 +3173,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -2997,6 +3219,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -3006,7 +3231,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -3028,7 +3254,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -3074,6 +3301,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -3083,7 +3313,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -3099,6 +3330,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -3138,6 +3372,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -3147,7 +3384,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -3168,7 +3406,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -3207,7 +3446,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -3253,6 +3493,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -3262,7 +3505,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -3283,7 +3527,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -3382,6 +3627,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -3391,7 +3639,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -3412,7 +3661,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -3522,6 +3772,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -3531,7 +3784,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -3552,7 +3806,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
@@ -7422,6 +7677,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -7431,7 +7689,8 @@
             },
             "json": {
               "file_id": "<uuid>",
-              "h": "<hex64>"
+              "h": "<hex64>",
+              "protocol": "BKV3"
             }
           }
         },
@@ -7475,6 +7734,9 @@
             "headers": {
               "X-Requested-With": "XMLHttpRequest",
               "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "protocol": "BKV3"
             }
           },
           "response": {
@@ -7505,7 +7767,8 @@
                 "$ref": "begin.file_id"
               },
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {
