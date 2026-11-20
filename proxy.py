@@ -18,6 +18,13 @@ deployer picks one setting, never both (Config.validate refuses that):
 ``Forwarded`` is never read: hosts pass it through as the client sent it.
 Everything downstream (the limiter, stored IPs, logs) reads
 ``request.remote_addr``, so this is the one place that decides it.
+
+``TRUSTED_PROXY_IPS`` (optional) limits *who may speak for a client*:
+with it set, forwarded headers are honored only when the immediate peer
+is in the allowlist — an attacker reaching the app around the ingress
+can no longer plant a client IP. Hosts that can't enumerate their edge
+(Render doesn't publish it) leave it empty and rely on the edge being
+the only path; the startup warning says so.
 """
 import ipaddress
 import logging
@@ -86,6 +93,43 @@ class ClientIPHeader:
         return self.app(environ, start_response)
 
 
+class TrustedPeerGate:
+    """
+    Honor forwarded-IP headers only from allowlisted peers.
+
+    Wraps the ProxyFix/ClientIPHeader layer: when the immediate peer
+    (REMOTE_ADDR) is not in TRUSTED_PROXY_IPS, the headers that layer
+    would trust are stripped from the environ before it can read them,
+    so the real connection address flows through instead. One warning is
+    logged the first time this happens per worker process.
+    """
+
+    def __init__(self, app, cidrs, strip_keys):
+        self.app = app
+        self.nets = tuple(
+            ipaddress.ip_network(c, strict=False) for c in cidrs)
+        self.strip_keys = strip_keys
+        self._first_warning = _Once()
+
+    def __call__(self, environ, start_response):
+        peer = environ.get('REMOTE_ADDR', '')
+        try:
+            peer_addr = ipaddress.ip_address(peer)
+            trusted = any(peer_addr in net for net in self.nets)
+        except ValueError:
+            trusted = False
+        if not trusted:
+            for key in self.strip_keys:
+                environ.pop(key, None)
+            if environ.get('PATH_INFO') != HEALTH_PATH and \
+                    self._first_warning():
+                logger.warning(
+                    'TRUSTED_PROXY_IPS: a request from peer %s carried '
+                    'forwarded headers; they were ignored because the peer '
+                    'is not in the allowlist.', peer or '(unknown)')
+        return self.app(environ, start_response)
+
+
 class UntrustedProxyWarning:
     """
     With no proxy setting, warn once when a request looks proxied.
@@ -118,13 +162,21 @@ def describe(hops: int, header: Optional[str]) -> str:
     return 'the connection (no proxy trusted)'
 
 
-def wrap(wsgi_app, hops: int, header: Optional[str]):
+def wrap(wsgi_app, hops: int, header: Optional[str],
+         trusted_ips=()):
     """Return wsgi_app behind the proxy handling the settings ask for."""
     if header:
         # The IP from the header; the scheme from X-Forwarded-Proto, one hop.
-        return ProxyFix(ClientIPHeader(wsgi_app, header), x_for=0, x_proto=1,
-                        x_host=0, x_port=0, x_prefix=0)
-    if hops > 0:
-        return ProxyFix(wsgi_app, x_for=hops, x_proto=hops,
-                        x_host=0, x_port=0, x_prefix=0)
-    return UntrustedProxyWarning(wsgi_app)
+        app = ProxyFix(ClientIPHeader(wsgi_app, header), x_for=0, x_proto=1,
+                       x_host=0, x_port=0, x_prefix=0)
+    elif hops > 0:
+        app = ProxyFix(wsgi_app, x_for=hops, x_proto=hops,
+                       x_host=0, x_port=0, x_prefix=0)
+    else:
+        app = UntrustedProxyWarning(wsgi_app)
+    if trusted_ips:
+        strip_keys = {'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED_PROTO'}
+        if header:
+            strip_keys.add(_environ_key(header))
+        app = TrustedPeerGate(app, trusted_ips, strip_keys)
+    return app

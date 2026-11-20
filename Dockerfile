@@ -2,7 +2,8 @@
 #   runtime  what is published and deployed: gunicorn, non-root, allowlisted files
 #   test     runtime plus the test deps and tests/, for CI's pytest and fixtures
 # A plain `docker build .` builds runtime (the last stage below).
-FROM python:3.15-alpine3.24 AS runtime
+# Base image pinned by digest — the tag alone is mutable.
+FROM python:3.15-alpine3.24@sha256:0f9552bb28711333da16915ec146f5e6bb44a7fdac9ced15dc17c2e0206346dd AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -15,7 +16,7 @@ WORKDIR /app
 
 # The base image already carries the system zone data, so TZ works.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt
 
 # An explicit allowlist: anything not named here (tests, docs, the CLI,
 # dev configs, untracked files) stays out of the published image.
@@ -59,7 +60,7 @@ USER root
 # pytest has always run; the fixture scripts pick testing themselves.
 ENV FLASK_ENV=
 COPY requirements-dev.txt .
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements-dev.txt
 COPY tests/ tests/
 COPY cli/ cli/
 COPY docs/how-it-works.md docs/

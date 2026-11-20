@@ -8,7 +8,7 @@ from flask import Flask, request, url_for
 import proxy
 
 
-def _client(hops=0, header=None):
+def _client(hops=0, header=None, trusted_ips=()):
     app = Flask(__name__)
 
     @app.route('/whoami')
@@ -19,7 +19,7 @@ def _client(hops=0, header=None):
             'link': url_for('whoami', _external=True),
         }
 
-    app.wsgi_app = proxy.wrap(app.wsgi_app, hops, header)
+    app.wsgi_app = proxy.wrap(app.wsgi_app, hops, header, trusted_ips)
     return app.test_client()
 
 
@@ -129,4 +129,59 @@ def test_without_a_setting_a_direct_request_logs_nothing(caplog):
         _get(_client(), {})
 
     assert caplog.records == []
+
+
+
+# --- TRUSTED_PROXY_IPS ------------------------------------------------------
+
+def test_allowlist_trusted_peer_still_gets_header_ip():
+    body = _get(_client(header='True-Client-IP',
+                        trusted_ips=('10.0.0.0/8',)),
+                {'True-Client-IP': '203.0.113.7'})
+
+    assert body['ip'] == '203.0.113.7'
+
+
+def test_allowlist_untrusted_peers_headers_are_stripped(caplog):
+    client = _client(header='True-Client-IP',
+                     trusted_ips=('192.0.2.0/24',))
+
+    with caplog.at_level(logging.WARNING, logger='proxy'):
+        body = _get(client, {
+            'True-Client-IP': '203.0.113.7',
+            'X-Forwarded-Proto': 'https',
+        }, remote='198.51.100.66')
+        _get(client, {'True-Client-IP': '203.0.113.8'},
+             remote='198.51.100.67')
+
+    assert body['ip'] == '198.51.100.66'
+    assert body['secure'] is False
+    assert len([r for r in caplog.records
+                if 'TRUSTED_PROXY_IPS' in r.getMessage()]) == 1
+
+
+def test_allowlist_untrusted_peer_cannot_spoof_via_xff():
+    body = _get(_client(hops=1, trusted_ips=('192.0.2.1',)), {
+        'X-Forwarded-For': '203.0.113.7, 10.0.0.9',
+        'X-Forwarded-Proto': 'https',
+    }, remote='198.51.100.66')
+
+    assert body['ip'] == '198.51.100.66'
+
+
+def test_allowlist_healthz_from_untrusted_peer_logs_nothing(caplog):
+    client = _client(header='True-Client-IP',
+                     trusted_ips=('192.0.2.0/24',))
+
+    @client.application.route('/healthz')
+    def healthz():
+        return 'ok'
+
+    with caplog.at_level(logging.WARNING, logger='proxy'):
+        client.get('/healthz', headers={'True-Client-IP': '203.0.113.7'},
+                   environ_base={'REMOTE_ADDR': '198.51.100.66'})
+
+    assert [r for r in caplog.records
+            if 'TRUSTED_PROXY_IPS' in r.getMessage()] == []
+
 

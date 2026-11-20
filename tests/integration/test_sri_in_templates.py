@@ -16,7 +16,8 @@ def test_index_page_has_sri_for_its_entry(client):
     # Login to access the page
     client.post('/login', data={
         'username': 'testuser',
-        'password': 'password'
+        'password': 'password',
+        'csrf_token': 'test-csrf-token'
     }, follow_redirects=True)
 
     response = client.get('/')
@@ -119,7 +120,8 @@ def test_sri_hashes_are_valid_base64(client):
     """Test that all SRI hashes in HTML are valid base64."""
     client.post('/login', data={
         'username': 'testuser',
-        'password': 'password'
+        'password': 'password',
+        'csrf_token': 'test-csrf-token'
     }, follow_redirects=True)
 
     response = client.get('/')
@@ -154,7 +156,8 @@ def test_module_scripts_maintain_type_attribute(client):
     """Test that ES6 module scripts still have type='module' attribute along with SRI."""
     client.post('/login', data={
         'username': 'testuser',
-        'password': 'password'
+        'password': 'password',
+        'csrf_token': 'test-csrf-token'
     }, follow_redirects=True)
 
     response = client.get('/')

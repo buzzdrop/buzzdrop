@@ -5,7 +5,7 @@ from unittest import mock
 
 def login_user(client, username, password):
     """Helper function to log in a user."""
-    response = client.post(url_for('login'), data={'username': username, 'password': password}, follow_redirects=True)
+    response = client.post(url_for('login'), data={'username': username, 'password': password, 'csrf_token': 'test-csrf-token'}, follow_redirects=True)
     with client.session_transaction() as session:
         session['csrf_token'] = 'test-csrf-token'
     return response
@@ -401,6 +401,8 @@ def test_success_route_hides_other_users_share(client, app, files_store):
     login_user(client, 'testuser', 'password')
     file_id = upload_note(client, files_store).get_json()['file_id']
     other = app.test_client()
+    with other.session_transaction() as session:
+        session['csrf_token'] = 'test-csrf-token'
     login_user(other, 'adminuser', 'adminpass')
 
     response = other.get(url_for('upload_success', file_id=file_id), follow_redirects=True)
@@ -415,6 +417,8 @@ def test_success_route_says_drop_not_found_for_other_users_share_in_the_page_lan
     login_user(client, 'testuser', 'password')
     file_id = upload_note(client, files_store).get_json()['file_id']
     other = app.test_client()
+    with other.session_transaction() as session:
+        session['csrf_token'] = 'test-csrf-token'
     login_user(other, 'adminuser', 'adminpass')
 
     response = other.get(url_for('upload_success', file_id=file_id),

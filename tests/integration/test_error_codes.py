@@ -14,7 +14,7 @@ from conftest import CSRF_TOKEN
 
 
 def login(client, username='testuser', password='password'):
-    client.post(url_for('login'), data={'username': username, 'password': password})
+    client.post(url_for('login'), data={'username': username, 'password': password, 'csrf_token': 'test-csrf-token'})
     with client.session_transaction() as session:
         session['csrf_token'] = CSRF_TOKEN
         session.pop('_flashes', None)

@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 # Test users from conftest.py: 'testuser:password:false', 'adminuser:adminpass:true'
 
 def login_user(client, username, password):
-    response = client.post(url_for('login'), data={'username': username, 'password': password}, follow_redirects=True)
+    response = client.post(url_for('login'), data={'username': username, 'password': password, 'csrf_token': 'test-csrf-token'}, follow_redirects=True)
     with client.session_transaction() as session:
         session['csrf_token'] = 'test-csrf-token'
     return response
@@ -127,7 +127,7 @@ def test_a_collect_link_survives_the_login_hop(client):
     login_url = response.headers['Location']
     assert urlparse(login_url).path == url_for('login')
 
-    response = client.post(login_url, data={'username': 'testuser', 'password': 'password'})
+    response = client.post(login_url, data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
     assert response.status_code == 302
     assert response.headers['Location'] == '/?mode=collect'
 
@@ -136,7 +136,7 @@ def test_a_collect_link_survives_the_login_hop(client):
 
 
 def test_login_ignores_a_next_that_leaves_the_site(client):
-    response = client.post('/login?next=//evil.example/', data={'username': 'testuser', 'password': 'password'})
+    response = client.post('/login?next=//evil.example/', data={'csrf_token': 'test-csrf-token', 'username': 'testuser', 'password': 'password'})
     assert response.status_code == 302
     assert urlparse(response.headers['Location']).netloc in ('', 'localhost')
     assert urlparse(response.headers['Location']).path == url_for('index')

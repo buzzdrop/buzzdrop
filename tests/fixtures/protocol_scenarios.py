@@ -369,7 +369,9 @@ SCENARIOS = [
     # --- Injected: body size and rate limits -------------------------------
     {
         'name': 'upload-too-large',
-        'config': {'MAX_CONTENT_LENGTH': 64},
+        # The cap must fit the login POST itself (the csrf_token field
+        # puts it over 64 bytes) and still refuse the multipart upload.
+        'config': {'MAX_CONTENT_LENGTH': 256},
         'steps': [begin(), {**upload_file(), 'injected': True}],
     },
     {
