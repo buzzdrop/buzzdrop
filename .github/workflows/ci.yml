@@ -48,17 +48,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # One decoy per **/ pattern in .dockerignore, planted inside a
-      # directory a Dockerfile COPY actually copies, so the pattern is
-      # genuinely exercised. Root-anchored patterns get no decoy: nothing
-      # copies the root paths they guard, and the top-level check below
-      # owns the broad-COPY class instead.
+      # Decoys for .dockerignore's **/ patterns, planted inside directories
+      # a Dockerfile COPY actually copies so each pattern is exercised in
+      # both images (db/, static/ reach runtime; tests/, cli/ only test).
+      # db/__pycache__/cache.py is a .py on purpose: it isolates the
+      # __pycache__ dir pattern, which **/*.py[cod] wouldn't catch alone.
+      # data/ and uploads/ are made by RUN mkdir, so a COPY into either
+      # leaves /app's top level unchanged — they get live decoys too.
+      # Other root-anchored patterns need none: their names aren't in the
+      # image, so the top-level check below catches a COPY that adds them.
       DECOYS: >-
         cli/.env db/.env.local static/.envrc
-        tests/stray.db db/stray.db-wal cli/app.db.bak static/local.sqlite3 tests/db.json
-        static/server.pem cli/server.key
-        tests/app.pyc db/__pycache__/cache.py
+        tests/stray.db db/stray.db-wal cli/app.db.bak static/local.sqlite3 db/db.json
+        static/server.pem static/server.key
+        db/app.pyc db/__pycache__/cache.py
         static/.DS_Store
+        data/buzzdrop.db uploads/blob
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
@@ -91,8 +96,9 @@ jobs:
       # Decoys exercise the **/ patterns; a broad or new COPY would ship
       # paths no decoy guards. Diff each image's /app top level against
       # the expected set — change a Dockerfile COPY line on purpose and
-      # this list changes with it. data/ and uploads/ come from RUN mkdir,
-      # docs/ in the test stage must hold only how-it-works.md.
+      # this list changes with it. data/ and uploads/ are expected names,
+      # so their contents are checked too; docs/ in the test stage must
+      # hold only how-it-works.md.
       - name: Check the images carry only allowlisted top-level paths
         run: |
           RUNTIME="LICENSE app.py auth config.py data db gunicorn.conf.py i18n.py
@@ -100,17 +106,29 @@ jobs:
                    templates timestamps.py tokens.py translations uploads utils.py website.py"
           check_top() {
             image=$1; shift
-            actual=$(docker run --rm "$image" ls -A /app | sort)
+            if ! actual=$(docker run --rm "$image" ls -A /app | sort); then
+              echo "::error::$image: failed to list /app"; exit 1
+            fi
             expected=$(printf '%s\n' "$@" | sort)
             if [ "$actual" != "$expected" ]; then
               echo "::error::$image /app top level drifted from the Dockerfile's allowlist:"
               diff <(echo "$expected") <(echo "$actual") || true
               exit 1
             fi
+            for dir in data uploads; do
+              if ! contents=$(docker run --rm "$image" ls -A "/app/$dir"); then
+                echo "::error::$image: failed to list /app/$dir"; exit 1
+              fi
+              [ -z "$contents" ] \
+                || { echo "::error::$image /app/$dir is not empty: $contents"; exit 1; }
+            done
           }
           check_top buzzdrop-runtime $RUNTIME
           check_top buzzdrop-test $RUNTIME .env.example babel.cfg cli docs requirements-dev.txt tests
-          [ "$(docker run --rm buzzdrop-test ls -A docs)" = "how-it-works.md" ] \
+          if ! docs=$(docker run --rm buzzdrop-test ls -A docs); then
+            echo '::error::buzzdrop-test: failed to list /app/docs'; exit 1
+          fi
+          [ "$docs" = "how-it-works.md" ] \
             || { echo '::error::buzzdrop-test /app/docs holds more than how-it-works.md'; exit 1; }
       # The production config refuses to start without its secrets, and
       # the app runs as the image's non-root user.

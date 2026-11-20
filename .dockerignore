@@ -4,9 +4,11 @@
 # they sit inside a copied directory; anything left in an image's layers
 # can be read by whoever pulls it (#163). The CI build job plants a decoy
 # inside a copied directory for each **/ pattern (its DECOYS list) and
-# fails if one leaks into either image; a separate check holds each
-# image's /app top level to the allowlist, which is what root-anchored
-# patterns still guard. Add a new **/ pattern to both places.
+# fails if one leaks into either image; data/ and uploads/ get live
+# decoys too, because a COPY into either wouldn't change /app's top
+# level. A separate check holds each image's top level to the allowlist,
+# which is what the other root-anchored patterns still guard. Add a new
+# **/ pattern to both places.
 
 # Secrets and local state
 # .env.example holds only placeholders, and the tests load it.
