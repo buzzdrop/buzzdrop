@@ -48,19 +48,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # One decoy per secret/state pattern in .dockerignore, some nested.
+      # One decoy per **/ pattern in .dockerignore, planted inside a
+      # directory a Dockerfile COPY actually copies, so the pattern is
+      # genuinely exercised. Root-anchored patterns get no decoy: nothing
+      # copies the root paths they guard, and the top-level check below
+      # owns the broad-COPY class instead.
       DECOYS: >-
-        .env .env.local .envrc cli/.env
-        buzzdrop.db buzzdrop.db-wal buzzdrop.db.bak tests/stray.db local.sqlite3 db.json
-        data/buzzdrop.db uploads/blob instance/config.py server.pem server.key
-        playwright-report/index.html test-results/trace.zip
-        .claude/settings.json .venv/pyvenv.cfg node_modules/stray.js
+        cli/.env db/.env.local static/.envrc
+        tests/stray.db db/stray.db-wal cli/app.db.bak static/local.sqlite3 tests/db.json
+        static/server.pem cli/server.key
+        tests/app.pyc db/__pycache__/cache.py
+        static/.DS_Store
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       # A clean checkout has no secrets or local state, so plant decoys
-      # where a developer's tree has them: the Dockerfile's allowlist and
-      # .dockerignore must keep them out of both images (#163). The images
+      # inside the directories the Dockerfile copies: .dockerignore's
+      # **/ patterns must keep them out of both images (#163). The images
       # are built from this same context.
       - name: Plant decoy secrets and local state
         run: |
@@ -84,6 +88,30 @@ jobs:
               done
               exit $leaked' || exit 1
           done
+      # Decoys exercise the **/ patterns; a broad or new COPY would ship
+      # paths no decoy guards. Diff each image's /app top level against
+      # the expected set — change a Dockerfile COPY line on purpose and
+      # this list changes with it. data/ and uploads/ come from RUN mkdir,
+      # docs/ in the test stage must hold only how-it-works.md.
+      - name: Check the images carry only allowlisted top-level paths
+        run: |
+          RUNTIME="LICENSE app.py auth config.py data db gunicorn.conf.py i18n.py
+                   migrate_db.py models.py proxy.py requirements.txt static storage.py
+                   templates timestamps.py tokens.py translations uploads utils.py website.py"
+          check_top() {
+            image=$1; shift
+            actual=$(docker run --rm "$image" ls -A /app | sort)
+            expected=$(printf '%s\n' "$@" | sort)
+            if [ "$actual" != "$expected" ]; then
+              echo "::error::$image /app top level drifted from the Dockerfile's allowlist:"
+              diff <(echo "$expected") <(echo "$actual") || true
+              exit 1
+            fi
+          }
+          check_top buzzdrop-runtime $RUNTIME
+          check_top buzzdrop-test $RUNTIME .env.example babel.cfg cli docs requirements-dev.txt tests
+          [ "$(docker run --rm buzzdrop-test ls -A docs)" = "how-it-works.md" ] \
+            || { echo '::error::buzzdrop-test /app/docs holds more than how-it-works.md'; exit 1; }
       # The production config refuses to start without its secrets, and
       # the app runs as the image's non-root user.
       - name: Check the runtime image runs production as non-root

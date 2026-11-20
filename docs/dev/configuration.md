@@ -72,12 +72,9 @@ docker compose run --rm --user root -v "$PWD/data:/old-data" -v "$PWD/uploads:/o
   sh -c 'cp -a /old-data/. /app/data/ && cp -a /old-uploads/. /app/uploads/ && chown -R app:app /app/data /app/uploads'
 ```
 
-`.dockerignore` is a safety net under the allowlist. It keeps these out even inside a copied directory:
-- secrets: `.env*` except the placeholder `.env.example`, and keys;
-- local state: `*.db*`, `data/`, `uploads/`;
-- dev clutter.
+`.dockerignore` is a safety net under the allowlist, keeping secrets, local state and dev clutter out even inside a copied directory. Its own comments name the patterns — only `**/` patterns can still bite, since the allowlist never copies the root paths the root-anchored ones guard.
 
-The CI `build` job plants a decoy for each secret/state pattern (its `DECOYS` list) and fails if one leaks into either image. Add a new pattern to both `.dockerignore` and `DECOYS`.
+The CI `build` job covers both halves: it plants one decoy per `**/` pattern inside a copied directory (its `DECOYS` list) and fails if one leaks into either image, and it fails when an image's `/app` top level drifts from the expected set, so a broad or new `COPY` line can't slip through. Add a new `**/` pattern to `.dockerignore` and `DECOYS`; change a `COPY` and the expected top-level set in `ci.yml` follows.
 
 **Render (Try it):** `render.yaml` at the root is the Blueprint behind the Website's Try it button (`https://render.com/deploy?repo=https://github.com/buzzdrop/buzzdrop`; Render reads the file from the repo root). It sets up a free, single-instance web service in Frankfurt (Render's default would be Oregon) from `ghcr.io/buzzdrop/buzzdrop:latest`:
 - Render generates `FLASK_SECRET_KEY` and `TOKEN_HASH_SECRET`;

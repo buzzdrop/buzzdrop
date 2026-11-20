@@ -3,8 +3,10 @@
 # tests/ and cli/. This list keeps secrets and local state out even when
 # they sit inside a copied directory; anything left in an image's layers
 # can be read by whoever pulls it (#163). The CI build job plants a decoy
-# for each secret/state pattern (its DECOYS list) and fails if one leaks
-# into either image: add new patterns to both.
+# inside a copied directory for each **/ pattern (its DECOYS list) and
+# fails if one leaks into either image; a separate check holds each
+# image's /app top level to the allowlist, which is what root-anchored
+# patterns still guard. Add a new **/ pattern to both places.
 
 # Secrets and local state
 # .env.example holds only placeholders, and the tests load it.
