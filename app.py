@@ -282,8 +282,13 @@ def _open_notification_text(file_info: dict):
         '',
         _('Type: %(type)s', type=_('Note') if is_note else _('File')),
     ]
-    # The drop's name is not in here on purpose: it stays inside the
-    # ciphertext, so the server — and this email — never has it (#246).
+    # The sender's own memo is the one plain-text field the server holds
+    # (#264), and this email goes only to the sender — so it can say which
+    # drop was opened. The drop's name stays out: it rides inside the
+    # ciphertext (#246).
+    memo = (file_info.get('private_note') or '').strip()
+    if memo:
+        lines.append(_('Memo: %(memo)s', memo=memo))
     lines += [
         # An email has no browser to localize it: DEFAULT_TIMEZONE, named.
         # Translators: %(time)s is when the drop was opened, e.g. "6 sty 2025, 21:35 CET".
