@@ -1672,7 +1672,34 @@
             },
             "json": {
               "code": "protocol_mismatch",
-              "error": "Unsupported share protocol version"
+              "error": "Unsupported share protocol version",
+              "protocol": "BKV3"
+            }
+          }
+        },
+        {
+          "name": "begin-undeclared",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload/begin"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {}
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "protocol_mismatch",
+              "error": "Unsupported share protocol version",
+              "protocol": "BKV3"
             }
           }
         },
@@ -1738,7 +1765,46 @@
             },
             "json": {
               "code": "protocol_mismatch",
-              "error": "Unsupported share protocol version"
+              "error": "Unsupported share protocol version",
+              "protocol": "BKV3"
+            }
+          }
+        },
+        {
+          "name": "upload-undeclared",
+          "as": "testuser",
+          "request": {
+            "method": "POST",
+            "path": [
+              "/upload"
+            ],
+            "headers": {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRF-Token": "fixture-csrf-token"
+            },
+            "form": {
+              "file_id": {
+                "$ref": "begin.file_id"
+              },
+              "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+            },
+            "files": {
+              "file": {
+                "filename": "drop.pdf",
+                "content": "BKV3 dummy ciphertext"
+              }
+            }
+          },
+          "response": {
+            "status": 400,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "json": {
+              "code": "protocol_mismatch",
+              "error": "Unsupported share protocol version",
+              "protocol": "BKV3"
             }
           }
         }
@@ -2046,7 +2112,8 @@
             "form": {
               "file_id": "00000000-0000-4000-8000-00000000dead",
               "key_verifier": "1111111111111111111111111111111111111111111111111111111111111111",
-              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a"
+              "receipt_hash": "deb0e38ced1e41de6f92e70e80c418d2d356afaaa99e26f5939dbc7d3ef4772a",
+              "protocol": "BKV3"
             },
             "files": {
               "file": {

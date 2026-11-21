@@ -1040,12 +1040,12 @@ TOKEN_LABEL_MAX_LENGTH = 64
 # always starts with b'BKP-FIL2' (inside the ciphertext) for integrity
 # validation.
 # ---------------------------------------------------------------------------
-MAGIC_V3 = b'BKV3'
 # The share-protocol version this buzz declares on /upload/begin and
-# /upload (#346). The server refuses a declared-incompatible client
+# /upload (#346). The server refuses a missing or mismatched declaration
 # before a share mints and names the version it speaks in the response.
-# Bump with MAGIC_V3 when the format changes.
+# Bump it when the format changes; the envelope magic derives from it.
 PROTOCOL_VERSION = 'BKV3'
+MAGIC_V3 = PROTOCOL_VERSION.encode()
 PLAINTEXT_MAGIC = b'BKP-FIL2'
 # Plaintext: 'BKP-FIL2' ‖ receipt(32B) ‖ name_len(2B BE) ‖ name(utf-8)
 # ‖ data. The receipt is the decryption proof — the server stores only
@@ -1529,6 +1529,14 @@ def _response_code(resp) -> str | None:
         return None
 
 
+def _response_protocol(resp) -> str | None:
+    """The ``protocol`` a JSON refusal names, or None when there is none."""
+    try:
+        return resp.json().get('protocol')
+    except Exception:
+        return None
+
+
 _RELEASES_URL = 'https://github.com/buzzdrop/buzzdrop/releases'
 
 # One line appended to server problems that carry no specific diagnosis:
@@ -1551,13 +1559,14 @@ def _server_refusal(resp) -> None:
 
 
 def _protocol_mismatch(server_protocol: str | None = None) -> None:
-    """Abort on a client/server protocol-version split (#346)."""
-    detail = (
-        f" (it speaks {server_protocol}, buzz speaks {PROTOCOL_VERSION})"
-        if server_protocol else "")
+    """Abort on a client/server protocol-version split (#346). Either side
+    can be the older one, so the message names both versions."""
+    detail = (f" (server speaks {server_protocol})"
+              if server_protocol else "")
     print(
-        f"Error: this buzz is too old for the server{detail} — "
-        f"download the latest release: {_RELEASES_URL}",
+        f"Error: buzz speaks {PROTOCOL_VERSION}{detail} — the share "
+        f"protocol versions differ; update whichever is older — "
+        f"latest buzz: {_RELEASES_URL}",
         file=sys.stderr,
     )
     sys.exit(1)
@@ -1599,7 +1608,7 @@ def upload_begin(server: str, token: str) -> dict | None:
     if resp.status_code == 404:
         return None
     if resp.status_code == 400 and _response_code(resp) == 'protocol_mismatch':
-        _protocol_mismatch()
+        _protocol_mismatch(_response_protocol(resp))
     if not resp.ok:
         _server_refusal(resp)
 
@@ -1725,7 +1734,7 @@ def upload(server: str, token: str, filename: str, encrypted: bytes,
         sys.exit(1)
 
     if resp.status_code == 400 and _response_code(resp) == 'protocol_mismatch':
-        _protocol_mismatch()
+        _protocol_mismatch(_response_protocol(resp))
     if not resp.ok:
         _server_refusal(resp)
 

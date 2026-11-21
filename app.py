@@ -885,14 +885,21 @@ def _openable_drop(file_id):
     return file_info
 
 
-_ENVELOPE_MAGIC = b'BKV3'
+# The share-protocol version the app speaks (#346). A client must declare
+# its own on /upload/begin and /upload; a missing or mismatched
+# declaration is refused before a share mints. BKV3 is the only one —
+# bump it when the format changes; the envelope magic derives from it.
+SHARE_PROTOCOL_VERSION = 'BKV3'
+
+_ENVELOPE_MAGIC = SHARE_PROTOCOL_VERSION.encode()
 _ENVELOPE_PREFIX_LENGTH = 20  # 'BKV3' + salt(16)
 
-# The share-protocol version the app speaks (#346). A client may declare
-# its own on /upload/begin and /upload; a declared mismatch is refused
-# before a share mints. BKV3 is the only one — bump it together with the
-# envelope magic when the format changes.
-SHARE_PROTOCOL_VERSION = 'BKV3'
+
+def _declared_protocol_mismatch() -> bool:
+    """True unless the request declares the share-protocol version this
+    app speaks — an absent ``protocol`` field counts as a mismatch (#346),
+    so an old client can't skip the check by staying silent."""
+    return request.form.get('protocol') != SHARE_PROTOCOL_VERSION
 
 
 def _envelope_salt(prefix: bytes) -> Optional[str]:
@@ -1365,14 +1372,15 @@ def upload_begin():
     if not _session_csrf_required():
         return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
 
-    # A declared share-protocol version we don't speak is refused before
-    # a share mints, so an outdated client fails fast instead of sending
-    # a drop the current app can't serve (#346).
-    declared_protocol = request.form.get('protocol') or None
-    if declared_protocol is not None and \
-            declared_protocol != SHARE_PROTOCOL_VERSION:
+    # A client must declare the share-protocol version it speaks; a
+    # missing or unknown one is refused before a share mints, so an
+    # outdated client fails fast instead of sending a drop the current
+    # app can't serve (#346). The refusal names the version spoken, so
+    # the client can say which side is older.
+    if _declared_protocol_mismatch():
         return {'error': 'Unsupported share protocol version',
-                'code': 'protocol_mismatch'}, 400
+                'code': 'protocol_mismatch',
+                'protocol': SHARE_PROTOCOL_VERSION}, 400
 
     # Pending shares that never finished are dead weight — sweep them on
     # the same path that creates them.
@@ -1413,18 +1421,17 @@ def upload_file():
 
     # `error` stays English for API clients; the flash is worded from
     # `code` (#305).
-    def _fail(error, code, status=400):
+    def _fail(error, code, status=400, **fields):
         if wants_json:
-            return {'error': error, 'code': code}, status
+            return {'error': error, 'code': code, **fields}, status
         flash(_(UPLOAD_REFUSAL_FLASHES.get(code, _DROP_NOT_ACCEPTED)))
         return redirect(url_for('index'))
 
-    # Same check as /upload/begin (#346): a client that declares a
-    # protocol version we don't speak stops before the share binds.
-    declared_protocol = request.form.get('protocol') or None
-    if declared_protocol is not None and \
-            declared_protocol != SHARE_PROTOCOL_VERSION:
-        return _fail('Unsupported share protocol version', 'protocol_mismatch')
+    # Same check as /upload/begin (#346): a client whose declared (or
+    # missing) protocol version isn't ours stops before the share binds.
+    if _declared_protocol_mismatch():
+        return _fail('Unsupported share protocol version', 'protocol_mismatch',
+                     protocol=SHARE_PROTOCOL_VERSION)
 
     # The language the drop-opened email is written in (#293): the page's,
     # or the default for a Bearer client, which has no page language.

@@ -54,7 +54,7 @@ def post_upload(client, file_id, xhr=True):
         headers={'X-Requested-With': 'XMLHttpRequest'} if xhr else {},
         data={'file': (io.BytesIO(b'x'), 'a.txt'), 'file_id': file_id,
               'key_verifier': 'cc' * 32, 'receipt_hash': 'dd' * 32,
-              'csrf_token': CSRF_TOKEN})
+              'protocol': 'BKV3', 'csrf_token': CSRF_TOKEN})
 
 
 def test_upload_to_a_finished_share(client, key_release_upload):

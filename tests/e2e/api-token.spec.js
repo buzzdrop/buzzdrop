@@ -24,7 +24,7 @@ import { bytesToHex, hexToBytes } from '../../static/js/lib/hex.js';
  */
 async function uploadWithToken(request, token, password) {
     const headers = { Authorization: `Bearer ${token}`, 'X-Requested-With': 'XMLHttpRequest' };
-    const begin = await request.post('/upload/begin', { headers });
+    const begin = await request.post('/upload/begin', { headers, form: { protocol: 'BKV3' } });
     if (!begin.ok()) return { status: begin.status() };
     const { file_id: fileId, h } = await begin.json();
 
@@ -33,6 +33,7 @@ async function uploadWithToken(request, token, password) {
         headers,
         multipart: {
             type: 'text',
+            protocol: 'BKV3',
             note_text: Buffer.from(blob).toString('base64'),
             file_id: fileId,
             key_verifier: bytesToHex(verifier),

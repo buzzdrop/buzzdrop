@@ -546,11 +546,12 @@ export function makeProtocolFake(opts = {}) {
         if (!hasCsrf(headers)) {
             return json(403, { error: 'CSRF validation failed', code: 'csrf_failed' });
         }
-        // A client may declare its share-format version (#346); a declared
-        // mismatch is refused before a share mints.
+        // A client must declare its share-format version (#346); a missing
+        // or mismatched declaration is refused before a share mints, and
+        // the refusal names the version the server speaks.
         const declared = body instanceof FormData ? body.get('protocol') : null;
-        if (declared !== null && declared !== shareCrypto.SHARE_FORMAT) {
-            return json(400, { error: 'Unsupported share protocol version', code: 'protocol_mismatch' });
+        if (declared !== shareCrypto.SHARE_FORMAT) {
+            return json(400, { error: 'Unsupported share protocol version', code: 'protocol_mismatch', protocol: shareCrypto.SHARE_FORMAT });
         }
         const fileId = crypto.randomUUID();
         const h = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
@@ -575,11 +576,12 @@ export function makeProtocolFake(opts = {}) {
             const value = body.get(field);
             return typeof value === 'string' ? value : null;
         };
-        // Same declared-version check as /upload/begin (#346): refused
-        // before the notification lookup or the share binding.
+        // Same declared-version check as /upload/begin (#346): a missing
+        // or mismatched declaration is refused before the notification
+        // lookup or the share binding.
         const declaredProtocol = field('protocol');
-        if (declaredProtocol !== null && declaredProtocol !== shareCrypto.SHARE_FORMAT) {
-            return json(400, { error: 'Unsupported share protocol version', code: 'protocol_mismatch' });
+        if (declaredProtocol !== shareCrypto.SHARE_FORMAT) {
+            return json(400, { error: 'Unsupported share protocol version', code: 'protocol_mismatch', protocol: shareCrypto.SHARE_FORMAT });
         }
         const notificationError = notificationPreferenceError(owner, field);
         if (notificationError) {

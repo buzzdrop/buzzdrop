@@ -31,6 +31,7 @@ def upload_file_for_user(client, app, files_store, filename, content, username_f
         'file_id': file_id,
         'key_verifier': 'cc' * 32,
         'receipt_hash': hashlib.sha256(receipt).hexdigest(),
+        'protocol': 'BKV3',
         'csrf_token': 'test-csrf-token',
     }
     client.post(url_for('upload_file'), data=file_data, content_type='multipart/form-data')
@@ -101,7 +102,8 @@ def test_upload_file_no_file_part(client, key_share):
     response = client.post(
         url_for('upload_file'),
         data={'file_id': file_id, 'key_verifier': 'cc' * 32,
-              'receipt_hash': 'aa' * 32, 'csrf_token': 'test-csrf-token'},
+              'receipt_hash': 'aa' * 32, 'protocol': 'BKV3',
+              'csrf_token': 'test-csrf-token'},
         follow_redirects=True,
     )
     assert b'No file part' in response.data
@@ -117,6 +119,7 @@ def test_upload_file_no_selected_file(client, key_share):
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         follow_redirects=True,
@@ -132,6 +135,7 @@ def test_upload_file_disallowed_extension(client, app, key_share):
         'file_id': file_id,
         'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
     }
     response = client.post(url_for('upload_file'), data=data, content_type='multipart/form-data', follow_redirects=True)

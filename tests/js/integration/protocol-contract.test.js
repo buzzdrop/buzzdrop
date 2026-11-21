@@ -273,7 +273,9 @@ describe('XMLHttpRequest adapter', () => {
 
     it('fires upload.onprogress before onload', async () => {
         const fake = makeProtocolFake();
-        const { xhr, progress, done } = send(fake, new FormData());
+        const body = new FormData();
+        body.append('protocol', 'BKV3');
+        const { xhr, progress, done } = send(fake, body);
 
         expect(await done).toBe('load');
         expect(progress).toEqual([0.5, 1]);
@@ -303,10 +305,13 @@ describe('decryption result', () => {
      */
     async function uploadShare(fake) {
         const headers = { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': contract.csrfToken };
-        const begin = await fake.handle({ method: 'POST', url: '/upload/begin', headers });
+        const beginBody = new FormData();
+        beginBody.append('protocol', 'BKV3');
+        const begin = await fake.handle({ method: 'POST', url: '/upload/begin', headers, body: beginBody });
         const fileId = JSON.parse(String(begin.body)).file_id;
         const digest = await crypto.subtle.digest('SHA-256', Buffer.from(RECEIPT, 'hex'));
         const form = new FormData();
+        form.append('protocol', 'BKV3');
         form.append('file_id', fileId);
         form.append('key_verifier', V);
         form.append('receipt_hash', Buffer.from(digest).toString('hex'));
@@ -363,9 +368,12 @@ describe('released key', () => {
     it('is the H the share was begun with', async () => {
         const fake = makeProtocolFake();
         const headers = { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': contract.csrfToken };
+        const beginBody = new FormData();
+        beginBody.append('protocol', 'BKV3');
         const begin = JSON.parse(String(
-            (await fake.handle({ method: 'POST', url: '/upload/begin', headers })).body));
+            (await fake.handle({ method: 'POST', url: '/upload/begin', headers, body: beginBody })).body));
         const form = new FormData();
+        form.append('protocol', 'BKV3');
         form.append('file_id', begin.file_id);
         form.append('key_verifier', '11'.repeat(32));
         form.append('receipt_hash', '33'.repeat(32));

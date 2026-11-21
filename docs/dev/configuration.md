@@ -104,6 +104,6 @@ CI publishes the image to `ghcr.io/buzzdrop/buzzdrop` (public) for amd64 and arm
 2. CI runs again on the tag and publishes `0.4.2`, `0.4` and `latest`.
 3. Publish a GitHub Release for the tag. Its notes always have a **Breaking changes** section, even when it says "None". Outside the GitHub Release itself, text for self-hosters says **version** (see `CONTEXT.md`).
 
-The CLI is not versioned with the app: `release-cli.yml` keeps its own `cli-*` tags.
+The CLI is not versioned with the app: `release-cli.yml` keeps its own `cli-*` tags and doesn't read `PROTOCOL_VERSION`, so nothing ties a binary to a share-protocol version — see `cli/CLAUDE.md` §Protocol version (#346).
 
 **First publish (one-off):** GHCR creates the package as private. An org owner sets `buzzdrop/buzzdrop` to **public** under the organisation's Packages → Package settings, and checks that it's linked to this repository with Actions write access.

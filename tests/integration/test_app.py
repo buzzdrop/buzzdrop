@@ -30,6 +30,7 @@ def upload_file_for_user(client, app, files_store, filename, content, username_f
         'file_id': file_id,
         'key_verifier': 'cc' * 32,
         'receipt_hash': hashlib.sha256(receipt).hexdigest(),
+        'protocol': 'BKV3',
         'csrf_token': 'test-csrf-token',
     }
     # Make sure to use the logged-in client to POST
@@ -246,6 +247,7 @@ def test_index_logged_in_user_sees_own_private_note(client, app, files_store):
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         content_type='multipart/form-data',

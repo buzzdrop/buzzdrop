@@ -297,6 +297,7 @@ def test_upload_with_valid_token(app, client, db_instance, key_share):
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         headers={
@@ -360,6 +361,7 @@ def test_upload_with_session_still_works(user_client, db_instance, key_share):
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         headers={'X-Requested-With': 'XMLHttpRequest',
@@ -403,6 +405,7 @@ def test_upload_token_sets_uploaded_by(app, client, db_instance, key_share):
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         headers={

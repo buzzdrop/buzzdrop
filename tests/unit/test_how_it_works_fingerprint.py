@@ -88,13 +88,14 @@ MODULE_ASSIGNMENTS = {
         'KEY_RELEASE_DOWNLOAD_TTL_SECONDS', 'KEY_SHARE_PENDING_TTL_SECONDS',
         'EXPIRY_SWEEP_INTERVAL_SECONDS',
         'DROPZONE_SUBMIT_RATE_LIMIT', 'DROPZONE_RELEASE_RATE_LIMIT',
-        'DROPZONE_SUBMIT_RATE_LIMIT', 'DROPZONE_RELEASE_RATE_LIMIT',
         'DROPZONE_MAX_ATTEMPTS', 'DROPZONE_BURN_ON_LOCKOUT',
         'DROPZONE_COLLECT_TTL_SECONDS',
     ),
     # The declared share-protocol version upload_begin and upload_file
-    # enforce (#346): a bump changes what they accept.
+    # enforce, and the one the CLI declares (#346): a bump changes what
+    # they accept.
     'app.py': ('SHARE_PROTOCOL_VERSION',),
+    'cli/buzz': ('PROTOCOL_VERSION',),
 }
 
 

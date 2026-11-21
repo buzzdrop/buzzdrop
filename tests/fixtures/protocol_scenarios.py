@@ -287,12 +287,17 @@ SCENARIOS = [
         'steps': [begin(), upload_file(verifier='not-hex')],
     },
     {
-        # A client declaring a share-format version the server doesn't
-        # speak is refused on either route, before a share mints (#346).
+        # A client that doesn't declare the share-format version — or
+        # declares one the server doesn't speak — is refused on either
+        # route, before a share mints (#346).
         'name': 'upload-protocol-mismatch',
         'steps': [begin('begin-old', form={'protocol': 'BKV4'}),
+                  {**begin('begin-undeclared'), 'form': {}},
                   begin(),
-                  upload_file('upload-old', protocol='BKV4')],
+                  upload_file('upload-old', protocol='BKV4'),
+                  {**upload_file('upload-undeclared'), 'form': {
+                      'file_id': ref('begin.file_id'), 'key_verifier': V,
+                      'receipt_hash': RECEIPT_HASH}}],
     },
     {
         # A wall-clock expiry with no zone is refused before the share is
@@ -309,7 +314,8 @@ SCENARIOS = [
     {
         'name': 'upload-unknown-share',
         'steps': [{**upload_file(), 'form': {
-            'file_id': MISSING_ID, 'key_verifier': V, 'receipt_hash': RECEIPT_HASH}}],
+            'file_id': MISSING_ID, 'key_verifier': V, 'receipt_hash': RECEIPT_HASH,
+            'protocol': 'BKV3'}}],
     },
     {
         # Open notifications are checked before the key material: only to the
