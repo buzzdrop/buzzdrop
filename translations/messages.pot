@@ -602,6 +602,14 @@ msgstr ""
 msgid "Could not download the submission."
 msgstr ""
 
+#: templates/_flash_toasts.html
+msgid "Notifications"
+msgstr ""
+
+#: templates/_flash_toasts.html
+msgid "Close notification"
+msgstr ""
+
 #. the language menu button's name; %(language)s is the current language in
 #. itself, e.g. "Polski".
 #: templates/_language_menu.html

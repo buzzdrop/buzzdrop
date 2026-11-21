@@ -623,6 +623,14 @@ msgstr "Ta skrytka wygasła."
 msgid "Could not download the submission."
 msgstr "Nie udało się pobrać zgłoszenia."
 
+#: templates/_flash_toasts.html
+msgid "Notifications"
+msgstr "Komunikaty"
+
+#: templates/_flash_toasts.html
+msgid "Close notification"
+msgstr "Zamknij komunikat"
+
 #. the language menu button's name; %(language)s is the current language in
 #. itself, e.g. "Polski".
 #: templates/_language_menu.html

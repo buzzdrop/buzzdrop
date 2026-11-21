@@ -108,27 +108,32 @@
             </div>
         </nav>
 
-        <main class="container-shell flex-1 py-10 sm:py-14">
-            
-            
-                
-                    
-                    <div class="mx-auto mb-8 max-w-5xl space-y-3">
-                    
-                        
-                        <div class="alert-banner animate-fade-up alert-banner-success" role="status">
-                            
-                            <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4Z" clip-rule="evenodd"/>
-                            </svg>
-                            
-                            <span>Logged in successfully</span>
-                        </div>
-                    
-                    </div>
-                
-            
+        
 
+
+<section id="toasts" class="toast-region" aria-label="Notifications">
+    
+    
+    <div class="toast toast-success" role="status" data-toast data-toast-timeout="6000">
+        
+        <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4Z" clip-rule="evenodd"/>
+        </svg>
+        
+        <p class="min-w-0 flex-1">Logged in successfully</p>
+        <button type="button" class="toast-close" aria-label="Close notification" data-toast-close hidden>
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+            </svg>
+        </button>
+        <div class="toast-timer" aria-hidden="true" data-toast-timer hidden><div class="toast-timer-fill" data-toast-timer-fill></div></div>
+    </div>
+    
+</section>
+
+
+
+        <main class="container-shell flex-1 py-10 sm:py-14">
             
 
 <div class="mx-auto max-w-5xl space-y-8">

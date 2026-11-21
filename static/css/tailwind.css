@@ -476,20 +476,68 @@
     @apply flex gap-3 rounded-2xl border px-4 py-4 text-sm;
   }
 
-  .alert-banner-error {
-    @apply border-rose-400/25 bg-rose-500/10 text-rose-200;
-  }
-
-  .alert-banner-success {
-    @apply border-emerald-400/25 bg-emerald-500/10 text-emerald-200;
-  }
-
   .alert-banner-warning {
     @apply border-honey-400/25 bg-honey-400/10 text-honey-100;
   }
 
   .alert-banner-info {
     @apply border-sky-400/20 bg-sky-400/10 text-sky-100;
+  }
+
+  /* --------------------------------------------------------------- Toasts */
+
+  /* Flashed messages (templates/_flash_toasts.html, #473): fixed under the
+     sticky nav, out of the page flow, so they never move the content. Full
+     width with a 16px gutter on a phone, the top right corner from sm up. */
+  .toast-region {
+    @apply pointer-events-none fixed inset-x-4 top-20 z-50 flex flex-col gap-3 sm:top-24 sm:right-6 sm:left-auto sm:w-96;
+  }
+
+  .toast {
+    @apply pointer-events-auto relative flex items-start gap-3 overflow-hidden rounded-2xl border px-4 py-4 text-sm shadow-buzz backdrop-blur-xl;
+    animation: toast-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: opacity 200ms ease-out;
+  }
+
+  /* Opaque enough to read over the page under it. */
+  .toast-success {
+    @apply border-emerald-400/30 bg-hive-900/90 text-emerald-200;
+  }
+
+  .toast-error {
+    @apply border-rose-400/30 bg-hive-900/90 text-rose-200;
+  }
+
+  /* Closing: fades for toasts-page.js LEAVE_MS, then leaves the page. */
+  .toast[data-leaving] {
+    @apply pointer-events-none opacity-0;
+  }
+
+  .toast-close {
+    @apply -my-1 -mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-current opacity-70 transition hover:bg-white/10 hover:opacity-100;
+  }
+
+  .toast-timer {
+    @apply absolute inset-x-0 bottom-0 h-0.5 bg-white/5;
+  }
+
+  /* Shrinks over the time left (--toast-left) while running; paused, it
+     holds the fraction left (--toast-fraction). */
+  .toast-timer-fill {
+    @apply h-full origin-left bg-current opacity-60;
+    transform: scaleX(var(--toast-fraction, 1));
+    transition: none;
+  }
+
+  .toast-timer-fill[data-running] {
+    transform: scaleX(0);
+    transition: transform var(--toast-left, 0ms) linear;
+  }
+
+  /* Focus lands on <main> when the last toast closes from the keyboard: it
+     is a place to continue from, not a control, so it shows no ring. */
+  main[tabindex='-1']:focus-visible {
+    box-shadow: none;
   }
 
   /* ------------------------------------------------------------- Dropzone */
@@ -614,6 +662,18 @@
 
 }
 
+/* A toast slides in from above, out of the nav's way. */
+@keyframes toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @layer utilities {
   /* Staggered entrances — pair with .animate-fade-up / .animate-zoom-in. */
   .delay-1 {
@@ -641,6 +701,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The toast timer is the time left, not decoration: it keeps its length. */
+  .toast-timer-fill[data-running] {
+    transition-duration: var(--toast-left, 0ms) !important;
   }
 
   .btn-primary:hover,
