@@ -1,8 +1,9 @@
 {# The header's language menu (#287), from the language_menu context
    (i18n.language_menu); the recipient's pages get none. A <details> opens
    it and each item is a POST /language form back to this page, so it works
-   without JS; pages/language-menu adds the menu keyboard model. Language
-   names and codes are translate="no": each is written in its own language. #}
+   without JS; features/language-menu, started by pages/base, adds the menu
+   keyboard model. Language names and codes are translate="no": each is
+   written in its own language. #}
 {% if language_menu %}
 <details id="language-menu" class="relative shrink-0">
     <summary id="language-menu-button" role="button" aria-haspopup="menu" aria-controls="language-menu-list"
@@ -27,5 +28,4 @@
         {% endfor %}
     </div>
 </details>
-<script type="module" src="{{ url_for('static', filename='js/pages/language-menu/entry.js') }}" integrity="{{ sri_hash('js/pages/language-menu/entry.js') }}" crossorigin="anonymous"></script>
 {% endif %}

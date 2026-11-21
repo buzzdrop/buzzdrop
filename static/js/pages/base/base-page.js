@@ -1,6 +1,8 @@
 // --- Every page (templates/base.html) ---
-// What all pages share, composed once: the flash toasts (#473). A page's own
-// script starts only what is on that page.
+// What all pages share, composed once: the flash toasts (#473) and the
+// header language menu (#287, #476). A page's own script starts only what
+// is on that page.
+import { startLanguageMenu } from '../../features/language-menu/index.js';
 import { startToasts } from '../../features/toasts/index.js';
 
 /**
@@ -18,4 +20,5 @@ export function browserDeps() {
  */
 export function initBase(root, deps) {
     startToasts(root, deps);
+    startLanguageMenu(root);
 }

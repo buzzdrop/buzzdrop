@@ -12,8 +12,8 @@
     <script type="importmap">{{ module_import_map()|safe }}</script>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css', v=sri_hash('css/app.css')) }}">
-    {# What every page shares (pages/base): the flash toasts. A module, so it
-       runs once the page is parsed. #}
+    {# What every page shares (pages/base): the flash toasts and the language
+       menu. A module, so it runs once the page is parsed. #}
     <script type="module" src="{{ url_for('static', filename='js/pages/base/entry.js') }}" integrity="{{ sri_hash('js/pages/base/entry.js') }}" crossorigin="anonymous"></script>
 </head>
 <body class="min-h-full">

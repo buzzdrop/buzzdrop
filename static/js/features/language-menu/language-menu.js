@@ -5,25 +5,13 @@
 // focus on the checked language, the arrows, Home and End move between the
 // items, Escape closes and returns focus to the button, and Tab, or a click
 // or focus anywhere else, closes it. Picking an item is its own form submit.
+// Started on every page by pages/base; the menu needs nothing beyond the DOM.
 import { required } from '../../lib/required.js';
 
 /**
- * @typedef {Record<string, never>} LanguageMenuDeps
- */
-
-/**
- * The menu needs nothing beyond the DOM, which comes in as `root`.
- * @returns {LanguageMenuDeps}
- */
-export function browserDeps() {
-    return {};
-}
-
-/**
  * @param {Document} root - any page's document; pages without the menu (the recipient's) are a no-op
- * @param {LanguageMenuDeps} deps
  */
-export function initLanguageMenu(root, deps) {
+export function startLanguageMenu(root) {
     if (!root.getElementById('language-menu')) return;
     const details = required(root, '#language-menu', 'details');
     const button = required(details, '#language-menu-button', 'summary');
