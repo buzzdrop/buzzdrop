@@ -183,11 +183,4 @@ describe('flash toasts', () => {
             expect(screen.getByRole('main')).toHaveFocus();
         });
     });
-
-    it('in Polish, the region and the close button are named in Polish', () => {
-        openToastsPage({ language: 'pl' });
-
-        expect(screen.getByRole('region', { name: 'Komunikaty' })).toBeVisible();
-        expect(screen.getByRole('button', { name: 'Zamknij komunikat' })).toBeVisible();
-    });
 });

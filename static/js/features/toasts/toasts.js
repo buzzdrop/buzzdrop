@@ -30,7 +30,7 @@ export function startToasts(root, deps) {
     /** @type {Array<(hidden: boolean) => void>} */
     const onVisibility = [];
 
-    const open = () => toasts.filter((toast) => !('leaving' in toast.dataset));
+    const remaining = () => toasts.filter((toast) => !('leaving' in toast.dataset));
 
     /**
      * Close a toast: it fades, then leaves the page, and the region with
@@ -42,7 +42,7 @@ export function startToasts(root, deps) {
         const hadFocus = toast.contains(root.activeElement);
         toast.dataset.leaving = '';
         if (hadFocus) {
-            const next = open()[0];
+            const next = remaining()[0];
             if (next) {
                 required(next, '[data-toast-close]', 'button').focus();
             } else {
@@ -98,12 +98,14 @@ export function startToasts(root, deps) {
             if (!pauses.size && timer === undefined && !('leaving' in toast.dataset)) run();
         };
 
-        close.hidden = false;
-
-        close.addEventListener('click', () => {
+        const closeNow = () => {
             clearTimeout(timer);
             dismiss(toast);
-        });
+        };
+
+        close.hidden = false;
+
+        close.addEventListener('click', closeNow);
         toast.addEventListener('pointerenter', () => pause('pointer'));
         toast.addEventListener('pointerleave', () => resume('pointer'));
         toast.addEventListener('focusin', () => pause('focus'));
@@ -114,8 +116,7 @@ export function startToasts(root, deps) {
         toast.addEventListener('keydown', (event) => {
             if (event.key !== 'Escape') return;
             event.preventDefault();
-            clearTimeout(timer);
-            dismiss(toast);
+            closeNow();
         });
         onVisibility.push((hidden) => (hidden ? pause('hidden') : resume('hidden')));
 
