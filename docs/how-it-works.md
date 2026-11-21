@@ -4,7 +4,7 @@ The user-facing account of what happens when you share a file or a note with Buz
 
 The design behind it, and the reasoning for each choice, is in [`true-one-time.md`](true-one-time.md) (§3 for what no design can fix, §6.3–6.7 for the key-release protocol). This doc doesn't argue the design; it describes it.
 
-<!-- how-it-works-fingerprint: sha256:e7632c25ed283c180f991e4c58f9b5d06a0011a90e4e0054c54e0910938bb33a -->
+<!-- how-it-works-fingerprint: sha256:981e0f67dbb2332a878ba5b18a4aba8c5215ed07ee769932f5cb9110ec273c8e -->
 
 > **Keeping this true.** The fingerprint above is a hash of the code that defines the flow: the recorded protocol contract, the browser crypto (drops and dropzone submissions), the `buzz` CLI's crypto, upload and passphrase code, the web app's passphrase length, the database schema, the key-release and dropzone defaults, and the server code that releases, serves, expires and deletes a drop or a dropzone submission (the `app.py` routes and `db/sqlite_backend.py` transactions behind each step). `tests/unit/test_how_it_works_fingerprint.py` recomputes it and fails when that code changes. When it fails, re-read this doc against the change, fix what is now wrong (and, if a claim the Website's explainer makes has changed, open an issue in `buzzdrop/website`), and only then paste the new fingerprint from the test's message. The `CLAUDE.md` note "Explainer — keep in step" says the same for reviewers.
 
@@ -45,7 +45,7 @@ The recipient's side (steps 5–7) always runs in a browser, whichever sender wa
 ### 1. Upload, phase 1
 
 - **Who acts:** the sender's browser (web app) or terminal (CLI), then the server.
-- **What crosses the wire:** a request to `POST /upload/begin`, authenticated by the login session and its CSRF token (web app) or by the API token in `Authorization: Bearer` (CLI). The server answers with a fresh `file_id` and a random 32-byte key share `H`.
+- **What crosses the wire:** a request to `POST /upload/begin`, authenticated by the login session and its CSRF token (web app) or by the API token in `Authorization: Bearer` (CLI). Both clients declare the share-format version they speak in a `protocol` field — today always `BKV3`; a server that doesn't speak it refuses before `H` mints, so an outdated client fails fast (#346). The server answers with a fresh `file_id`, a random 32-byte key share `H` and the version it speaks.
 - **What the server sees:** that this account is starting an upload. Nothing about the file or note yet.
 - **Never sees:** the file or note, and the password.
 - **Why:** the file key needs `H`, so `H` has to exist before anything is encrypted. The server keeps `H`; this is the half of the key it will later hand out exactly once. A share begun and never finished is swept once it is over an hour old (`KEY_SHARE_PENDING_TTL_SECONDS`), at the next `/upload/begin` or restart.

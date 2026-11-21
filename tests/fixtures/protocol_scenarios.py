@@ -95,15 +95,17 @@ def file_id(share):
 
 
 def begin(name='begin', **extra):
+    # The browser declares its share-format version on begin (#346); a
+    # scenario can refuse it by overriding ``form``.
     return {'name': name, 'method': 'POST', 'path': ['/upload/begin'],
-            'headers': SESSION_XHR, **extra}
+            'headers': SESSION_XHR, 'form': {'protocol': 'BKV3'}, **extra}
 
 
 def upload_file(name='upload', share='begin', verifier=V, **form):
     return {
         'name': name, 'method': 'POST', 'path': ['/upload'], 'headers': SESSION_XHR,
         'form': {'file_id': ref(f'{share}.file_id'), 'key_verifier': verifier,
-                 'receipt_hash': RECEIPT_HASH, **form},
+                 'receipt_hash': RECEIPT_HASH, 'protocol': 'BKV3', **form},
         # The multipart filename is the neutral "drop.<ext>" the browser
         # and CLI send: the real name stays inside the ciphertext (#246).
         'files': {'file': {'filename': 'drop.pdf', 'content': FILE_CONTENT}},
@@ -115,7 +117,7 @@ def upload_note(name='upload', share='begin'):
         'name': name, 'method': 'POST', 'path': ['/upload'], 'headers': SESSION_XHR,
         'form': {'note_text': base64.b64encode(NOTE_BYTES).decode(), 'type': 'text',
                  'file_id': ref(f'{share}.file_id'), 'key_verifier': V,
-                 'receipt_hash': RECEIPT_HASH},
+                 'receipt_hash': RECEIPT_HASH, 'protocol': 'BKV3'},
     }
 
 
@@ -283,6 +285,14 @@ SCENARIOS = [
     {
         'name': 'upload-invalid-material',
         'steps': [begin(), upload_file(verifier='not-hex')],
+    },
+    {
+        # A client declaring a share-format version the server doesn't
+        # speak is refused on either route, before a share mints (#346).
+        'name': 'upload-protocol-mismatch',
+        'steps': [begin('begin-old', form={'protocol': 'BKV4'}),
+                  begin(),
+                  upload_file('upload-old', protocol='BKV4')],
     },
     {
         # A wall-clock expiry with no zone is refused before the share is

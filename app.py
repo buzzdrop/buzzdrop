@@ -888,6 +888,12 @@ def _openable_drop(file_id):
 _ENVELOPE_MAGIC = b'BKV3'
 _ENVELOPE_PREFIX_LENGTH = 20  # 'BKV3' + salt(16)
 
+# The share-protocol version the app speaks (#346). A client may declare
+# its own on /upload/begin and /upload; a declared mismatch is refused
+# before a share mints. BKV3 is the only one — bump it together with the
+# envelope magic when the format changes.
+SHARE_PROTOCOL_VERSION = 'BKV3'
+
 
 def _envelope_salt(prefix: bytes) -> Optional[str]:
     """The BKV3 envelope salt as hex, or None when the prefix isn't one."""
@@ -1359,13 +1365,23 @@ def upload_begin():
     if not _session_csrf_required():
         return {'error': 'CSRF validation failed', 'code': 'csrf_failed'}, 403
 
+    # A declared share-protocol version we don't speak is refused before
+    # a share mints, so an outdated client fails fast instead of sending
+    # a drop the current app can't serve (#346).
+    declared_protocol = request.form.get('protocol') or None
+    if declared_protocol is not None and \
+            declared_protocol != SHARE_PROTOCOL_VERSION:
+        return {'error': 'Unsupported share protocol version',
+                'code': 'protocol_mismatch'}, 400
+
     # Pending shares that never finished are dead weight — sweep them on
     # the same path that creates them.
     file_repo.purge_stale_key_shares(
         current_app.config['KEY_SHARE_PENDING_TTL_SECONDS'])
 
     file_id, h_hex = file_repo.create_key_share(created_by=g.username)
-    return {'file_id': file_id, 'h': h_hex}
+    return {'file_id': file_id, 'h': h_hex,
+            'protocol': SHARE_PROTOCOL_VERSION}
 
 
 @app.route('/upload', methods=['POST'])
@@ -1402,6 +1418,13 @@ def upload_file():
             return {'error': error, 'code': code}, status
         flash(_(UPLOAD_REFUSAL_FLASHES.get(code, _DROP_NOT_ACCEPTED)))
         return redirect(url_for('index'))
+
+    # Same check as /upload/begin (#346): a client that declares a
+    # protocol version we don't speak stops before the share binds.
+    declared_protocol = request.form.get('protocol') or None
+    if declared_protocol is not None and \
+            declared_protocol != SHARE_PROTOCOL_VERSION:
+        return _fail('Unsupported share protocol version', 'protocol_mismatch')
 
     # The language the drop-opened email is written in (#293): the page's,
     # or the default for a Bearer client, which has no page language.
