@@ -1,6 +1,6 @@
 import { within } from '@testing-library/dom';
 import { describe, expect, it } from 'vitest';
-import { LEAVE_MS } from '../../../static/js/pages/toasts/toasts-page.js';
+import { LEAVE_MS } from '../../../static/js/features/toasts/index.js';
 import { openToastsPage, screen } from '../support/pages/toasts.js';
 
 const LOGGED_IN = 'Logged in successfully';

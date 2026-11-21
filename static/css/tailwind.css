@@ -508,12 +508,12 @@
     @apply border-rose-400/30 bg-hive-900/90 text-rose-200;
   }
 
-  /* Closing: fades for toasts-page.js LEAVE_MS, then leaves the page. */
+  /* Closing: fades for features/toasts LEAVE_MS, then leaves the page. */
   .toast[data-leaving] {
     @apply pointer-events-none opacity-0;
   }
 
-  /* The × in a 32px circle whose ring is the countdown (toasts-page.js sets
+  /* The × in a 32px circle whose ring is the countdown (features/toasts sets
      --toast-left, --toast-fraction and data-running on the button). */
   .toast-close {
     @apply relative -my-1.5 -mr-1.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-white/10;

@@ -1,9 +1,10 @@
 {# Flashed messages as toasts (#473): laid over the page in a fixed corner,
    so showing or closing one never moves the content. Anything not
    explicitly flashed as a success is treated as a problem. Without JS the
-   toasts stay; pages/toasts shows the close button, closes each toast on
-   its own after data-toast-timeout ms and shows the time left as the ring
-   around the button. #}
+   toasts stay; features/toasts, which pages/base starts on every page,
+   shows the close button, closes each toast on its own after
+   data-toast-timeout ms and shows the time left as the ring around the
+   button. #}
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
 <section id="toasts" class="toast-region" aria-label="{{ _('Notifications') }}">
@@ -35,6 +36,5 @@
     </div>
     {% endfor %}
 </section>
-<script type="module" src="{{ url_for('static', filename='js/pages/toasts/entry.js') }}" integrity="{{ sri_hash('js/pages/toasts/entry.js') }}" crossorigin="anonymous"></script>
 {% endif %}
 {% endwith %}

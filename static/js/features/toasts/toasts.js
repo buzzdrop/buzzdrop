@@ -1,8 +1,9 @@
 // --- Flash toasts (#473) ---
 // templates/_flash_toasts.html renders each flashed message as a toast in a
-// fixed region over the page, which stays put without JS. This shows each
-// toast's close button, whose ring is the countdown, and closes the toast once its
-// data-toast-timeout has run out. The countdown pauses while the pointer is
+// fixed region over the page, which stays put without JS. Started on every
+// page by pages/base, this shows each toast's close button, whose ring is
+// the countdown, and closes the toast once its data-toast-timeout has run
+// out. The countdown pauses while the pointer is
 // on the toast, while focus is in it and while the tab is hidden, and
 // resumes from where it stopped. Escape closes the toast focus is in.
 import { required, requiredData } from '../../lib/required.js';
@@ -15,18 +16,13 @@ export const LEAVE_MS = 200;
  * @property {() => number} now - milliseconds, for the time a countdown ran
  */
 
-/** @returns {ToastsDeps} */
-export function browserDeps() {
-    return { now: () => Date.now() };
-}
-
 /** @typedef {'pointer' | 'focus' | 'hidden'} PauseReason */
 
 /**
  * @param {Document} root - any page's document; one with nothing flashed is a no-op
  * @param {ToastsDeps} deps
  */
-export function initToasts(root, deps) {
+export function startToasts(root, deps) {
     if (!root.getElementById('toasts')) return;
     const region = required(root, '#toasts', 'section');
     const main = required(root, 'main', 'main');

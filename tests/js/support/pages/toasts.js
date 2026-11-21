@@ -1,10 +1,11 @@
-// Driver for the flash toasts (#473), on the page a sign-in lands on, which
-// flashes "Logged in successfully" (docs/frontend-test-strategy.md §7a). An
+// Driver for the flash toasts (#473), which pages/base starts on every page,
+// here on the page a sign-in lands on, which flashes "Logged in
+// successfully" (docs/frontend-test-strategy.md §7a). An
 // error, or several toasts at once, are edits of what the server renders.
 // Time is faked: the countdown runs only when a test lets it pass.
 import { within } from '@testing-library/dom';
 import { vi } from 'vitest';
-import { initToasts } from '../../../../static/js/pages/toasts/toasts-page.js';
+import { initBase } from '../../../../static/js/pages/base/base-page.js';
 import { inLanguage, openPage, replaceInFixture } from './page.js';
 
 export { screen } from './page.js';
@@ -44,7 +45,7 @@ export function openToastsPage({ language = 'en', flashed, tabHidden = false } =
     /** @type {DocumentVisibilityState} */
     let visibility = tabHidden ? 'hidden' : 'visible';
     Object.defineProperty(document, 'visibilityState', { get: () => visibility, configurable: true });
-    initToasts(document, { now: () => Date.now() });
+    initBase(document, { now: () => Date.now() });
 
     const { screen, user } = page;
     const toast = (/** @type {string} */ message) => {
