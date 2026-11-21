@@ -144,14 +144,17 @@ def _reset(files, tokens=()):
             backend.tokens.insert(dict(token), doc_id=doc_id)
 
 
-def _client(username=None):
+def _client(username=None, language=None):
+    """A test client, signed in as `username` if given. `language` is the
+    browser's Accept-Language at sign-in, so the login flash is in it."""
     client = flask_app.test_client()
     with client.session_transaction() as session:
         session['csrf_token'] = CSRF_TOKEN
     if username:
         response = client.post('/login', data={
             'username': username, 'password': PASSWORDS[username],
-            'csrf_token': CSRF_TOKEN})
+            'csrf_token': CSRF_TOKEN},
+            headers={'Accept-Language': language} if language else {})
         assert response.status_code == 302, f'login failed for {username}'
     with client.session_transaction() as session:
         session['csrf_token'] = CSRF_TOKEN
@@ -188,13 +191,13 @@ def render_all():
     fixtures.append(_render('index--notification-email', _client('notifyuser'), 'GET', '/'))
     # Polish (#268): one fixture per translated page, chosen the way a
     # browser does, by Accept-Language.
-    fixtures.append(_render('index--empty.pl', _client('testuser'), 'GET', '/', language='pl'))
+    fixtures.append(_render('index--empty.pl', _client('testuser', language='pl'), 'GET', '/', language='pl'))
 
     _reset(LISTED_FILES)
     with flask_app.app_context():
         get_backend().files.create_dropzone(dict(LISTED_DROPZONE))
     fixtures.append(_render('index--files', _client('testuser'), 'GET', '/'))
-    fixtures.append(_render('index--files.pl', _client('testuser'), 'GET', '/', language='pl'))
+    fixtures.append(_render('index--files.pl', _client('testuser', language='pl'), 'GET', '/', language='pl'))
 
     _reset([])
     with flask_app.app_context():
@@ -217,7 +220,7 @@ def render_all():
 
     _reset([], API_TOKENS)
     fixtures.append(_render('users--admin', _client('adminuser'), 'GET', '/users'))
-    fixtures.append(_render('users--admin.pl', _client('adminuser'), 'GET', '/users', language='pl'))
+    fixtures.append(_render('users--admin.pl', _client('adminuser', language='pl'), 'GET', '/users', language='pl'))
 
     for kind, record in (('file', SHARE_FILE), ('text', SHARE_TEXT)):
         _reset([record])
@@ -234,7 +237,7 @@ def render_all():
                                     data={'csrf_token': CSRF_TOKEN}, language=language))
         fixtures.append(_render(f'success--{kind}', _client('testuser'), 'GET',
                                 f"/success/{record['id']}"))
-        fixtures.append(_render(f'success--{kind}.pl', _client('testuser'), 'GET',
+        fixtures.append(_render(f'success--{kind}.pl', _client('testuser', language='pl'), 'GET',
                                 f"/success/{record['id']}", language='pl'))
     return fixtures
 

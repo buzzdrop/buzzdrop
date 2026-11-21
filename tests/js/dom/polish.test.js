@@ -7,6 +7,7 @@ import { openLoginPage } from '../support/pages/login.js';
 import { openRespondPage } from '../support/pages/respond.js';
 import { openGonePage, screen } from '../support/pages/script-free.js';
 import { openSuccessPage } from '../support/pages/success.js';
+import { openToastsPage } from '../support/pages/toasts.js';
 import { openUploadPage } from '../support/pages/upload.js';
 import { openUsersPage } from '../support/pages/users.js';
 import { DEFAULT_MESSAGE, DEFAULT_PASSWORD, openShare } from '../support/pages/view.js';
@@ -62,6 +63,15 @@ describe('in Polish', () => {
         expect(screen.getByRole('menu', { name: 'Język: Polski' })).toBeVisible();
         expect(screen.getByRole('menuitemradio', { name: 'Polski' })).toBeChecked();
         expect(screen.getByRole('menuitemradio', { name: 'English' })).not.toBeChecked();
+    });
+
+    it('names the flash toasts\' region and close button in Polish', () => {
+        openToastsPage({ language: 'pl' });
+
+        const region = screen.getByRole('region', { name: 'Komunikaty' });
+        expect(region).toBeVisible();
+        expect(within(region).getByRole('status')).toHaveTextContent('Zalogowano');
+        expect(screen.getByRole('button', { name: 'Zamknij komunikat' })).toBeVisible();
     });
 
     it('offers no language menu on the drop-is-gone page', () => {

@@ -10,6 +10,7 @@
     <title>Buzzdrop: bezpieczne, jednorazowe przesyłanie plików</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="/static/css/app.css?v=sha384-FIXTURE">
+    
 </head>
 <body class="min-h-full">
     <!-- Ambient layers: warm light pooling at the top, drifting honeycomb lattice. -->
@@ -108,27 +109,36 @@
             </div>
         </nav>
 
-        <main class="container-shell flex-1 py-10 sm:py-14">
-            
-            
-                
-                    
-                    <div class="mx-auto mb-8 max-w-2xl space-y-3">
-                    
-                        
-                        <div class="alert-banner animate-fade-up alert-banner-success" role="status">
-                            
-                            <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4Z" clip-rule="evenodd"/>
-                            </svg>
-                            
-                            <span>Logged in successfully</span>
-                        </div>
-                    
-                    </div>
-                
-            
+        
 
+
+<section id="toasts" class="toast-region" aria-label="Komunikaty">
+    
+    
+    <div class="toast toast-success" role="status" data-toast data-toast-timeout="6000">
+        
+        <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4Z" clip-rule="evenodd"/>
+        </svg>
+        
+        <p class="min-w-0 flex-1">Zalogowano</p>
+        
+        <button type="button" class="toast-close" aria-label="Zamknij komunikat" data-toast-close hidden>
+            <svg class="toast-ring" viewBox="0 0 40 40" aria-hidden="true">
+                <path class="toast-ring-track" d="M20 2.5a17.5 17.5 0 1 1 0 35a17.5 17.5 0 1 1 0-35"/>
+                <path class="toast-ring-left" d="M20 2.5a17.5 17.5 0 1 1 0 35a17.5 17.5 0 1 1 0-35" pathLength="1"/>
+            </svg>
+            <svg class="relative h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+            </svg>
+        </button>
+    </div>
+    
+</section>
+
+
+
+        <main class="container-shell flex-1 py-10 sm:py-14">
             
 <div class="mx-auto max-w-2xl">
     <div class="surface-card animate-zoom-in p-8 sm:p-10">

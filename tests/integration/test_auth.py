@@ -44,45 +44,44 @@ def test_login_successful_normal_user(client, app):
         assert sess['is_admin'] == False
     assert b'Logged in successfully' in response.data # Check flash message
 
-class _ParentClasses(HTMLParser):
-    """Records the classes on the parent of the first element matching each probe."""
+class _Ancestors(HTMLParser):
+    """Records the tags enclosing the first element matching each probe."""
 
     VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
             'link', 'meta', 'source', 'track', 'wbr'}
 
     def __init__(self, probes):
         super().__init__()
-        self.probes = probes  # name -> predicate(tag, classes)
+        self.probes = probes  # name -> predicate(tag, attrs)
         self.found = {}
         self._stack = []
 
     def handle_starttag(self, tag, attrs):
-        classes = (dict(attrs).get('class') or '').split()
+        attrs = dict(attrs)
         for name, matches in self.probes.items():
-            if name not in self.found and self._stack and matches(tag, classes):
-                self.found[name] = self._stack[-1]
+            if name not in self.found and matches(tag, attrs):
+                self.found[name] = list(self._stack)
         if tag not in self.VOID:
-            self._stack.append(classes)
+            self._stack.append(tag)
 
     def handle_endtag(self, tag):
         if tag not in self.VOID and self._stack:
             self._stack.pop()
 
 
-def test_login_flash_shares_the_composer_width(client):
-    """The banner sits in the page's own column, so their edges line up."""
+def test_login_flash_is_a_toast_outside_the_page_content(client):
+    """The flash is laid over the page (#473), so it never moves the content."""
     response = client.post(url_for('login'), data={
         'csrf_token': 'test-csrf-token',
         'username': 'testuser',
         'password': 'password'
     }, follow_redirects=True)
-    parser = _ParentClasses({
-        'banner': lambda tag, classes: 'alert-banner' in classes,
-        'composer': lambda tag, classes: tag == 'header',
+    parser = _Ancestors({
+        'toast': lambda tag, attrs: 'data-toast' in attrs,
     })
     parser.feed(response.get_data(as_text=True))
-    assert 'max-w-5xl' in parser.found['banner']
-    assert 'max-w-5xl' in parser.found['composer']
+    assert 'section' in parser.found['toast']
+    assert 'main' not in parser.found['toast']
 
 def test_login_successful_admin_user(client, app):
     # 'adminuser:adminpass:true'

@@ -1,0 +1,40 @@
+{# Flashed messages as toasts (#473): laid over the page in a fixed corner,
+   so showing or closing one never moves the content. Anything not
+   explicitly flashed as a success is treated as a problem. Without JS the
+   toasts stay; features/toasts, which pages/base starts on every page,
+   shows the close button, closes each toast on its own after
+   data-toast-timeout ms and shows the time left as the ring around the
+   button. #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<section id="toasts" class="toast-region" aria-label="{{ _('Notifications') }}">
+    {% for category, message in messages %}
+    {% set is_success = category == 'success' %}
+    <div class="toast {{ 'toast-success' if is_success else 'toast-error' }}" role="{{ 'status' if is_success else 'alert' }}" data-toast data-toast-timeout="{{ 6000 if is_success else 10000 }}">
+        {% if is_success %}
+        <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4Z" clip-rule="evenodd"/>
+        </svg>
+        {% else %}
+        <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        {% endif %}
+        <p class="min-w-0 flex-1">{{ message }}</p>
+        {# The ring around the × is the countdown: it runs down from the top,
+           clockwise. Each path is a circle drawn as two arcs from the top;
+           pathLength="1" makes the dash offset the share of time used. #}
+        <button type="button" class="toast-close" aria-label="{{ _('Close notification') }}" data-toast-close hidden>
+            <svg class="toast-ring" viewBox="0 0 40 40" aria-hidden="true">
+                <path class="toast-ring-track" d="M20 2.5a17.5 17.5 0 1 1 0 35a17.5 17.5 0 1 1 0-35"/>
+                <path class="toast-ring-left" d="M20 2.5a17.5 17.5 0 1 1 0 35a17.5 17.5 0 1 1 0-35" pathLength="1"/>
+            </svg>
+            <svg class="relative h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+            </svg>
+        </button>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+{% endwith %}
