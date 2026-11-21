@@ -87,15 +87,16 @@ export function openToastsPage({ language = 'en', flashed, tabHidden = false } =
         leaveTab: () => setVisibility('hidden'),
         returnToTab: () => setVisibility('visible'),
         /**
-         * The timer bar of the toast showing `message`: the share of its time
-         * left while paused (1 before it starts), and whether it is running
-         * down. It is decoration (aria-hidden), so only the driver reads it.
+         * The countdown ring around the close button of the toast showing
+         * `message`: the share of its time left while paused (1 before it
+         * starts), and whether it is running down. The ring is decoration
+         * (aria-hidden), so only the driver reads it.
          * @param {string} message
          */
-        timerBar(message) {
-            const fill = /** @type {HTMLElement} */ (toast(message).querySelector('[data-toast-timer-fill]'));
-            const fraction = fill.style.getPropertyValue('--toast-fraction');
-            return { left: fraction === '' ? 1 : Number(fraction), running: 'running' in fill.dataset };
+        countdown(message) {
+            const button = closeOf(message);
+            const fraction = button.style.getPropertyValue('--toast-fraction');
+            return { left: fraction === '' ? 1 : Number(fraction), running: 'running' in button.dataset };
         },
     };
 }

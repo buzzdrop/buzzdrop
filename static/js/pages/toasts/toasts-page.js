@@ -1,7 +1,7 @@
 // --- Flash toasts (#473) ---
 // templates/_flash_toasts.html renders each flashed message as a toast in a
 // fixed region over the page, which stays put without JS. This shows each
-// toast's close button and its timer bar, and closes the toast once its
+// toast's close button, whose ring is the countdown, and closes the toast once its
 // data-toast-timeout has run out. The countdown pauses while the pointer is
 // on the toast, while focus is in it and while the tab is hidden, and
 // resumes from where it stopped. Escape closes the toast focus is in.
@@ -62,8 +62,6 @@ export function initToasts(root, deps) {
 
     for (const toast of toasts) {
         const close = required(toast, '[data-toast-close]', 'button');
-        const bar = required(toast, '[data-toast-timer]', 'div');
-        const fill = required(bar, '[data-toast-timer-fill]', 'div');
         const total = Number(requiredData(toast, 'toastTimeout'));
 
         let left = total;
@@ -73,22 +71,23 @@ export function initToasts(root, deps) {
         /** @type {Set<PauseReason>} */
         const pauses = new Set();
 
-        // The bar shrinks by a CSS transition over the time left; paused, it
-        // holds the fraction left.
+        // The ring around the close button runs down by a CSS transition
+        // over the time left; paused, it holds the fraction left. Both come
+        // to it as custom properties on the button.
         const run = () => {
             startedAt = deps.now();
             timer = setTimeout(() => { timer = undefined; dismiss(toast); }, left);
-            fill.style.setProperty('--toast-left', `${left}ms`);
-            void fill.offsetWidth;
-            fill.dataset.running = '';
+            close.style.setProperty('--toast-left', `${left}ms`);
+            void close.offsetWidth;
+            close.dataset.running = '';
         };
 
         const stop = () => {
             clearTimeout(timer);
             timer = undefined;
             left = Math.max(0, left - (deps.now() - startedAt));
-            fill.style.setProperty('--toast-fraction', String(left / total));
-            delete fill.dataset.running;
+            close.style.setProperty('--toast-fraction', String(left / total));
+            delete close.dataset.running;
         };
 
         /** @param {PauseReason} reason */
@@ -104,7 +103,6 @@ export function initToasts(root, deps) {
         };
 
         close.hidden = false;
-        bar.hidden = false;
 
         close.addEventListener('click', () => {
             clearTimeout(timer);

@@ -513,25 +513,40 @@
     @apply pointer-events-none opacity-0;
   }
 
+  /* The × in a 32px circle whose ring is the countdown (toasts-page.js sets
+     --toast-left, --toast-fraction and data-running on the button). */
   .toast-close {
-    @apply -my-1 -mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-current opacity-70 transition hover:bg-white/10 hover:opacity-100;
+    @apply relative -my-1.5 -mr-1.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-white/10;
   }
 
-  .toast-timer {
-    @apply absolute inset-x-0 bottom-0 h-0.5 bg-white/5;
+  .toast-ring {
+    @apply pointer-events-none absolute inset-0 h-full w-full;
   }
 
-  /* Shrinks over the time left (--toast-left) while running; paused, it
-     holds the fraction left (--toast-fraction). */
-  .toast-timer-fill {
-    @apply h-full origin-left bg-current opacity-60;
-    transform: scaleX(var(--toast-fraction, 1));
-    transition: none;
+  .toast-ring-track {
+    @apply fill-none stroke-current;
+    stroke-opacity: 0.12;
+    stroke-width: 1.6;
   }
 
-  .toast-timer-fill[data-running] {
-    transform: scaleX(0);
-    transition: transform var(--toast-left, 0ms) linear;
+  /* Paused, it holds the time left (--toast-fraction); running, it runs
+     down to nothing over the time left (--toast-left). */
+  .toast-ring-left {
+    @apply fill-none stroke-current;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: calc(1 - var(--toast-fraction, 1));
+    transition: stroke-dashoffset 0ms, opacity 200ms, filter 200ms;
+    opacity: 1;
+    filter: drop-shadow(0 0 3px currentColor);
+  }
+
+  .toast-close[data-running] .toast-ring-left {
+    stroke-dashoffset: 1;
+    opacity: 0.8;
+    filter: none;
+    transition: stroke-dashoffset var(--toast-left, 0ms) linear, opacity 200ms, filter 200ms;
   }
 
   /* Focus lands on <main> when the last toast closes from the keyboard: it
@@ -703,9 +718,9 @@
     scroll-behavior: auto !important;
   }
 
-  /* The toast timer is the time left, not decoration: it keeps its length. */
-  .toast-timer-fill[data-running] {
-    transition-duration: var(--toast-left, 0ms) !important;
+  /* The toast's ring is the time left, not decoration: it keeps its length. */
+  .toast-close[data-running] .toast-ring-left {
+    transition-duration: var(--toast-left, 0ms), 0.01ms, 0.01ms !important;
   }
 
   .btn-primary:hover,

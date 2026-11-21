@@ -63,14 +63,14 @@ describe('flash toasts', () => {
         expect(region()).toBeNull();
     });
 
-    it('the timer bar runs down while the countdown runs', () => {
+    it('the ring around the close button runs down while the countdown runs', () => {
         const toasts = openToastsPage();
 
-        expect(toasts.timerBar(LOGGED_IN)).toEqual({ left: 1, running: true });
+        expect(toasts.countdown(LOGGED_IN)).toEqual({ left: 1, running: true });
     });
 
     describe('pausing', () => {
-        it('the pointer on the toast holds it, and the bar shows the time left', async () => {
+        it('the pointer on the toast holds it, and the ring shows the time left', async () => {
             const toasts = openToastsPage();
             toasts.wait(2000);
 
@@ -78,7 +78,7 @@ describe('flash toasts', () => {
             toasts.wait(60_000);
 
             expect(shown(LOGGED_IN)).toBeVisible();
-            expect(toasts.timerBar(LOGGED_IN)).toEqual({ left: 4000 / SUCCESS_MS, running: false });
+            expect(toasts.countdown(LOGGED_IN)).toEqual({ left: 4000 / SUCCESS_MS, running: false });
         });
 
         it('moving the pointer away resumes from where it stopped, not from the start', async () => {
@@ -88,7 +88,7 @@ describe('flash toasts', () => {
             toasts.wait(10_000);
 
             await toasts.pointAway(LOGGED_IN);
-            expect(toasts.timerBar(LOGGED_IN).running).toBe(true);
+            expect(toasts.countdown(LOGGED_IN).running).toBe(true);
             toasts.wait(3999);
             expect(shown(LOGGED_IN)).toBeVisible();
 
