@@ -1529,6 +1529,27 @@ def _response_code(resp) -> str | None:
         return None
 
 
+_RELEASES_URL = 'https://github.com/buzzdrop/buzzdrop/releases'
+
+# One line appended to server problems that carry no specific diagnosis:
+# an unexplained refusal or a malformed body is what a client/server
+# version split looks like from inside an outdated binary (#346).
+_VERSION_HINT = (
+    "hint: if this keeps failing, check that this buzz matches the "
+    f"server — latest release: {_RELEASES_URL}")
+
+
+def _server_refusal(resp) -> None:
+    """Print an unexplained non-2xx reply plus the version hint; exit."""
+    msg = f"Server returned {resp.status_code}"
+    try:
+        msg += f": {resp.json().get('error', '')}"
+    except Exception:
+        pass
+    print(f"Error: {msg}\n{_VERSION_HINT}", file=sys.stderr)
+    sys.exit(1)
+
+
 def _protocol_mismatch(server_protocol: str | None = None) -> None:
     """Abort on a client/server protocol-version split (#346)."""
     detail = (
@@ -1536,8 +1557,7 @@ def _protocol_mismatch(server_protocol: str | None = None) -> None:
         if server_protocol else "")
     print(
         f"Error: this buzz is too old for the server{detail} — "
-        "download the latest release: "
-        "https://github.com/buzzdrop/buzzdrop/releases",
+        f"download the latest release: {_RELEASES_URL}",
         file=sys.stderr,
     )
     sys.exit(1)
@@ -1581,13 +1601,7 @@ def upload_begin(server: str, token: str) -> dict | None:
     if resp.status_code == 400 and _response_code(resp) == 'protocol_mismatch':
         _protocol_mismatch()
     if not resp.ok:
-        msg = f"Server returned {resp.status_code}"
-        try:
-            msg += f": {resp.json().get('error', '')}"
-        except Exception:
-            pass
-        print(f"Error: {msg}", file=sys.stderr)
-        sys.exit(1)
+        _server_refusal(resp)
 
     body = resp.json()
     server_protocol = body.get('protocol')
@@ -1596,7 +1610,8 @@ def upload_begin(server: str, token: str) -> dict | None:
     file_id = body.get('file_id')
     h_hex = body.get('h')
     if not file_id or not h_hex:
-        print("Error: malformed /upload/begin response", file=sys.stderr)
+        print(f"Error: malformed /upload/begin response\n{_VERSION_HINT}",
+              file=sys.stderr)
         sys.exit(1)
     return {'file_id': file_id, 'h': bytes.fromhex(h_hex)}
 
@@ -1712,13 +1727,7 @@ def upload(server: str, token: str, filename: str, encrypted: bytes,
     if resp.status_code == 400 and _response_code(resp) == 'protocol_mismatch':
         _protocol_mismatch()
     if not resp.ok:
-        msg = f"Server returned {resp.status_code}"
-        try:
-            msg += f": {resp.json().get('error', '')}"
-        except Exception:
-            pass
-        print(f"Error: {msg}", file=sys.stderr)
-        sys.exit(1)
+        _server_refusal(resp)
 
     return resp.json()
 
@@ -1851,7 +1860,7 @@ def _dropzone_error(resp, prefix: str = "Error") -> None:
             msg += f" ({body['code']})"
     except Exception:
         pass
-    print(f"{prefix}: {msg}", file=sys.stderr)
+    print(f"{prefix}: {msg}\n{_VERSION_HINT}", file=sys.stderr)
     sys.exit(1)
 
 
@@ -2000,7 +2009,8 @@ def cmd_dropzone_collect(args) -> None:
     except ValueError:
         salt = wk = b''
     if len(salt) != _SALT_LEN or len(wk) != _WRAPPED_KEY_LEN:
-        print("Error: malformed dropzone data from server.", file=sys.stderr)
+        print("Error: malformed dropzone data from server.\n"
+              f"{_VERSION_HINT}", file=sys.stderr)
         sys.exit(1)
 
     password = _dropzone_password(args.password)
@@ -2040,8 +2050,8 @@ def cmd_dropzone_collect(args) -> None:
     except ValueError:
         ws = b''
     if len(ws) != _WRAPPED_KEY_LEN:
-        print("Error: malformed release response from server.",
-              file=sys.stderr)
+        print("Error: malformed release response from server.\n"
+              f"{_VERSION_HINT}", file=sys.stderr)
         sys.exit(1)
 
     # The claim is consumed before the body streams — one shot, like
