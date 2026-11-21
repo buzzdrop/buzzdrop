@@ -91,6 +91,11 @@ MODULE_ASSIGNMENTS = {
         'DROPZONE_MAX_ATTEMPTS', 'DROPZONE_BURN_ON_LOCKOUT',
         'DROPZONE_COLLECT_TTL_SECONDS',
     ),
+    # The declared share-protocol version upload_begin and upload_file
+    # enforce, and the one the CLI declares (#346): a bump changes what
+    # they accept.
+    'app.py': ('SHARE_PROTOCOL_VERSION',),
+    'cli/buzz': ('PROTOCOL_VERSION',),
 }
 
 

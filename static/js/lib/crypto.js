@@ -82,8 +82,11 @@ import { hkdf, pbkdf2Master } from './kdf.js';
 
 const encoder = new TextEncoder();
 
-// Outer envelope magic ('BKV3') — the only supported version.
-const ENVELOPE_MAGIC = encoder.encode('BKV3');
+// The share-protocol version this client declares on /upload/begin and
+// /upload (#346); the server refuses a declared mismatch.
+export const SHARE_FORMAT = 'BKV3';
+// Outer envelope magic — the only supported version.
+const ENVELOPE_MAGIC = encoder.encode(SHARE_FORMAT);
 // HKDF domain separation labels (docs/true-one-time.md §6.2).
 const HKDF_INFO_ENC = encoder.encode('enc');
 const HKDF_INFO_VER = encoder.encode('ver');

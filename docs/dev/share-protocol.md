@@ -10,7 +10,7 @@ Files are encrypted in the browser with the Web Crypto API (`static/js/lib/crypt
 
 ### Upload (always two-phase)
 
-1. `POST /upload/begin` → server mints `file_id` and a random share `H`, returns `{file_id, h}` (H as hex)
+1. `POST /upload/begin` → server mints `file_id` and a random share `H`, returns `{file_id, h, protocol}` (H as hex; `protocol` is the share-format version it speaks, `SHARE_PROTOCOL_VERSION` in app.py). A client may declare its own version in a `protocol` form field — the browser and the CLI both send `BKV3`; a declared mismatch is refused with 400 `protocol_mismatch` before a share mints, so an outdated client fails fast instead of uploading a dead drop (#346). `/upload` runs the same declared-version check.
 2. `master = PBKDF2-SHA256(password, salt, 600k)`; `Kp = HKDF(master, salt, 'enc')`, `V = HKDF(master, salt, 'ver')`
 3. `file_key = HKDF(Kp ‖ H, salt, 'file')`; plaintext is `BKP-FIL2 ‖ receipt(32B random) ‖ name_len(2B BE) ‖ name(utf-8) ‖ data` (the receipt is the decryption proof — the server stores only its SHA-256; the name is the original filename, which reaches the recipient only through the ciphertext, #246), then AES-GCM encrypted
 4. Envelope: `BKV3 ‖ salt(16) ‖ iv(12) ‖ ciphertext`, uploaded with `file_id` + `key_verifier` (hex V) + `receipt_hash` — the server binds V to the pending share atomically (only the account that ran `begin` may finish: `created_by` check, 403 otherwise)
@@ -29,8 +29,8 @@ The server renders the BKV3 envelope salt into the view page config, so nothing 
 
 ## Routes
 
-- `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`. Sends `Cache-Control: no-store`, since the response carries H. With neither a Bearer token nor a session, it and the other `@api_auth_required` routes answer 401 `login_required`
-- `/upload` (POST): Completes the key-release upload.
+- `/upload/begin` (POST): Mints `file_id` + server share `H` for the two-phase key-release upload. Shares the `UPLOAD_RATE_LIMIT` bucket with `/upload`. Sends `Cache-Control: no-store`, since the response carries H. With neither a Bearer token nor a session, it and the other `@api_auth_required` routes answer 401 `login_required`. Refuses a `protocol` form field that names a version it doesn't speak (400 `protocol_mismatch`), before the share mints (#346).
+- `/upload` (POST): Completes the key-release upload. Refuses a declared `protocol` version it doesn't speak the same way, before the share binds.
   - Requires the `file_id`, `key_verifier` and `receipt_hash` form fields.
   - For a file, the multipart `file` part's filename is a neutral `drop.<ext>` (#246): only the extension is read, for the `ALLOWED_EXTENSIONS` check — the real name is inside the ciphertext, and the row stores the label `File`. A client that still sends a real name gets the same treatment: extension checked, name discarded.
   - Refuses to finish another account's share (403).

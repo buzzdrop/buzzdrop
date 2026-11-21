@@ -1040,7 +1040,12 @@ TOKEN_LABEL_MAX_LENGTH = 64
 # always starts with b'BKP-FIL2' (inside the ciphertext) for integrity
 # validation.
 # ---------------------------------------------------------------------------
-MAGIC_V3 = b'BKV3'
+# The share-protocol version this buzz declares on /upload/begin and
+# /upload (#346). The server refuses a missing or mismatched declaration
+# before a share mints and names the version it speaks in the response.
+# Bump it when the format changes; the envelope magic derives from it.
+PROTOCOL_VERSION = 'BKV3'
+MAGIC_V3 = PROTOCOL_VERSION.encode()
 PLAINTEXT_MAGIC = b'BKP-FIL2'
 # Plaintext: 'BKP-FIL2' ‖ receipt(32B) ‖ name_len(2B BE) ‖ name(utf-8)
 # ‖ data. The receipt is the decryption proof — the server stores only
@@ -1516,13 +1521,67 @@ def decrypt_file(encrypted: bytes, password: str, h: bytes
     return plaintext[head_len:], receipt, name
 
 
+def _response_code(resp) -> str | None:
+    """The stable ``code`` of a JSON refusal, or None when there is none."""
+    try:
+        return resp.json().get('code')
+    except Exception:
+        return None
+
+
+def _response_protocol(resp) -> str | None:
+    """The ``protocol`` a JSON refusal names, or None when there is none."""
+    try:
+        return resp.json().get('protocol')
+    except Exception:
+        return None
+
+
+_RELEASES_URL = 'https://github.com/buzzdrop/buzzdrop/releases'
+
+# One line appended to server problems that carry no specific diagnosis:
+# an unexplained refusal or a malformed body is what a client/server
+# version split looks like from inside an outdated binary (#346).
+_VERSION_HINT = (
+    "hint: if this keeps failing, check that this buzz matches the "
+    f"server — latest release: {_RELEASES_URL}")
+
+
+def _server_refusal(resp) -> None:
+    """Print an unexplained non-2xx reply plus the version hint; exit."""
+    msg = f"Server returned {resp.status_code}"
+    try:
+        msg += f": {resp.json().get('error', '')}"
+    except Exception:
+        pass
+    print(f"Error: {msg}\n{_VERSION_HINT}", file=sys.stderr)
+    sys.exit(1)
+
+
+def _protocol_mismatch(server_protocol: str | None = None) -> None:
+    """Abort on a client/server protocol-version split (#346). Either side
+    can be the older one, so the message names both versions."""
+    detail = (f" (server speaks {server_protocol})"
+              if server_protocol else "")
+    print(
+        f"Error: buzz speaks {PROTOCOL_VERSION}{detail} — the share "
+        f"protocol versions differ; update whichever is older — "
+        f"latest buzz: {_RELEASES_URL}",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+
 def upload_begin(server: str, token: str) -> dict | None:
     """
     Phase 1 of a key-release upload: ask the server for file_id + H.
 
-    Returns the JSON body on success, or None when the server does not
-    offer server-gated key release (older server without /upload/begin) —
-    every upload is two-phase, so the caller must abort in that case.
+    Declares ``PROTOCOL_VERSION`` so the server can refuse an outdated
+    buzz before a share mints (#346); a mismatch aborts here, before any
+    ciphertext exists. Returns the JSON body on success, or None when the
+    server does not offer server-gated key release (older server without
+    /upload/begin) — every upload is two-phase, so the caller must abort
+    in that case.
     """
     requests = _requests()
     try:
@@ -1531,8 +1590,8 @@ def upload_begin(server: str, token: str) -> dict | None:
             headers={
                 'Authorization': f'Bearer {token}',
                 'X-Requested-With': 'XMLHttpRequest',
-                
             },
+            data={'protocol': PROTOCOL_VERSION},
             timeout=30,
         )
     except requests.RequestException as exc:
@@ -1548,20 +1607,20 @@ def upload_begin(server: str, token: str) -> dict | None:
         sys.exit(1)
     if resp.status_code == 404:
         return None
+    if resp.status_code == 400 and _response_code(resp) == 'protocol_mismatch':
+        _protocol_mismatch(_response_protocol(resp))
     if not resp.ok:
-        msg = f"Server returned {resp.status_code}"
-        try:
-            msg += f": {resp.json().get('error', '')}"
-        except Exception:
-            pass
-        print(f"Error: {msg}", file=sys.stderr)
-        sys.exit(1)
+        _server_refusal(resp)
 
     body = resp.json()
+    server_protocol = body.get('protocol')
+    if server_protocol and server_protocol != PROTOCOL_VERSION:
+        _protocol_mismatch(server_protocol)
     file_id = body.get('file_id')
     h_hex = body.get('h')
     if not file_id or not h_hex:
-        print("Error: malformed /upload/begin response", file=sys.stderr)
+        print(f"Error: malformed /upload/begin response\n{_VERSION_HINT}",
+              file=sys.stderr)
         sys.exit(1)
     return {'file_id': file_id, 'h': bytes.fromhex(h_hex)}
 
@@ -1615,6 +1674,7 @@ def upload(server: str, token: str, filename: str, encrypted: bytes,
         'file_id': file_id,
         'key_verifier': key_verifier,
         'receipt_hash': receipt_hash,
+        'protocol': PROTOCOL_VERSION,
     }
     if expiry:
         data['expiry'] = expiry
@@ -1673,14 +1733,10 @@ def upload(server: str, token: str, filename: str, encrypted: bytes,
         )
         sys.exit(1)
 
+    if resp.status_code == 400 and _response_code(resp) == 'protocol_mismatch':
+        _protocol_mismatch(_response_protocol(resp))
     if not resp.ok:
-        msg = f"Server returned {resp.status_code}"
-        try:
-            msg += f": {resp.json().get('error', '')}"
-        except Exception:
-            pass
-        print(f"Error: {msg}", file=sys.stderr)
-        sys.exit(1)
+        _server_refusal(resp)
 
     return resp.json()
 
@@ -1813,7 +1869,7 @@ def _dropzone_error(resp, prefix: str = "Error") -> None:
             msg += f" ({body['code']})"
     except Exception:
         pass
-    print(f"{prefix}: {msg}", file=sys.stderr)
+    print(f"{prefix}: {msg}\n{_VERSION_HINT}", file=sys.stderr)
     sys.exit(1)
 
 
@@ -1962,7 +2018,8 @@ def cmd_dropzone_collect(args) -> None:
     except ValueError:
         salt = wk = b''
     if len(salt) != _SALT_LEN or len(wk) != _WRAPPED_KEY_LEN:
-        print("Error: malformed dropzone data from server.", file=sys.stderr)
+        print("Error: malformed dropzone data from server.\n"
+              f"{_VERSION_HINT}", file=sys.stderr)
         sys.exit(1)
 
     password = _dropzone_password(args.password)
@@ -2002,8 +2059,8 @@ def cmd_dropzone_collect(args) -> None:
     except ValueError:
         ws = b''
     if len(ws) != _WRAPPED_KEY_LEN:
-        print("Error: malformed release response from server.",
-              file=sys.stderr)
+        print("Error: malformed release response from server.\n"
+              f"{_VERSION_HINT}", file=sys.stderr)
         sys.exit(1)
 
     # The claim is consumed before the body streams — one shot, like

@@ -333,6 +333,7 @@ def key_release_upload(client, key_share):
         form['file_id'] = file_id
         form['key_verifier'] = verifier
         form['receipt_hash'] = receipt_hash
+        form.setdefault('protocol', 'BKV3')
         form.setdefault('csrf_token', CSRF_TOKEN)
         if headers is None:
             headers = {'X-Requested-With': 'XMLHttpRequest'} if xhr else {}

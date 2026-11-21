@@ -51,6 +51,7 @@ def test_view_page_has_sri_for_its_entry(client, db_instance, files_store, csrf_
         'file_id': file_id,
         'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
     }, content_type='multipart/form-data')
 
@@ -91,6 +92,7 @@ def test_success_page_has_sri_for_its_entry(client, db_instance, files_store, ke
         'file_id': file_id,
         'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
     }, content_type='multipart/form-data')
 

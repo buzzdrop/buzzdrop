@@ -28,6 +28,7 @@ def upload_note(client, files_store, data=None, headers=None, xhr=True):
         'file_id': file_id,
         'key_verifier': 'cc' * 32,
         'receipt_hash': hashlib.sha256(receipt).hexdigest(),
+        'protocol': 'BKV3',
         'csrf_token': 'test-csrf-token',
     }
     form.update(data or {})
@@ -177,6 +178,7 @@ def test_text_note_type_field_in_database(client, app, files_store):
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         content_type='multipart/form-data',
@@ -255,6 +257,7 @@ def test_text_note_empty_content(client, app, key_share):
         'file_id': file_id,
         'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
     }
 

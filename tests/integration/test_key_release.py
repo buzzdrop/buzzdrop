@@ -56,6 +56,7 @@ def _key_release_upload(client, filename='key-release.txt', content=b'encrypted 
     import secrets
     begin = client.post(
         url_for('upload_begin'),
+        data={'protocol': 'BKV3'},
         headers={'X-Requested-With': 'XMLHttpRequest',
                       'X-CSRF-Token': 'test-csrf-token'},
     )
@@ -71,6 +72,7 @@ def _key_release_upload(client, filename='key-release.txt', content=b'encrypted 
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': hashlib.sha256(receipt).hexdigest(),
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         content_type='multipart/form-data',
@@ -109,6 +111,7 @@ def test_upload_begin_bearer_exempt_from_csrf(client):
     token = generate_api_token('testuser')
     response = client.post(
         url_for('upload_begin'),
+        data={'protocol': 'BKV3'},
         headers={'Authorization': f'Bearer {token}'},
     )
     assert response.status_code == 200
@@ -119,6 +122,7 @@ def test_upload_begin_returns_pending_share(client, files_store):
     login_user(client)
     response = client.post(
         url_for('upload_begin'),
+        data={'protocol': 'BKV3'},
         headers={'X-Requested-With': 'XMLHttpRequest',
                       'X-CSRF-Token': 'test-csrf-token'},
     )
@@ -133,6 +137,66 @@ def test_upload_begin_returns_pending_share(client, files_store):
     assert share['released_at'] is None
     # No files row yet — the record is created by the finish call.
     assert files_store.get_by_id(body['file_id']) is None
+
+
+def test_upload_begin_names_the_share_protocol(client):
+    """The response names the share-protocol version the app speaks
+    (#346), so a client can fail fast when it stops matching."""
+    login_user(client)
+    response = client.post(
+        url_for('upload_begin'),
+        data={'protocol': 'BKV3'},
+        headers={'X-Requested-With': 'XMLHttpRequest',
+                      'X-CSRF-Token': 'test-csrf-token'},
+    )
+    assert response.status_code == 200
+    assert response.get_json()['protocol'] == 'BKV3'
+
+
+def test_upload_begin_refuses_a_declared_mismatch(client):
+    """A client declaring a share protocol the server doesn't speak is
+    refused before a share mints — no file_id, no dangling H (#346)."""
+    login_user(client)
+    response = client.post(
+        url_for('upload_begin'),
+        data={'protocol': 'BKV4'},
+        headers={'X-Requested-With': 'XMLHttpRequest',
+                      'X-CSRF-Token': 'test-csrf-token'},
+    )
+    assert response.status_code == 400
+    body = response.get_json()
+    assert body['code'] == 'protocol_mismatch'
+    assert body['protocol'] == 'BKV3'
+    assert 'file_id' not in body
+
+
+def test_upload_begin_refuses_an_undeclared_request(client):
+    """Silence isn't a bypass: a missing ``protocol`` field is refused
+    the same as a mismatched one (#346)."""
+    login_user(client)
+    response = client.post(
+        url_for('upload_begin'),
+        headers={'X-Requested-With': 'XMLHttpRequest',
+                      'X-CSRF-Token': 'test-csrf-token'},
+    )
+    assert response.status_code == 400
+    assert response.get_json()['code'] == 'protocol_mismatch'
+
+
+def test_upload_refuses_a_declared_mismatch(client):
+    """/upload runs the same check (#346): a declared-incompatible client
+    stops before the share binds."""
+    login_user(client)
+    response = client.post(
+        url_for('upload_file'),
+        data={'protocol': 'BKV4',
+              'file': (io.BytesIO(b'blob'), 'x.txt')},
+        content_type='multipart/form-data',
+        headers={'X-Requested-With': 'XMLHttpRequest',
+                      'X-CSRF-Token': 'test-csrf-token'},
+    )
+    assert response.status_code == 400
+    assert response.get_json()['code'] == 'protocol_mismatch'
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +225,7 @@ def test_key_release_upload_rejects_unknown_share(client, files_store):
             'file_id': 'does-not-exist',
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         content_type='multipart/form-data',
@@ -182,6 +247,7 @@ def test_key_release_upload_rejects_finalized_share(client, files_store):
             'file_id': file_id,
             'key_verifier': 'dd' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         content_type='multipart/form-data',
@@ -196,11 +262,12 @@ def test_key_release_upload_rejects_partial_handshake(client):
     csrf = 'test-csrf-token'
     for data in (
         {'file': (io.BytesIO(b'b'), 'x.txt'), 'file_id': 'abc',
-         'csrf_token': csrf},
+         'protocol': 'BKV3', 'csrf_token': csrf},
         {'file': (io.BytesIO(b'b'), 'x.txt'), 'key_verifier': 'cc' * 32,
-         'csrf_token': csrf},
+         'protocol': 'BKV3', 'csrf_token': csrf},
         {'file': (io.BytesIO(b'b'), 'x.txt'),
-         'file_id': 'abc', 'key_verifier': 'not-hex', 'csrf_token': csrf},
+         'file_id': 'abc', 'key_verifier': 'not-hex', 'protocol': 'BKV3',
+         'csrf_token': csrf},
     ):
         response = client.post(
             url_for('upload_file'),
@@ -244,6 +311,7 @@ def test_upload_finish_bearer_exempt_from_csrf(client, key_share):
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
         },
         content_type='multipart/form-data',
         headers={'Authorization': f'Bearer {token}',
@@ -258,6 +326,7 @@ def test_upload_without_key_release_fields_rejected(client, files_store):
     response = client.post(
         url_for('upload_file'),
         data={'file': (io.BytesIO(b'plain blob'), 'legacy.txt'),
+              'protocol': 'BKV3',
               'csrf_token': 'test-csrf-token'},
         content_type='multipart/form-data',
         headers={'X-Requested-With': 'XMLHttpRequest',
@@ -272,6 +341,7 @@ def test_key_release_upload_rejects_other_users_share(client, files_store):
     login_user(client)  # testuser mints the pending share
     begin = client.post(
         url_for('upload_begin'),
+        data={'protocol': 'BKV3'},
         headers={'X-Requested-With': 'XMLHttpRequest',
                       'X-CSRF-Token': 'test-csrf-token'},
     )
@@ -286,6 +356,7 @@ def test_key_release_upload_rejects_other_users_share(client, files_store):
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
             'receipt_hash': 'aa' * 32,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         content_type='multipart/form-data',
@@ -309,6 +380,7 @@ def test_upload_missing_receipt_hash_rejected(client, key_share):
             'file': (io.BytesIO(b'blob'), 'x.txt'),
             'file_id': file_id,
             'key_verifier': 'cc' * 32,
+            'protocol': 'BKV3',
         },
         content_type='multipart/form-data',
         headers={'X-Requested-With': 'XMLHttpRequest',
@@ -559,6 +631,7 @@ def test_key_release_end_to_end(client, files_store, key_release_settings):
 
     begin = client.post(
         url_for('upload_begin'),
+        data={'protocol': 'BKV3'},
         headers={'X-Requested-With': 'XMLHttpRequest',
                       'X-CSRF-Token': 'test-csrf-token'},
     )
@@ -576,6 +649,7 @@ def test_key_release_end_to_end(client, files_store, key_release_settings):
             'file_id': file_id,
             'key_verifier': v_hex,
             'receipt_hash': receipt_hash,
+            'protocol': 'BKV3',
             'csrf_token': 'test-csrf-token',
         },
         content_type='multipart/form-data',

@@ -95,15 +95,17 @@ def file_id(share):
 
 
 def begin(name='begin', **extra):
+    # The browser declares its share-format version on begin (#346); a
+    # scenario can refuse it by overriding ``form``.
     return {'name': name, 'method': 'POST', 'path': ['/upload/begin'],
-            'headers': SESSION_XHR, **extra}
+            'headers': SESSION_XHR, 'form': {'protocol': 'BKV3'}, **extra}
 
 
 def upload_file(name='upload', share='begin', verifier=V, **form):
     return {
         'name': name, 'method': 'POST', 'path': ['/upload'], 'headers': SESSION_XHR,
         'form': {'file_id': ref(f'{share}.file_id'), 'key_verifier': verifier,
-                 'receipt_hash': RECEIPT_HASH, **form},
+                 'receipt_hash': RECEIPT_HASH, 'protocol': 'BKV3', **form},
         # The multipart filename is the neutral "drop.<ext>" the browser
         # and CLI send: the real name stays inside the ciphertext (#246).
         'files': {'file': {'filename': 'drop.pdf', 'content': FILE_CONTENT}},
@@ -115,7 +117,7 @@ def upload_note(name='upload', share='begin'):
         'name': name, 'method': 'POST', 'path': ['/upload'], 'headers': SESSION_XHR,
         'form': {'note_text': base64.b64encode(NOTE_BYTES).decode(), 'type': 'text',
                  'file_id': ref(f'{share}.file_id'), 'key_verifier': V,
-                 'receipt_hash': RECEIPT_HASH},
+                 'receipt_hash': RECEIPT_HASH, 'protocol': 'BKV3'},
     }
 
 
@@ -285,6 +287,19 @@ SCENARIOS = [
         'steps': [begin(), upload_file(verifier='not-hex')],
     },
     {
+        # A client that doesn't declare the share-format version — or
+        # declares one the server doesn't speak — is refused on either
+        # route, before a share mints (#346).
+        'name': 'upload-protocol-mismatch',
+        'steps': [begin('begin-old', form={'protocol': 'BKV4'}),
+                  {**begin('begin-undeclared'), 'form': {}},
+                  begin(),
+                  upload_file('upload-old', protocol='BKV4'),
+                  {**upload_file('upload-undeclared'), 'form': {
+                      'file_id': ref('begin.file_id'), 'key_verifier': V,
+                      'receipt_hash': RECEIPT_HASH}}],
+    },
+    {
         # A wall-clock expiry with no zone is refused before the share is
         # bound, so the same share still finishes with a corrected one.
         'name': 'upload-expiry-without-zone',
@@ -299,7 +314,8 @@ SCENARIOS = [
     {
         'name': 'upload-unknown-share',
         'steps': [{**upload_file(), 'form': {
-            'file_id': MISSING_ID, 'key_verifier': V, 'receipt_hash': RECEIPT_HASH}}],
+            'file_id': MISSING_ID, 'key_verifier': V, 'receipt_hash': RECEIPT_HASH,
+            'protocol': 'BKV3'}}],
     },
     {
         # Open notifications are checked before the key material: only to the
