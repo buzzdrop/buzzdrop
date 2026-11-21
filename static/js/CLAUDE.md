@@ -5,8 +5,8 @@ The browser code is its own codebase with three layers. `tests/js/architecture.t
 ## Layers
 
 - **`lib/`**: domain primitives and generic helpers (the BKV3 format in `crypto.js`, hex, passphrases, one-click links, `required`, the page-strings reader `strings.js`, number and time formatting `format.js`). Pure of the page: no template selectors (`#id`), no `window`/`document` globals. Use `globalThis.crypto`, or take what is needed as an argument (`takeFragmentPassword(window)`).
-- **`features/<name>/`**: a behavioural slice (share protocol, clipboard feedback, password gate, shared-files list, progress bar, flash toasts). Its public surface is `index.js`, which re-exports functions and `@typedef`s; every other file in the folder is internal.
-- **`pages/<name>/`**: one folder per template. `<name>-page.js` is the page's composition root (`init<Page>(root, deps)` + `browserDeps()`), and `entry.js` is the only file a template loads (`init<Page>(document, browserDeps())`). Nothing composes pages. `pages/base/` belongs to `base.html`: it composes what every page shares (the flash toasts), and `base.html` loads its entry on every page.
+- **`features/<name>/`**: a behavioural slice (share protocol, clipboard feedback, password gate, shared-files list, progress bar, flash toasts, language menu). Its public surface is `index.js`, which re-exports functions and `@typedef`s; every other file in the folder is internal.
+- **`pages/<name>/`**: one folder per template. `<name>-page.js` is the page's composition root (`init<Page>(root, deps)` + `browserDeps()`), and `entry.js` is the only file a template loads (`init<Page>(document, browserDeps())`). Nothing composes pages. `pages/base/` belongs to `base.html`: it composes what every page shares (the flash toasts, the language menu), and `base.html` loads its entry on every page.
 
 ## Import rules
 

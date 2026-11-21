@@ -1,7 +1,8 @@
-// Driver for the header's language menu (#287), on the pages that have it
-// (docs/frontend-test-strategy.md §7a). The sender's pages all render the
-// same menu, so it opens on the login page, where an anonymous visitor lands.
-import { initLanguageMenu } from '../../../../static/js/pages/language-menu/language-menu-page.js';
+// Driver for the header's language menu (#287), which pages/base starts on
+// the pages that have it (docs/frontend-test-strategy.md §7a). The sender's
+// pages all render the same menu, so it opens on the login page, where an
+// anonymous visitor lands.
+import { browserDeps, initBase } from '../../../../static/js/pages/base/base-page.js';
 import { inLanguage, openPage } from './page.js';
 
 export { screen } from './page.js';
@@ -17,7 +18,7 @@ export { screen } from './page.js';
  */
 export function openLanguageMenuPage({ language = 'en' } = {}) {
     const page = openPage(inLanguage('login--default', language), { path: '/login' });
-    initLanguageMenu(page.window.document, {});
+    initBase(page.window.document, browserDeps());
     const { screen, user } = page;
     const menuButton = () => screen.getByRole('button', { name: /^(Language|Język): / });
 
